@@ -33,3 +33,7 @@
 
 # Editor temps
 *~
+
+# Autotools
+configure
+autom4te.cache/*

@@ -13,7 +13,30 @@ thus should work across platforms.
 * MIPS
   - (TO BE FILLED)
 
-## Building and running
+## Building AIMv6
 
-See documents in (TO BE FILLED).
+AIMv6 builds in UNIX-like environments, and have the following requirements:
+
+* A proper toolchain. Cross-compiling toolchains works for all platforms. For
+  IA32 targets, native toolchains are usable as well.
+
+* A `sh`-capable shell.
+
+* `make`
+
+Following steps should be taken to build AIMv6.
+
+1. If this source tree comes from a source repository, run `autoreconf` here at
+   the root of the source tree. If not, skip this step.
+
+2. Run `./configure`, with parameters and environment variables according to
+   your need.
+
+3. Run `make`
+
+AIMv6 does not come with any test suites right now.
+
+## Running AIMv6
+
+See documents in (TO BE FILLED) for more details.
 
