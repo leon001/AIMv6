@@ -15,51 +15,5 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# autoconf requirements
-# none
-
-AC_INIT([AIMv6], [0.1], [davidgao1001@gmail.com])
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
-
-# package information
-AC_ARG_VAR([ARCH], [target architecture])
-AC_SUBST([ARCH])
-AC_ARG_VAR([MACH], [target machine])
-AC_SUBST([MACH])
-AC_ARG_VAR([BOARD], [target board])
-AC_SUBST([BOARD])
-
-# programs
-AC_PROG_CC
-
-# libraries
-# none
-
-# header files
-# none
-
-# types
-# none
-
-# structures
-# none
-
-# compiler characteristics
-# none
-
-# library functions
-# none
-
-# system services
-# none
-
-AC_CONFIG_FILES([
-	Makefile
-	boot/Makefile
-	boot/arch/Makefile
-	boot/arch/armv7a/Makefile
-	boot/arch/i386/Makefile
-	boot/arch/mips/Makefile
-])
-AC_OUTPUT
+SUBDIRS = boot# kern user tools
 
