@@ -60,6 +60,17 @@ AC_CONFIG_FILES([
 	boot/arch/armv7a/Makefile
 	boot/arch/i386/Makefile
 	boot/arch/mips/Makefile
+	doc/Makefile
+	drivers/Makefile
+	firmware/Makefile
+	firmware/arch/Makefile
+	firmware/arch/armv7a/Makefile
+	firmware/arch/i386/Makefile
+	firmware/arch/mips/Makefile
+	include/Makefile
+	kern/Makefile
+	tools/Makefile
+	user/Makefile
 ])
 AC_OUTPUT
 

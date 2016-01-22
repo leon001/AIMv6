@@ -15,5 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-SUBDIRS = firmware boot# kern user tools
+SUBDIRS = $(ARCH)
+DIST_SUBDIRS = armv7a i386 mips
 

@@ -20,14 +20,15 @@ AIMv6 builds in UNIX-like environments, and have the following requirements:
 * A proper toolchain. Cross-compiling toolchains works for all platforms. For
   IA32 targets, native toolchains are usable as well.
 
-* A `sh`-capable shell.
+* A `sh`-compatible shell.
 
 * `make`
 
 Following steps should be taken to build AIMv6.
 
-1. If this source tree comes from a source repository, run `autoreconf` here at
-   the root of the source tree. If not, skip this step.
+1. If this source tree comes from a source repository, run
+   `autoreconf --install` here at the root of the source tree. If not, skip
+   this step.
 
 2. Run `./configure`, with parameters and environment variables according to
    your need.
