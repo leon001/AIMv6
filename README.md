@@ -18,7 +18,8 @@ thus should work across platforms.
 AIMv6 builds in UNIX-like environments, and have the following requirements:
 
 * A proper toolchain. Cross-compiling toolchains works for all platforms. For
-  IA32 targets, native toolchains are usable as well.
+  IA32 targets, native toolchains are usable as well. See (TO BE FILLED) for
+  details.
 
 * A `sh`-compatible shell.
 

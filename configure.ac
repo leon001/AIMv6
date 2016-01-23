@@ -20,6 +20,8 @@
 
 AC_INIT([AIMv6], [0.1], [davidgao1001@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+LT_INIT
+AC_CONFIG_MACRO_DIRS([m4])
 
 # package information
 AC_ARG_VAR([ARCH], [target architecture])
@@ -31,6 +33,7 @@ AC_SUBST([BOARD])
 
 # programs
 AC_PROG_CC
+AC_PROG_CC_STDC
 
 # libraries
 # none

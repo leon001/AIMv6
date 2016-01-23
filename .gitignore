@@ -39,8 +39,11 @@
 /aclocal.m4
 /compile
 /configure
-/missing
+/config.guess
+/config.sub
 /install-sh
+/ltmain.sh
+/missing
 Makefile.in
 
 config.log
