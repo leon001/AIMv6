@@ -17,8 +17,6 @@
 
 noinst_LTLIBRARIES = libserial-raw.la
 
-#libserial_la_SOURCES = 
-
 libserial_raw_la_SOURCES = uart.c uart.h
-libserial_raw_la_CPPFLAGS = -I$(srcdir)
+libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 

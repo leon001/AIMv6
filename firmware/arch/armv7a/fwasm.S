@@ -24,7 +24,7 @@ fw_vector:
 	/* Entry */
 	b	fw_main
 	/* Interface */
-	//b	uart_spin_puts
+	b	uart_spin_puts
 	//b	sd_dma_spin_read
 
 .text

@@ -9,7 +9,7 @@
 #*.pch
 
 # Preprocessed ldscript
-.lds
+*.lds
 
 # Libraries
 #*.lib

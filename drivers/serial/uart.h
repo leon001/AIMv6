@@ -19,9 +19,15 @@
 #ifndef _DRIVERS_SERIAL_UART_H
 #define _DRIVERS_SERIAL_UART_H
 
+#ifdef RAW /* baremetal driver */
+
 void uart_spin_puts(const char *str);
 //ssize_t uart_spin_printf(const char *fmt, ...);
 //ssize_t uart_spin_vprintf(const char *fmt, va_list ap);
+
+#else /* not RAW, or kernel driver */
+
+#endif /* RAW */
 
 #endif /* _DRIVERS_SERIAL_UART_H */
 

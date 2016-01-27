@@ -22,7 +22,9 @@ MOSTLYCLEANFILES = firmware.lds
 noinst_PROGRAMS = firmware.elf
 
 firmware_elf_SOURCES = fwasm.S fwmain.c
-firmware_elf_LDADD = firmware.lds
+firmware_elf_LDADD = \
+	firmware.lds \
+	$(top_builddir)/drivers/libdrivers-raw.la
 firmware_elf_LDFLAGS = -T firmware.lds
 
 firmware.lds: firmware.lds.S

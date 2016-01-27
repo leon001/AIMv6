@@ -18,9 +18,15 @@
 
 #include <uart.h>
 
+#ifdef RAW /* baremetal driver */
+
 void uart_spin_puts(const char *str)
 {
 	//for (; *str != '\0'; ++str)
 	//	uart_spin_putbyte((unsigned char)*str);
 }
+
+#else /* not RAW, or kernel driver */
+
+#endif /* RAW */
 
