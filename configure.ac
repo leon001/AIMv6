@@ -27,12 +27,11 @@ AC_ARG_VAR([ARCH], [target architecture])
 AC_SUBST([ARCH])
 AC_ARG_VAR([MACH], [target machine])
 AC_SUBST([MACH])
-AC_ARG_VAR([BOARD], [target board])
-AC_SUBST([BOARD])
 
 # programs
 AC_PROG_CC
 AC_PROG_CC_STDC
+AM_PROG_AS
 
 # libraries
 # none

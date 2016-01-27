@@ -15,3 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+AM_CFLAGS = -nostdinc -nostdlib
+
+MOSTLYCLEANFILES = firmware.lds
+
+noinst_PROGRAMS = firmware.elf
+
+firmware_elf_SOURCES = fwasm.S
+firmware_elf_LDADD = firmware.lds
+firmware_elf_LDFLAGS = -T firmware.lds
+
+firmware.lds: firmware.lds.S
+	$(COMPILE) -E -P $^ -o $@
+
