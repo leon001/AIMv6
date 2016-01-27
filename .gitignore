@@ -44,17 +44,20 @@
 /compile
 /configure
 /config.guess
+/config.h.in
 /config.sub
 /depcomp
 /install-sh
 /libtool
 /ltmain.sh
 /missing
+/stamp-h1
 .deps/
 Makefile.in
 
 
 # Configure output
-config.log
-config.status
+/config.h
+/config.log
+/config.status
 Makefile

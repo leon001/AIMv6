@@ -56,6 +56,8 @@ AM_PROG_AR
 
 LT_INIT
 
+AC_CONFIG_HEADERS([config.h])
+
 AC_CONFIG_FILES([
 	Makefile
 	boot/Makefile
