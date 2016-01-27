@@ -16,31 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-OUTPUT_ARCH(arm)
-ENTRY(_stext)
-
-SECTIONS
+__attribute__ ((noreturn))
+void fw_main(void)
 {
-	/DISCARD/ : {}
-
-	//. = ? TODO
-
-	//. = ALIGN
-
-	.text : {
-		_stext = .;
-		*(.vector)
-		*(.text)
-		_etext = .;
-	}
-
-	.rodata : {
-		*(.rodata)
-	}
-
-	.data : {
-		*(.data)
-	}
-
-	//BSS
+	while (1);
 }

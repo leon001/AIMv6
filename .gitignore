@@ -8,6 +8,9 @@
 #*.gch
 #*.pch
 
+# Preprocessed ldscript
+.lds
+
 # Libraries
 #*.lib
 *.a
@@ -37,17 +40,21 @@
 # Autotools
 /autom4te.cache/
 /aclocal.m4
+/ar-lib
 /compile
 /configure
 /config.guess
 /config.sub
+/depcomp
 /install-sh
 /libtool
 /ltmain.sh
 /missing
+.deps/
 Makefile.in
 
+
+# Configure output
 config.log
 config.status
 Makefile
-

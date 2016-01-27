@@ -16,31 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-OUTPUT_ARCH(arm)
-ENTRY(_stext)
+#ifndef _DRIVERS_SERIAL_UART_H
+#define _DRIVERS_SERIAL_UART_H
 
-SECTIONS
-{
-	/DISCARD/ : {}
+void uart_spin_puts(const char *str);
+//ssize_t uart_spin_printf(const char *fmt, ...);
+//ssize_t uart_spin_vprintf(const char *fmt, va_list ap);
 
-	//. = ? TODO
+#endif /* _DRIVERS_SERIAL_UART_H */
 
-	//. = ALIGN
-
-	.text : {
-		_stext = .;
-		*(.vector)
-		*(.text)
-		_etext = .;
-	}
-
-	.rodata : {
-		*(.rodata)
-	}
-
-	.data : {
-		*(.data)
-	}
-
-	//BSS
-}

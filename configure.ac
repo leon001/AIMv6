@@ -20,7 +20,6 @@
 
 AC_INIT([AIMv6], [0.1], [davidgao1001@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
-LT_INIT
 
 # package information
 AC_ARG_VAR([ARCH], [target architecture])
@@ -32,6 +31,7 @@ AC_SUBST([MACH])
 AC_PROG_CC
 AC_PROG_CC_STDC
 AM_PROG_AS
+AM_PROG_AR
 
 # libraries
 # none
@@ -54,6 +54,8 @@ AM_PROG_AS
 # system services
 # none
 
+LT_INIT
+
 AC_CONFIG_FILES([
 	Makefile
 	boot/Makefile
@@ -63,6 +65,7 @@ AC_CONFIG_FILES([
 	boot/arch/mips/Makefile
 	doc/Makefile
 	drivers/Makefile
+	drivers/serial/Makefile
 	firmware/Makefile
 	firmware/arch/Makefile
 	firmware/arch/armv7a/Makefile

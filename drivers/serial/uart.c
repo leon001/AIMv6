@@ -16,31 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-OUTPUT_ARCH(arm)
-ENTRY(_stext)
+#include <uart.h>
 
-SECTIONS
+void uart_spin_puts(const char *str)
 {
-	/DISCARD/ : {}
-
-	//. = ? TODO
-
-	//. = ALIGN
-
-	.text : {
-		_stext = .;
-		*(.vector)
-		*(.text)
-		_etext = .;
-	}
-
-	.rodata : {
-		*(.rodata)
-	}
-
-	.data : {
-		*(.data)
-	}
-
-	//BSS
+	//for (; *str != '\0'; ++str)
+	//	uart_spin_putbyte((unsigned char)*str);
 }
+

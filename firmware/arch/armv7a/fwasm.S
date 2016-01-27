@@ -16,13 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-.globl firmware_bootasm
-
-.text
 .arm
 
-firmware_bootasm:
-	//ldr	sp, =firmware_vector
+.section vector
+
+fw_vector:
+	/* Entry */
+	b	fw_main
+	/* Interface */
+	//b	uart_spin_puts
+	//b	sd_dma_spin_read
+
+.text
+
+fw_asm:
+	ldr	sp, =fw_vector
 	movs	fp, sp
 	//bl	firmware_bootmain
 
