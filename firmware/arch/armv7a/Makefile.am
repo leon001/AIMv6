@@ -21,6 +21,8 @@ MOSTLYCLEANFILES = firmware.lds
 
 noinst_PROGRAMS = firmware.elf
 
+noinst_DATA = firmware.bin firmware.s
+
 firmware_elf_SOURCES = fwasm.S fwmain.c
 firmware_elf_LDADD = \
 	firmware.lds \
@@ -30,7 +32,9 @@ firmware_elf_LDFLAGS = -T firmware.lds
 firmware.lds: firmware.lds.S
 	$(COMPILE) -E -P $^ -o $@
 
-SUFFIXES = .elf .bin
+SUFFIXES = .elf .bin .s
 .elf.bin:
 	$(OBJCOPY) -O binary -S $^ $@
+.elf.s:
+	$(OBJDUMP)  -S $^ > $@
 

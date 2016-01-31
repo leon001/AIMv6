@@ -32,6 +32,9 @@ AC_PROG_CC
 AC_PROG_CC_STDC
 AM_PROG_AS
 AM_PROG_AR
+AC_CHECK_TOOL([OBJDUMP], [objdump])
+AC_CHECK_TOOL([OBJCOPY], [objcopy])
+
 
 # libraries
 # none

@@ -3,6 +3,7 @@
 *.ko
 #*.obj
 *.elf
+*.bin
 
 # Precompiled Headers
 #*.gch
@@ -55,9 +56,11 @@
 .deps/
 Makefile.in
 
-
 # Configure output
 /config.h
 /config.log
 /config.status
 Makefile
+
+# Disassembly
+/firmware/arch/*/firmware.s
