@@ -64,3 +64,6 @@ Makefile
 
 # Disassembly
 /firmware/arch/*/firmware.s
+
+# Tarball
+*.tar*
