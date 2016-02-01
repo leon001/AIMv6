@@ -15,8 +15,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+AM_CPPFLAGS = \
+	-I$(top_srcdir)/include/arch/$(ARCH) \
+	-I$(top_srcdir)/include
+
 noinst_LTLIBRARIES = libserial-raw.la
 
 libserial_raw_la_SOURCES = uart.c uart.h
 libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
+
+if UART_ZYNQ
+libserial_raw_la_SOURCES += uart-zynq.c uart-zynq.h
+else
+libserial_raw_la_CPPFLAGS += -DUART_ZYNQ
+endif
 

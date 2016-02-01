@@ -22,7 +22,7 @@
 
 fw_vector:
 	/* Entry */
-	b	fw_main
+	b	fw_asm
 	/* Interface */
 	b	uart_spin_puts
 	//b	sd_dma_spin_read
@@ -30,7 +30,13 @@ fw_vector:
 .text
 
 fw_asm:
+	/* Set state and disable interrupts, but do not touch endianness. */
+	msr	cpsr_c, 0xDF
+
+	/* Set up stack for firmware and bootloader use */
 	ldr	sp, =fw_vector
 	movs	fp, sp
-	//bl	firmware_bootmain
+
+	/* And call into firmware code */
+	bl	fw_main
 

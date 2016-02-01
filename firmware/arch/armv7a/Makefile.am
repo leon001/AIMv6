@@ -36,5 +36,5 @@ SUFFIXES = .elf .bin .s
 .elf.bin:
 	$(OBJCOPY) -O binary -S $^ $@
 .elf.s:
-	$(OBJDUMP)  -S $^ > $@
+	$(OBJDUMP) -d $^ > $@
 

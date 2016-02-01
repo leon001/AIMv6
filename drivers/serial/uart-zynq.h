@@ -16,19 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_SERIAL_UART_H
-#define _DRIVERS_SERIAL_UART_H
+#ifndef _DRIVERS_SERIAL_UART_ZYNQ_H
+#define _DRIVERS_SERIAL_UART_ZYNQ_H
+
 
 #ifdef RAW /* baremetal driver */
 
-void uart_puts(const char *str);
-//ssize_t uart_printf(const char *fmt, ...);
-//ssize_t uart_vprintf(const char *fmt, va_list ap);
+void uart_init(void);
+void uart_enable(void);
+void uart_disable(void);
+char uart_getbyte(void);
+void uart_putbyte(void);
 
 #else /* not RAW, or kernel driver */
 
 #endif /* RAW */
 
 
-#endif /* _DRIVERS_SERIAL_UART_H */
+#endif /* _DRIVERS_SERIAL_UART_ZYNQ_H */
 

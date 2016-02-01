@@ -27,6 +27,17 @@ AC_SUBST([ARCH])
 AC_ARG_VAR([MACH], [target machine])
 AC_SUBST([MACH])
 
+# deal with platforms
+# select what to compile for the firmware and the kernel
+# and add corresponding macro defines
+case $MACH in
+	zynq)
+		uart_zynq="primary"
+	;;
+esac
+AM_CONDITIONAL([UART_ZYNQ], 
+	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
+
 # programs
 AC_PROG_CC
 AC_PROG_CC_STDC
@@ -63,6 +74,7 @@ AC_CONFIG_HEADERS([config.h])
 
 AC_CONFIG_FILES([
 	Makefile
+	include/Makefile
 	boot/Makefile
 	boot/arch/Makefile
 	boot/arch/armv7a/Makefile
@@ -76,7 +88,6 @@ AC_CONFIG_FILES([
 	firmware/arch/armv7a/Makefile
 	firmware/arch/i386/Makefile
 	firmware/arch/mips/Makefile
-	include/Makefile
 	kern/Makefile
 	tools/Makefile
 	user/Makefile
