@@ -21,6 +21,8 @@
 
 #ifdef RAW /* baremetal driver */
 
+char uart_getbyte(void);
+void uart_putbyte(void);
 void uart_puts(const char *str);
 //ssize_t uart_printf(const char *fmt, ...);
 //ssize_t uart_vprintf(const char *fmt, va_list ap);

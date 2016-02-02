@@ -69,6 +69,18 @@ void uart_disable(void)
 	write32(UART_BASE + UART_OFFSET_CR, UART_CR_TX_DIS | UART_CR_RX_DIS);
 }
 
+unsigned char uart_getbyte(void)
+{
+	while (read32(UART_BASE + UART_OFFSET_SR) & UART_SR_RXEMPTY);
+	return read8(UART_BASE + UART_OFFSET_FIFO);
+}
+
+void uart_putbyte(unsigned char byte)
+{
+	while (read32(UART_BASE + UART_OFFSET_SR) & UART_SR_TXFULL);
+	write8(UART_BASE + UART_OFFSET_FIFO, byte);
+}
+
 #else /* not RAW, or kernel driver */
 
 #endif /* RAW */

@@ -25,8 +25,6 @@
 void uart_init(void);
 void uart_enable(void);
 void uart_disable(void);
-char uart_getbyte(void);
-void uart_putbyte(void);
 
 #else /* not RAW, or kernel driver */
 
