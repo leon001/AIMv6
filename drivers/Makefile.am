@@ -1,6 +1,6 @@
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 #
-# This program is part of AIMv6.
+# This file is part of AIMv6.
 #
 # AIMv6 is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,4 +14,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+include $(top_srcdir)/env.am
+
+SUBDIRS = serial
+
+noinst_LTLIBRARIES = libdrivers-raw.la
+
+libdrivers_raw_la_SOURCES =
+libdrivers_raw_la_LIBADD = $(builddir)/serial/libserial-raw.la
 

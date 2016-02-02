@@ -1,6 +1,6 @@
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 #
-# This program is part of AIMv6.
+# This file is part of AIMv6.
 #
 # AIMv6 is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,11 +26,28 @@ AC_ARG_VAR([ARCH], [target architecture])
 AC_SUBST([ARCH])
 AC_ARG_VAR([MACH], [target machine])
 AC_SUBST([MACH])
-AC_ARG_VAR([BOARD], [target board])
-AC_SUBST([BOARD])
+AC_ARG_VAR([MEM], [installed memory])
+AC_SUBST([MEM])
+
+# deal with platforms
+# select what to compile for the firmware and the kernel
+# and add corresponding macro defines
+case $MACH in
+	zynq)
+		uart_zynq="primary"
+	;;
+esac
+AM_CONDITIONAL([UART_ZYNQ], 
+	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
 
 # programs
 AC_PROG_CC
+AC_PROG_CC_STDC
+AM_PROG_AS
+AM_PROG_AR
+AC_CHECK_TOOL([OBJDUMP], [objdump])
+AC_CHECK_TOOL([OBJCOPY], [objcopy])
+
 
 # libraries
 # none
@@ -53,8 +70,13 @@ AC_PROG_CC
 # system services
 # none
 
+LT_INIT
+
+AC_CONFIG_HEADERS([config.h])
+
 AC_CONFIG_FILES([
 	Makefile
+	include/Makefile
 	boot/Makefile
 	boot/arch/Makefile
 	boot/arch/armv7a/Makefile
@@ -62,12 +84,12 @@ AC_CONFIG_FILES([
 	boot/arch/mips/Makefile
 	doc/Makefile
 	drivers/Makefile
+	drivers/serial/Makefile
 	firmware/Makefile
 	firmware/arch/Makefile
 	firmware/arch/armv7a/Makefile
 	firmware/arch/i386/Makefile
 	firmware/arch/mips/Makefile
-	include/Makefile
 	kern/Makefile
 	tools/Makefile
 	user/Makefile

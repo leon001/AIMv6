@@ -1,6 +1,6 @@
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 #
-# This file is part of AIMv6.
+# This program is part of AIMv6.
 #
 # AIMv6 is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,19 +17,18 @@
 
 include $(top_srcdir)/env.am
 
-MOSTLYCLEANFILES = firmware.lds
+AM_CPPFLAGS += \
+	-I$(top_srcdir)/include/arch/$(ARCH) \
+	-I$(top_srcdir)/include
 
-noinst_PROGRAMS = firmware.elf
+noinst_LTLIBRARIES = libserial-raw.la
 
-noinst_DATA = firmware.bin firmware.s
+libserial_raw_la_SOURCES = uart.c uart.h
+libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 
-firmware_elf_SOURCES = fwasm.S fwmain.c
-firmware_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
-firmware_elf_LDADD = \
-	firmware.lds \
-	$(top_builddir)/drivers/libdrivers-raw.la
-#firmware_elf_LDFLAGS = -T firmware.lds
-
-firmware.lds: firmware.lds.S
-	$(COMPILE) -DMEM_SIZE=$(MEM) -E -P $^ -o $@
+if UART_ZYNQ
+libserial_raw_la_SOURCES += uart-zynq.c uart-zynq.h
+else
+libserial_raw_la_CPPFLAGS += -DUART_ZYNQ
+endif
 
