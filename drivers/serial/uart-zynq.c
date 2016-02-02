@@ -57,6 +57,18 @@ void uart_init(void)
 		UART_CR_RX_DIS | UART_CR_TX_DIS | UART_CR_STOPBRK);
 }
 
+void uart_enable(void)
+{
+	/* Enable TX and RX */
+	write32(UART_BASE + UART_OFFSET_CR, UART_CR_TX_EN | UART_CR_RX_EN);
+}
+
+void uart_disable(void)
+{
+	/* Disable TX and RX */
+	write32(UART_BASE + UART_OFFSET_CR, UART_CR_TX_DIS | UART_CR_RX_DIS);
+}
+
 #else /* not RAW, or kernel driver */
 
 #endif /* RAW */

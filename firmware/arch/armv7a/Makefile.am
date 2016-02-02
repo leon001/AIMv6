@@ -24,6 +24,7 @@ noinst_PROGRAMS = firmware.elf
 noinst_DATA = firmware.bin firmware.s
 
 firmware_elf_SOURCES = fwasm.S fwmain.c
+firmware_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 firmware_elf_LDADD = \
 	firmware.lds \
 	$(top_builddir)/drivers/libdrivers-raw.la

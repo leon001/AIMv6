@@ -16,8 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
+#include <drivers/serial/uart.h>
+
+/* FIXME */
+#include <drivers/serial/uart-zynq.h>
+
 __attribute__ ((noreturn))
 void fw_main(void)
 {
+	uart_init();
 	while (1);
 }
