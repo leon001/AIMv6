@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AM_CFLAGS = -nostdinc -nostdlib
+include $(top_srcdir)/env.am
 
 MOSTLYCLEANFILES = firmware.lds
 
@@ -28,14 +28,8 @@ firmware_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 firmware_elf_LDADD = \
 	firmware.lds \
 	$(top_builddir)/drivers/libdrivers-raw.la
-firmware_elf_LDFLAGS = -T firmware.lds
+#firmware_elf_LDFLAGS = -T firmware.lds
 
 firmware.lds: firmware.lds.S
-	$(COMPILE) -E -P $^ -o $@
-
-SUFFIXES = .elf .bin .s
-.elf.bin:
-	$(OBJCOPY) -O binary -S $^ $@
-.elf.s:
-	$(OBJDUMP) -d $^ > $@
+	$(COMPILE) -DMEM_SIZE=$(MEM) -E -P $^ -o $@
 

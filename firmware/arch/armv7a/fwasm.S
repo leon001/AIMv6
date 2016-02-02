@@ -22,10 +22,10 @@
 
 fw_vector:
 	/* Entry */
-	b	fw_asm
+	ldr	pc, =fw_asm
 	/* Interface */
-	b	uart_spin_puts
-	//b	sd_dma_spin_read
+	ldr	pc, =uart_puts
+	//ldr	pc, =sd_dma_spin_read
 
 .text
 

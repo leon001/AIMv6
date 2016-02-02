@@ -26,6 +26,8 @@ AC_ARG_VAR([ARCH], [target architecture])
 AC_SUBST([ARCH])
 AC_ARG_VAR([MACH], [target machine])
 AC_SUBST([MACH])
+AC_ARG_VAR([MEM], [installed memory])
+AC_SUBST([MEM])
 
 # deal with platforms
 # select what to compile for the firmware and the kernel

@@ -16,8 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define FW_SIZE	1M
+
 OUTPUT_ARCH(arm)
 ENTRY(_stext)
+
+MEMORY
+{
+	FIRMWARE (rwx) :
+		ORIGIN = MEM_SIZE - FW_SIZE,
+		LENGTH = FW_SIZE
+}
 
 SECTIONS
 {

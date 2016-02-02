@@ -28,6 +28,10 @@
 __attribute__ ((noreturn))
 void fw_main(void)
 {
+	/* Initialize and enable UART */
 	uart_init();
+	uart_enable();
+	uart_puts("FW: Hello!\r\n");
+
 	while (1);
 }
