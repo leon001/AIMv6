@@ -23,7 +23,7 @@ ENTRY(_stext)
 
 MEMORY
 {
-	FIRMWARE (rwx) :
+	FIRMWARE (WX) :
 		ORIGIN = MEM_SIZE - FW_SIZE,
 		LENGTH = FW_SIZE
 }
@@ -32,9 +32,10 @@ SECTIONS
 {
 	/DISCARD/ : {}
 
-	//. = ? TODO
+	//. = ORIGIN(FIRMWARE);
 
-	//. = ALIGN
+	/* FIXME */
+	//. = ALIGN(4K);
 
 	.text : {
 		_stext = .;
@@ -42,6 +43,7 @@ SECTIONS
 		*(.text)
 		_etext = .;
 	}
+	
 
 	.rodata : {
 		*(.rodata)

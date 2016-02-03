@@ -18,7 +18,7 @@
 
 .arm
 
-.section vector
+.section .vector
 
 fw_vector:
 	/* Entry */
