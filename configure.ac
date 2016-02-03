@@ -35,10 +35,13 @@ AC_SUBST([MEM])
 case $MACH in
 	zynq)
 		uart_zynq="primary"
+		sd_zynq="primary"
 	;;
 esac
 AM_CONDITIONAL([UART_ZYNQ], 
 	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
+AM_CONDITIONAL([SD_ZYNQ], 
+	[test x$sd_zynq = xprimary -o x$sd_zynq = xsecondary])
 
 # programs
 AC_PROG_CC
@@ -84,6 +87,7 @@ AC_CONFIG_FILES([
 	boot/arch/mips/Makefile
 	doc/Makefile
 	drivers/Makefile
+	drivers/sd/Makefile
 	drivers/serial/Makefile
 	firmware/Makefile
 	firmware/arch/Makefile
