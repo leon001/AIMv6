@@ -25,21 +25,75 @@ and you can proceed to building.
 
 Tools on your `build` platform only produce machine code for the same platform,
 so a seperate toolchain is needed to cross build AIMv6. This toolchain can be
-installed from various sources, and may or may not work well. We recommend
-building one with `crosstool-ng`, or building one from sources.
+installed from various sources, and may or may not work well.
 
-### Building with `crosstool-ng`
+Those who don't wish to build from sources and exercise dark magic can refer
+to [Crosstool-NG](http://crosstool-ng.org/) instead.  This is an easy-to-use,
+all-in-one cross toolchain builder which automatically builds `binutils`, `gcc`,
+and C library for you.
 
-`crosstool-ng` is an individual project, and shipped scripts will fetch, build
-and install a toolchain according to given parameters. If you are working on
-MIPS architecture, this may be your best choice, as we're going to patch
-`binutils`, and it's not quite finished yet.
+### Building with Crosstool-NG
 
-Building toolchains by hand require a *LOT* of knowledge, while building with
-scripts limits your control over the product. Please make your choices
-carefully.
+Fetch a release from Crosstool-NG official website, and execute
 
-### Sources
+```
+./configure
+make
+make install
+```
+
+Run `ct-ng` to see usage.
+
+#### MIPS developers
+
+Crosstool-NG already ships a MIPS cross toolchain
+configuration.  I tried `mips64el-n64-linux-uclibc` and it works for our purpose.
+Other configurations are not tested.
+
+Run
+
+```
+ct-ng list-samples
+```
+
+to see other available default configurations.
+
+Run
+
+```
+ct-ng mips64el-n64-linux-uclibc
+```
+
+to select such configuration.
+
+Run
+
+```
+ct-ng build
+```
+
+and everything will be set up at `~/x-tools/mips64el-n64-linux-uclibc`.
+
+Your host machine triplet for our project will be then `mips64el-n64-linux-uclibc`.
+
+Add the `bin` directory there to your `PATH` variable, either via
+
+```
+export PATH=$PATH:$HOME/x-tools/mipes64el-n64-linux-uclibc
+```
+
+or via configuration files such as `~/.bashrc` or `~/.profile`.
+
+You are done.
+
+### Building From Scratch
+
+Building a good toolchain involves *LOTS* of knowledge, and often *LOTS* of
+failures as well. For MIPS64 users, this involves patching binutils by hand.
+This guide can't help you all the way, but if you're on ARM, it should work
+just fine.
+
+#### Fetch Sources
 
 To continue, you need sources for all programs involved in the toolchain. For
 example, `gcc` as compiler, `GNU binutils` as machine code tools, and `newlib`
@@ -50,7 +104,7 @@ assumes that you follow this example.
 As unprivileged user, create a directory in your home folder as the install
 prefix for your toolchain.
 
-### `Binutils`
+#### `Binutils`
 
 As an unprivileged user, unpack binutils tarball and create a seperate building
 directory for it. While you're in the building directory, configure `binutils`:
@@ -101,7 +155,7 @@ before you install:
 make tests
 ```
 
-### `gcc` Pass 1
+#### `gcc` Pass 1
 
 Just like `binutils`, extract `gcc` source, and extract `gmp`, `mpc`, and `mpfr`
 sources *into* `gcc` source tree, and remove version numbers in their folder
@@ -120,7 +174,7 @@ Run the `configure` script just like above, but adding more parameters:
 
 Still, run `make` and then `make install` after configuration.
 
-### Adjusting `$PATH`
+#### Adjusting `$PATH`
 
 `$PATH` is a variable for your shell to find executables. There is a `bin`
 folder inside your install prefix, add it to `$PATH`. If you're in `bash`, run:
@@ -129,18 +183,19 @@ folder inside your install prefix, add it to `$PATH`. If you're in `bash`, run:
 export PATH=$PATH:/install-dir/bin
 ```
 
-Where `/install-dir` is your install prefix.
+Where `/install-dir` is your install prefix. You may want to add this line to
+some configuration files such as `~/.bashrc` or `~/.profile`.
 
 You can now compile bare-metal programs.
 
-### `newlib`
+#### `newlib`
 
 Similar to `binutils`, but configure it with less options. Passing `prefix`,
 `target` and `enable-multilib` would be good enough.
 
 Still, run `make` and `make install`.
 
-### `gcc` Pass 2
+#### `gcc` Pass 2
 
 Now that we have a C library, gcc will build better. In a *new* building
 directory, configure it *without* `--without-headers`, `--with-newlib`,
