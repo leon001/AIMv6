@@ -25,8 +25,66 @@ and you can proceed to building.
 
 Tools on your `build` platform only produce machine code for the same platform,
 so a seperate toolchain is needed to cross build AIMv6. This toolchain can be
-installed from various sources, and may or may not work well. We recommend
-building one from sources.
+installed from various sources, and may or may not work well.
+
+Those who don't wish to build from sources and exercise dark magic can refer
+to [Crosstool-NG](http://crosstool-ng.org/) instead.  This is an easy-to-use,
+all-in-one cross toolchain builder which automatically builds `binutils`, `gcc`,
+and C library for you.
+
+### Building with Crosstool-NG
+
+Fetch a release from Crosstool-NG official website, and execute
+
+```
+./configure
+make
+make install
+```
+
+Run `ct-ng` to see usage.
+
+#### MIPS developers
+
+Crosstool-NG already ships a MIPS cross toolchain
+configuration.  I tried `mips64el-n64-linux-uclibc` and it works for our purpose.
+Other configurations are not tested.
+
+Run
+
+```
+ct-ng list-samples
+```
+
+to see other available default configurations.
+
+Run
+
+```
+ct-ng mips64el-n64-linux-uclibc
+```
+
+to select such configuration.
+
+Run
+
+```
+ct-ng build
+```
+
+and everything will be set up at `~/x-tools/mips64el-n64-linux-uclibc`.
+
+Your host machine triplet for our project will be then `mips64el-n64-linux-uclibc`.
+
+Add the `bin` directory there to your `PATH` variable, either via
+
+```
+export PATH=$PATH:$HOME/x-tools/mipes64el-n64-linux-uclibc
+```
+
+or via configuration files such as `~/.bashrc` or `~/.profile`.
+
+You are done.
 
 ### Sources
 
