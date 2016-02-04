@@ -86,6 +86,14 @@ or via configuration files such as `~/.bashrc` or `~/.profile`.
 
 You are done.
 
+#### ARM developers
+
+Crosstool-NG also ships an `arm-unknown-eabi` configuration.  The installation
+steps are mostly similar to those for MIPS developers, except that the target
+names are changed to `arm-unknown-eabi`.
+
+**Not yet tested, though.**
+
 ### Building From Scratch
 
 Building a good toolchain involves *LOTS* of knowledge, and often *LOTS* of
@@ -119,9 +127,14 @@ directory for it. While you're in the building directory, configure `binutils`:
 Rewrite the code above with your desired values.
 
  * `/path-to-source`: path pointing to `binutils` source.
- * `/install-prefix`: path to your install prefix directory.
+ * `/install-prefix`: path to your install prefix directory.  You can leave this
+option out to make it default (i.e. `/usr/local`).
  * `your-target`: triplet of your desired target, like `i386-linux-gnu` or
    `arm-unknown-eabi` or `mips64-unknown-elf`
+   + You can figure one out through `config.sub` script:
+```
+/path-to-source/config.sub
+```
  * `--some-extra-flags`: extra parameters to pass to configure. Frequently used
    ones include:
    - `--enable-thumb`: turn on thumb instruction set support on ARM platform
@@ -129,6 +142,17 @@ Rewrite the code above with your desired values.
      platforms.
    - `--enable-multilib`: turn on multilib support. It builds libraries for
      multiple instruction sets, and may prove to be useful someday.
+
+A sample configuration for ARM could look like
+
+```
+/path-to-source/configure	\
+--prefix=/usr/local		\
+--target=arm-unknown-eabi	\
+--enable-thumb			\
+--enable-interwork		\
+--enable-multilib
+```
 
 `configure` includes a lot of tests, and may fail if something is missing. In
 that case, install corresponding packages and try again. When everything works
@@ -163,6 +187,20 @@ names.
 
 Run the `configure` script just like above, but adding more parameters:
 
+```
+./configure			\
+--prefix=/usr/local		\
+--target=arm-unknown-eabi	\
+--enable-thumb			\
+--enable-interwork		\
+--enable-multilib		\
+--enable-languages=c		\
+--without-headers		\
+--with-newlib			\
+--disable-libssp		\
+--with-system-zlib
+```
+
  * `--enable-languages=c`: build only the C compiler.
  * `--without-headers`: we don't have any headers yet.
  * `--with-newlib`: we don't have a working libc yet.
@@ -193,6 +231,16 @@ You can now compile bare-metal programs.
 Similar to `binutils`, but configure it with less options. Passing `prefix`,
 `target` and `enable-multilib` would be good enough.
 
+So a `newlib` working on ARM can have the following configuration:
+
+```bash
+./configure --prefix=/usr/local/arm-unknown-eabi --target=arm-unknown-eabi --enable-multilib
+```
+
+**Make sure `--prefix` option points to a directory other than those in `$PATH`**, because
+we are building an entirely new C library working on a whole different architecture here.
+The configure script will probably prompt for that, though.
+
 Still, run `make` and `make install`.
 
 #### `gcc` Pass 2
@@ -202,6 +250,18 @@ directory, configure it *without* `--without-headers`, `--with-newlib`,
  and all the
 subproject-disabling parameters, while other parameters stay the same.
 You'll still need to apply `with-system-zlib` if you enable multilib.
+
+```
+./configure			\
+--prefix=/usr/local		\
+--target=arm-unknown-eabi	\
+--enable-thumb			\
+--enable-interwork		\
+--enable-multilib		\
+--enable-languages=c		\
+--with-newlib			\
+--with-system-zlib
+```
 
 `make` and `make install`, and your toolchain should be sane enough for AIMv6.
 
