@@ -26,7 +26,18 @@ and you can proceed to building.
 Tools on your `build` platform only produce machine code for the same platform,
 so a seperate toolchain is needed to cross build AIMv6. This toolchain can be
 installed from various sources, and may or may not work well. We recommend
-building one from sources.
+building one with `crosstool-ng`, or building one from sources.
+
+### Building with `crosstool-ng`
+
+`crosstool-ng` is an individual project, and shipped scripts will fetch, build
+and install a toolchain according to given parameters. If you are working on
+MIPS architecture, this may be your best choice, as we're going to patch
+`binutils`, and it's not quite finished yet.
+
+Building toolchains by hand require a *LOT* of knowledge, while building with
+scripts limits your control over the product. Please make your choices
+carefully.
 
 ### Sources
 
@@ -56,13 +67,14 @@ Rewrite the code above with your desired values.
  * `/path-to-source`: path pointing to `binutils` source.
  * `/install-prefix`: path to your install prefix directory.
  * `your-target`: triplet of your desired target, like `i386-linux-gnu` or
-   `arm-unknown-eabi`
+   `arm-unknown-eabi` or `mips64-unknown-elf`
  * `--some-extra-flags`: extra parameters to pass to configure. Frequently used
    ones include:
    - `--enable-thumb`: turn on thumb instruction set support on ARM platform
    - `--enable-interwork`: turn on processor mode interworking support on some
      platforms.
-   - `--disable-multilib`: turn off multilib support which may cause problems.
+   - `--enable-multilib`: turn on multilib support. It builds libraries for
+     multiple instruction sets, and may prove to be useful someday.
 
 `configure` includes a lot of tests, and may fail if something is missing. In
 that case, install corresponding packages and try again. When everything works
@@ -99,8 +111,12 @@ Run the `configure` script just like above, but adding more parameters:
 
  * `--enable-languages=c`: build only the C compiler.
  * `--without-headers`: we don't have any headers yet.
+ * `--with-newlib`: we don't have a working libc yet.
  * `--disable-libssp`: `libssp` will (likely) fail, so disable it now. If you
    come into any other subpackage that fails to build, disable them as well.
+ * `--with-system-zlib`: if you are cross compiling, the shipped `zlib` will
+   (likely) fail. It's okay to use the one installed on your system.
+ * Parameters controlling thumb, interwork and multilib still apply.
 
 Still, run `make` and then `make install` after configuration.
 
@@ -120,15 +136,17 @@ You can now compile bare-metal programs.
 ### `newlib`
 
 Similar to `binutils`, but configure it with less options. Passing `prefix`,
-`target` and `disable-multilib` would be good enough.
+`target` and `enable-multilib` would be good enough.
 
 Still, run `make` and `make install`.
 
 ### `gcc` Pass 2
 
 Now that we have a C library, gcc will build better. In a *new* building
-directory, configure it *without* `without-headers` and all the
+directory, configure it *without* `--without-headers`, `--with-newlib`,
+ and all the
 subproject-disabling parameters, while other parameters stay the same.
+You'll still need to apply `with-system-zlib` if you enable multilib.
 
 `make` and `make install`, and your toolchain should be sane enough for AIMv6.
 
