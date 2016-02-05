@@ -1,4 +1,5 @@
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -132,7 +133,7 @@ AS_CASE($MACH,
 			     [MSIM_DISK_IMG],
 			     [MSIM disk image file name],
 			     ["disk.img"])
-		 AC_SUBST(MSIM_CONF_CPULIST,
+		 AM_SUBST_NOTMAKE(MSIM_CONF_CPULIST,
 			  `for (( i=0; $i<$with_nr_cpus; i=$i+1 )); do \
 			  	echo add dcpu cpu$i; \
 			  done`)
@@ -146,7 +147,7 @@ AS_CASE($MACH,
 		 AC_SUBST(MSIM_CONF_DISK_IMAGE, $with_msim_disk_img)
 		 AC_SUBST(MSIM_CONF_ORDERPA,
 			  `printf 0x%08x $with_msim_order_pa`)
-		 AC_SUBST(MSIM_CONF_MBLIST,
+		 AM_SUBST_NOTMAKE(MSIM_CONF_MBLIST,
 			  `for (( i=0; $i<$with_nr_cpus; i=$i+1 )); do \
 			   pa=$(( $with_msim_mb_base \
 				+ $i * $with_msim_mb_size)); \
