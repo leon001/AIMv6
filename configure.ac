@@ -38,10 +38,16 @@ case $MACH in
 		sd_zynq="primary"
 	;;
 esac
+AM_CONDITIONAL([ARCH_ARMV7A_LE],
+	[test x$ARCH = xarmv7a-le])
+AM_CONDITIONAL([ARCH_MIPS32],
+	[test x$ARCH = xmips32])
 AM_CONDITIONAL([UART_ZYNQ], 
 	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
 AM_CONDITIONAL([SD_ZYNQ], 
 	[test x$sd_zynq = xprimary -o x$sd_zynq = xsecondary])
+AM_CONDITIONAL([UART_MSIM],
+	[test x$MACH = xmsim])
 
 # programs
 AC_PROG_CC

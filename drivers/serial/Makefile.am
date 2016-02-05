@@ -26,3 +26,6 @@ if UART_ZYNQ
 libserial_raw_la_SOURCES += uart-zynq.c uart-zynq.h
 endif
 
+if UART_MSIM
+libserial_raw_la_SOURCES += uart-msim.c uart-msim.h
+endif
