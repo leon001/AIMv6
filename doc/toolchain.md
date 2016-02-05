@@ -234,12 +234,13 @@ Similar to `binutils`, but configure it with less options. Passing `prefix`,
 So a `newlib` working on ARM can have the following configuration:
 
 ```bash
-./configure --prefix=/usr/local/arm-unknown-eabi --target=arm-unknown-eabi --enable-multilib
+./configure --prefix=/usr/local --target=arm-unknown-eabi --enable-multilib
 ```
 
-**Make sure `--prefix` option points to a directory other than those in `$PATH`**, because
-we are building an entirely new C library working on a whole different architecture here.
-The configure script will probably prompt for that, though.
+By setting `target` instead of `host`, the building system will build libraries
+suitable for your developing environment (eg. `x86_64-pc-linux-gnu` as `host`).
+Libraries will be installed into `$prefix/$target` folder, and will not
+conflict with anything else under the `prefix` tree.
 
 Still, run `make` and `make install`.
 
