@@ -17,12 +17,13 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = serial sd
+SUBDIRS = sd serial timer
 
 noinst_LTLIBRARIES = libdrivers-raw.la
 
 libdrivers_raw_la_SOURCES =
 libdrivers_raw_la_LIBADD = \
-	$(builddir)/serial/libserial-raw.la
-	$(builddir)/sd/libsd-raw.la
+	$(builddir)/sd/libsd-raw.la \
+	$(builddir)/serial/libserial-raw.la \
+	$(builddir)/timer/libtimer-raw.la
 

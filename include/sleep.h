@@ -16,39 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#ifndef _SLEEP_H
+#define _SLEEP_H
 
-#include <sys/types.h>
+void sleep(uint32_t s);
+void usleep(uint32_t us);
 
-#include <drivers/serial/uart.h>
-#include <drivers/timer/timer.h>
+#endif /* _SLEEP_H */
 
-/* FIXME */
-#include <drivers/serial/uart-zynq.h>
-#include <drivers/timer/timer-a9.h>
-
-void sleep(uint32_t s)
-{
-	uint64_t time, time1;
-	time = timer_read();
-	time += gt_get_tps() * s;
-	do {
-		time1 = timer_read();
-	} while (time1 < time);
-}
-
-__attribute__ ((noreturn))
-void fw_main(void)
-{
-	/* Wait for UART fifo to flush */
-	sleep(1);
-	
-	/* Initialize and enable UART */
-	uart_init();
-	uart_enable();
-	uart_puts("FW: Hello!\r\n");
-
-	while (1);
-}

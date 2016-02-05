@@ -17,12 +17,12 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libsd-raw.la
+noinst_LTLIBRARIES = libtimer-raw.la
 
-libsd_raw_la_SOURCES = sd.c sd.h
-libsd_raw_la_CPPFLAGS =  $(AM_CPPFLAGS) -DRAW
+libtimer_raw_la_SOURCES = timer.c timer.h
+libtimer_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 
-if SD_ZYNQ
-libsd_raw_la_SOURCES += sd-zynq.c sd-zynq.h sd-zynq-hw.h
+if TIMER_A9
+libtimer_raw_la_SOURCES += timer-a9.c timer-a9.h timer-a9-hw.h
 endif
 

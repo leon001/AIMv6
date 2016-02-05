@@ -36,12 +36,15 @@ case $MACH in
 	zynq)
 		uart_zynq="primary"
 		sd_zynq="primary"
+		timer_a9="primary"
 	;;
 esac
 AM_CONDITIONAL([UART_ZYNQ], 
 	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
 AM_CONDITIONAL([SD_ZYNQ], 
 	[test x$sd_zynq = xprimary -o x$sd_zynq = xsecondary])
+AM_CONDITIONAL([TIMER_A9], 
+	[test x$timer_a9 = xprimary -o x$timer_a9 = xsecondary])
 
 # programs
 AC_PROG_CC
@@ -89,6 +92,7 @@ AC_CONFIG_FILES([
 	drivers/Makefile
 	drivers/sd/Makefile
 	drivers/serial/Makefile
+	drivers/timer/Makefile
 	firmware/Makefile
 	firmware/arch/Makefile
 	firmware/arch/armv7a/Makefile

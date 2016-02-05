@@ -16,39 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#ifndef _DRIVERS_TIMER_TIMER_A9_HW_H
+#define _DRIVERS_TIMER_TIMER_A9_HW_H
 
-#include <sys/types.h>
+/* base address */
+#define GT_PHYSBASE	(MPCORE_PHYSBASE + 0x200)
+#define PT_PHYSBASE	(MPCORE_PHYSBASE + 0x600)
+#define SWDT_PHYSBASE	(MPCORE_PHYSBASE + 0x620)
 
-#include <drivers/serial/uart.h>
-#include <drivers/timer/timer.h>
+/* register offset */
+#define GT_COUNTER_LO_OFFSET		0x00
+#define GT_COUNTER_HI_OFFSET		0x04
+#define GT_CTRL_OFFSET			0x08
+#define GT_INT_OFFSET			0x0C
+#define GT_COMPARATOR_LO_OFFSET	0x10
+#define GT_COMPARATOR_HI_OFFSET	0x14
+#define GT_INCREMENT_OFFSET		0x18
 
-/* FIXME */
-#include <drivers/serial/uart-zynq.h>
-#include <drivers/timer/timer-a9.h>
+#endif /* _DRIVERS_TIMER_TIMER_A9_HW_H */
 
-void sleep(uint32_t s)
-{
-	uint64_t time, time1;
-	time = timer_read();
-	time += gt_get_tps() * s;
-	do {
-		time1 = timer_read();
-	} while (time1 < time);
-}
-
-__attribute__ ((noreturn))
-void fw_main(void)
-{
-	/* Wait for UART fifo to flush */
-	sleep(1);
-	
-	/* Initialize and enable UART */
-	uart_init();
-	uart_enable();
-	uart_puts("FW: Hello!\r\n");
-
-	while (1);
-}

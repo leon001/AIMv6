@@ -16,39 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#ifndef _DRIVERS_TIMER_TIMER_H
+#define _DRIVERS_TIMER_TIMER_H
 
-#include <sys/types.h>
+#ifdef RAW /* baremetal driver */
 
-#include <drivers/serial/uart.h>
-#include <drivers/timer/timer.h>
+/* All timers should have 64-bit interface */
+uint64_t timer_read(void);
+//void timer_write(uint64_t count);
 
-/* FIXME */
-#include <drivers/serial/uart-zynq.h>
-#include <drivers/timer/timer-a9.h>
+#else /* not RAW, or kernel driver */
 
-void sleep(uint32_t s)
-{
-	uint64_t time, time1;
-	time = timer_read();
-	time += gt_get_tps() * s;
-	do {
-		time1 = timer_read();
-	} while (time1 < time);
-}
+#endif /* RAW */
 
-__attribute__ ((noreturn))
-void fw_main(void)
-{
-	/* Wait for UART fifo to flush */
-	sleep(1);
-	
-	/* Initialize and enable UART */
-	uart_init();
-	uart_enable();
-	uart_puts("FW: Hello!\r\n");
 
-	while (1);
-}
+#endif /* _DRIVERS_TIMER_TIMER_H */
+

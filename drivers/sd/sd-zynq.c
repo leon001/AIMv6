@@ -24,6 +24,7 @@
 #include <sd-zynq-hw.h>
 
 #include <io.h>
+#include <sleep.h>
 
 #ifdef RAW /* baremetal driver */
 

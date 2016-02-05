@@ -16,39 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#ifndef _DRIVERS_TIMER_TIMER_A9_H
+#define _DRIVERS_TIMER_TIMER_A9_H
 
-#include <sys/types.h>
+#ifdef RAW /* baremetal driver */
 
-#include <drivers/serial/uart.h>
-#include <drivers/timer/timer.h>
+#else /* not RAW, or kernel driver */
 
-/* FIXME */
-#include <drivers/serial/uart-zynq.h>
-#include <drivers/timer/timer-a9.h>
+#endif /* RAW */
 
-void sleep(uint32_t s)
-{
-	uint64_t time, time1;
-	time = timer_read();
-	time += gt_get_tps() * s;
-	do {
-		time1 = timer_read();
-	} while (time1 < time);
-}
+uint64_t gt_get_tpus(void);
+uint64_t gt_get_tps(void);
+uint64_t gt_read(void);
 
-__attribute__ ((noreturn))
-void fw_main(void)
-{
-	/* Wait for UART fifo to flush */
-	sleep(1);
-	
-	/* Initialize and enable UART */
-	uart_init();
-	uart_enable();
-	uart_puts("FW: Hello!\r\n");
+#endif /* _DRIVERS_TIMER_TIMER_A9_H */
 
-	while (1);
-}

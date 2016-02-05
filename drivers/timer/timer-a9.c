@@ -21,34 +21,54 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
+#include <io.h>
 
-#include <drivers/serial/uart.h>
-#include <drivers/timer/timer.h>
+#include <mach.h>
+#include <timer-a9.h>
+#include <timer-a9-hw.h>
 
-/* FIXME */
-#include <drivers/serial/uart-zynq.h>
-#include <drivers/timer/timer-a9.h>
+// FIXME
+#define GT_TPUS 400l
+#define GT_TPS	(GT_TPUS * 1000000l)
 
-void sleep(uint32_t s)
+
+#ifdef RAW /* baremetal driver */
+
+#define GT_BASE	GT_PHYSBASE
+
+uint64_t timer_read(void)
 {
-	uint64_t time, time1;
-	time = timer_read();
-	time += gt_get_tps() * s;
+	return gt_read();
+}
+
+#else /* not RAW, or kernel driver */
+
+#endif /* RAW */
+
+uint64_t gt_get_tpus(void)
+{
+	// FIXME
+	return GT_TPUS;
+}
+
+uint64_t gt_get_tps(void)
+{
+	// FIXME
+	return GT_TPS;
+}
+
+uint64_t gt_read(void)
+{
+	uint64_t time;
+	uint64_t hi, lo, tmp;
+	/* HI-LO-HI reading because GTC is 64bit */
 	do {
-		time1 = timer_read();
-	} while (time1 < time);
+		hi = read32(GT_BASE + GT_COUNTER_HI_OFFSET);
+		lo = read32(GT_BASE + GT_COUNTER_LO_OFFSET);
+		tmp = read32(GT_BASE + GT_COUNTER_HI_OFFSET);
+	} while (hi != tmp);
+	time = (uint64_t)hi << 32;
+	time |= lo;
+	return time;
 }
 
-__attribute__ ((noreturn))
-void fw_main(void)
-{
-	/* Wait for UART fifo to flush */
-	sleep(1);
-	
-	/* Initialize and enable UART */
-	uart_init();
-	uart_enable();
-	uart_puts("FW: Hello!\r\n");
-
-	while (1);
-}

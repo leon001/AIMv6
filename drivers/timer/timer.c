@@ -22,33 +22,11 @@
 
 #include <sys/types.h>
 
-#include <drivers/serial/uart.h>
-#include <drivers/timer/timer.h>
+#include <timer.h>
 
-/* FIXME */
-#include <drivers/serial/uart-zynq.h>
-#include <drivers/timer/timer-a9.h>
+#ifdef RAW /* baremetal driver */
 
-void sleep(uint32_t s)
-{
-	uint64_t time, time1;
-	time = timer_read();
-	time += gt_get_tps() * s;
-	do {
-		time1 = timer_read();
-	} while (time1 < time);
-}
+#else /* not RAW, or kernel driver */
 
-__attribute__ ((noreturn))
-void fw_main(void)
-{
-	/* Wait for UART fifo to flush */
-	sleep(1);
-	
-	/* Initialize and enable UART */
-	uart_init();
-	uart_enable();
-	uart_puts("FW: Hello!\r\n");
+#endif /* RAW */
 
-	while (1);
-}
