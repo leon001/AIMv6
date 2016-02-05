@@ -29,6 +29,16 @@ AC_SUBST([MACH])
 AC_ARG_VAR([MEM], [installed memory])
 AC_SUBST([MEM])
 
+# deal with architectures
+case $ARCH in
+	mips32)
+		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
+	;;
+	mips64)
+		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
+	;;
+esac
+
 # deal with platforms
 # select what to compile for the firmware and the kernel
 # and add corresponding macro defines
