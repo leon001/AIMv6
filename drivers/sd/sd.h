@@ -16,42 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define FW_SIZE	1M
+#ifndef _DRIVERS_SD_SD_H
+#define _DRIVERS_SD_SD_H
 
-OUTPUT_ARCH(arm)
-ENTRY(_stext)
+#ifdef RAW /* baremetal driver */
 
-MEMORY
-{
-	FIRMWARE (WX) :
-		ORIGIN = MEM_SIZE - FW_SIZE,
-		LENGTH = FW_SIZE
-}
+int sd_init(void);
+int sd_init_card(void);
+int sd_read(u32 pa, u16 count, u32 offset);
+int sd_write(u32 pa, u16 count, u32 offset);
 
-SECTIONS
-{
-	/DISCARD/ : {}
+#else /* not RAW, or kernel driver */
 
-	//. = ORIGIN(FIRMWARE);
+#endif /* RAW */
 
-	/* FIXME */
-	//. = ALIGN(4K);
 
-	.text : {
-		_stext = .;
-		*(.vector)
-		*(.text)
-		_etext = .;
-	}
-	
+#endif /* _DRIVERS_SD_SD_H */
 
-	.rodata : {
-		*(.rodata)
-	}
-
-	.data : {
-		*(.data)
-	}
-
-	//BSS
-}

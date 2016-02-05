@@ -16,42 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define FW_SIZE	1M
+#ifdef RAW /* baremetal driver */
 
-OUTPUT_ARCH(arm)
-ENTRY(_stext)
+#else /* not RAW, or kernel driver */
 
-MEMORY
-{
-	FIRMWARE (WX) :
-		ORIGIN = MEM_SIZE - FW_SIZE,
-		LENGTH = FW_SIZE
-}
+#endif /* RAW */
 
-SECTIONS
-{
-	/DISCARD/ : {}
-
-	//. = ORIGIN(FIRMWARE);
-
-	/* FIXME */
-	//. = ALIGN(4K);
-
-	.text : {
-		_stext = .;
-		*(.vector)
-		*(.text)
-		_etext = .;
-	}
-	
-
-	.rodata : {
-		*(.rodata)
-	}
-
-	.data : {
-		*(.data)
-	}
-
-	//BSS
-}

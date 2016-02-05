@@ -16,42 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define FW_SIZE	1M
+#ifndef _DRIVERS_SD_SD_ZYNQ_H
+#define _DRIVERS_SD_SD_ZYNQ_H
 
-OUTPUT_ARCH(arm)
-ENTRY(_stext)
+#ifdef RAW /* baremetal driver */
 
-MEMORY
-{
-	FIRMWARE (WX) :
-		ORIGIN = MEM_SIZE - FW_SIZE,
-		LENGTH = FW_SIZE
-}
 
-SECTIONS
-{
-	/DISCARD/ : {}
+#else /* not RAW, or kernel driver */
 
-	//. = ORIGIN(FIRMWARE);
+#endif /* RAW */
 
-	/* FIXME */
-	//. = ALIGN(4K);
 
-	.text : {
-		_stext = .;
-		*(.vector)
-		*(.text)
-		_etext = .;
-	}
-	
+#endif /* _DRIVERS_SD_SD_ZYNQ_H */
 
-	.rodata : {
-		*(.rodata)
-	}
-
-	.data : {
-		*(.data)
-	}
-
-	//BSS
-}

@@ -17,10 +17,6 @@
 
 include $(top_srcdir)/env.am
 
-AM_CPPFLAGS += \
-	-I$(top_srcdir)/include/arch/$(ARCH) \
-	-I$(top_srcdir)/include
-
 noinst_LTLIBRARIES = libserial-raw.la
 
 libserial_raw_la_SOURCES = uart.c uart.h
@@ -28,7 +24,5 @@ libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 
 if UART_ZYNQ
 libserial_raw_la_SOURCES += uart-zynq.c uart-zynq.h
-else
-libserial_raw_la_CPPFLAGS += -DUART_ZYNQ
 endif
 

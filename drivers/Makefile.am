@@ -17,10 +17,12 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = serial
+SUBDIRS = serial sd
 
 noinst_LTLIBRARIES = libdrivers-raw.la
 
 libdrivers_raw_la_SOURCES =
-libdrivers_raw_la_LIBADD = $(builddir)/serial/libserial-raw.la
+libdrivers_raw_la_LIBADD = \
+	$(builddir)/serial/libserial-raw.la
+	$(builddir)/sd/libsd-raw.la
 

@@ -28,7 +28,9 @@ firmware_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 firmware_elf_LDADD = \
 	firmware.lds \
 	$(top_builddir)/drivers/libdrivers-raw.la
-#firmware_elf_LDFLAGS = -T firmware.lds
+# FIXME need better solution
+# ld can find the script from input files
+firmware_elf_LDFLAGS = -T firmware.lds
 
 firmware.lds: firmware.lds.S
 	$(COMPILE) -DMEM_SIZE=$(MEM) -E -P $^ -o $@

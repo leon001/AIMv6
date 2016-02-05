@@ -15,14 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AM_CPPFLAGS = \
-	-I$(top_srcdir)/include/arch/$(ARCH) \
-	-I$(top_srcdir)/include
-AM_CFLAGS = -nostdlib -mtune=cortex-a9
+include $(top_srcdir)/env.am
 
-SUFFIXES = .elf .bin .s
-.elf.bin:
-	$(OBJCOPY) -O binary -S $^ $@
-.elf.s:
-	$(OBJDUMP) -d $^ > $@
+noinst_LTLIBRARIES = libsd-raw.la
+
+libsd_raw_la_SOURCES = sd.c sd.h
+libsd_raw_la_CPPFLAGS =  $(AM_CPPFLAGS) -DRAW
+
+if SD_ZYNQ
+libsd_raw_la_SOURCES += sd-zynq.c sd-zynq.h
+endif
 
