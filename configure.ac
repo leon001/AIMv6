@@ -89,6 +89,46 @@ AC_CHECK_TOOL([OBJCOPY], [objcopy])
 # system services
 # none
 
+# option checks
+AS_CASE($MACH,
+	[msim], [AIM_SET_ARG([msim-kbd-pa],
+			     [MSIM_KBD_PHYSADDR],
+			     [MSIM keyboard physical address],
+			     [0x1f000000])
+		 AIM_SET_ARG([msim-lp-pa],
+			     [MSIM_LP_PHYSADDR],
+			     [MSIM printer physical address],
+			     [0x1f000010])
+		 AIM_SET_ARG([msim-disk-pa],
+			     [MSIM_DISK_PHYSADDR],
+			     [MSIM disk physical address],
+			     [0x1f000020])
+		 AIM_SET_ARG([msim-order-pa],
+			     [MSIM_ORDER_PHYSADDR],
+			     [MSIM IPC device physical address],
+			     [0x1f000100])
+		 AIM_SET_ARG([msim-order-mb-base],
+			     [MSIM_ORDER_MAILBOX_BASE],
+			     [MSIM IPC device mailbox base address],
+			     [0x1f000200])
+		 AIM_SET_ARG([msim-order-mb-size],
+			     [MSIM_ORDER_MAILBOX_SIZE],
+			     [MSIM IPC device mailbox size],
+			     [16])
+		 AIM_SET_ARG([msim-order-rtc-pa],
+			     [MSIM_RTC_PHYSADDR],
+			     [MSIM real time clock physical address],
+			     [0x1f000080])
+		 AIM_SET_ARGSTR([msim-firmware-bin],
+			     [MSIM_FIRMWARE_BIN],
+			     [MSIM firmware binary file name],
+			     ["firmware.bin"])
+		 AIM_SET_ARGSTR([msim-disk-img],
+			     [MSIM_DISK_IMG],
+			     [MSIM disk image file name],
+			     ["disk.img"])],
+	[AC_MSG_ERROR([No machine specified])])
+
 LT_INIT
 
 AC_CONFIG_HEADERS([config.h])
