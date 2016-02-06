@@ -186,6 +186,7 @@ AC_CONFIG_FILES([
 	firmware/arch/armv7a/Makefile
 	firmware/arch/i386/Makefile
 	firmware/arch/mips/Makefile
+	firmware/arch/mips/msim/Makefile
 	kern/Makefile
 	tools/Makefile
 	user/Makefile

@@ -14,7 +14,7 @@
 #include <sys/types.h>
 #include <addrspace.h>
 
-#define iomap(addr)		(TO_UNCAC(x))
+#define iomap(addr)		(TO_UNCAC(addr))
 
 /*
  * in8() and out8() for MIPS receives physical address as parameter

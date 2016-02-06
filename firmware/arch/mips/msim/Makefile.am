@@ -1,4 +1,3 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 # Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
@@ -16,23 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AM_CPPFLAGS = \
-	-I$(top_srcdir)/include/arch/$(ARCH)/mach-$(MACH) \
-	-I$(top_srcdir)/include/arch/$(ARCH) \
-	-I$(top_srcdir)/include
+include $(top_srcdir)/env.am
 
-if ARCH_ARMV7A_LE
-AM_CFLAGS = -nostdlib -mtune=cortex-a9
-endif
+noinst_PROGRAMS = firmware.elf
+noinst_DATA = firmware.bin firmware.s
 
-if ARCH_MIPS32
-AM_CPPFLAGS += -nostdinc -nostdlib -mips32 -mabi=32 -mno-abicalls -EL
-AM_CPPFLAGS += -fno-pic
-endif
+firmware_elf_SOURCES = entry.S main.c
+firmware_elf_LDFLAGS = -T firmware.ld -nostdlib
+firmware_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 
-SUFFIXES = .elf .bin .s
-.elf.bin:
-	$(OBJCOPY) -O binary -S $^ $@
-.elf.s:
-	$(OBJDUMP) -d $^ > $@
-
+firmware.bin: firmware.elf
+	$(OBJCOPY) -O binary -j.text -j.rodata -j.data -j.bss $^ $@
