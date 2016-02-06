@@ -6,7 +6,9 @@
  * Note: only TO_CAC and TO_UNCAC should be used.
  * You probably won't ever need these constants.
  */
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #define USEG		0x00000000
 #define KSEG0		0x80000000

@@ -59,6 +59,11 @@ AM_CONDITIONAL([SD_ZYNQ],
 	[test x$sd_zynq = xprimary -o x$sd_zynq = xsecondary])
 AM_CONDITIONAL([UART_MSIM],
 	[test x$MACH = xmsim])
+# change mips32 and mips64 to mips afterwards, because the CFLAGS are
+# different, but the source files are in the same directory.
+if test x$ARCH = xmips32 -o x$ARCH = xmips64; then
+	ARCH=mips
+fi
 
 # programs
 AC_PROG_CC
