@@ -159,9 +159,10 @@ AS_CASE($MACH,
 		 AIM_SUBST_MULTILINE(MSIM_CONF_MBLIST,
 			  `for (( i=0; $i<$with_nr_cpus; i=$i+1 )); do \
 			   pa=$(( $with_msim_mb_base \
-				+ $i * $with_msim_mb_size)); \
+				+ ( $i << $with_msim_mb_order ) )); \
 			   printf "add rwm mb%d 0x%08x\n" $i $pa; \
-			   printf "mb%d generic %d\n" $i $with_msim_mb_size; \
+			   printf "mb%d generic %d\n" $i \
+			   $(( 1 << $with_msim_mb_order )); \
 			   done`)
 		 AC_SUBST(MSIM_CONF_RTCPA,
 			  `printf 0x%08x $with_msim_rtc_pa`)

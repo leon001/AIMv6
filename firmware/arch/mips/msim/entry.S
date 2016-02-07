@@ -43,7 +43,8 @@ END(__exception_entry)
 BEGIN(slave_hangup)
 	/* a1 already contains cpuid */
 	SLL	t0, a1, MSIM_ORDER_MAILBOX_ORDER
-1:	LOAD	t1, MSIM_ORDER_MAILBOX_BASE(t0)
+	STORE	zero, TO_UNCAC(MSIM_ORDER_MAILBOX_BASE)(t0)
+1:	LOAD	t1, TO_UNCAC(MSIM_ORDER_MAILBOX_BASE)(t0)
 	beqz	t1, 1b
 	jr	t1
 END(slave_hangup)
@@ -69,6 +70,7 @@ init_bss:
 	b	1b
 9:
 init_master_stack:
+	ADDU	a1, 1
 	SLL	a3, a1, FWSTACKORDER
 	LA	sp, fwstack(a3)
 main_entry:
@@ -77,6 +79,7 @@ END(master_entry)
 
 BEGIN(slave_entry)
 	cpuid	a1, a2
+	ADDU	a1, 1
 	SLL	a3, a1, FWSTACKORDER
 	LA	sp, fwstack(a3)
 	j	slave_main
