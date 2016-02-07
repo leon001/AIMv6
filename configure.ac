@@ -122,10 +122,10 @@ AS_CASE($MACH,
 			     [MSIM_ORDER_MAILBOX_BASE],
 			     [MSIM IPC device mailbox base address],
 			     [0x1f000200])
-		 AIM_SET_ARG([msim-mb-size],
-			     [MSIM_ORDER_MAILBOX_SIZE],
-			     [MSIM IPC device mailbox size],
-			     [16])
+		 AIM_SET_ARG([msim-mb-order],
+			     [MSIM_ORDER_MAILBOX_ORDER],
+			     [order of MSIM IPC device mailbox (size=1<<order)],
+			     [4])
 		 AIM_SET_ARG([msim-rtc-pa],
 			     [MSIM_RTC_PHYSADDR],
 			     [MSIM real time clock physical address],
@@ -138,7 +138,11 @@ AS_CASE($MACH,
 			     [MSIM_DISK_IMG],
 			     [MSIM disk image file name],
 			     ["disk.img"])
-		 AM_SUBST_NOTMAKE(MSIM_CONF_CPULIST,
+		 AIM_SET_ARG([fwstack-order],
+			     [FWSTACKORDER],
+			     [order of firmware stack per CPU (size=1<<order)],
+			     [12])
+		 AIM_SUBST_MULTILINE(MSIM_CONF_CPULIST,
 			  `for (( i=0; $i<$with_nr_cpus; i=$i+1 )); do \
 			  	echo add dcpu cpu$i; \
 			  done`)
@@ -152,7 +156,7 @@ AS_CASE($MACH,
 		 AC_SUBST(MSIM_CONF_DISK_IMAGE, $with_msim_disk_img)
 		 AC_SUBST(MSIM_CONF_ORDERPA,
 			  `printf 0x%08x $with_msim_order_pa`)
-		 AM_SUBST_NOTMAKE(MSIM_CONF_MBLIST,
+		 AIM_SUBST_MULTILINE(MSIM_CONF_MBLIST,
 			  `for (( i=0; $i<$with_nr_cpus; i=$i+1 )); do \
 			   pa=$(( $with_msim_mb_base \
 				+ $i * $with_msim_mb_size)); \

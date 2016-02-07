@@ -22,6 +22,7 @@ noinst_DATA = firmware.bin firmware.s
 
 firmware_elf_SOURCES = entry.S main.c
 firmware_elf_LDFLAGS = -T firmware.ld -nostdlib
+firmware_elf_LDADD = $(top_builddir)/drivers/libdrivers-raw.la
 firmware_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 
 firmware.bin: firmware.elf

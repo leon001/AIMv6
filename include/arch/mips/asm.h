@@ -9,6 +9,10 @@
 #ifndef _ASM_ASM_H
 #define _ASM_ASM_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <regdef.h>
 #include <cp0regdef.h>
 

@@ -23,6 +23,7 @@
 
 #define MSIM_ORDER_REG_CPUID	0x0
 #define MSIM_ORDER_REG_IPI	0x4
+#define MSIM_ORDER_MAILBOX_SIZE	(1 << MSIM_ORDER_MAILBOX_ORDER)
 
 /*
  * Each mach/smp.h should implement its own cpuid() and cpuid assembler macro
@@ -45,7 +46,12 @@ static inline unsigned int __cpuid(void)
 	return read32(MSIM_ORDER_PHYSADDR + MSIM_ORDER_REG_CPUID);
 }
 
-#define cpuid()		__cpuid()
+static inline unsigned long msim_mailbox(unsigned int cpuid)
+{
+	return MSIM_ORDER_MAILBOX_BASE + cpuid * MSIM_ORDER_MAILBOX_SIZE;
+}
+
+#define cpuid()			__cpuid()
 
 #else	/* !__ASSEMBLER__ */
 

@@ -3,8 +3,11 @@
 #include <regdef.h>
 #include <cp0regdef.h>
 #include <smp.h>
+#include <addrspace.h>
 
-#define FIRMWARE_STACK_SIZE	0x1000
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 .section .text.reset
 
@@ -15,9 +18,9 @@ BEGIN(reset)
 	xor	a0, ST_EXCM
 	MTC032	a0, CP0_STATUS
 	cpuid	a1, a2
-	bnez	a1, slave_pool
-	li	sp, 0x80000000 + FIRMWARE_STACK_SIZE
-	j	main
+	bnez	a1, 2f
+	j	master_entry
+2:	j	slave_hangup
 END(reset)
 
 .text
@@ -37,5 +40,44 @@ BEGIN(__exception_entry)
 	j	__exception_entry
 END(__exception_entry)
 
-slave_pool:
-	j	slave_wait
+BEGIN(slave_hangup)
+	/* a1 already contains cpuid */
+	SLL	t0, a1, MSIM_ORDER_MAILBOX_ORDER
+1:	LOAD	t1, MSIM_ORDER_MAILBOX_BASE(t0)
+	beqz	t1, 1b
+	jr	t1
+END(slave_hangup)
+
+BEGIN(master_entry)
+reloc_data:
+	LI	s0, __rodata_end__
+	LI	s1, __data_begin__
+	LI	s2, __data_end__
+1:	bge	s1, s2, 9f
+	lw	t0, (s0)
+	sw	t0, (s1)
+	ADDU	s0, 4
+	ADDU	s1, 4
+	b	1b
+9:
+init_bss:
+	LI	s1, __bss_begin__
+	LI	s2, __bss_end__
+1:	bge	s1, s2, 9f
+	sw	zero, (s1)
+	ADDU	s1, 4
+	b	1b
+9:
+init_master_stack:
+	SLL	a3, a1, FWSTACKORDER
+	LA	sp, fwstack(a3)
+main_entry:
+	j	main
+END(master_entry)
+
+BEGIN(slave_entry)
+	cpuid	a1, a2
+	SLL	a3, a1, FWSTACKORDER
+	LA	sp, fwstack(a3)
+	j	slave_main
+END(slave_entry)

@@ -40,3 +40,12 @@ AC_DEFUN([AIM_SET_ARGSTR],
     AC_MSG_RESULT([$with_]m4_bpatsubst([$1], -, _))
   ]
 )
+
+# AIM_SUBST_MULTILINE([var], [content])
+AC_DEFUN([AIM_SUBST_MULTILINE],
+  [
+    AC_SUBST($1, $2)
+    AM_SUBST_NOTMAKE($1)
+  ]
+)
+
