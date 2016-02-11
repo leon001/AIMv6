@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2015 Gan Quan <coin2028@hotmail.com>
+ *
+ * This program is free software; you can redistribute  it and/or modify it
+ * under  the terms of  the GNU General  Public License as published by the
+ * Free Software Foundation;  either version 2 of the  License, or (at your
+ * option) any later version.
+ *
+ */
 
 #ifndef _ADDRSPACE_H
 #define _ADDRSPACE_H
@@ -10,21 +19,24 @@
 #include <config.h>
 #endif
 
+#if defined(USE_MIPS32)
+
 #define USEG		0x00000000
 #define KSEG0		0x80000000
 #define KSEG1		0xa0000000
 #define KSSEG		0xc0000000
 #define KSEG3		0xe0000000
 
-#if defined(USE_MIPS32)
-#define TO_CAC(x)	(KSEG0 + (x))
-#define TO_UNCAC(x)	(KSEG1 + (x))
+#define IO_CAC_BASE	KSEG0
+#define IO_UNCAC_BASE	KSEG1
+
 #elif defined(USE_MIPS64)
 
-#define CKSEG0		KSEG0
-#define CKSEG1		KSEG1
-#define CKSSEG		KSSEG
-#define CKSEG3		KSEG3
+#define USEG		0x0000000000000000
+#define KSEG0		0xffffffff80000000
+#define KSEG1		0xffffffffa0000000
+#define KSSEG		0xffffffffc0000000
+#define KSEG3		0xffffffffe0000000
 
 #define XSSEG		0x4000000000000000
 #define XKPHY		0x8000000000000000
@@ -33,9 +45,9 @@
 #define IO_CAC_BASE	(XKPHY + 0x1800000000000000)
 #define IO_UNCAC_BASE	(XKPHY + 0x1000000000000000)
 
-#define TO_CAC(x)	(KSEG0 + (x))
-#define TO_UNCAC(x)	(KSEG1 + (x))
-
 #endif
+
+#define TO_CAC(x)	(IO_CAC_BASE + (x))
+#define TO_UNCAC(x)	(IO_UNCAC_BASE + (x))
 
 #endif
