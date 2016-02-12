@@ -1,4 +1,4 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -15,10 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-nobase_noinst_HEADERS = \
-	libc/sys/types.h
+include $(top_srcdir)/env.am
 
-noinst_HEADERS = \
-	device.h \
-	file.h
+noinst_LTLIBRARIES = libblock-raw.la
+
+libblock_raw_la_SOURCES = hd.h
+libblock_raw_la_CPPFLAGS =  $(AM_CPPFLAGS) -DRAW
+
+if BLOCK_MSIM
+libblock_raw_la_SOURCES += msim-ddisk.c msim-ddisk.h
+endif
+
 

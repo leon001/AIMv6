@@ -1,0 +1,39 @@
+/*
+ * Copyright (C) 2015 Gan Quan <coin2028@hotmail.com>
+ *
+ * This program is free software; you can redistribute  it and/or modify it
+ * under  the terms of  the GNU General  Public License as published by the
+ * Free Software Foundation;  either version 2 of the  License, or (at your
+ * option) any later version.
+ *
+ */
+
+#ifndef _DRIVERS_HD_MSIM_DDISK_H
+#define _DRIVERS_HD_MSIM_DDISK_H
+
+#define MSIM_DD_MAX	256
+
+#define MSIM_DD_REG(paddr, reg)	((paddr) + (reg))
+
+#define MSIM_DD_DMAADDR	0x0
+#define MSIM_DD_SECTOR	0x4
+#define MSIM_DD_STAT	0x8
+#define MSIM_DD_COMMAND	0x8
+#define MSIM_DD_SIZE	0xc
+
+#define STAT_ERROR	0x8
+#define STAT_INTR	0x4
+
+#define CMD_ACK		0x4
+#define CMD_WRITE	0x2
+#define CMD_READ	0x1
+
+void	msim_dd_init(unsigned long paddr);
+
+size_t	msim_dd_get_sector_count(unsigned long);
+int	msim_dd_read_sector(unsigned long, size_t, void *, bool);
+int	msim_dd_write_sector(unsigned long, size_t, void *, bool);
+int	msim_dd_check_interrupt(unsigned long);
+void	msim_dd_ack_interrupt(unsigned long);
+
+#endif

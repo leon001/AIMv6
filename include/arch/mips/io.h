@@ -11,27 +11,27 @@
 #ifndef _MIPS32_IO_H
 #define _MIPS32_IO_H
 
-#include <sys/types.h>
+#include <libc/sys/types.h>
 #include <addrspace.h>
 
-#define iomap(addr)		(TO_UNCAC(x))
+#define iomap(addr)		(TO_UNCAC(addr))
 
 /*
  * in8() and out8() for MIPS receives physical address as parameter
  */
-#define in8(addr)		\
+#define read8(addr)		\
 	(*(volatile uchar *)iomap(addr))
-#define out8(addr, data)	\
+#define write8(addr, data)	\
 	((*(volatile uchar *)iomap(addr)) = (data))
 
-#define in16(addr)		\
+#define read16(addr)		\
 	(*(volatile ushort *)iomap(addr))
-#define out16(addr, data)	\
+#define write16(addr, data)	\
 	((*(volatile ushort *)iomap(addr)) = (data))
 
-#define in32(addr)		\
+#define read32(addr)		\
 	(*(volatile uint *)iomap(addr))
-#define out32(addr, data)	\
+#define write32(addr, data)	\
 	((*(volatile uint *)iomap(addr)) = (data))
 
 #endif
