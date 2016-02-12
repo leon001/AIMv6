@@ -76,11 +76,3 @@ init_master_stack:
 main_entry:
 	j	main
 END(master_entry)
-
-BEGIN(slave_entry)
-	cpuid	a1, a2
-	ADDU	a1, 1
-	SLL	a3, a1, FWSTACKORDER
-	LA	sp, fwstack(a3)
-	j	slave_main
-END(slave_entry)

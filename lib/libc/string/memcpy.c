@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#include <string.h>
+#include <libc/string.h>
 
 /*
  * sizeof(word) MUST BE A POWER OF TWO

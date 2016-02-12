@@ -19,7 +19,7 @@
 #ifndef _ARCH_IO_H
 #define _ARCH_IO_H
 
-#include <sys/types.h>
+#include <libc/sys/types.h>
 
 static inline uint8_t read8(uint32_t addr)
 {

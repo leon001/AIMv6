@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 nobase_noinst_HEADERS = \
-	sys/types.h
+	libc/sys/types.h
 
 noinst_HEADERS = \
 	device.h \

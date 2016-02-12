@@ -11,7 +11,7 @@
 #include <mm.h>
 #include <io.h>
 #include <config.h>
-#include <string.h>
+#include <libc/string.h>
 #include <drivers/block/msim-ddisk.h>
 
 unsigned char msim_dd_dma[SECTOR_SIZE];

@@ -3,8 +3,8 @@
 #include <config.h>
 #endif
 
-#include <sys/types.h>
-#include <stddef.h>
+#include <libc/sys/types.h>
+#include <libc/stddef.h>
 #include <smp.h>
 #include <drivers/serial/uart.h>
 
