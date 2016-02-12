@@ -17,6 +17,7 @@ void main(void)
 {
 	char buf[512];
 	uart_puts("Hello world!\n");
+	msim_dd_init(MSIM_DISK_PHYSADDR);
 	msim_dd_read_sector(MSIM_DISK_PHYSADDR, 0, buf, true);
 	uart_puts(buf);
 	for (;;)
