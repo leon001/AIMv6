@@ -59,6 +59,8 @@ AM_CONDITIONAL([SD_ZYNQ],
 	[test x$sd_zynq = xprimary -o x$sd_zynq = xsecondary])
 AM_CONDITIONAL([UART_MSIM],
 	[test x$MACH = xmsim])
+AM_CONDITIONAL([BLOCK_MSIM],
+	[test x$MACH = xmsim])
 # change mips32 and mips64 to mips afterwards, because the CFLAGS are
 # different, but the source files are in the same directory.
 if test x$ARCH = xmips32 -o x$ARCH = xmips64; then
@@ -184,6 +186,7 @@ AC_CONFIG_FILES([
 	boot/arch/mips/Makefile
 	doc/Makefile
 	drivers/Makefile
+	drivers/block/Makefile
 	drivers/sd/Makefile
 	drivers/serial/Makefile
 	firmware/Makefile

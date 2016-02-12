@@ -1,4 +1,4 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -17,12 +17,13 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = serial sd block
+noinst_LTLIBRARIES = libblock-raw.la
 
-noinst_LTLIBRARIES = libdrivers-raw.la
+libblock_raw_la_SOURCES = hd.h
+libblock_raw_la_CPPFLAGS =  $(AM_CPPFLAGS) -DRAW
 
-libdrivers_raw_la_SOURCES =
-libdrivers_raw_la_LIBADD = \
-	$(builddir)/serial/libserial-raw.la \
-	$(builddir)/sd/libsd-raw.la \
-	$(builddir)/block/libblock-raw.la
+if BLOCK_MSIM
+libblock_raw_la_SOURCES += msim-ddisk.c msim-ddisk.h
+endif
+
+
