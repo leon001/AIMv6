@@ -99,6 +99,8 @@ AC_CONFIG_FILES([
 	firmware/arch/i386/Makefile
 	firmware/arch/mips/Makefile
 	kern/Makefile
+	lib/Makefile
+	lib/libc/Makefile
 	tools/Makefile
 	user/Makefile
 ])
