@@ -54,11 +54,11 @@ AM_CONDITIONAL([ARCH_ARMV7A],
 	[test x$ARCH = xarmv7a])
 AM_CONDITIONAL([ARCH_MIPS32],
 	[test x$ARCH = xmips32])
-AM_CONDITIONAL([UART_ZYNQ], 
+AM_CONDITIONAL([UART_ZYNQ],
 	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
-AM_CONDITIONAL([SD_ZYNQ], 
+AM_CONDITIONAL([SD_ZYNQ],
 	[test x$sd_zynq = xprimary -o x$sd_zynq = xsecondary])
-AM_CONDITIONAL([TIMER_A9], 
+AM_CONDITIONAL([TIMER_A9],
 	[test x$timer_a9 = xprimary -o x$timer_a9 = xsecondary])
 AM_CONDITIONAL([UART_MSIM],
 	[test x$MACH = xmsim])
@@ -172,6 +172,7 @@ AS_CASE($MACH,
 		 AC_SUBST(MSIM_CONF_RTCPA,
 			  `printf 0x%08x $with_msim_rtc_pa`)
 		 ],
+	[zynq], [],
 	[AC_MSG_ERROR([No machine specified])])
 
 LT_INIT
