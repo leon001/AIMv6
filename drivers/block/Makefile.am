@@ -1,6 +1,6 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
-# This program is part of AIMv6.
+# This file is part of AIMv6.
 #
 # AIMv6 is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,15 +17,13 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libserial-raw.la
+noinst_LTLIBRARIES = libblock-raw.la
 
-libserial_raw_la_SOURCES = uart.c uart.h
-libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
+libblock_raw_la_SOURCES = hd.h
+libblock_raw_la_CPPFLAGS =  $(AM_CPPFLAGS) -DRAW
 
-if UART_ZYNQ
-libserial_raw_la_SOURCES += uart-zynq.c uart-zynq.h uart-zynq-hw.h
+if BLOCK_MSIM
+libblock_raw_la_SOURCES += msim-ddisk.c msim-ddisk.h
 endif
 
-if UART_MSIM
-libserial_raw_la_SOURCES += uart-msim.c uart-msim.h
-endif
+

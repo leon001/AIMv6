@@ -19,7 +19,7 @@
 #ifndef _FILE_H
 #define _FILE_H
 
-#include <sys/types.h>
+#include <libc/sys/types.h>
 
 struct inode {
 	/* TODO */

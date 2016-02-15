@@ -1,6 +1,6 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
-# This program is part of AIMv6.
+# This file is part of AIMv6.
 #
 # AIMv6 is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,15 +17,13 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libserial-raw.la
+noinst_PROGRAMS = firmware.elf
+noinst_DATA = firmware.bin firmware.s
 
-libserial_raw_la_SOURCES = uart.c uart.h
-libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
+firmware_elf_SOURCES = entry.S main.c
+firmware_elf_LDFLAGS = -T firmware.ld -nostdlib
+firmware_elf_LDADD = $(top_builddir)/drivers/libdrivers-raw.la
+firmware_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 
-if UART_ZYNQ
-libserial_raw_la_SOURCES += uart-zynq.c uart-zynq.h uart-zynq-hw.h
-endif
-
-if UART_MSIM
-libserial_raw_la_SOURCES += uart-msim.c uart-msim.h
-endif
+firmware.bin: firmware.elf
+	$(OBJCOPY) -O binary -j.text -j.rodata -j.data -j.bss $^ $@
