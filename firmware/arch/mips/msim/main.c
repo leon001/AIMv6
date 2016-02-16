@@ -7,6 +7,7 @@
 #include <libc/stddef.h>
 #include <smp.h>
 #include <drivers/serial/uart.h>
+#include <drivers/block/hd.h>
 #include <drivers/block/msim-ddisk.h>
 
 #define FWSTACKSIZE	(1 << FWSTACKORDER)
@@ -31,7 +32,7 @@ void main(void)
 	char mbr[SECTOR_SIZE];
 	uart_puts("Hello world!\n");
 	msim_dd_init(MSIM_DISK_PHYSADDR);
-	if (msim_dd_read_sector(MSIM_DISK_PHYSADDR, 0, buf, true) == 0) {
+	if (msim_dd_read_sector(MSIM_DISK_PHYSADDR, 0, mbr, true) == 0) {
 		/*
 		 * DESIGN NOTE:
 		 * MIPS instructions are loosely-encoded, so it's usually
@@ -60,7 +61,24 @@ void main(void)
 		 * UEFI firmware, tell Loongson and they will be probably
 		 * very grateful.
 		 */
-		mbr_entry(msim_dd_read_sector, MSIM_DISK_PHYSADDR);
+
+		/*
+		 * This statement jumps into a function whose address is the
+		 * same as buffer variable "mbr", where we just put the first
+		 * disk sector.  Since the first 446 bytes of MBR (and hence
+		 * the buffer "mbr") contains the bootloader code, jumping
+		 * there transfers control to the MBR bootloader.
+		 *
+		 * For those unfamiliar with function pointers:
+		 * This statement does the following:
+		 * (1) obtain the buffer address ("mbr")
+		 * (2) view it as a function entry with type mbr_entry_t
+		 *     (see the "typedef" statement above for definition)
+		 * (3) execute the function there with two arguments: the
+		 *     "read disk sector" function, and the physical address
+		 *     of the hard disk.
+		 */
+		(*(mbr_entry_t)mbr)(msim_dd_read_sector, MSIM_DISK_PHYSADDR);
 	}
 	for (;;)
 		/* nothing */;
