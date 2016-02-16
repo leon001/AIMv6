@@ -3,7 +3,7 @@
 #include <config.h>
 #endif
 
-#include <libc/sys/types.h>
+#include <sys/types.h>
 #include <libc/stddef.h>
 #include <smp.h>
 #include <drivers/serial/uart.h>
