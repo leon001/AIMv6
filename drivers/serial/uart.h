@@ -21,11 +21,18 @@
 
 #ifdef RAW /* baremetal driver */
 
+/* from kernel */
+#include <sys/types.h>
+
+/* from libc */
+#include <libc/stdarg.h>
+#include <libc/stddef.h>
+
 char uart_getbyte(void);
 void uart_putbyte(unsigned char byte);
 void uart_puts(const char *str);
-//ssize_t uart_printf(const char *fmt, ...);
-//ssize_t uart_vprintf(const char *fmt, va_list ap);
+ssize_t uart_printf(const char *fmt, ...);
+ssize_t uart_vprintf(const char *fmt, va_list ap);
 
 #else /* not RAW, or kernel driver */
 

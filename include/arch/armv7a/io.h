@@ -16,10 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ARCH_IO_H
-#define _ARCH_IO_H
+#ifndef _IO_H
+#define _IO_H
 
-#include <libc/sys/types.h>
+/* from kernel */
+#include <sys/types.h>
 
 static inline uint8_t read8(uint32_t addr)
 {
@@ -62,5 +63,5 @@ static inline void write64(uint32_t addr, uint64_t data)
 	*(volatile uint64_t *)addr = data;
 }
 
-#endif /* ARCH_IO_H */
+#endif /* _IO_H */
 

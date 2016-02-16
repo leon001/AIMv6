@@ -1,4 +1,6 @@
-/* Copyright (C) 2015 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016
+ * Gan Quan <coin2028@hotmail.com>
+ * David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,9 +18,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_BLOCK_HD_H
-#define _DRIVERS_BLOCK_HD_H
+#ifndef _LIBC_STDARG_H
+#define _LIBC_STDARG_H
 
-#define SECTOR_SIZE	512
+typedef __builtin_va_list	va_list;
 
-#endif
+#define va_start(ap, last)	(__builtin_va_start(ap, last))
+#define va_arg(ap, type)	(__builtin_va_arg(ap, type))
+#define va_end(ap)		(__builtin_va_end(ap))
+
+#endif /* _LIBC_STDARG_H */
+

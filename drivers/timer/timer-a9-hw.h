@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,9 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_BLOCK_HD_H
-#define _DRIVERS_BLOCK_HD_H
+#ifndef _DRIVERS_TIMER_TIMER_A9_HW_H
+#define _DRIVERS_TIMER_TIMER_A9_HW_H
 
-#define SECTOR_SIZE	512
+/* base address */
+#define GT_PHYSBASE	(MPCORE_PHYSBASE + 0x200)
+#define PT_PHYSBASE	(MPCORE_PHYSBASE + 0x600)
+#define SWDT_PHYSBASE	(MPCORE_PHYSBASE + 0x620)
 
-#endif
+/* register offset */
+#define GT_COUNTER_LO_OFFSET		0x00
+#define GT_COUNTER_HI_OFFSET		0x04
+#define GT_CTRL_OFFSET			0x08
+#define GT_INT_OFFSET			0x0C
+#define GT_COMPARATOR_LO_OFFSET	0x10
+#define GT_COMPARATOR_HI_OFFSET	0x14
+#define GT_INCREMENT_OFFSET		0x18
+
+#endif /* _DRIVERS_TIMER_TIMER_A9_HW_H */
+

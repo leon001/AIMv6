@@ -20,42 +20,57 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-/* from uart driver */
-#include <uart.h>
+/* from kernel */
+#include <sys/types.h>
+#include <io.h>
+#include <mach.h>
 
-#define BUFSIZ	1024
+/* from timer driver */
+#include <timer-a9.h>
+#include <timer-a9-hw.h>
+
+// FIXME
+#define GT_TPUS 400l
+#define GT_TPS	(GT_TPUS * 1000000l)
+
 
 #ifdef RAW /* baremetal driver */
 
-/* from libc */
-#include <libc/stdio.h>
+#define GT_BASE	GT_PHYSBASE
 
-void uart_puts(const char *str)
+uint64_t timer_read(void)
 {
-	for (; *str != '\0'; ++str)
-		uart_putbyte((unsigned char)*str);
-}
-
-ssize_t uart_printf(const char *fmt, ...)
-{
-	int result;
-	va_list ap;
-	va_start(ap, fmt);
-	result = uart_vprintf(fmt, ap);
-	va_end(ap);
-	return result;
-}
-
-ssize_t uart_vprintf(const char *fmt, va_list ap)
-{
-	int result;
-	char printf_buf[BUFSIZ];
-	result = vsnprintf(printf_buf, BUFSIZ, fmt, ap);
-	uart_puts(printf_buf);
-	return result;
+	return gt_read();
 }
 
 #else /* not RAW, or kernel driver */
 
 #endif /* RAW */
+
+uint64_t gt_get_tpus(void)
+{
+	// FIXME
+	return GT_TPUS;
+}
+
+uint64_t gt_get_tps(void)
+{
+	// FIXME
+	return GT_TPS;
+}
+
+uint64_t gt_read(void)
+{
+	uint64_t time;
+	uint64_t hi, lo, tmp;
+	/* HI-LO-HI reading because GTC is 64bit */
+	do {
+		hi = read32(GT_BASE + GT_COUNTER_HI_OFFSET);
+		lo = read32(GT_BASE + GT_COUNTER_LO_OFFSET);
+		tmp = read32(GT_BASE + GT_COUNTER_HI_OFFSET);
+	} while (hi != tmp);
+	time = (uint64_t)hi << 32;
+	time |= lo;
+	return time;
+}
 

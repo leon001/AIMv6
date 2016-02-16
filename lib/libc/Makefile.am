@@ -17,11 +17,12 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = \
-	lib \
-	drivers \
-	firmware
-#	include \
-#	boot \
-	#kern user tools
+noinst_LTLIBRARIES = libc.la
+
+libc_la_SOURCES = \
+	snprintf.c \
+	$(top_srcdir)/include/sys/types.h \
+	stdarg.h \
+	stddef.h \
+	stdio.h
 

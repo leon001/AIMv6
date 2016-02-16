@@ -17,11 +17,5 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = \
-	lib \
-	drivers \
-	firmware
-#	include \
-#	boot \
-	#kern user tools
+SUBDIRS = libc
 

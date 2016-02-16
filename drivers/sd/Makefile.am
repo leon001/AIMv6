@@ -23,6 +23,6 @@ libsd_raw_la_SOURCES = sd.c sd.h
 libsd_raw_la_CPPFLAGS =  $(AM_CPPFLAGS) -DRAW
 
 if SD_ZYNQ
-libsd_raw_la_SOURCES += sd-zynq.c sd-zynq.h
+libsd_raw_la_SOURCES += sd-zynq.c sd-zynq.h sd-zynq-hw.h
 endif
 

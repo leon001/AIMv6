@@ -17,11 +17,12 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = \
-	lib \
-	drivers \
-	firmware
-#	include \
-#	boot \
-	#kern user tools
+noinst_LTLIBRARIES = libtimer-raw.la
+
+libtimer_raw_la_SOURCES = timer.c timer.h
+libtimer_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
+
+if TIMER_A9
+libtimer_raw_la_SOURCES += timer-a9.c timer-a9.h timer-a9-hw.h
+endif
 
