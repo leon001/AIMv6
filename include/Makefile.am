@@ -16,9 +16,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 nobase_noinst_HEADERS = \
-	libc/sys/types.h
+	sys/types.h
 
 noinst_HEADERS = \
 	device.h \
-	file.h
+	file.h \
+	sleep.h \
+	arch/armv7a/io.h \
+	arch/armv7a/mach-zynq/mach.h
 

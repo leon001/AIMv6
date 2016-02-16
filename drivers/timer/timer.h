@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,9 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_BLOCK_HD_H
-#define _DRIVERS_BLOCK_HD_H
+#ifndef _DRIVERS_TIMER_TIMER_H
+#define _DRIVERS_TIMER_TIMER_H
 
-#define SECTOR_SIZE	512
+#ifdef RAW /* baremetal driver */
 
-#endif
+/* All timers should have 64-bit interface */
+uint64_t timer_read(void);
+//void timer_write(uint64_t count);
+
+#else /* not RAW, or kernel driver */
+
+#endif /* RAW */
+
+
+#endif /* _DRIVERS_TIMER_TIMER_H */
+

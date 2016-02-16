@@ -67,3 +67,6 @@ Makefile
 
 # Tarball
 *.tar*
+
+# Msim
+msim.conf

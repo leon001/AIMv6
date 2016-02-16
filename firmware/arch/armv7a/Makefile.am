@@ -27,10 +27,11 @@ firmware_elf_SOURCES = fwasm.S fwmain.c
 firmware_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 firmware_elf_LDADD = \
 	firmware.lds \
-	$(top_builddir)/drivers/libdrivers-raw.la
+	$(top_builddir)/drivers/libdrivers-raw.la \
+	$(top_builddir)/lib/libc/libc.la
 # FIXME need better solution
 # ld can find the script from input files
-firmware_elf_LDFLAGS = -T firmware.lds
+firmware_elf_LDFLAGS = $(AM_LDFLAGS) -T firmware.lds
 
 firmware.lds: firmware.lds.S
 	$(COMPILE) -DMEM_SIZE=$(MEM) -E -P $^ -o $@

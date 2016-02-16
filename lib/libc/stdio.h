@@ -1,4 +1,6 @@
-/* Copyright (C) 2015 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016
+ * Gan Quan <coin2028@hotmail.com>
+ * David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,9 +18,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_BLOCK_HD_H
-#define _DRIVERS_BLOCK_HD_H
+#ifndef _LIBC_STDIO_H
+#define _LIBC_STDIO_H
 
-#define SECTOR_SIZE	512
+/* from kernel */
+#include <sys/types.h>
+/* from libc */
+#include <libc/stdarg.h>
+#include <libc/stddef.h>
 
-#endif
+int printf(const char *fmt, ...);
+int vprintf(const char *fmt, va_list ap);
+int snprintf(char *str, size_t size, const char *fmt, ...);
+int vsnprintf(char *str, size_t size, const char *fmt, va_list ap);
+
+#endif /* _LIBC_STDIO_H */

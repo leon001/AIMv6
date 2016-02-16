@@ -23,7 +23,7 @@ libserial_raw_la_SOURCES = uart.c uart.h
 libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 
 if UART_ZYNQ
-libserial_raw_la_SOURCES += uart-zynq.c uart-zynq.h
+libserial_raw_la_SOURCES += uart-zynq.c uart-zynq.h uart-zynq-hw.h
 endif
 
 if UART_MSIM

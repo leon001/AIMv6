@@ -20,10 +20,13 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+/* from kernel */
+#include <io.h>
+#include <sleep.h>
+
+/* from sd driver */
 #include <sd-zynq.h>
 #include <sd-zynq-hw.h>
-
-#include <io.h>
 
 #ifdef RAW /* baremetal driver */
 
@@ -191,7 +194,7 @@ int sd_send_cmd(uint16_t cmd, uint16_t count, uint32_t arg, int mode)
  * -9 = error sending CMD7
  */
 
-int sd_init_mem_card()
+int sd_init_card()
 {
 	uint32_t state, resp;
 	int ret, cardtype;
@@ -262,8 +265,10 @@ int sd_init_mem_card()
  * -1 = no card
  * -2 = error sending CMD18
  * -3 = error during DMA transfer
+ *
+ * FIXME add support for cross-page dma
  */
-int sd_dma_spin_read(uint32_t pa, uint16_t count, uint32_t offset)
+int sd_read(uint32_t pa, uint16_t count, uint32_t offset)
 {
 	int ret;
 	uint16_t state16;
@@ -313,7 +318,7 @@ int sd_dma_spin_read(uint32_t pa, uint16_t count, uint32_t offset)
  * -2 = error sending CMD25
  * -3 = error during DMA transfer
  */
-int sd_dma_spin_write(uint32_t pa, uint16_t count, uint32_t offset)
+int sd_write(uint32_t pa, uint16_t count, uint32_t offset)
 {
 	int ret;
 	uint16_t state16;

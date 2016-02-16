@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,9 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_BLOCK_HD_H
-#define _DRIVERS_BLOCK_HD_H
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-#define SECTOR_SIZE	512
+#include <sys/types.h>
 
-#endif
+#include <timer.h>
+
+#ifdef RAW /* baremetal driver */
+
+#else /* not RAW, or kernel driver */
+
+#endif /* RAW */
+
