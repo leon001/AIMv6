@@ -22,6 +22,15 @@
 AC_INIT([AIMv6], [0.1], [davidgao1001@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
+AC_PROG_CC
+AC_PROG_CC_STDC
+AM_PROG_AS
+AM_PROG_AR
+AC_CHECK_TOOL([OBJDUMP], [objdump])
+AC_CHECK_TOOL([OBJCOPY], [objcopy])
+
+LT_INIT
+
 # package information
 AC_ARG_VAR([ARCH], [target architecture])
 AC_SUBST([ARCH])
@@ -50,34 +59,6 @@ case $MACH in
 		timer_a9="primary"
 	;;
 esac
-AM_CONDITIONAL([ARCH_ARMV7A],
-	[test x$ARCH = xarmv7a])
-AM_CONDITIONAL([ARCH_MIPS32],
-	[test x$ARCH = xmips32])
-AM_CONDITIONAL([UART_ZYNQ],
-	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
-AM_CONDITIONAL([SD_ZYNQ],
-	[test x$sd_zynq = xprimary -o x$sd_zynq = xsecondary])
-AM_CONDITIONAL([TIMER_A9],
-	[test x$timer_a9 = xprimary -o x$timer_a9 = xsecondary])
-AM_CONDITIONAL([UART_MSIM],
-	[test x$MACH = xmsim])
-AM_CONDITIONAL([BLOCK_MSIM],
-	[test x$MACH = xmsim])
-# change mips32 and mips64 to mips afterwards, because the CFLAGS are
-# different, but the source files are in the same directory.
-if test x$ARCH = xmips32 -o x$ARCH = xmips64; then
-	ARCH=mips
-fi
-
-# programs
-AC_PROG_CC
-AC_PROG_CC_STDC
-AM_PROG_AS
-AM_PROG_AR
-AC_CHECK_TOOL([OBJDUMP], [objdump])
-AC_CHECK_TOOL([OBJCOPY], [objcopy])
-
 
 # libraries
 # none
@@ -100,10 +81,7 @@ AC_CHECK_TOOL([OBJCOPY], [objcopy])
 # system services
 # none
 
-AIM_SET_ARG([nr-cpus],
-	    [NR_CPUS],
-	    [Number of cores],
-	    [4])
+AIM_SET_ARG([nr-cpus], [NR_CPUS], [Number of cores], [4])
 
 # option checks
 AS_CASE($MACH,
@@ -172,10 +150,29 @@ AS_CASE($MACH,
 		 AC_SUBST(MSIM_CONF_RTCPA,
 			  `printf 0x%08x $with_msim_rtc_pa`)
 		 ],
-	[zynq], [],
+	[zynq], [
+		 ],
 	[AC_MSG_ERROR([No machine specified])])
 
-LT_INIT
+AM_CONDITIONAL([ARCH_ARMV7A],
+	[test x$ARCH = xarmv7a])
+AM_CONDITIONAL([ARCH_MIPS32],
+	[test x$ARCH = xmips32])
+AM_CONDITIONAL([UART_ZYNQ],
+	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
+AM_CONDITIONAL([SD_ZYNQ],
+	[test x$sd_zynq = xprimary -o x$sd_zynq = xsecondary])
+AM_CONDITIONAL([TIMER_A9],
+	[test x$timer_a9 = xprimary -o x$timer_a9 = xsecondary])
+AM_CONDITIONAL([UART_MSIM],
+	[test x$MACH = xmsim])
+AM_CONDITIONAL([BLOCK_MSIM],
+	[test x$MACH = xmsim])
+# change mips32 and mips64 to mips afterwards, because the CFLAGS are
+# different, but the source files are in the same directory.
+if test x$ARCH = xmips32 -o x$ARCH = xmips64; then
+	ARCH=mips
+fi
 
 AC_CONFIG_HEADERS([config.h])
 

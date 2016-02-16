@@ -24,8 +24,8 @@
 /* from kernel */
 #include <sys/types.h>
 /* from libc */
-#include <stdarg.h>
-#include <stddef.h>
+#include <libc/stdarg.h>
+#include <libc/stddef.h>
 
 int printf(const char *fmt, ...);
 int vprintf(const char *fmt, va_list ap);

@@ -19,7 +19,8 @@
 #ifndef _IO_H
 #define _IO_H
 
-#include <libc/sys/types.h>
+/* from kernel */
+#include <sys/types.h>
 
 static inline uint8_t read8(uint32_t addr)
 {

@@ -21,10 +21,10 @@
 
 #ifdef RAW /* baremetal driver */
 
-int sd_init(void);
-int sd_init_card(void);
-int sd_read(u32 pa, u16 count, u32 offset);
-int sd_write(u32 pa, u16 count, u32 offset);
+int	sd_init(void);
+int	sd_init_card(void);
+int	sd_read(u32 pa, u16 count, u32 offset);
+int	sd_write(u32 pa, u16 count, u32 offset);
 
 #else /* not RAW, or kernel driver */
 

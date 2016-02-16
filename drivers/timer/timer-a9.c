@@ -20,10 +20,12 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+/* from kernel */
 #include <sys/types.h>
 #include <io.h>
-
 #include <mach.h>
+
+/* from timer driver */
 #include <timer-a9.h>
 #include <timer-a9-hw.h>
 

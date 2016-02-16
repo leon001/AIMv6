@@ -20,11 +20,13 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <sd-zynq.h>
-#include <sd-zynq-hw.h>
-
+/* from kernel */
 #include <io.h>
 #include <sleep.h>
+
+/* from sd driver */
+#include <sd-zynq.h>
+#include <sd-zynq-hw.h>
 
 #ifdef RAW /* baremetal driver */
 

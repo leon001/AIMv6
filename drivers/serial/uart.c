@@ -16,14 +16,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
+/* from uart driver */
 #include <uart.h>
 
+#define BUFSIZ	1024
+
 #ifdef RAW /* baremetal driver */
+
+/* from libc */
+#include <libc/stdio.h>
 
 void uart_puts(const char *str)
 {
 	for (; *str != '\0'; ++str)
 		uart_putbyte((unsigned char)*str);
+}
+
+ssize_t uart_printf(const char *fmt, ...)
+{
+	int result;
+	va_list ap;
+	va_start(ap, fmt);
+	result = uart_vprintf(fmt, ap);
+	va_end(ap);
+	return result;
+}
+
+ssize_t uart_vprintf(const char *fmt, va_list ap)
+{
+	int result;
+	char printf_buf[BUFSIZ];
+	result = vsnprintf(printf_buf, BUFSIZ, fmt, ap);
+	uart_puts(printf_buf);
+	return result;
 }
 
 #else /* not RAW, or kernel driver */
