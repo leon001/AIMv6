@@ -11,7 +11,7 @@
 #ifndef _MIPS32_IO_H
 #define _MIPS32_IO_H
 
-#include <libc/sys/types.h>
+#include <sys/types.h>
 #include <addrspace.h>
 
 #define iomap(addr)		(TO_UNCAC(addr))
