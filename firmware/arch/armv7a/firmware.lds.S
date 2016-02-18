@@ -19,7 +19,7 @@
 #define FW_SIZE	1M
 
 OUTPUT_ARCH(arm)
-ENTRY(_stext)
+ENTRY(_text_begin)
 
 MEMORY
 {
@@ -32,26 +32,26 @@ SECTIONS
 {
 	/DISCARD/ : {}
 
-	//. = ORIGIN(FIRMWARE);
-
-	/* FIXME */
-	//. = ALIGN(4K);
+	. = ALIGN(4K);
 
 	.text : {
-		_stext = .;
+		_text_begin = .;
 		*(.vector)
 		*(.text)
-		_etext = .;
+		_text_end = .;
 	}
 	
-
 	.rodata : {
 		*(.rodata)
+	}
+	
+	.bss : {
+		_bss_begin = .;
+		*(.bss)
+		_bss_end = .;
 	}
 
 	.data : {
 		*(.data)
 	}
-
-	//BSS
 }
