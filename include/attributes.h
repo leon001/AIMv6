@@ -23,8 +23,30 @@
  * Compiler-specific attributes are defined here.
  */
 
-#ifdef __GNUC__
+/*
+ * Some of the structure/function definitions, e.g. MBR structure
+ * definition (because its contents are not aligned to 4 bytes),
+ * requires attributes to work.
+ */
+
+#ifndef __has_attribute
+#define __has_attribute(x)	0
+#endif
+
+/*
+ * GNU-style attributes are only supported by GCC and LLVM.
+ *
+ * I wonder if we should use #pragma pack(1), which is supported
+ * by most compilers (even those as heretic as Visual Studio supports
+ * that).
+ */
+
+#if __has_attribute(packed) && __has_attribute(aligned)
 #define __packed	__attribute__((packed, aligned(1)))
-#endif	/* __GNUC__ */
+#elif __has_attribute(packed)
+#define __packed	__attribute__((packed))
+#else	/* !packed */
+#error "Your compiler does not support packed structure?"
+#endif	/* packed && aligned */
 
 #endif
