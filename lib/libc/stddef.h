@@ -35,17 +35,7 @@
 #define member_to_struct(addr, struct, member_name) \
 	((struct *)((unsigned long)(addr) - MEMBER_OFFSET(struct, member_name)))
 
-/*
- * An extremely inaccurate busy-wait loop for delaying @t milliseconds
- */
-#if 0
-static inline void delay(unsigned long t)
-{
-	register unsigned long i;
-	for (i = 0; i < t * 10000; ++i)
-		asm ("");
-}
-#endif /* 0 */
+#define MIN2(a, b)	(((a) < (b)) ? (a) : (b))
 
 #endif /* _LIBC_STDDEF_H */
 

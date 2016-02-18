@@ -44,7 +44,4 @@ int	msim_dd_write_sector(unsigned long, size_t, void *, bool);
 int	msim_dd_check_interrupt(unsigned long);
 void	msim_dd_ack_interrupt(unsigned long);
 
-/* sync to msim_dd_read_sector().  Can't think of a prettier pattern. */
-typedef int (*msim_dd_read_sector_t)(unsigned long, size_t, void *, bool);
-
 #endif
