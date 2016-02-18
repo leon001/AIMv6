@@ -20,31 +20,28 @@
 #define _BOOTSECT_H
 
 #include <sys/types.h>
-#include <attributes.h>
 
 /*
  * IBM PC-compatible MBR structure
  */
 
 /*
- * Code style note:
- * Developers familiar with GCC tend to write the following code sometimes:
- *
- * struct chs {
- * 	...
- * } __packed;
- *
- * This is not friendly with other compilers such as LLVM/Clang.
+ * #pragma pack(x) tells the compiler to align the structure members to
+ * x bytes.
+ * #pragma pack() reverts to original behavior.
+ * Most compilers accept this statement, but not all compilers can understand
+ * GNU-style attributes such as __attribute__((packed, aligned(1)))
  */
+#pragma pack(1)
 
-struct __packed chs {
+struct chs {
 	unsigned char	head;
 	unsigned char	sector:6;
 	unsigned char	cylinder_hi:2;
 	unsigned char	cylinder_lo;
 };
 
-struct __packed mbr_part_entry {
+struct mbr_part_entry {
 	uint8_t		status;
 #define BOOTABLE	0x80
 #define INACTIVE	0x00
@@ -58,10 +55,12 @@ struct __packed mbr_part_entry {
 #define BOOTLOADER_SIZE		446
 #define MAX_PRIMARY_PARTITIONS	4
 
-struct __packed mbr {
+struct mbr {
 	unsigned char	code[BOOTLOADER_SIZE];
 	struct mbr_part_entry part_entry[MAX_PRIMARY_PARTITIONS];
 	unsigned char	signature[2];
 };
+
+#pragma pack()
 
 #endif
