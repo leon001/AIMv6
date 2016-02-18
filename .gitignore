@@ -64,6 +64,7 @@ Makefile
 
 # Disassembly
 /firmware/arch/*/firmware.s
+/boot/arch/*/bootloader.s
 
 # Tarball
 *.tar*
