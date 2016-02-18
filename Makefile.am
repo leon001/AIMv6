@@ -20,8 +20,8 @@ include $(top_srcdir)/env.am
 SUBDIRS = \
 	lib \
 	drivers \
-	firmware
+	firmware \
+	boot
 #	include \
-#	boot \
 	#kern user tools
 
