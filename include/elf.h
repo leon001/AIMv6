@@ -21,7 +21,7 @@
 #ifndef _ELF_H
 #define _ELF_H
 
-#include <libc/sys/types.h>
+#include <sys/types.h>
 
 /* Type for a 16-bit quantity.  */
 typedef uint16_t Elf32_Half;

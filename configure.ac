@@ -185,6 +185,7 @@ AC_CONFIG_FILES([
 	boot/arch/armv7a/Makefile
 	boot/arch/i386/Makefile
 	boot/arch/mips/Makefile
+	boot/arch/mips/msim/Makefile
 	doc/Makefile
 	drivers/Makefile
 	drivers/block/Makefile
