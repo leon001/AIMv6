@@ -19,7 +19,7 @@
 #ifndef _BOOTSECT_H
 #define _BOOTSECT_H
 
-#include <libc/sys/types.h>
+#include <sys/types.h>
 #include <attributes.h>
 
 /*
@@ -31,7 +31,7 @@ struct chs {
 	unsigned char	sector:6;
 	unsigned char	cylinder_hi:2;
 	unsigned char	cylinder_lo;
-};
+} __packed;
 
 struct mbr_part_entry {
 	uint8_t		status;
@@ -42,7 +42,7 @@ struct mbr_part_entry {
 	struct chs	last_sector_chs;
 	uint32_t	first_sector_lba;
 	uint32_t	sector_count;
-};
+} __packed;
 
 #define BOOTLOADER_SIZE		446
 #define MAX_PRIMARY_PARTITIONS	4
