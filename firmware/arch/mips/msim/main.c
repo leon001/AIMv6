@@ -78,7 +78,13 @@ void main(void)
 		 *     "read disk sector" function, and the physical address
 		 *     of the hard disk.
 		 */
-		(*(mbr_entry_t)mbr)(msim_dd_read_sector, MSIM_DISK_PHYSADDR);
+		if (mbr[SECTOR_SIZE - 2] == 0x55 &&
+		    mbr[SECTOR_SIZE - 1] == 0xaa) {
+			(*(mbr_entry_t)mbr)(msim_dd_read_sector,
+			    MSIM_DISK_PHYSADDR);
+		} else {
+			uart_puts("Corrupted legacy boot sector?\n");
+		}
 	}
 	for (;;)
 		/* nothing */;
