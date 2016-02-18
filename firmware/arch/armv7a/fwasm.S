@@ -45,7 +45,7 @@ clbss_l:
 	blo	clbss_l
 
 	/* Set up stack for firmware and bootloader use */
-	ldr	sp, =fw_vector
+	ldr	sp, =fw_stack+4096
 	movs	fp, sp
 
 	/* And call into firmware code */

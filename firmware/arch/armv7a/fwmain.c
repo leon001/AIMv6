@@ -31,6 +31,8 @@
 #include <drivers/sd/sd.h>
 #include <drivers/sd/sd-zynq.h>
 
+char fw_stack[4096];
+
 void sleep(uint32_t s)
 {
 	uint64_t time, time1;
