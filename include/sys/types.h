@@ -42,6 +42,9 @@ typedef signed long ssize_t;
 
 typedef void *uintptr_t;
 
+/* A generic void function pointer type */
+typedef void (*generic_funcptr)();
+
 #endif
 
 #endif

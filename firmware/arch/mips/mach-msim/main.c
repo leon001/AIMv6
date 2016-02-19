@@ -32,9 +32,6 @@
 
 unsigned char fwstack[NR_CPUS][FWSTACKSIZE];
 
-typedef void (*readdisk_t)(size_t, size_t, void *, size_t);
-typedef void (*mbr_entry_t)(readdisk_t, uintptr_t);
-
 void fwpanic(const char *fmt, ...)
 {
 	va_list ap;
@@ -117,7 +114,7 @@ void main(void)
 		 *     the address of bootloader entry itself.  The reason
 		 *     is discussed in boot/arch/mips/msim/bootsect.c.
 		 */
-		(*(mbr_entry_t)mbr)(readdisk, mbr);
+		(*(generic_funcptr)mbr)(readdisk, mbr);
 	}
 	for (;;)
 		/* nothing */;
