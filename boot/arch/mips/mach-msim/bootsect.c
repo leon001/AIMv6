@@ -20,6 +20,8 @@
 #include <bootsect.h>
 #include <libc/stddef.h>
 
+typedef void (*entry_fp)(void);
+
 /*
  * The first 446 bytes contains this piece of code.
  *
@@ -37,12 +39,12 @@
  * However, using PIC in firmware, bootloader and kernel is rather tedious,
  * so we are not going to do it here.
  */
-void boot(generic_funcptr readdisk, uintptr_t mbr_addr)
+void boot(void (*readdisk)(size_t, size_t, void *, size_t), uintptr_t mbr_addr)
 {
 	struct elf32hdr eh;
 	struct elf32_phdr ph;
 	Elf32_Half i;
-	generic_funcptr entry;
+	entry_fp entry;
 	Elf32_Off pos = 0;
 
 	struct mbr *mbr = (struct mbr *)mbr_addr;
@@ -74,7 +76,7 @@ void boot(generic_funcptr readdisk, uintptr_t mbr_addr)
 		pos += eh.e_phentsize;
 	}
 
-	entry = (generic_funcptr)(eh.e_entry);
+	entry = (entry_fp)(eh.e_entry);
 	(*entry)();
 }
 
