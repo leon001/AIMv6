@@ -1,6 +1,4 @@
-/* Copyright (C) 2016
- * Gan Quan <coin2028@hotmail.com>
- * David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -18,24 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LIBC_STDDEF_H
-#define _LIBC_STDDEF_H
+OUTPUT_FORMAT("elf32-tradlittlemips")
+ENTRY(boot)
 
-#ifndef NULL
-#define NULL	(void *)0
-#endif
-
-#ifndef BUFSIZ
-#define BUFSIZ		1024
-#endif
-
-#define MEMBER_OFFSET(struct, member_name) \
-	((unsigned long)&(((struct *)0)->member_name))
-
-#define member_to_struct(addr, struct, member_name) \
-	((struct *)((unsigned long)(addr) - MEMBER_OFFSET(struct, member_name)))
-
-#define MIN2(a, b)	(((a) < (b)) ? (a) : (b))
-
-#endif /* _LIBC_STDDEF_H */
-
+SECTIONS {
+	.text : {
+		*(.text*);
+	}
+}

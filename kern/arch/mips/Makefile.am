@@ -1,4 +1,5 @@
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -17,12 +18,8 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = \
-	lib \
-	drivers \
-	firmware \
-	boot \
-	kern
-#	include \
-	#kern user tools
+noinst_PROGRAMS = kernel.elf
+noinst_DATA = kernel.s
 
+kernel_elf_SOURCES = entry.S kernel.ld
+kernel_elf_LDFLAGS = -T kernel.ld -nostdlib
