@@ -1,3 +1,20 @@
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+ *
+ * This file is part of AIMv6.
+ *
+ * AIMv6 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * AIMv6 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include <elf.h>
 #include <bootsect.h>
@@ -32,17 +49,21 @@ void boot(readdisk_t readdisk, uintptr_t mbr_addr)
 	entry_t entry;
 	Elf32_Off pos = 0;
 
-#if 1
 	struct mbr *mbr = (struct mbr *)mbr_addr;
 	uint32_t lba = mbr->part_entry[1].first_sector_lba;
-#else
-	unsigned long addr = (unsigned long)mbr_addr + PART0_ENTRY_OFFSET
-	    + sizeof(struct mbr_part_entry)
-	    + MEMBER_OFFSET(struct mbr_part_entry, first_sector_lba);
-	uint32_t lba = *(uint16_t *)(addr + 2);
-	lba = (lba << 16) + *(uint16_t *)addr;
-#endif
 	uintptr_t seg;
+
+	/*
+	 * Basically, we're reading a statically-linked ELF file.
+	 * The logic is very simple: we locate every loadable segment
+	 * in the ELF file, putting the content in appropriate memory
+	 * address.  After everything is loaded into the memory, jump
+	 * to the entry address and continue execution.
+	 *
+	 * Ideally, we want to clean ".bss" section prior to jumping
+	 * into the entry point.  However, the space in MBR is very
+	 * limited, so we'll leave the job to the kernel itself.
+	 */
 
 	/* Read the ELF header first */
 	readdisk(lba, pos, &eh, sizeof(eh));
