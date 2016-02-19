@@ -25,7 +25,7 @@ fw_vector:
 	ldr	pc, =fw_asm
 	/* Interface */
 	ldr	pc, =uart_puts
-	//ldr	pc, =sd_dma_spin_read
+	ldr	pc, =readdisk
 
 .text
 

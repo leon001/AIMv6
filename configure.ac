@@ -205,6 +205,7 @@ AC_CONFIG_FILES([
 	firmware/arch/mips/msim/Makefile
 	kern/Makefile
 	kern/arch/Makefile
+	kern/arch/armv7a/Makefile
 	kern/arch/mips/Makefile
 	lib/Makefile
 	lib/libc/Makefile
