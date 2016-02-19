@@ -1,3 +1,20 @@
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+ *
+ * This file is part of AIMv6.
+ *
+ * AIMv6 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * AIMv6 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -5,6 +22,7 @@
 
 #include <sys/types.h>
 #include <libc/stddef.h>
+#include <libc/string.h>
 #include <smp.h>
 #include <drivers/serial/uart.h>
 #include <drivers/block/hd.h>
@@ -14,18 +32,38 @@
 
 unsigned char fwstack[NR_CPUS][FWSTACKSIZE];
 
-/*
- * Function pointer declaration for MBR bootloader entry.
- * The bootloader entry should look like:
- *
- * void entry(msim_dd_read_sector_t read_sector, unsigned long disk_physaddr)
- *
- * See boot/arch/mips/msim/bootsect.c for demonstration (TBD)
- *
- * Definition for msim_dd_read_sector_t is in
- * drivers/block/msim-ddisk.h
- */
-typedef void (*mbr_entry_t)(msim_dd_read_sector_t, unsigned long);
+typedef void (*mbr_entry_fp)
+    (void (*)(size_t, size_t, void *, size_t), uintptr_t);
+
+void fwpanic(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	uart_vprintf(fmt, ap);
+	for (;;)
+		/* nothing */;
+	va_end(ap);
+}
+
+void readdisk(size_t sector, size_t offset, void *buf, size_t len)
+{
+	unsigned char sector_buf[SECTOR_SIZE];
+	size_t l = 0;
+
+	sector += offset / SECTOR_SIZE;
+	offset %= SECTOR_SIZE;
+
+	for (; len > 0; len -= l) {
+		l = MIN2(len, SECTOR_SIZE - offset);
+		if (msim_dd_read_sector(MSIM_DISK_PHYSADDR,
+		    sector, sector_buf, true) < 0)
+			fwpanic("read disk error");
+		memcpy(buf, &sector_buf[offset], l);
+		offset = 0;
+		buf += l;
+		++sector;
+	}
+}
 
 void main(void)
 {
@@ -51,7 +89,7 @@ void main(void)
 		 * design rather than firmware here, we choose an simple
 		 * yet ugly design: to couple firmware and MBR together.
 		 * The firmware jumps to MBR bootloader entry with an
-		 * argument storing the address of the "read disk sector"
+		 * argument storing the address of the "read disk"
 		 * function.  This design sticks firmware, disk hardware,
 		 * and MBR together, and is thus a *BAD* design, however
 		 * we don't want to waste too much effort here.
@@ -72,13 +110,14 @@ void main(void)
 		 * For those unfamiliar with function pointers:
 		 * This statement does the following:
 		 * (1) obtain the buffer address ("mbr")
-		 * (2) view it as a function entry with type mbr_entry_t
+		 * (2) view it as a function entry with type mbr_entry_fp
 		 *     (see the "typedef" statement above for definition)
 		 * (3) execute the function there with two arguments: the
-		 *     "read disk sector" function, and the physical address
-		 *     of the hard disk.
+		 *     "read disk" function, and the address of MBR, i.e.
+		 *     the address of bootloader entry itself.  The reason
+		 *     is discussed in boot/arch/mips/msim/bootsect.c.
 		 */
-		(*(mbr_entry_t)mbr)(msim_dd_read_sector, MSIM_DISK_PHYSADDR);
+		(*(mbr_entry_fp)mbr)(readdisk, mbr);
 	}
 	for (;;)
 		/* nothing */;

@@ -1,4 +1,5 @@
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -17,12 +18,11 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = \
-	boot \
-	lib \
-	drivers \
-	firmware \
-	kern
-#	include \
-	#kern user tools
+noinst_PROGRAMS = boot.elf
+noinst_DATA = boot.bin boot.s
 
+boot_elf_SOURCES = bootsect.c bootsect.ld
+boot_elf_LDFLAGS = -T bootsect.ld -nostdlib
+
+boot.bin: boot.elf
+	$(OBJCOPY) -O binary -j.text $^ $@

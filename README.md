@@ -65,6 +65,57 @@ For example, if you have a MIPS GCC compiler named
 `mips64-unknown-linux-gnu-gcc`, the host argument should be
 `mips64-unknown-linux-gnu`.
 
+##### Preparing disk image
+
+MSIM needs a disk image to simulate hard disks.
+
+###### A sample configuration
+
+**May be changed later**.
+
+Run
+
+```
+dd if=/dev/zero of=disk.img bs=1024 count=1000000
+```
+
+to create a 1000000K blank disk image.
+
+Then, use `fdisk(8)` to make DOS partitions:
+
+```
+fdisk disk.img
+```
+
+Copy the bootloader into the first 446 bytes in the first sector:
+
+```
+dd if=boot/arch/mips/msim/boot.bin of=disk.img bs=1 count=446 conv=notrunc
+```
+
+Use `kpartx(8)` to mount the partitions in disk image (probably as root):
+
+```
+kpartx -av disk.img
+```
+
+If successful, you may see the following messages:
+
+```
+add map loop0p1 (253:3): 0 204800 linear /dev/loop0 2048
+add map loop0p2 (253:4): 0 40960 linear /dev/loop0 206848
+add map loop0p3 (253:5): 0 1024000 linear /dev/loop0 247808
+add map loop0p4 (253:6): 0 776768 linear /dev/loop0 1271808
+```
+
+Copy the kernel image to the second partition on disk image (probably as root):
+
+```
+dd if=kern/arch/mips/kernel.elf of=/dev/mapper/loop0p2 conv=notrunc
+```
+
+Run MSIM to bring up the operating system.
+
 ### Loongson 3A
 
 (TBD)
