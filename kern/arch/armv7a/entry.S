@@ -20,6 +20,10 @@
 
 .text
 
+/* Broadcast entry points */
+.globl master_entry
+.globl slave_entry
+
 master_entry:
 	/* Set state and disable interrupts, but do not touch endianness. */
 	msr	cpsr_c, 0xDF
@@ -51,9 +55,6 @@ clbss_l:
 	/* Call into early_init */
 	bl	master_early_init
 
-/* Broadcast a entry pointer to start slave cores later */
-.globl slave_entry
-
 slave_entry:
 	/* Slave cores also set states, but DO NOT clear bss */
 	msr	cpsr_c, 0xDF
@@ -70,12 +71,13 @@ slave_entry:
 lock:
 	mov	r0, #1			/* prepare a non-zero value */
 	ldr	r1, =early_spinlock	/* load lock address */
+lock_loop:
 	ldrex	r5, [r1]		/* load lock value */
 	cmp	r5, #0
 	wfene				/* sleep if locked */
 	strexeq	r5, r0, [r1]		/* if free, try to lock it */
 	cmpeq	r5, #0
-	bne 	early_loop		/* try again if failed */
+	bne 	lock_loop		/* try again if failed */
 	dmb				/* data memory barrier */
 	bx	lr			/* return */
 

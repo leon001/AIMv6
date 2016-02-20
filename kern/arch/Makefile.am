@@ -19,8 +19,3 @@
 SUBDIRS = $(ARCH)
 DIST_SUBDIRS = armv7a i386 mips
 
-noinst_LTLIBRARIES = libarch.la
-
-libarch_la_SOURCES =
-libarch_la_LIBADD = $(ARCH)/lib$(ARCH).la
-

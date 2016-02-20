@@ -16,27 +16,51 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ENTRY(boot_main)
+OUTPUT_ARCH(arm)
+ENTRY(master_entry)
 
 MEMORY
 {
-	MBR (rwx) :
+	MEM (WX) :
 		ORIGIN = 1M,
-		LENGTH = 512
-	BSS (rw) :
-		ORIGIN = 1M + 512,
-		LENGTH = 1M - 512
+		LENGTH = MEM_SIZE - 1M
 }
 
 SECTIONS
 {
+	/DISCARD/ : {}
+
+	. = ALIGN(4K);
+
 	.text : {
-		*(.text .rodata);
-	} > MBR
+		_text_begin = .;
+		*(.vector);
+		*(.text);
+		_text_end = .;
+	}
+	
+	.rodata : {
+		*(.rodata);
+	}
+	
+	.bss : {
+		_bss_begin = .;
+		*(.bss);
+		_bss_end = .;
+	}
+
 	.data : {
 		*(.data);
-	} > MBR
-	.bss : {
-		*(.bss);
-	} > BSS
+	}
+
+	. = ALIGN(16K);
+
+	.boot : {
+		PROVIDE(boot_pgdir = .);
+		. += 16K; /* early pgdir */
+		. += 4K; /* early stack */
+		PROVIDE(boot_stack = .);
+	}
 }
+
+

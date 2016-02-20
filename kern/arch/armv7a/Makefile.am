@@ -18,6 +18,12 @@
 include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libarmv7a.la
+noinst_DATA = vmaim.lds
+
+CLEANFILES = vmaim.lds
 
 libarmv7a_la_SOURCES = entry.S
+
+vmaim.lds: vmaim.lds.S
+	$(COMPILE) -DMEM_SIZE=$(MEM) -E -P $^ -o $@
 

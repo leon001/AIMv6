@@ -36,22 +36,22 @@ SECTIONS
 
 	.text : {
 		_text_begin = .;
-		*(.vector)
-		*(.text)
+		*(.vector);
+		*(.text);
 		_text_end = .;
 	}
 	
 	.rodata : {
-		*(.rodata)
+		*(.rodata);
 	}
 	
 	.bss : {
 		_bss_begin = .;
-		*(.bss)
+		*(.bss);
 		_bss_end = .;
 	}
 
 	.data : {
-		*(.data)
+		*(.data);
 	}
 }

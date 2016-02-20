@@ -16,27 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ENTRY(boot_main)
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-MEMORY
+/* from kernel */
+#include <sys/types.h>
+
+__attribute__ ((noreturn))
+void master_early_init(void)
 {
-	MBR (rwx) :
-		ORIGIN = 1M,
-		LENGTH = 512
-	BSS (rw) :
-		ORIGIN = 1M + 512,
-		LENGTH = 1M - 512
+	while (1);
 }
 
-SECTIONS
+__attribute__ ((noreturn))
+void slave_early_init(void)
 {
-	.text : {
-		*(.text .rodata);
-	} > MBR
-	.data : {
-		*(.data);
-	} > MBR
-	.bss : {
-		*(.bss);
-	} > BSS
+	while (1);
 }
+
+
