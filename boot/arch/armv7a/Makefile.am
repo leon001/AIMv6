@@ -17,9 +17,12 @@
 
 include $(top_srcdir)/env.am
 
-noinst_PROGRAMS = bootloader.elf
+dist_noinst_DATA = boot.lds.S
 
+noinst_PROGRAMS = bootloader.elf
 noinst_DATA = bootloader.bin bootloader.s
+
+CLEANFILES = bootloader.bin bootloader.s boot.lds
 
 bootloader_elf_SOURCES = bootmain.c
 bootloader_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW

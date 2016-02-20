@@ -23,6 +23,8 @@ SUBDIRS = \
 	firmware \
 	boot \
 	kern \
-	include
-	#user tools
+	include \
+	doc \
+	user \
+	tools
 

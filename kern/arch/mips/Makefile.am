@@ -21,5 +21,7 @@ include $(top_srcdir)/env.am
 noinst_PROGRAMS = kernel.elf
 noinst_DATA = kernel.s
 
+CLEANFILES = kernel.s
+
 kernel_elf_SOURCES = entry.S kernel.ld
 kernel_elf_LDFLAGS = -T kernel.ld -nostdlib

@@ -17,10 +17,11 @@
 
 include $(top_srcdir)/env.am
 
-MOSTLYCLEANFILES = firmware.lds
+CLEANFILES = firmware.lds firmware.s firmware.bin
+
+dist_noinst_DATA = firmware.lds.S
 
 noinst_PROGRAMS = firmware.elf
-
 noinst_DATA = firmware.bin firmware.s
 
 firmware_elf_SOURCES = fwasm.S fwmain.c

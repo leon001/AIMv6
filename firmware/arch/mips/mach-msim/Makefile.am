@@ -20,6 +20,8 @@ include $(top_srcdir)/env.am
 noinst_PROGRAMS = firmware.elf
 noinst_DATA = firmware.bin firmware.s
 
+CLEANFILES = firmware.bin firmware.s
+
 firmware_elf_SOURCES = entry.S main.c firmware.ld
 firmware_elf_LDFLAGS = -T firmware.ld -nostdlib
 firmware_elf_LDADD = $(top_builddir)/drivers/libdrivers-raw.la \
