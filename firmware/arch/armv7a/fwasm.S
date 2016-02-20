@@ -39,7 +39,7 @@ fw_asm:
 	mov	r2, #0x00000000
 clbss_l:
 	cmp	r0, r1
-	/* aleays use unsigned LOWER */
+	/* always use unsigned LOWER */
 	strlo	r2, [r0]
 	addlo	r0, r0, #4
 	blo	clbss_l

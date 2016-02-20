@@ -207,6 +207,7 @@ AC_CONFIG_FILES([
 	kern/arch/Makefile
 	kern/arch/armv7a/Makefile
 	kern/arch/mips/Makefile
+	kern/init/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	tools/Makefile

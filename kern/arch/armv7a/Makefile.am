@@ -15,3 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+include $(top_srcdir)/env.am
+
+noinst_LTLIBRARIES = libarmv7a.la
+
+libarmv7a_la_SOURCES = entry.S
+
