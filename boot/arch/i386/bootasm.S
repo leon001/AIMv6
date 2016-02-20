@@ -18,7 +18,8 @@
  * The code is directly taken from bootasm.S in xv6.
  */
 
-#include <asm.h>
+#include <segment.h>
+#include <processor-flags.h>
 
 /*
  * Just before entering into the boot loader, i386 runs in 16-bit "real" mode
@@ -39,6 +40,19 @@ start:
 	xorw	%ax, %ax
 	/*
 	 * Clean data segment, stack segment, and extra segment.
+	 *
+	 * A memory segment is a continuous chunk of memory.  A x86 segment
+	 * register selects a memory segment for a dedicated use.
+	 *
+	 * i386 has three common segment registers, each for Code Segment (CS),
+	 * Data Segment (DS), and Stack Segment (SS).
+	 * (1) The instruction pointer (IP) points to segment determined by CS.
+	 * (2) The general registers (AX, BX, CX, DX) and index registers
+	 *     (SI, DI) points to segment determined by DS when referencing
+	 *     memory.
+	 * (3) The stack pointer (SP) and stack base pointer (BP) points to
+	 *     segment determined by SS.
+	 *
 	 * Back to days before 32-bit, *segments* are introduced by Intel to
 	 * enable the processors to access addresses more than 16-bit, since
 	 * at that time 20-bit (1MB) memory are available.  The memory is
@@ -61,8 +75,9 @@ start:
 	 * However, with segmentation, the current instruction address is
 	 * in fact CS:IP, while the stack top address is actually SS:SP.
 	 *
-	 * In 32-bit "protected" mode, segments have totally different meaning,
-	 * which will be discussed in kernel code.
+	 * In 32-bit "protected" mode, the segment registers also controls
+	 * which memory chunk various registers will be referencing.  However,
+	 * the form of segment registers are different.
 	 */
 	movw	%ax, %ds
 	movw	%ax, %ss
@@ -133,8 +148,17 @@ seta20.2:
 	 * to "redefine" the meaning of segments.
 	 *
 	 * In protected mode, the segment registers (CS, DS, SS, etc.) contains
-	 * *segment selectors*, which are much more complicated.
-	 * [TODO] more info...
+	 * *segment selectors*.
+	 *
+	 * A segment selector has the following form:
+	 * (<index> << 3) + (<table indicator> << 2) + (<privilege level>)
+	 * where
+	 *     - <index> is the index to global/local descriptor table
+	 *     - <table indicator> should be 1 if reading local descriptor table.
+	 *     - <privilege level> is the privilege level (user or kernel) the
+	 *       registers will be referencing under.
+	 *
+	 * The local descriptor tables are not used in our operating system.
 	 *
 	 * For now, we are going to use a GDT stored at @gdtdesc (discussed
 	 * below).
@@ -185,7 +209,18 @@ seta20.2:
 	 */
 die:	jmp	die
 
-	/* TODO: fill in explanations */
+	/*
+	 * The following contains the GDT the bootloader will use.
+	 * A GDT is a list of segment descriptor.  For the form of a
+	 * segment descriptor, see include/arch/i386/segment.h.
+	 *
+	 * Here, we are constructing two segments.
+	 *
+	 * Segment #1 is an executable, readable segment, covering addresses
+	 * from 0x0 + 0x0 to 0x0 + 0xffffffff.
+	 * Segment #2 is a readable, writable, non-executable segment, also
+	 * covering the whole address space.
+	 */
 .p2align 2			/* Force 4 byte alignment */
 gdt:
 	SEG_NULLASM
