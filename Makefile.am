@@ -22,7 +22,7 @@ SUBDIRS = \
 	drivers \
 	firmware \
 	boot \
-	kern
-#	include \
-	#kern user tools
+	kern \
+	include
+	#user tools
 

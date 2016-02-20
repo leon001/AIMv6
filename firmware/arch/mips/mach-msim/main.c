@@ -32,8 +32,8 @@
 
 unsigned char fwstack[NR_CPUS][FWSTACKSIZE];
 
-typedef void (*readdisk_t)(size_t, size_t, void *, size_t);
-typedef void (*mbr_entry_t)(readdisk_t, uintptr_t);
+typedef void (*mbr_entry_fp)
+    (void (*)(size_t, size_t, void *, size_t), uintptr_t);
 
 void fwpanic(const char *fmt, ...)
 {
@@ -110,14 +110,14 @@ void main(void)
 		 * For those unfamiliar with function pointers:
 		 * This statement does the following:
 		 * (1) obtain the buffer address ("mbr")
-		 * (2) view it as a function entry with type mbr_entry_t
+		 * (2) view it as a function entry with type mbr_entry_fp
 		 *     (see the "typedef" statement above for definition)
 		 * (3) execute the function there with two arguments: the
 		 *     "read disk" function, and the address of MBR, i.e.
 		 *     the address of bootloader entry itself.  The reason
 		 *     is discussed in boot/arch/mips/msim/bootsect.c.
 		 */
-		(*(mbr_entry_t)mbr)(readdisk, mbr);
+		(*(mbr_entry_fp)mbr)(readdisk, mbr);
 	}
 	for (;;)
 		/* nothing */;
