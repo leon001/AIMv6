@@ -88,6 +88,7 @@ esac
 # none
 
 AIM_SET_ARG([nr-cpus], [NR_CPUS], [Number of cores], [4])
+AIM_SET_ARG([kstacksize], [KSTACKSIZE], [Size of kernel stack], [4096])
 
 # option checks
 AS_CASE($MACH,
@@ -164,6 +165,8 @@ AM_CONDITIONAL([ARCH_ARMV7A],
 	[test x$ARCH = xarmv7a])
 AM_CONDITIONAL([ARCH_MIPS32],
 	[test x$ARCH = xmips32])
+AM_CONDITIONAL([ARCH_MIPS64],
+	[test x$ARCH = xmips64])
 AM_CONDITIONAL([UART_ZYNQ],
 	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
 AM_CONDITIONAL([SD_ZYNQ],

@@ -16,11 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-OUTPUT_FORMAT("elf32-tradlittlemips")
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef USE_MIPS32
+#define TARGET	"elf32-tradlittlemips"
+#endif
+
+#ifdef USE_MIPS64
+#define TARGET	"elf64-tradlittlemips"
+#endif
+
+OUTPUT_FORMAT(TARGET)
+
+#undef TARGET
+
 ENTRY(__start)
 
 SECTIONS {
-	. = 0x80300000;
+	. = 0xffffffff80300000;
 	.text : {
 		*(.text*);
 	}
@@ -35,5 +50,13 @@ SECTIONS {
 		*(.bss*);
 		PROVIDE(__bss_end__ = .);
 	}
-	PROVIDE(__bss_size__ = __bss_end__ - __bss_begin__);
+	/*
+	 * MIPS ISA doesn't require alignment, paging or anything else
+	 * to run a kernel.  This alignment is only for cache-friendliness.
+	 */
+	. = ALIGN(KSTACKSIZE);
+	.boot : {
+		. += KSTACKSIZE;
+		PROVIDE(boot_stack = .);
+	}
 }
