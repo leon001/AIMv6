@@ -39,6 +39,7 @@ LT_INIT
 # check for compiler attributes
 AC_CONFIG_MACRO_DIR([./m4])
 AIM_GCC_FUNC_ATTRIBUTE([noreturn])
+AIM_GCC_FUNC_ATTRIBUTE([weak])
 
 # package information
 AC_ARG_VAR([ARCH], [target architecture])

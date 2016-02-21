@@ -48,8 +48,7 @@ void uart_puts(const char *str)
  * device drivers.
  */
 
-#pragma weak uart_puts
-void uart_puts(const char *str)
+void __weak uart_puts(const char *str)
 {
 	for (; *str != '\0'; ++str) {
 		if (*str == '\n')
