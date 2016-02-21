@@ -24,6 +24,7 @@
 #include <sys/types.h>
 
 /* just for testing; should be replaced someday */
+extern void uart_puts(const char *);
 
 void __noreturn master_early_init(void)
 {
