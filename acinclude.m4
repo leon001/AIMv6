@@ -49,3 +49,45 @@ AC_DEFUN([AIM_SUBST_MULTILINE],
   ]
 )
 
+# AIM_FUNC_ATTRIBUTE([attribute])
+AC_DEFUN([AIM_GCC_FUNC_ATTRIBUTE],
+  [
+    AS_VAR_PUSHDEF([aim_var], [ax_cv_have_func_attribute_$1])
+    AS_VAR_PUSHDEF([aim_defined_var], [aim_defined_attribute_$1])
+    AX_GCC_FUNC_ATTRIBUTE($1)
+    AS_IF(
+      [test xyes = [x]AS_VAR_GET([aim_defined_var])], [],
+      [test xyes = [x]AS_VAR_GET([aim_var])], [
+        AS_VAR_SET([aim_defined_var], [yes])
+	AC_DEFINE_UNQUOTED(
+	  [__$1], [__attribute__(($1))],
+	  [pseudo-keyword for attribute $1]
+	)
+      ]
+    )
+    AS_VAR_POPDEF([aim_defined_var])
+    AS_VAR_POPDEF([aim_var])
+  ]
+)
+
+# AIM_VAR_ATTRIBUTE([attribute])
+AC_DEFUN([AIM_GCC_VAR_ATTRIBUTE],
+  [
+    AS_VAR_PUSHDEF([aim_var], [ax_cv_have_var_attribute_$1])
+    AS_VAR_PUSHDEF([aim_defined_var], [aim_defined_attribute_$1])
+    AX_GCC_VAR_ATTRIBUTE($1)
+    AS_IF(
+      [test xyes = [x]AS_VAR_GET([aim_defined_var])], [],
+      [test xyes = [x]AS_VAR_GET([aim_var])], [
+        AS_VAR_SET([aim_defined_var], [yes])
+	AC_DEFINE_UNQUOTED(
+	  [__$1], [__attribute__(($1))],
+	  [pseudo-keyword for attribute $1]
+	)
+      ]
+    )
+    AS_VAR_POPDEF([aim_defined_var])
+    AS_VAR_POPDEF([aim_var])
+  ]
+)
+

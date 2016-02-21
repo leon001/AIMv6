@@ -30,7 +30,8 @@ vmaim_elf_SOURCES =
 vmaim_elf_LDADD = \
 	arch/$(ARCH)/lib$(ARCH).la \
 	arch/$(ARCH)/vmaim.lds \
-	init/libinit.la
+	init/libinit.la \
+	$(top_builddir)/drivers/libdrivers.la
 # FIXME need better solution
 # ld can find the script from input files
 vmaim_elf_LDFLAGS = $(AM_LDFLAGS) -T arch/$(ARCH)/vmaim.lds

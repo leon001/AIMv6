@@ -23,14 +23,15 @@
 /* from kernel */
 #include <sys/types.h>
 
-__attribute__ ((noreturn))
-void master_early_init(void)
+/* just for testing; should be replaced someday */
+
+void __noreturn master_early_init(void)
 {
+	uart_puts("Hello from kernel!\n");
 	while (1);
 }
 
-__attribute__ ((noreturn))
-void slave_early_init(void)
+void __noreturn slave_early_init(void)
 {
 	while (1);
 }
