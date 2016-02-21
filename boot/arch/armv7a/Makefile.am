@@ -15,3 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+include $(top_srcdir)/env.am
+
+dist_noinst_DATA = boot.lds.S
+
+noinst_PROGRAMS = bootloader.elf
+noinst_DATA = bootloader.bin bootloader.s
+
+CLEANFILES = bootloader.bin bootloader.s boot.lds
+
+bootloader_elf_SOURCES = bootmain.c
+bootloader_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
+bootloader_elf_CFLAGS = $(AM_CFLAGS) -Os
+bootloader_elf_LDADD = boot.lds
+bootloader_elf_LDFLAGS = $(AM_LDFLAGS) -T boot.lds
+
+boot.lds: boot.lds.S
+	$(COMPILE) -DMEM_SIZE=$(MEM) -E -P $^ -o $@
+

@@ -22,7 +22,8 @@
 
 /* from kernel */
 #include <sys/types.h>
-
+/* from libc */
+#include <libc/string.h>
 /* from drivers */
 #include <drivers/serial/uart.h>
 #include <drivers/serial/uart-zynq.h>
@@ -30,6 +31,10 @@
 #include <drivers/timer/timer-a9.h>
 #include <drivers/sd/sd.h>
 #include <drivers/sd/sd-zynq.h>
+
+#define SECTOR_SIZE	512
+
+char fw_stack[4096];
 
 void sleep(uint32_t s)
 {
@@ -49,6 +54,35 @@ void usleep(uint32_t us)
 	do {
 		time1 = timer_read();
 	} while (time1 < time);
+}
+
+void fwpanic(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	uart_vprintf(fmt, ap);
+	for (;;)
+		/* nothing */;
+	va_end(ap);
+}
+
+void readdisk(size_t sector, size_t offset, void *buf, size_t len)
+{
+	unsigned char sector_buf[SECTOR_SIZE];
+	size_t l = 0;
+
+	sector += offset / SECTOR_SIZE;
+	offset %= SECTOR_SIZE;
+
+	for (; len > 0; len -= l) {
+		l = MIN2(len, SECTOR_SIZE - offset);
+		if (sd_read((uint32_t)sector_buf, 1, sector) != 0)
+			fwpanic("read disk error");
+		memcpy(buf, &sector_buf[offset], l);
+		offset = 0;
+		buf += l;
+		++sector;
+	}
 }
 
 __attribute__ ((noreturn))

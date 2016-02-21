@@ -68,7 +68,7 @@ void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 void main(void)
 {
 	char mbr[SECTOR_SIZE];
-	uart_puts("Hello world!\n");
+	uart_puts("FW: Hello world!\n");
 	msim_dd_init(MSIM_DISK_PHYSADDR);
 	if (msim_dd_read_sector(MSIM_DISK_PHYSADDR, 0, mbr, true) == 0) {
 		/*

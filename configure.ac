@@ -24,6 +24,11 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_PROG_CC
 AC_PROG_CC_STDC
+AC_C_CONST
+AC_C_RESTRICT
+AC_C_VOLATILE
+AC_C_INLINE
+
 AM_PROG_AS
 AM_PROG_AR
 AC_CHECK_TOOL([OBJDUMP], [objdump])
@@ -201,7 +206,10 @@ AC_CONFIG_FILES([
 	firmware/arch/mips/mach-msim/Makefile
 	kern/Makefile
 	kern/arch/Makefile
+	kern/arch/armv7a/Makefile
+	kern/arch/i386/Makefile
 	kern/arch/mips/Makefile
+	kern/init/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	tools/Makefile

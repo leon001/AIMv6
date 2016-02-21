@@ -17,3 +17,7 @@
 
 include $(top_srcdir)/env.am
 
+noinst_LTLIBRARIES = libinit.la
+
+libinit_la_SOURCES = early_init.c
+

@@ -18,11 +18,13 @@
 include $(top_srcdir)/env.am
 
 SUBDIRS = \
-	boot \
 	lib \
 	drivers \
 	firmware \
-	kern
-#	include \
-	#kern user tools
+	boot \
+	kern \
+	include \
+	doc \
+	user \
+	tools
 

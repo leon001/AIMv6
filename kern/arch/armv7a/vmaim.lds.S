@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,24 +16,51 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-OUTPUT_FORMAT("elf32-tradlittlemips")
-ENTRY(__start)
+OUTPUT_ARCH(arm)
+ENTRY(master_entry)
 
-SECTIONS {
-	. = 0x80300000;
-	.text : {
-		*(.text*);
-	}
-	.rodata : {
-		*(.rodata*);
-	}
-	.data : {
-		*(.data*);
-	}
-	.bss : {
-		PROVIDE(__bss_begin__ = .);
-		*(.bss*);
-		PROVIDE(__bss_end__ = .);
-	}
-	PROVIDE(__bss_size__ = __bss_end__ - __bss_begin__);
+MEMORY
+{
+	MEM (WX) :
+		ORIGIN = 1M,
+		LENGTH = MEM_SIZE - 1M
 }
+
+SECTIONS
+{
+	/DISCARD/ : {}
+
+	. = ALIGN(4K);
+
+	.text : {
+		_text_begin = .;
+		*(.vector);
+		*(.text);
+		_text_end = .;
+	}
+	
+	.rodata : {
+		*(.rodata);
+	}
+	
+	.bss : {
+		_bss_begin = .;
+		*(.bss);
+		_bss_end = .;
+	}
+
+	.data : {
+		*(.data);
+	}
+
+	. = ALIGN(16K);
+
+	.boot : {
+		PROVIDE(boot_pgdir = .);
+		. += 16K; /* early pgdir */
+		. += 4K; /* early stack */
+		PROVIDE(boot_stack = .);
+	}
+}
+
+

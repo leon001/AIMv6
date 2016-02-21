@@ -23,8 +23,8 @@
 
 int	sd_init(void);
 int	sd_init_card(void);
-int	sd_read(u32 pa, u16 count, u32 offset);
-int	sd_write(u32 pa, u16 count, u32 offset);
+int	sd_read(uint32_t pa, uint16_t count, uint32_t offset);
+int	sd_write(uint32_t pa, uint16_t count, uint32_t offset);
 
 #else /* not RAW, or kernel driver */
 

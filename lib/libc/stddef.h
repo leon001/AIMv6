@@ -1,6 +1,5 @@
-/* Copyright (C) 2016
- * Gan Quan <coin2028@hotmail.com>
- * David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+ * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *

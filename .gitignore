@@ -64,6 +64,8 @@ Makefile
 
 # Disassembly
 /firmware/arch/*/firmware.s
+/boot/arch/*/bootloader.s
+/kern/vmaim.s
 
 # Tarball
 *.tar*

@@ -25,7 +25,7 @@ fw_vector:
 	ldr	pc, =fw_asm
 	/* Interface */
 	ldr	pc, =uart_puts
-	//ldr	pc, =sd_dma_spin_read
+	ldr	pc, =readdisk
 
 .text
 
@@ -33,8 +33,19 @@ fw_asm:
 	/* Set state and disable interrupts, but do not touch endianness. */
 	msr	cpsr_c, 0xDF
 
+	/* Clear BSS */
+	ldr	r0, =_bss_begin
+	ldr	r1, =_bss_end
+	mov	r2, #0x00000000
+clbss_l:
+	cmp	r0, r1
+	/* always use unsigned LOWER */
+	strlo	r2, [r0]
+	addlo	r0, r0, #4
+	blo	clbss_l
+
 	/* Set up stack for firmware and bootloader use */
-	ldr	sp, =fw_vector
+	ldr	sp, =fw_stack+4096
 	movs	fp, sp
 
 	/* And call into firmware code */

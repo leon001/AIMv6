@@ -1,4 +1,5 @@
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This program is part of AIMv6.
 #

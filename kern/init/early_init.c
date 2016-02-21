@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,24 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-OUTPUT_FORMAT("elf32-tradlittlemips")
-ENTRY(__start)
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-SECTIONS {
-	. = 0x80300000;
-	.text : {
-		*(.text*);
-	}
-	.rodata : {
-		*(.rodata*);
-	}
-	.data : {
-		*(.data*);
-	}
-	.bss : {
-		PROVIDE(__bss_begin__ = .);
-		*(.bss*);
-		PROVIDE(__bss_end__ = .);
-	}
-	PROVIDE(__bss_size__ = __bss_end__ - __bss_begin__);
+/* from kernel */
+#include <sys/types.h>
+
+__attribute__ ((noreturn))
+void master_early_init(void)
+{
+	while (1);
 }
+
+__attribute__ ((noreturn))
+void slave_early_init(void)
+{
+	while (1);
+}
+
+

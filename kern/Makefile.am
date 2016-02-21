@@ -15,4 +15,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-SUBDIRS = arch
+include $(top_srcdir)/env.am
+
+SUBDIRS = \
+	arch \
+	init
+
+CLEANFILES = vmaim.s
+
+noinst_PROGRAMS = vmaim.elf
+noinst_DATA = vmaim.s
+
+vmaim_elf_SOURCES =
+vmaim_elf_LDADD = \
+	arch/$(ARCH)/lib$(ARCH).la \
+	arch/$(ARCH)/vmaim.lds \
+	init/libinit.la
+# FIXME need better solution
+# ld can find the script from input files
+vmaim_elf_LDFLAGS = $(AM_LDFLAGS) -T arch/$(ARCH)/vmaim.lds
+
