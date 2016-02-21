@@ -20,21 +20,8 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-/* from kernel */
-#include <sys/types.h>
-#include <init.h>
-
-__attribute__ ((noreturn))
-void master_early_init(void)
+void early_mach_init(void)
 {
-	early_arch_init();
-	while (1);
-}
 
-__attribute__ ((noreturn))
-void slave_early_init(void)
-{
-	while (1);
 }
-
 
