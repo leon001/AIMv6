@@ -33,5 +33,5 @@ libarmv7a_la_SOURCES = arch_init.c
 libarmv7a_la_LIBADD = $(PREFIXED_MACH)/lib$(MACH).la
 
 vmaim.lds: vmaim.lds.S
-	$(COMPILE) -DMEM_SIZE=$(MEM) -E -P $^ -o $@
+	$(COMPILE) -E -P $^ -o $@
 

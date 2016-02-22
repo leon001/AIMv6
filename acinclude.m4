@@ -95,8 +95,8 @@ AC_DEFUN([AIM_GCC_VAR_ATTRIBUTE],
 # AIM_HELP_ENABLE([feature], [description])
 AC_DEFUN(
 	[AIM_HELP_ENABLE],[]dnl
-[AS_HELP_STRING([--enable-$1], [Enable $2])
-AS_HELP_STRING([--disable-$1], [Disable $2])[]dnl
+[AS_HELP_STRING([--enable-$1], [enable $2])
+AS_HELP_STRING([--disable-$1], [disable $2])[]dnl
 ])
 dnl FIXME The indent above looks bad, but don't change it.
 
