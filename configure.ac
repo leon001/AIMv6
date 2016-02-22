@@ -58,6 +58,8 @@ case $ARCH in
 	mips64)
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
 	;;
+	mips*)
+		AS_VAR_SET([with_nr_cpus], [4])
 esac
 
 # deal with platforms
@@ -92,7 +94,16 @@ esac
 # system services
 # none
 
-AIM_SET_ARG([nr-cpus], [NR_CPUS], [Number of cores], [4])
+#AIM_SET_ARG([nr-cpus], [NR_CPUS], [Number of cores], [4])
+AC_ARG_WITH(
+	[nr-cpus], 
+	[AS_HELP_STRING([nr-cpus], [Set number of cores])][]dnl
+)
+AS_IF(
+	[test x$with_nr_cpus = x],
+	[AS_VAR_SET([with_nr_cpus], [detect])]
+)
+AC_DEFINE([NR_CPUS], [$with_nr_cpus], [Number of cores])
 AIM_SET_ARG([kstacksize], [KSTACKSIZE], [Size of kernel stack], [4096])
 
 # option checks
@@ -170,12 +181,20 @@ AC_ARG_ENABLE(
 	[uart-zynq], 
 	[AIM_HELP_ENABLE([uart-zynq], [zynq UART driver])][]dnl
 )
+AS_IF(
+	[test x$enable_uart_zynq != xyes],
+	[AS_VAR_SET([enable_uart_zynq], [no])]
+)
 AM_CONDITIONAL([UART_ZYNQ],
 	[test x$enable_uart_zynq = xyes])
 
 AC_ARG_ENABLE(
 	[sd-zynq], 
 	[AIM_HELP_ENABLE([sd-zynq], [zynq SD driver])][]dnl
+)
+AS_IF(
+	[test x$enable_sd_zynq != xyes],
+	[AS_VAR_SET([enable_sd_zynq], [no])]
 )
 AM_CONDITIONAL([SD_ZYNQ],
 	[test x$enable_sd_zynq = xyes])
@@ -184,8 +203,14 @@ AC_ARG_ENABLE(
 	[timer-a9], 
 	[AIM_HELP_ENABLE([timer-a9], [Cortex-A9 MPCore timer driver])][]dnl
 )
+AS_IF(
+	[test x$enable_timer_a9 != xyes],
+	[AS_VAR_SET([enable_timer_a9], [no])]
+)
 AM_CONDITIONAL([TIMER_A9],
 	[test x$enable_timer_a9 = xyes])
+
+# Primary Driver Selection
 
 AM_CONDITIONAL([ARCH_ARMV7A],
 	[test x$ARCH = xarmv7a])
@@ -240,4 +265,31 @@ AC_CONFIG_FILES([
 	user/Makefile
 ])
 AC_OUTPUT
+
+AC_MSG_NOTICE([
+=========================
+  Configuration Summary
+=========================
+
+General
+--------
+  version:	${VERSION}
+  build:	${build}
+  host:		${host}
+  compiler:	${CC}
+  CFlags:	${CFLAGS}
+
+Target
+--------
+  architecture:	${ARCH}
+  machine:	${MACH}
+  memory:	${MEM}
+  processors:	${with_nr_cpus}
+
+Drivers
+--------
+  uart-zynq:	${enable_uart_zynq}
+  sd-zynq:	${enable_sd_zynq}
+  timer-a9:	${enable_timer_a9}
+])
 

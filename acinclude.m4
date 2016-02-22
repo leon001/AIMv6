@@ -97,6 +97,6 @@ AC_DEFUN(
 	[AIM_HELP_ENABLE],[]dnl
 [AS_HELP_STRING([--enable-$1], [Enable $2])
 AS_HELP_STRING([--disable-$1], [Disable $2])[]dnl
-])[]dnl
+])
 dnl FIXME The indent above looks bad, but don't change it.
 
