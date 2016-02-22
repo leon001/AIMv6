@@ -1,4 +1,5 @@
 # Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -90,4 +91,12 @@ AC_DEFUN([AIM_GCC_VAR_ATTRIBUTE],
     AS_VAR_POPDEF([aim_var])
   ]
 )
+
+# AIM_HELP_ENABLE([feature], [description])
+AC_DEFUN(
+	[AIM_HELP_ENABLE],[]dnl
+[AS_HELP_STRING([--enable-$1], [Enable $2])
+AS_HELP_STRING([--disable-$1], [Disable $2])[]dnl
+])[]dnl
+dnl FIXME The indent above looks bad, but don't change it.
 

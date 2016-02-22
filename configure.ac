@@ -65,9 +65,9 @@ esac
 # and add corresponding macro defines
 case $MACH in
 	zynq)
-		uart_zynq="primary"
-		sd_zynq="primary"
-		timer_a9="primary"
+		enable_uart_zynq="yes"
+		enable_sd_zynq="yes"
+		enable_timer_a9="yes"
 	;;
 esac
 
@@ -162,9 +162,30 @@ AS_CASE($MACH,
 		 AC_SUBST(MSIM_CONF_RTCPA,
 			  `printf 0x%08x $with_msim_rtc_pa`)
 		 ],
-	[zynq], [
-		 ],
+	[zynq], [],
 	[AC_MSG_ERROR([No machine specified])])
+
+# Drivers
+AC_ARG_ENABLE(
+	[uart-zynq], 
+	[AIM_HELP_ENABLE([uart-zynq], [zynq UART driver])][]dnl
+)
+AM_CONDITIONAL([UART_ZYNQ],
+	[test x$enable_uart_zynq = xyes])
+
+AC_ARG_ENABLE(
+	[sd-zynq], 
+	[AIM_HELP_ENABLE([sd-zynq], [zynq SD driver])][]dnl
+)
+AM_CONDITIONAL([SD_ZYNQ],
+	[test x$enable_sd_zynq = xyes])
+
+AC_ARG_ENABLE(
+	[timer-a9], 
+	[AIM_HELP_ENABLE([timer-a9], [Cortex-A9 MPCore timer driver])][]dnl
+)
+AM_CONDITIONAL([TIMER_A9],
+	[test x$enable_timer_a9 = xyes])
 
 AM_CONDITIONAL([ARCH_ARMV7A],
 	[test x$ARCH = xarmv7a])
@@ -172,12 +193,6 @@ AM_CONDITIONAL([ARCH_MIPS32],
 	[test x$ARCH = xmips32])
 AM_CONDITIONAL([ARCH_MIPS64],
 	[test x$ARCH = xmips64])
-AM_CONDITIONAL([UART_ZYNQ],
-	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
-AM_CONDITIONAL([SD_ZYNQ],
-	[test x$sd_zynq = xprimary -o x$sd_zynq = xsecondary])
-AM_CONDITIONAL([TIMER_A9],
-	[test x$timer_a9 = xprimary -o x$timer_a9 = xsecondary])
 AM_CONDITIONAL([UART_MSIM],
 	[test x$MACH = xmsim])
 AM_CONDITIONAL([BLOCK_MSIM],
