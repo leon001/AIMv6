@@ -108,12 +108,24 @@ AC_DEFUN([AIM_ARG_VAR], [
 ])
 
 # AIM_ARG_WITH([feature], [macro], [desc], [value_if_empty])
+# serves a variable, a substitution, and a macro
 AC_DEFUN([AIM_ARG_WITH], [
 	AS_VAR_PUSHDEF([default_var], [with_]m4_bpatsubst([$1], -, _))
 	AC_ARG_WITH([$1], [AS_HELP_STRING([--with-$1=ARG], [set $3])])
 	AS_VAR_IF([default_var], [], [AS_VAR_SET([default_var], [$4])])
 	AC_DEFINE_UNQUOTED([$2], [$default_var], [$3])
 	AC_SUBST([default_var])
+	AS_VAR_POPDEF([default_var])
+])
+
+# AIM_ARG_ENABLE([feature], [conditional], [desc])
+# serves a variable, a substitution, and a conditional
+AC_DEFUN([AIM_ARG_ENABLE], [
+	AS_VAR_PUSHDEF([default_var], [enable_]m4_bpatsubst([$1], -, _))
+	AC_ARG_ENABLE([$1], [AIM_HELP_ENABLE([$1], [$3])])
+	AS_VAR_IF([default_var], [], [AS_VAR_SET([default_var], [no])])
+	AC_SUBST([default_var])
+	AM_CONDITIONAL([$2], [test x$default_var = xyes])
 	AS_VAR_POPDEF([default_var])
 ])
 

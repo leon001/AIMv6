@@ -47,6 +47,8 @@ AIM_ARG_VAR([MACH], [target machine])
 AC_SUBST([PREFIXED_MACH], [mach-$MACH])
 
 # default configurations
+AS_VAR_SET([with_kstacksize], [4096])
+
 AS_CASE([$ARCH], 
 	[mips32], [
 		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
@@ -71,6 +73,8 @@ AS_CASE([$MACH],
 	],
 	[msim], [
 		AS_VAR_SET([with_fwstack_order], [12])
+		AS_VAR_SET([enable_uart_msim], [yes])
+		AS_VAR_SET([with_primary_console], [uart-msim])
 		AS_VAR_SET([with_msim_kbd_pa], [0x1f000000])
 		AS_VAR_SET([with_msim_lp_pa], [0x1f000010])
 		AS_VAR_SET([with_msim_disk_pa], [0x1f000020])
@@ -91,94 +95,37 @@ AC_SUBST([MEM_SIZE], [$with_mem_size])
 AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [detect])
 AC_SUBST([NR_CPUS], [$with_cpus])
 
-AIM_SET_ARG([kstacksize], [KSTACKSIZE], [size of kernel stack], [4096])
+AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
+	[size of kernel stack])
 
-AIM_ARG_WITH(
-	[fwstack-order],
-	[FWSTACKORDER],
-	[order of firmware stack per CPU (size=1<<order)],
-)
+AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
+	[order of firmware stack per CPU (size=1<<order)])
 
 # MSIM
-AIM_ARG_WITH(
-	[msim-kbd-pa],
-	[MSIM_KBD_PHYSADDR],
-	[MSIM keyboard physical address],
-)
-AIM_ARG_WITH(
-	[msim-lp-pa],
-	[MSIM_LP_PHYSADDR],
-	[MSIM printer physical address],
-)
-AIM_ARG_WITH(
-	[msim-disk-pa],
-	[MSIM_DISK_PHYSADDR],
-	[MSIM disk physical address],
-)
-AIM_ARG_WITH(
-	[msim-order-pa],
-	[MSIM_ORDER_PHYSADDR],
-	[MSIM IPC device physical address],
-)
-AIM_ARG_WITH(
-	[msim-mb-base],
-	[MSIM_ORDER_MAILBOX_BASE],
-	[MSIM IPC device mailbox base address],
-)
-AIM_ARG_WITH(
-	[msim-mb-order],
-	[MSIM_ORDER_MAILBOX_ORDER],
-	[order of MSIM IPC device mailbox (size=1<<order)],
-)
-AIM_ARG_WITH(
-	[msim-rtc-pa],
-	[MSIM_RTC_PHYSADDR],
-	[MSIM real time clock physical address],
-)
-AIM_ARG_WITH(
-	[msim-firmware-bin],
-	[MSIM_FIRMWARE_BIN],
-	[MSIM firmware binary file name],
-)
-AIM_ARG_WITH(
-	[msim-disk-img],
-	[MSIM_DISK_IMG],
-	[MSIM disk image file name],
-)
+AIM_ARG_WITH([msim-kbd-pa], [MSIM_KBD_PHYSADDR],
+	[MSIM keyboard physical address])
+AIM_ARG_WITH([msim-lp-pa], [MSIM_LP_PHYSADDR],
+	[MSIM printer physical address])
+AIM_ARG_WITH([msim-disk-pa], [MSIM_DISK_PHYSADDR],
+	[MSIM disk physical address])
+AIM_ARG_WITH([msim-order-pa], [MSIM_ORDER_PHYSADDR],
+	[MSIM IPC device physical address])
+AIM_ARG_WITH([msim-mb-base], [MSIM_ORDER_MAILBOX_BASE],
+	[MSIM IPC device mailbox base address])
+AIM_ARG_WITH([msim-mb-order], [MSIM_ORDER_MAILBOX_ORDER],
+	[order of MSIM IPC device mailbox (size=1<<order)])
+AIM_ARG_WITH([msim-rtc-pa], [MSIM_RTC_PHYSADDR],
+	[MSIM real time clock physical address])
+AIM_ARG_WITH([msim-firmware-bin], [MSIM_FIRMWARE_BIN],
+	[MSIM firmware binary file name])
+AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
+	[MSIM disk image file name])
 
 # Drivers
-AC_ARG_ENABLE(
-	[uart-zynq], 
-	[AIM_HELP_ENABLE([uart-zynq], [zynq UART driver])][]dnl
-)
-AS_IF(
-	[test x$enable_uart_zynq != xyes],
-	[AS_VAR_SET([enable_uart_zynq], [no])]
-)
-AM_CONDITIONAL([UART_ZYNQ],
-	[test x$enable_uart_zynq = xyes])
-
-AC_ARG_ENABLE(
-	[sd-zynq], 
-	[AIM_HELP_ENABLE([sd-zynq], [zynq SD driver])][]dnl
-)
-AS_IF(
-	[test x$enable_sd_zynq != xyes],
-	[AS_VAR_SET([enable_sd_zynq], [no])]
-)
-AM_CONDITIONAL([SD_ZYNQ],
-	[test x$enable_sd_zynq = xyes])
-
-AC_ARG_ENABLE(
-	[timer-a9], 
-	[AIM_HELP_ENABLE([timer-a9], [Cortex-A9 MPCore timer driver])][]dnl
-)
-AS_IF(
-	[test x$enable_timer_a9 != xyes],
-	[AS_VAR_SET([enable_timer_a9], [no])]
-)
-AM_CONDITIONAL([TIMER_A9],
-	[test x$enable_timer_a9 = xyes])
+AIM_ARG_ENABLE([uart-zynq], [UART_ZYNQ], [zynq UART driver])
+AIM_ARG_ENABLE([uart-msim], [UART_MSIM], [MSIM UART driver])
+AIM_ARG_ENABLE([sd-zynq], [SD_ZYNQ], [zynq SD driver])
+AIM_ARG_ENABLE([timer-a9], [TIMER_A9], [Cortex-A9 MPCore timer driver])
 
 # Primary Driver Selection
 AIM_ARG_WITH([primary-console], [PRIMARY_CONSOLE], [primary console])
@@ -279,7 +226,9 @@ General
   build:	${build}
   host:		${host}
   compiler:	${CC}
-  CFlags:	${CFLAGS}
+  CPPFLAGS:	${CPPFLAGS}
+  CFLAGS:	${CFLAGS}
+  LDFLAGS:	${LDFLAGS}
 
 Target
 --------
