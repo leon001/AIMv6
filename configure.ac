@@ -47,8 +47,16 @@ AC_SUBST([ARCH])
 AC_ARG_VAR([MACH], [target machine])
 AC_SUBST([MACH])
 AC_SUBST([PREFIXED_MACH], [mach-$MACH])
-AC_ARG_VAR([MEM], [installed memory])
-AC_SUBST([MEM])
+AC_ARG_WITH(
+	[mem-size], 
+	[AS_HELP_STRING([--with-mem-size], [set amount of memory installed])][]dnl
+)
+AS_IF(
+	[test x$with_mem_size = x],
+	[AS_VAR_SET([with_mem_size], [detect])]
+)
+AC_DEFINE_UNQUOTED([MEM_SIZE], [$with_mem_size], [amount of memory installed])
+AC_SUBST([MEM_SIZE])
 
 # deal with architectures
 case $ARCH in
@@ -58,6 +66,9 @@ case $ARCH in
 	mips64)
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
 	;;
+	mips*)
+		AS_VAR_SET([with_nr_cpus], [4])
+	;;
 esac
 
 # deal with platforms
@@ -65,9 +76,10 @@ esac
 # and add corresponding macro defines
 case $MACH in
 	zynq)
-		uart_zynq="primary"
-		sd_zynq="primary"
-		timer_a9="primary"
+		enable_uart_zynq="yes"
+		enable_sd_zynq="yes"
+		enable_timer_a9="yes"
+		with_primary_console="uart-zynq"
 	;;
 esac
 
@@ -92,8 +104,17 @@ esac
 # system services
 # none
 
-AIM_SET_ARG([nr-cpus], [NR_CPUS], [Number of cores], [4])
-AIM_SET_ARG([kstacksize], [KSTACKSIZE], [Size of kernel stack], [4096])
+AC_ARG_WITH(
+	[nr-cpus], 
+	[AS_HELP_STRING([--with-nr-cpus], [set number of cores])][]dnl
+)
+AS_IF(
+	[test x$with_nr_cpus = x],
+	[AS_VAR_SET([with_nr_cpus], [detect])]
+)
+AC_DEFINE_UNQUOTED([NR_CPUS], [$with_nr_cpus], [number of cores])
+AC_SUBST([NR_CPUS])
+AIM_SET_ARG([kstacksize], [KSTACKSIZE], [size of kernel stack], [4096])
 
 # option checks
 AS_CASE($MACH,
@@ -162,9 +183,49 @@ AS_CASE($MACH,
 		 AC_SUBST(MSIM_CONF_RTCPA,
 			  `printf 0x%08x $with_msim_rtc_pa`)
 		 ],
-	[zynq], [
-		 ],
+	[zynq], [],
 	[AC_MSG_ERROR([No machine specified])])
+
+# Drivers
+AC_ARG_ENABLE(
+	[uart-zynq], 
+	[AIM_HELP_ENABLE([uart-zynq], [zynq UART driver])][]dnl
+)
+AS_IF(
+	[test x$enable_uart_zynq != xyes],
+	[AS_VAR_SET([enable_uart_zynq], [no])]
+)
+AM_CONDITIONAL([UART_ZYNQ],
+	[test x$enable_uart_zynq = xyes])
+
+AC_ARG_ENABLE(
+	[sd-zynq], 
+	[AIM_HELP_ENABLE([sd-zynq], [zynq SD driver])][]dnl
+)
+AS_IF(
+	[test x$enable_sd_zynq != xyes],
+	[AS_VAR_SET([enable_sd_zynq], [no])]
+)
+AM_CONDITIONAL([SD_ZYNQ],
+	[test x$enable_sd_zynq = xyes])
+
+AC_ARG_ENABLE(
+	[timer-a9], 
+	[AIM_HELP_ENABLE([timer-a9], [Cortex-A9 MPCore timer driver])][]dnl
+)
+AS_IF(
+	[test x$enable_timer_a9 != xyes],
+	[AS_VAR_SET([enable_timer_a9], [no])]
+)
+AM_CONDITIONAL([TIMER_A9],
+	[test x$enable_timer_a9 = xyes])
+
+# Primary Driver Selection
+AC_ARG_WITH(
+	[primary-console], 
+	[AS_HELP_STRING([--with-primary-console=DRIVER], [set primary console to DRIVER])][]dnl
+)
+AC_DEFINE([PRIMARY_CONSOLE], [$with_primary_console], [primary console])
 
 AM_CONDITIONAL([ARCH_ARMV7A],
 	[test x$ARCH = xarmv7a])
@@ -172,12 +233,6 @@ AM_CONDITIONAL([ARCH_MIPS32],
 	[test x$ARCH = xmips32])
 AM_CONDITIONAL([ARCH_MIPS64],
 	[test x$ARCH = xmips64])
-AM_CONDITIONAL([UART_ZYNQ],
-	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
-AM_CONDITIONAL([SD_ZYNQ],
-	[test x$sd_zynq = xprimary -o x$sd_zynq = xsecondary])
-AM_CONDITIONAL([TIMER_A9],
-	[test x$timer_a9 = xprimary -o x$timer_a9 = xsecondary])
 AM_CONDITIONAL([UART_MSIM],
 	[test x$MACH = xmsim])
 AM_CONDITIONAL([BLOCK_MSIM],
@@ -215,6 +270,7 @@ AC_CONFIG_FILES([
 	kern/Makefile
 	kern/arch/Makefile
 	kern/arch/armv7a/Makefile
+	kern/arch/armv7a/mach-zynq/Makefile
 	kern/arch/i386/Makefile
 	kern/arch/mips/Makefile
 	kern/init/Makefile
@@ -224,4 +280,36 @@ AC_CONFIG_FILES([
 	user/Makefile
 ])
 AC_OUTPUT
+
+AC_MSG_NOTICE([
+=========================
+  Configuration Summary
+=========================
+
+General
+--------
+  version:	${VERSION}
+  build:	${build}
+  host:		${host}
+  compiler:	${CC}
+  CFlags:	${CFLAGS}
+
+Target
+--------
+  architecture:	${ARCH}
+  machine:	${MACH}
+  memory:	${MEM}
+  processors:	${with_nr_cpus}
+  memory:	${with_mem_size}
+
+Drivers
+--------
+  uart-zynq:	${enable_uart_zynq}
+  sd-zynq:	${enable_sd_zynq}
+  timer-a9:	${enable_timer_a9}
+
+Primary Drivers
+--------
+  console:	${with_primary_console}
+])
 

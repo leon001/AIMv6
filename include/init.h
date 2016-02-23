@@ -16,46 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+void early_arch_init(void);
+void early_mach_init(void);
 
-#define FW_SIZE	1M
-
-OUTPUT_ARCH(arm)
-ENTRY(_text_begin)
-
-MEMORY
-{
-	FIRMWARE (WX) :
-		ORIGIN = MEM_SIZE - FW_SIZE,
-		LENGTH = FW_SIZE
-}
-
-SECTIONS
-{
-	/DISCARD/ : {}
-
-	. = ALIGN(4K);
-
-	.text : {
-		_text_begin = .;
-		*(.vector);
-		*(.text);
-		_text_end = .;
-	}
-	
-	.rodata : {
-		*(.rodata);
-	}
-	
-	.bss : {
-		_bss_begin = .;
-		*(.bss);
-		_bss_end = .;
-	}
-
-	.data : {
-		*(.data);
-	}
-}

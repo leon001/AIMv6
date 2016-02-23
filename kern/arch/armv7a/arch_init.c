@@ -20,42 +20,11 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#define FW_SIZE	1M
+/* from kernel */
+#include <init.h>
 
-OUTPUT_ARCH(arm)
-ENTRY(_text_begin)
-
-MEMORY
+void early_arch_init(void)
 {
-	FIRMWARE (WX) :
-		ORIGIN = MEM_SIZE - FW_SIZE,
-		LENGTH = FW_SIZE
+	early_mach_init();
 }
 
-SECTIONS
-{
-	/DISCARD/ : {}
-
-	. = ALIGN(4K);
-
-	.text : {
-		_text_begin = .;
-		*(.vector);
-		*(.text);
-		_text_end = .;
-	}
-	
-	.rodata : {
-		*(.rodata);
-	}
-	
-	.bss : {
-		_bss_begin = .;
-		*(.bss);
-		_bss_end = .;
-	}
-
-	.data : {
-		*(.data);
-	}
-}

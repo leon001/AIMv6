@@ -22,13 +22,11 @@
 
 /* from kernel */
 #include <sys/types.h>
-
-/* just for testing; should be replaced someday */
-extern void uart_puts(const char *);
+#include <init.h>
 
 void __noreturn master_early_init(void)
 {
-	uart_puts("Hello from kernel!\n");
+	early_arch_init();
 	while (1);
 }
 
