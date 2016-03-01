@@ -79,7 +79,7 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_lp_pa], [0x1f000010])
 		AS_VAR_SET([with_msim_disk_pa], [0x1f000020])
 		AS_VAR_SET([with_msim_order_pa], [0x1f000100])
-		AS_VAR_SET([with_msim_mb_pa], [0x1f000200])
+		AS_VAR_SET([with_msim_mb_base], [0x1f000200])
 		AS_VAR_SET([with_msim_mb_order], [4])
 		AS_VAR_SET([with_msim_rtc_pa], [0x1f000080])
 		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
