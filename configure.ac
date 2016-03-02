@@ -101,6 +101,12 @@ AS_CASE([$MACH],
 		AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
 			[MSIM disk image file name])
 	],
+	[loongson3a], [
+		# you don't really have any option here.
+		AS_VAR_SET([enable_uart_ns16550], [yes])
+		AC_DEFINE([UART_BASE], [0x1fe001e0],
+			[Loongson 3A UART base address - Do not change])
+	],
 	[AC_MSG_ERROR([No machine specified])]
 )
 
@@ -171,6 +177,14 @@ AM_CONDITIONAL([UART_NS16550],
 	[test x$MACH = xloongson3a])
 AM_CONDITIONAL([BLOCK_MSIM],
 	[test x$MACH = xmsim])
+
+# Skip firmware
+AM_CONDITIONAL([NO_FIRMWARE],
+	[test x$MACH = xloongson3a -o x$ARCH = xi386])
+# Skip bootloader
+AM_CONDITIONAL([NO_BOOTLOADER],
+	[test x$MACH = xloongson3a])
+
 # change mips32 and mips64 to mips afterwards, because the CFLAGS are
 # different, but the source files are in the same directory.
 if test x$ARCH = xmips32 -o x$ARCH = xmips64; then

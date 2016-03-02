@@ -18,6 +18,9 @@
 
 #include <init.h>
 
+/* TODO: just a test, should be removed */
+extern int uart_printf(const char *, ...);
 void early_arch_init(void)
 {
+	uart_printf("Hello from kernel!\n");
 }

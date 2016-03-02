@@ -16,17 +16,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <io.h>
 #include <uart-ns16550.h>
 #include <uart-ns16550-regs.h>
 
-#define UART_READ(x)		in8(UART_BASE + (x))
-#define UART_WRITE(x, d)	out8(UART_BASE + (x), (d))
+/*
+ * FIXME:
+ * Only an example demonstrating difference between x86 UART and other
+ * UART accesses.
+ */
+#ifdef X86
+/* Here UART_BASE is a port-mapped base */
+#define UART_READ(x)		inb(UART_BASE + (x))
+#define UART_WRITE(x, d)	outb(UART_BASE + (x), (d))
+#else	/* !X86 */
+#define UART_READ(x)		read8(UART_BASE + (x))
+#define UART_WRITE(x, d)	write8(UART_BASE + (x), (d))
+#endif
 
 void uart_init(void)
 {
 	/*
 	 * XXX:
-	 * It's probably best to leave NS16550 setup to firmware?
+	 * It's probably best to leave NS16550 setup to machine-specific
+	 * code.  The initialization routine between Loongson 3A and QEMU-i386
+	 * are *VERY* different.
 	 */
 }
 

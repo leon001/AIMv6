@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_SERIAL_UART_NS16550_REGS_H
-#define _DRIVERS_SERIAL_UART_NS16550_REGS_H
+#ifndef _DRIVERS_SERIAL_UART_NS16550_H
+#define _DRIVERS_SERIAL_UART_NS16550_H
 
 void uart_init(void);
 void uart_enable(void);
