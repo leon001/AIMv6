@@ -18,12 +18,14 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libmips.la
+noinst_LTLIBRARIES = libmips.la libentry.la
 noinst_DATA = vmaim.lds
 
 CLEANFILES = vmaim.lds
 
-libmips_la_SOURCES = entry.S
+libentry_la_SOURCES = entry.S
+
+libmips_la_SOURCES = arch_init.c
 
 vmaim.lds: vmaim.lds.S
 	$(COMPILE) -E -P $^ -o $@
