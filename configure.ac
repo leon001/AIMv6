@@ -55,9 +55,6 @@ AS_CASE([$ARCH],
 	],
 	[mips64], [
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
-	],
-	[mips*], [
-		AS_VAR_SET([with_nr_cpus], [4])
 	]
 )
 
@@ -84,7 +81,26 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_rtc_pa], [0x1f000080])
 		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
-	], 
+		AS_VAR_SET([with_cpus], [4])
+		AIM_ARG_WITH([msim-kbd-pa], [MSIM_KBD_PHYSADDR],
+			[MSIM keyboard physical address])
+		AIM_ARG_WITH([msim-lp-pa], [MSIM_LP_PHYSADDR],
+			[MSIM printer physical address])
+		AIM_ARG_WITH([msim-disk-pa], [MSIM_DISK_PHYSADDR],
+			[MSIM disk physical address])
+		AIM_ARG_WITH([msim-order-pa], [MSIM_ORDER_PHYSADDR],
+			[MSIM IPC device physical address])
+		AIM_ARG_WITH([msim-mb-base], [MSIM_ORDER_MAILBOX_BASE],
+			[MSIM IPC device mailbox base address])
+		AIM_ARG_WITH([msim-mb-order], [MSIM_ORDER_MAILBOX_ORDER],
+			[order of MSIM IPC device mailbox (size=1<<order)])
+		AIM_ARG_WITH([msim-rtc-pa], [MSIM_RTC_PHYSADDR],
+			[MSIM real time clock physical address])
+		AIM_ARG_WITH([msim-firmware-bin], [MSIM_FIRMWARE_BIN],
+			[MSIM firmware binary file name])
+		AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
+			[MSIM disk image file name])
+	],
 	[AC_MSG_ERROR([No machine specified])]
 )
 
@@ -100,26 +116,6 @@ AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 
 AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 	[order of firmware stack per CPU (size=1<<order)])
-
-# MSIM
-AIM_ARG_WITH([msim-kbd-pa], [MSIM_KBD_PHYSADDR],
-	[MSIM keyboard physical address])
-AIM_ARG_WITH([msim-lp-pa], [MSIM_LP_PHYSADDR],
-	[MSIM printer physical address])
-AIM_ARG_WITH([msim-disk-pa], [MSIM_DISK_PHYSADDR],
-	[MSIM disk physical address])
-AIM_ARG_WITH([msim-order-pa], [MSIM_ORDER_PHYSADDR],
-	[MSIM IPC device physical address])
-AIM_ARG_WITH([msim-mb-base], [MSIM_ORDER_MAILBOX_BASE],
-	[MSIM IPC device mailbox base address])
-AIM_ARG_WITH([msim-mb-order], [MSIM_ORDER_MAILBOX_ORDER],
-	[order of MSIM IPC device mailbox (size=1<<order)])
-AIM_ARG_WITH([msim-rtc-pa], [MSIM_RTC_PHYSADDR],
-	[MSIM real time clock physical address])
-AIM_ARG_WITH([msim-firmware-bin], [MSIM_FIRMWARE_BIN],
-	[MSIM firmware binary file name])
-AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
-	[MSIM disk image file name])
 
 # Drivers
 AIM_ARG_ENABLE([uart-zynq], [UART_ZYNQ], [zynq UART driver])
@@ -150,7 +146,7 @@ AS_CASE($MACH,
 		 AC_SUBST(MSIM_CONF_ORDERPA,
 			  `printf 0x%08x $with_msim_order_pa`)
 		 AIM_SUBST_MULTILINE(MSIM_CONF_MBLIST,
-			  `for (( i=0; $i<$with_nr_cpus; i=$i+1 )); do \
+			  `for (( i=0; $i<$with_cpus; i=$i+1 )); do \
 			   pa=$(( $with_msim_mb_base \
 				+ ( $i << $with_msim_mb_order ) )); \
 			   printf "add rwm mb%d 0x%08x\n" $i $pa; \
