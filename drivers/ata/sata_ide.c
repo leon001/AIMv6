@@ -2,8 +2,8 @@
 /*
  * This file reads SATA disks in IDE mode.
  * The following functions will decompose into the following primitives:
- * ide_recv(DRV, REG)
- * ide_send(DRV, REG, DATA)
+ * ide_recv(DRV, TASKFILE)
+ * ide_send(DRV, TASKFILE)
  *
  * For device control and alternate status, send to
  * ide_control(DRV, DATA)
@@ -14,8 +14,38 @@
  */
 
 void
-ide_send(struct ide_drive *drive, uint8_t reg, uint8_t data)
+ide_send(struct ide_drive *drive, struct ata_tf *tf)
 {
+	void (*send)(unsigned long, uint8_t);
+	/*
+	 * For Port I/O,
+	 * drive->base = 0x1f0 if primary else 0x170
+	 *
+	 * For PCI,
+	 * drive->base = BAR0 if primary else BAR2
+	 */
+	unsigned long base = drive->base;
+
+	/*
+	 * For Port I/O, send = outb
+	 * For PCI, send = out8
+	 */
+	send = drive->bus->send;
+
+	send(base + ATA_REG_DATA, tf->data);
+	send(base + ATA_REG_ERROR, tf->error);
+	send(base + ATA_REG_NSECT, tf->count);
+	send(base + ATA_REG_LBAL, tf->lbal);
+	send(base + ATA_REG_LBAM, tf->lbam);
+	send(base + ATA_REG_LBAH, tf->lbah);
+	send(base + ATA_REG_DEVSEL, tf->devsel);
+	send(base + ATA_REG_CMD, tf->command);
+}
+
+void
+ide_recv(struct ide_drive *drive, struct ata_tf *tf)
+{
+	drive->tf_recv(drive, tf);
 }
 
 void
@@ -37,24 +67,32 @@ ide_enable_interrupt(struct ide_drive *drive)
 void
 ide_do_read_pio_256_lba28(struct ide_drive *drive, size_t sector, uint8_t count)
 {
-	ide_send(drive, ATA_REG_NSECT, count);
-	ide_send(drive, ATA_REG_LBAL, (uint8_t)(sector));
-	ide_send(drive, ATA_REG_LBAM, (uint8_t)(sector >> 8));
-	ide_send(drive, ATA_REG_LBAH, (uint8_t)(sector >> 16));
-	ide_send(drive, ATA_REG_DEVSEL, (uint8_t)(ATA_LBA
+	struct ata_tf tf;
+
+	tf.data = 0;
+	tf.error = 0;
+	tf.count = count;
+	tf.lbal = sector & 0xff;
+	tf.lbam = (sector >> 8) & 0xff;
+	tf.lbah = (sector >> 16) & 0xff;
+	tf.devsel = ATA_LBA
 	    | (drive->slave ? ATA_DEV1 : 0)
-	    | ((sector >> 24) & 0xf)));
-	ide_send(drive, ATA_REG_CMD, ATA_CMD_PIO_READ);
+	    | (sector >> 24) & 0xf;
+	tf.command = ATA_CMD_PIO_READ;
+
+	ide_send(drive, &tf);
 }
 
 /* TODO: do we need length check? */
 void
-ide_fetch_data(struct ide_drive *drive, unsigned char *buf)
+ide_fetch_sector(struct ide_drive *drive, unsigned char *buf)
 {
 	size_t pos = 0;
+	struct ata_tf tf;
 
-	while (ide_recv(drive, ATA_REG_STATUS) & ATA_DRQ)
-		/* TODO: do we need to repeat this statement? we usually
-		 * read them in pairs. */
-		buf[pos++] = ide_recv(drive, ATA_REG_DATA);
+	for (ide_recv(drive, &tf);
+	    tf.status & ATA_DRQ;
+	    ide_recv(drive, &tf)) {
+		buf[pos++] = tf->data;
+	}
 }
