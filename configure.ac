@@ -105,8 +105,10 @@ AS_CASE([$MACH],
 	[loongson3a], [
 		# you don't really have any option here.
 		AS_VAR_SET([enable_uart_ns16550], [yes])
-		AC_DEFINE([UART_BASE], [0x1fe001e0],
-			[Loongson 3A UART base address - Do not change])
+		AC_DEFINE([UART_BASE1], [0x1fe001e0],
+			[Loongson 3A UART base address 1 - Do not change])
+		AC_DEFINE([UART_BASE2], [0x1fe001e8],
+			[Loongson 3A UART base address 2 - Do not change])
 	],
 	[AC_MSG_ERROR([No machine specified])]
 )
