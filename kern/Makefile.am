@@ -33,6 +33,7 @@ vmaim_elf_LDADD = \
 	init/libinit.la \
 	arch/$(ARCH)/lib$(ARCH).la \
 	$(top_builddir)/drivers/libdrivers.la \
+	$(top_builddir)/lib/libc/libc.la \
 	arch/$(ARCH)/vmaim.lds
 # FIXME need better solution
 # ld can find the script from input files
