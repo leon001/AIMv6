@@ -23,6 +23,10 @@ ide_send(struct ide_drive *drive, struct ata_tf *tf)
 	 *
 	 * For PCI,
 	 * drive->base = BAR0 if primary else BAR2
+	 *
+	 * TODO:
+	 * I wonder whether this could work on other buses, e.g.
+	 * USB, i2c, PCMCIA, etc.  Should be further generalized...
 	 */
 	unsigned long base = drive->base;
 
