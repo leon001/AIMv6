@@ -16,15 +16,36 @@
 void
 ide_send(struct ide_drive *drive, struct ata_tf *tf)
 {
-	/* Pass the message to send (task file here) as well as drive
-	 * information (base address, device number, etc.) to bus driver. */
-	drive->bus->send(drive, tf);
+	void (*send)(unsigned long, uint8_t);
+	/*
+	 * For Port I/O,
+	 * drive->base = 0x1f0 if primary else 0x170
+	 *
+	 * For PCI,
+	 * drive->base = BAR0 if primary else BAR2
+	 */
+	unsigned long base = drive->base;
+
+	/*
+	 * For Port I/O, send = outb
+	 * For PCI, send = out8
+	 */
+	send = drive->bus->send;
+
+	send(base + ATA_REG_DATA, tf->data);
+	send(base + ATA_REG_ERROR, tf->error);
+	send(base + ATA_REG_NSECT, tf->count);
+	send(base + ATA_REG_LBAL, tf->lbal);
+	send(base + ATA_REG_LBAM, tf->lbam);
+	send(base + ATA_REG_LBAH, tf->lbah);
+	send(base + ATA_REG_DEVSEL, tf->devsel);
+	send(base + ATA_REG_CMD, tf->command);
 }
 
 void
 ide_recv(struct ide_drive *drive, struct ata_tf *tf)
 {
-	drive->bus->recv(drive, tf);
+	drive->tf_recv(drive, tf);
 }
 
 void
