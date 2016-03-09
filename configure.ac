@@ -224,6 +224,8 @@ AC_CONFIG_FILES([
 	kern/arch/armv7a/mach-zynq/Makefile
 	kern/arch/i386/Makefile
 	kern/arch/mips/Makefile
+	kern/arch/mips/mach-generic/Makefile
+	kern/arch/mips/mach-msim/Makefile
 	kern/init/Makefile
 	lib/Makefile
 	lib/libc/Makefile

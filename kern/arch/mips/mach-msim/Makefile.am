@@ -1,7 +1,6 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 # Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
-# This program is part of AIMv6.
+# This file is part of AIMv6.
 #
 # AIMv6 is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,24 +17,7 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libserial-raw.la libserial.la
+noinst_LTLIBRARIES = libmsim.la
 
-SRCS = uart.c uart.h
-
-if UART_ZYNQ
-SRCS += uart-zynq.c uart-zynq.h uart-zynq-hw.h
-endif
-
-if UART_MSIM
-SRCS += uart-msim.c uart-msim.h
-endif
-
-if UART_NS16550
-SRCS += uart-ns16550.h uart-ns16550.c uart-ns16550-regs.h
-endif
-
-libserial_raw_la_SOURCES = $(SRCS)
-libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
-libserial_raw_la_LIBADD = $(top_builddir)/lib/libc/libc.la
-
-libserial_la_SOURCES = $(SRCS)
+libmsim_la_SOURCES =
+libmsim_la_LIBADD = $(builddir)/../mach-generic/libmips-generic.la

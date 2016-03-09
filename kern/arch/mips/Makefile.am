@@ -18,6 +18,17 @@
 
 include $(top_srcdir)/env.am
 
+# Add other submodule directories here
+# HACK WARNING:
+#     Apparently automake should build things in mach-generic subdirectory
+#     first, then specific machine subdirectory.  Changing the order
+#     would break the dependency and I have no idea how to automatically
+#     resolve this issue by automake itself yet.
+KERN_SUBDIRS = mach-generic $(PREFIXED_MACH)
+
+SUBDIRS = $(KERN_SUBDIRS)
+DIST_SUBDIRS = mach-generic mach-msim
+
 noinst_LTLIBRARIES = libmips.la libentry.la
 noinst_DATA = vmaim.lds
 
@@ -26,6 +37,8 @@ CLEANFILES = vmaim.lds
 libentry_la_SOURCES = entry.S
 
 libmips_la_SOURCES = arch_init.c
+libmips_la_LIBADD = \
+		    $(PREFIXED_MACH)/lib$(MACH).la
 
 vmaim.lds: vmaim.lds.S
 	$(COMPILE) -E -P $^ -o $@
