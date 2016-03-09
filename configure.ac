@@ -226,6 +226,7 @@ AC_CONFIG_FILES([
 	kern/arch/mips/Makefile
 	kern/arch/mips/mach-generic/Makefile
 	kern/arch/mips/mach-msim/Makefile
+	kern/arch/mips/mach-loongson3a/Makefile
 	kern/init/Makefile
 	lib/Makefile
 	lib/libc/Makefile
