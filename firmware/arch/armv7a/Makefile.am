@@ -35,5 +35,5 @@ firmware_elf_LDADD = \
 firmware_elf_LDFLAGS = $(AM_LDFLAGS) -T firmware.lds
 
 firmware.lds: firmware.lds.S
-	$(COMPILE) -E -P $^ -o $@
+	$(COMPILE) -DMEM_SIZE=$(MEM) -E -P $^ -o $@
 

@@ -22,15 +22,15 @@
 
 /* from kernel */
 #include <sys/types.h>
-#include <init.h>
 
-void __noreturn master_early_init(void)
+__attribute__ ((noreturn))
+void master_early_init(void)
 {
-	early_arch_init();
 	while (1);
 }
 
-void __noreturn slave_early_init(void)
+__attribute__ ((noreturn))
+void slave_early_init(void)
 {
 	while (1);
 }

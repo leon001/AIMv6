@@ -27,14 +27,10 @@ noinst_PROGRAMS = vmaim.elf
 noinst_DATA = vmaim.s
 
 vmaim_elf_SOURCES =
-# DO NOT CHANGE THE ORDER OF ARCHIVES HERE!
 vmaim_elf_LDADD = \
-	arch/$(ARCH)/libentry.la \
-	init/libinit.la \
 	arch/$(ARCH)/lib$(ARCH).la \
-	$(top_builddir)/drivers/libdrivers.la \
-	$(top_builddir)/lib/libc/libc.la \
-	arch/$(ARCH)/vmaim.lds
+	arch/$(ARCH)/vmaim.lds \
+	init/libinit.la
 # FIXME need better solution
 # ld can find the script from input files
 vmaim_elf_LDFLAGS = $(AM_LDFLAGS) -T arch/$(ARCH)/vmaim.lds

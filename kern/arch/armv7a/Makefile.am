@@ -17,21 +17,13 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = $(PREFIXED_MACH)
-DIST_SUBDIRS = mach-zynq
-
-noinst_LTLIBRARIES = \
-	libentry.la \
-	libarmv7a.la
+noinst_LTLIBRARIES = libarmv7a.la
 noinst_DATA = vmaim.lds
 
 CLEANFILES = vmaim.lds
 
-libentry_la_SOURCES = entry.S
-
-libarmv7a_la_SOURCES = arch_init.c
-libarmv7a_la_LIBADD = $(PREFIXED_MACH)/lib$(MACH).la
+libarmv7a_la_SOURCES = entry.S
 
 vmaim.lds: vmaim.lds.S
-	$(COMPILE) -E -P $^ -o $@
+	$(COMPILE) -DMEM_SIZE=$(MEM) -E -P $^ -o $@
 

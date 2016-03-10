@@ -20,10 +20,10 @@
 #include <config.h>
 #endif
 
-#include <uart.h>
 #include <uart-msim.h>
 #include <io.h>
 
+#ifdef RAW
 void uart_init(void)
 {
 	/* nothing */
@@ -38,6 +38,8 @@ void uart_disable(void)
 {
 	/* nothing */
 }
+#else
+#endif
 
 unsigned char uart_getbyte(void)
 {
@@ -51,14 +53,3 @@ void uart_putbyte(unsigned char byte)
 {
 	write8(MSIM_UART_OUTPUT, byte);
 }
-
-#ifdef RAW
-/* nothing */
-#else
-void uart_puts(const char *str)
-{
-	for (; *str != '\0'; ++str)
-		uart_putbyte((unsigned char)*str);
-}
-#endif
-

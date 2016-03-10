@@ -24,40 +24,18 @@
 /* from uart driver */
 #include <uart.h>
 
-/* from libc */
-#include <libc/stdio.h>
-
 #define BUFSIZ	1024
 
 #ifdef RAW /* baremetal driver */
+
+/* from libc */
+#include <libc/stdio.h>
 
 void uart_puts(const char *str)
 {
 	for (; *str != '\0'; ++str)
 		uart_putbyte((unsigned char)*str);
 }
-
-#else /* not RAW, or kernel driver */
-
-/*
- * If a serial console requires \r\n to change line, we usually don't
- * want to specify "\r\n" in C string.
- *
- * This uart_puts() function automatically prepends a carriage return
- * before a newline.  Exceptions can be explicitly made in their own
- * device drivers.
- */
-
-void __weak uart_puts(const char *str)
-{
-	for (; *str != '\0'; ++str) {
-		if (*str == '\n')
-			uart_putbyte('\r');
-		uart_putbyte((unsigned char)*str);
-	}
-}
-
-#endif /* RAW */
 
 ssize_t uart_printf(const char *fmt, ...)
 {
@@ -77,4 +55,8 @@ ssize_t uart_vprintf(const char *fmt, va_list ap)
 	uart_puts(printf_buf);
 	return result;
 }
+
+#else /* not RAW, or kernel driver */
+
+#endif /* RAW */
 
