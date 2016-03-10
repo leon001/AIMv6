@@ -39,12 +39,15 @@ struct segdesc {
  * For present segments, we usually only care the following properties:
  * (1) segment type (readable/writable/executable/etc.)
  * (2) segment base address
- * (3) segment size (or, number of bytes/pages).
+ * (3) segment size (or, number of bytes).
  * (4) segment privilege (user or kernel)
  *
  * Setting the page granularity bit (g) does not necessarily need the
  * paging mechanism (default off) to be turned on, so we use page
  * granularity by default.
+ *
+ * Note that if we are using page granularity, the "limit" field counts
+ * pages rather than bytes.
  */
 #define SEG(type, base, size, dpl)	(struct segdesc) {	\
 	((size) >> 12) & 0xffff,			\
@@ -62,14 +65,14 @@ struct segdesc {
 	(unsigned int)(base) >> 24		\
 } \
 #define SEG16(type, base, size, dpl)	(struct segdesc) {	\
-	((size) >> 12) & 0xffff,			\
+	(size) & 0xffff,			\
 	(unsigned int)(base) & 0xffff,		\
 	((unsigned int)(base) >> 16) & 0xff,	\
 	type,					\
 	1,					\
 	dpl,					\
 	1,					\
-	(unsigned int)(size) >> 28,		\
+	(unsigned int)(size) >> 16,		\
 	0,					\
 	0,					\
 	1,					\
