@@ -19,9 +19,22 @@ nobase_noinst_HEADERS = \
 	sys/types.h
 
 noinst_HEADERS = \
+	bootsect.h \
 	device.h \
+	elf.h \
 	file.h \
+	init.h \
 	sleep.h \
 	arch/armv7a/io.h \
-	arch/armv7a/mach-zynq/mach.h
+	arch/armv7a/mach-zynq/mach.h \
+	arch/mips/addrspace.h \
+	arch/mips/asm.h \
+	arch/mips/cp0regdef.h \
+	arch/mips/io.h \
+	arch/mips/irq.h \
+	arch/mips/mipsregs.h \
+	arch/mips/mm.h \
+	arch/mips/regdef.h \
+	arch/mips/smp.h \
+	arch/mips/mach-msim/mach-smp.h
 

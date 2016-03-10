@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+ * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -19,8 +20,6 @@
 #ifndef _DRIVERS_SERIAL_UART_H
 #define _DRIVERS_SERIAL_UART_H
 
-#ifdef RAW /* baremetal driver */
-
 /* from kernel */
 #include <sys/types.h>
 
@@ -28,11 +27,13 @@
 #include <libc/stdarg.h>
 #include <libc/stddef.h>
 
-char uart_getbyte(void);
+unsigned char uart_getbyte(void);
 void uart_putbyte(unsigned char byte);
 void uart_puts(const char *str);
 ssize_t uart_printf(const char *fmt, ...);
 ssize_t uart_vprintf(const char *fmt, va_list ap);
+
+#ifdef RAW /* baremetal driver */
 
 #else /* not RAW, or kernel driver */
 

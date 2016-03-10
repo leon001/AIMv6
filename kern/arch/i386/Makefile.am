@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -17,14 +17,3 @@
 
 include $(top_srcdir)/env.am
 
-noinst_PROGRAMS = firmware.elf
-noinst_DATA = firmware.bin firmware.s
-
-firmware_elf_SOURCES = entry.S main.c
-firmware_elf_LDFLAGS = -T firmware.ld -nostdlib
-firmware_elf_LDADD = $(top_builddir)/drivers/libdrivers-raw.la \
-		     $(top_builddir)/lib/libc/libc.la
-firmware_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
-
-firmware.bin: firmware.elf
-	$(OBJCOPY) -O binary -j.text -j.rodata -j.data -j.bss $^ $@

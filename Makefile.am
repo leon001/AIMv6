@@ -21,7 +21,10 @@ SUBDIRS = \
 	lib \
 	drivers \
 	firmware \
-	boot
-#	include \
-	#kern user tools
+	boot \
+	kern \
+	include \
+	doc \
+	user \
+	tools
 

@@ -65,6 +65,11 @@ Makefile
 # Disassembly
 /firmware/arch/*/firmware.s
 /boot/arch/*/bootloader.s
+/kern/vmaim.s
+
+# Libtool copies of m4 files
+/m4/libtool.m4
+/m4/lt*.m4
 
 # Tarball
 *.tar*

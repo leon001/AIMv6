@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *

@@ -1,4 +1,5 @@
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -19,7 +20,7 @@ include $(top_srcdir)/env.am
 
 SUBDIRS = block sd serial timer
 
-noinst_LTLIBRARIES = libdrivers-raw.la
+noinst_LTLIBRARIES = libdrivers-raw.la libdrivers.la
 
 libdrivers_raw_la_SOURCES =
 libdrivers_raw_la_LIBADD = \
@@ -28,3 +29,6 @@ libdrivers_raw_la_LIBADD = \
 	$(builddir)/serial/libserial-raw.la \
 	$(builddir)/timer/libtimer-raw.la
 
+libdrivers_la_SOURCES =
+libdrivers_la_LIBADD = \
+	$(builddir)/serial/libserial.la

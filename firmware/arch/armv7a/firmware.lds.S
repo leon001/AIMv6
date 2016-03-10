@@ -16,6 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #define FW_SIZE	1M
 
 OUTPUT_ARCH(arm)
@@ -36,22 +40,22 @@ SECTIONS
 
 	.text : {
 		_text_begin = .;
-		*(.vector)
-		*(.text)
+		*(.vector);
+		*(.text);
 		_text_end = .;
 	}
 	
 	.rodata : {
-		*(.rodata)
+		*(.rodata);
 	}
 	
 	.bss : {
 		_bss_begin = .;
-		*(.bss)
+		*(.bss);
 		_bss_end = .;
 	}
 
 	.data : {
-		*(.data)
+		*(.data);
 	}
 }
