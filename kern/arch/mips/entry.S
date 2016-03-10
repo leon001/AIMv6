@@ -17,7 +17,55 @@
  */
 
 #include <asm.h>
+#include <regdef.h>
+#include <cp0regdef.h>
 
+/*
+ * IMPORTANT NOTE:
+ * Unless explicitly stated (either by filename, assembler directives,
+ * or comments), all code inside kern/arch/mips directory should work
+ * on both MIPS32 and MIPS64 architectures.
+ */
+
+/*
+ * Here is the entry of kernel, as stated by vmaim.lds.S.
+ *
+ * Usually on a multiprocessor machine, only one processor (we call it
+ * the master processor) is brought in to the kernel entry, while
+ * other processors (called slave processors) are suspended by firmware
+ * and wait for some sort of signal from the master.
+ */
 BEGIN(__start)
-1:	j	1b
+	/* Ensure that we are inside kernel mode. */
+	MFC032	a0, CP0_STATUS
+	or	a0, ST_EXCM
+	xor	a0, ST_EXCM
+	MTC032	a0, CP0_STATUS
+	/*
+	 * The kernel is already inside RAM, so .text section, .rodata
+	 * section and .data section are in their right position with
+	 * correct values.
+	 * However, .bss section is still not guaranteed to be initialized
+	 * to 0, so we are going to clean it first.
+	 */
+init_bss:
+	LI	s1, __bss_begin__
+	LI	s2, __bss_end__
+1:	bge	s1, s2, 9f
+	sw	zero, (s1)
+	ADDU	s1, 4
+	b	1b
+9:
+init_master_stack:
+	/* boot_stack points to stack top.  Defined in vmaim.lds.S */
+	LA	sp, boot_stack
+
+main_entry:
+	/*
+	 * We know that we won't return from master_early_init(), so
+	 * we don't need to save anything prior to calling the function.
+	 */
+	jal	master_early_init
+
+die:	j	die
 END(__start)

@@ -25,16 +25,14 @@
 #include <init.h>
 #include <console.h>
 
-__attribute__ ((noreturn))
-void master_early_init(void)
+void __noreturn master_early_init(void)
 {
 	early_arch_init();
 	early_console_init();
 	while (1);
 }
 
-__attribute__ ((noreturn))
-void slave_early_init(void)
+void __noreturn slave_early_init(void)
 {
 	while (1);
 }

@@ -18,24 +18,21 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libserial-raw.la
+noinst_LTLIBRARIES = libserial-raw.la libserial.la
 
-libserial_raw_la_SOURCES = uart.c uart.h
-libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
+SRCS = uart.c uart.h
 
 if UART_ZYNQ
-libserial_raw_la_SOURCES += uart-zynq.c uart-zynq.h uart-zynq-hw.h
+SRCS += uart-zynq.c uart-zynq.h uart-zynq-hw.h
 endif
 
 if UART_MSIM
-libserial_raw_la_SOURCES += uart-msim.c uart-msim.h
+SRCS += uart-msim.c uart-msim.h
 endif
-<<<<<<< HEAD
-=======
 
 libserial_raw_la_SOURCES = $(SRCS)
 libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
+libserial_raw_la_LIBADD = $(top_builddir)/lib/libc/libc.la
 
 libserial_la_SOURCES = $(SRCS)
 
->>>>>>> arm-dev

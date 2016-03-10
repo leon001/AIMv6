@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -18,44 +18,45 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
+#endif
 
-#define FW_SIZE	1M
+#ifdef USE_MIPS32
+#define TARGET	"elf32-tradlittlemips"
+#endif
 
-OUTPUT_ARCH(arm)
-ENTRY(_text_begin)
+#ifdef USE_MIPS64
+#define TARGET	"elf64-tradlittlemips"
+#endif
 
-MEMORY
-{
-	FIRMWARE (WX) :
-		ORIGIN = MEM_SIZE - FW_SIZE,
-		LENGTH = FW_SIZE
-}
+OUTPUT_FORMAT(TARGET)
 
-SECTIONS
-{
-	/DISCARD/ : {}
+#undef TARGET
 
-	. = ALIGN(4K);
+ENTRY(__start)
 
+SECTIONS {
+	. = 0xffffffff80300000;
 	.text : {
-		_text_begin = .;
-		*(.vector);
-		*(.text);
-		_text_end = .;
+		*(.text*);
 	}
-	
 	.rodata : {
-		*(.rodata);
+		*(.rodata*);
 	}
-	
-	.bss : {
-		_bss_begin = .;
-		*(.bss);
-		_bss_end = .;
-	}
-
 	.data : {
-		*(.data);
+		*(.data*);
+	}
+	.bss : {
+		PROVIDE(__bss_begin__ = .);
+		*(.bss*);
+		PROVIDE(__bss_end__ = .);
+	}
+	/*
+	 * MIPS ISA doesn't require alignment, paging or anything else
+	 * to run a kernel.  This alignment is only for cache-friendliness.
+	 */
+	. = ALIGN(KSTACKSIZE);
+	.boot : {
+		. += KSTACKSIZE;
+		PROVIDE(boot_stack = .);
 	}
 }
