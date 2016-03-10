@@ -16,25 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#ifndef _CONSOLE_H
+#define _CONSOLE_H
 
-/* from kernel */
-#include <sys/types.h>
-#include <init.h>
-#include <console.h>
+void early_console_init();
+void early_console__putbyte(unsigned char byte);
 
-void __noreturn master_early_init(void)
-{
-	early_arch_init();
-	early_console_init();
-	while (1);
-}
-
-void __noreturn slave_early_init(void)
-{
-	while (1);
-}
-
+#endif /* _CONSOLE_H */
 

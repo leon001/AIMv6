@@ -57,7 +57,7 @@ AS_CASE([$ARCH],
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
 	],
 	[mips*], [
-		AS_VAR_SET([with_nr_cpus], [4])
+		AS_VAR_SET([with_cpus], [4])
 	]
 )
 
@@ -135,10 +135,11 @@ AIM_ARG_WITH([primary-timing], [PRIMARY_TIMING], [primary timing])
 # per-target configuration
 AS_CASE($MACH,
 	[msim], [
-		 AIM_SUBST_MULTILINE(MSIM_CONF_CPULIST,
-			  `for (( i=0; $i<$with_cpus; i=$i+1 )); do \
-			  	echo add dcpu cpu$i; \
-			  done`)
+		 AIM_SUBST_MULTILINE([MSIM_CONF_CPULIST],
+		 	`for (( i=0; $i<$with_cpus; i=$i+1 )); do \
+			echo add dcpu cpu$i; \
+			done`
+		 )
 		 AC_SUBST(MSIM_CONF_FIRMWARE_BIN, $with_msim_firmware_bin)
 		 AC_SUBST(MSIM_CONF_KBDPA,
 			  `printf 0x%08x $with_msim_kbd_pa`)
@@ -208,6 +209,7 @@ AC_CONFIG_FILES([
 	kern/arch/i386/Makefile
 	kern/arch/mips/Makefile
 	kern/init/Makefile
+	kern/dev/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	tools/Makefile
@@ -240,6 +242,7 @@ Target
 Drivers
 --------
   uart-zynq:	${enable_uart_zynq}
+  uart-msim:	${enable_uart_msim}
   sd-zynq:	${enable_sd_zynq}
   timer-a9:	${enable_timer_a9}
 
