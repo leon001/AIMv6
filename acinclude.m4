@@ -129,3 +129,9 @@ AC_DEFUN([AIM_ARG_ENABLE], [
 	AS_VAR_POPDEF([default_var])
 ])
 
+# AIM_SUPPORT_ARCH([space_separated_list])
+AC_DEFUN([AIM_SUPPORT_ARCH], [
+	m4_foreach_w([var], [$1], [
+		AM_CONDITIONAL([ARCH_]m4_toupper(var), [test x$ARCH = x]var)
+	])
+])

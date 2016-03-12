@@ -161,12 +161,8 @@ AS_CASE($MACH,
 			  `printf 0x%08x $with_msim_rtc_pa`)
 ])
 
-AM_CONDITIONAL([ARCH_ARMV7A],
-	[test x$ARCH = xarmv7a])
-AM_CONDITIONAL([ARCH_MIPS32],
-	[test x$ARCH = xmips32])
-AM_CONDITIONAL([ARCH_MIPS64],
-	[test x$ARCH = xmips64])
+AIM_SUPPORT_ARCH([armv7a i386 mips32 mips64])
+
 AM_CONDITIONAL([UART_MSIM],
 	[test x$MACH = xmsim])
 AM_CONDITIONAL([BLOCK_MSIM],
