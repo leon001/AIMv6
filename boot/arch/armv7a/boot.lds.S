@@ -23,17 +23,20 @@ MEMORY
 	MBR (rwx) :
 		ORIGIN = 1M,
 		LENGTH = 512
+	BSS (rw) :
+		ORIGIN = 1M + 512,
+		LENGTH = 1M - 512
 }
 
 SECTIONS
 {
 	.text : {
-		*(.text .rodata)
-	}
+		*(.text .rodata);
+	} > MBR
 	.data : {
-		*(.data)
-	}
+		*(.data);
+	} > MBR
 	.bss : {
-		*(.bss)
-	}
+		*(.bss);
+	} > BSS
 }

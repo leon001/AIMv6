@@ -21,8 +21,10 @@ noinst_LTLIBRARIES = libc.la
 
 libc_la_SOURCES = \
 	snprintf.c \
+	memcpy.c \
 	$(top_srcdir)/include/sys/types.h \
 	stdarg.h \
 	stddef.h \
-	stdio.h
+	stdio.h \
+	string.h
 

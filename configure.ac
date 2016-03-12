@@ -41,6 +41,7 @@ AC_ARG_VAR([ARCH], [target architecture])
 AC_SUBST([ARCH])
 AC_ARG_VAR([MACH], [target machine])
 AC_SUBST([MACH])
+AC_SUBST([PREFIXED_MACH], [mach-$MACH])
 AC_ARG_VAR([MEM], [installed memory])
 AC_SUBST([MEM])
 
@@ -190,6 +191,7 @@ AC_CONFIG_FILES([
 	boot/arch/armv7a/Makefile
 	boot/arch/i386/Makefile
 	boot/arch/mips/Makefile
+	boot/arch/mips/mach-msim/Makefile
 	doc/Makefile
 	drivers/Makefile
 	drivers/block/Makefile
@@ -201,8 +203,13 @@ AC_CONFIG_FILES([
 	firmware/arch/armv7a/Makefile
 	firmware/arch/i386/Makefile
 	firmware/arch/mips/Makefile
-	firmware/arch/mips/msim/Makefile
+	firmware/arch/mips/mach-msim/Makefile
 	kern/Makefile
+	kern/arch/Makefile
+	kern/arch/armv7a/Makefile
+	kern/arch/i386/Makefile
+	kern/arch/mips/Makefile
+	kern/init/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	tools/Makefile
