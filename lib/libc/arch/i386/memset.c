@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <asm.h>
 /* Use stosb instruction to overwrite default implementation */
 void *
 memset(void *dst, int c, size_t n)
