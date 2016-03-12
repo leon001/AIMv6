@@ -52,6 +52,11 @@ void uart_putbyte(unsigned char byte)
 	write8(MSIM_UART_OUTPUT, byte);
 }
 
+void early_console_init(void)
+{
+	/* nothing */
+}
+
 #ifdef RAW
 /* nothing */
 #else

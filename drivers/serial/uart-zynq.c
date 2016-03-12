@@ -25,6 +25,59 @@
 
 #include <io.h>
 
+/* internal routines */
+
+static void __uart_zynq_enable(uint32_t base)
+{
+	/* Enable TX and RX */
+	write32(base + UART_OFFSET_CR, UART_CR_TX_EN | UART_CR_RX_EN);
+}
+
+static void __uart_zynq_disable(uint32_t base)
+{
+	/* Disable TX and RX */
+	write32(base + UART_OFFSET_CR, UART_CR_TX_DIS | UART_CR_RX_DIS);
+}
+
+static void __uart_zynq_init(uint32_t base)
+{
+	/* Disable interrupts */
+	write32(base + UART_OFFSET_IDR, UART_IXR_MASK);
+	/* Disable TX and RX */
+	__uart_zynq_disable(base);
+	/* Reset TX and RX, Clear FIFO */
+	write32(base + UART_OFFSET_CR, UART_CR_TXRST | UART_CR_RXRST);
+	/* Clear Flags */
+	write32(base + UART_OFFSET_ISR, UART_IXR_MASK);
+	/* Mode Reset to Normal/8-N-1 */
+	write32(base + UART_OFFSET_MR,
+		UART_MR_CHMODE_NORM | UART_MR_CHARLEN_8_BIT |
+		UART_MR_PARITY_NONE | UART_MR_STOPMODE_1_BIT);
+	/* Trigger Reset */
+	write32(base + UART_OFFSET_RXWM, UART_RXWM_RESET_VAL);
+	write32(base + UART_OFFSET_TXWM, UART_TXWM_RESET_VAL);
+	/* Disable RX timeout */
+	write32(base + UART_OFFSET_RXTOUT, UART_RXTOUT_DISABLE);
+	/* Reset baud rate generator and divider to genetate 115200 */
+	write32(base + UART_OFFSET_BAUDGEN, 0x3E);
+	write32(base + UART_OFFSET_BAUDDIV, 0x06);
+	/* Set CR Value */
+	write32(base + UART_OFFSET_CR,
+		UART_CR_RX_DIS | UART_CR_TX_DIS | UART_CR_STOPBRK);
+}
+
+unsigned char __uart_zynq_getbyte(uint32_t base)
+{
+	while (read32(base + UART_OFFSET_SR) & UART_SR_RXEMPTY);
+	return read8(base + UART_OFFSET_FIFO);
+}
+
+void __uart_zynq_putbyte(uint32_t base, unsigned char byte)
+{
+	while (read32(base + UART_OFFSET_SR) & UART_SR_TXFULL);
+	write8(base + UART_OFFSET_FIFO, byte);
+}
+
 #ifdef RAW /* baremetal driver */
 
 /* FIXME zedboard uses UART1 only */
@@ -32,56 +85,48 @@
 
 void uart_init(void)
 {
-	/* Disable interrupts */
-	write32(UART_BASE + UART_OFFSET_IDR, UART_IXR_MASK);
-	/* Disable TX and RX */
-	uart_disable();
-	/* Reset TX and RX, Clear FIFO */
-	write32(UART_BASE + UART_OFFSET_CR, UART_CR_TXRST | UART_CR_RXRST);
-	/* Clear Flags */
-	write32(UART_BASE + UART_OFFSET_ISR, UART_IXR_MASK);
-	/* Mode Reset to Normal/8-N-1 */
-	write32(UART_BASE + UART_OFFSET_MR,
-		UART_MR_CHMODE_NORM | UART_MR_CHARLEN_8_BIT |
-		UART_MR_PARITY_NONE | UART_MR_STOPMODE_1_BIT);
-	/* Trigger Reset */
-	write32(UART_BASE + UART_OFFSET_RXWM, UART_RXWM_RESET_VAL);
-	write32(UART_BASE + UART_OFFSET_TXWM, UART_TXWM_RESET_VAL);
-	/* Disable RX timeout */
-	write32(UART_BASE + UART_OFFSET_RXTOUT, UART_RXTOUT_DISABLE);
-	/* Reset baud rate generator and divider to genetate 115200 */
-	write32(UART_BASE + UART_OFFSET_BAUDGEN, 0x3E);
-	write32(UART_BASE + UART_OFFSET_BAUDDIV, 0x06);
-	/* Set CR Value */
-	write32(UART_BASE + UART_OFFSET_CR,
-		UART_CR_RX_DIS | UART_CR_TX_DIS | UART_CR_STOPBRK);
+	__uart_zynq_init(UART_BASE);
 }
 
 void uart_enable(void)
 {
-	/* Enable TX and RX */
-	write32(UART_BASE + UART_OFFSET_CR, UART_CR_TX_EN | UART_CR_RX_EN);
+	__uart_zynq_enable(UART_BASE);
 }
 
 void uart_disable(void)
 {
-	/* Disable TX and RX */
-	write32(UART_BASE + UART_OFFSET_CR, UART_CR_TX_DIS | UART_CR_RX_DIS);
+	__uart_zynq_disable(UART_BASE);
 }
 
 unsigned char uart_getbyte(void)
 {
-	while (read32(UART_BASE + UART_OFFSET_SR) & UART_SR_RXEMPTY);
-	return read8(UART_BASE + UART_OFFSET_FIFO);
+	__uart_zynq_getbyte(UART_BASE);
 }
 
 void uart_putbyte(unsigned char byte)
 {
-	while (read32(UART_BASE + UART_OFFSET_SR) & UART_SR_TXFULL);
-	write8(UART_BASE + UART_OFFSET_FIFO, byte);
+	__uart_zynq_putbyte(UART_BASE, byte);
 }
 
 #else /* not RAW, or kernel driver */
+
+#if PRIMARY_CONSOLE == uart_zynq
+
+/* FIXME zedboard uses UART1 only */
+#define UART_BASE	UART1_PHYSBASE
+
+void early_console_init()
+{
+	__uart_zynq_init(UART_BASE);
+	__uart_zynq_enable(UART_BASE);
+}
+
+void early_console__putbyte(unsigned char byte)
+{
+	__uart_zynq_putbyte(UART_BASE, byte);
+}
+
+#endif /* PRIMARY_CONSOLE */
 
 #endif /* RAW */
 
