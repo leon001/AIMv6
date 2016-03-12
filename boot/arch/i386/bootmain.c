@@ -9,9 +9,34 @@
 #endif
 
 #include <elf.h>
+#include <sys/types.h>
+#include <drivers/ata/ata.h>
 
 /* ELF buffer address for storing read headers */
 #define ELF_BUFFER	0x10000
+
+#define IDE_PORTBASE	0x1f0
+
+#define IDE_WRITE(reg, data)	outb(IDE_PORTBASE + (reg), data)
+
+static void
+readsect(void *dst, size_t sector)
+{
+	/* For bootloaders, the code should be as compact as possible. */
+	waitdisk();
+}
+
+static void
+readseg(unsigned char *pa, size_t count, size_t offset)
+{
+	unsigned char *epa = pa + count;
+	unsigned int sector = (offset / SECTOR_SIZE) + 1;
+
+	pa -= offset % SECTSIZE;
+
+	for (; pa < epa; pa += SECT_SIZE, ++sector)
+		readsect(pa, sector);
+}
 
 void
 bootmain(void)
@@ -37,4 +62,7 @@ bootmain(void)
 		if (ph->memsz > ph->filesz)
 			memset(pa + ph->filesz, 0, ph->memsz - ph->filesz);
 	}
+
+	entry = (void (*)(void))(elf->entry);
+	entry();
 }
