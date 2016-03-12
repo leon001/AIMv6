@@ -17,13 +17,38 @@
 
 #define IDE_PORTBASE	0x1f0
 
+/* TODO: Should be merged into config.h? */
+#define SECTOR_SIZE	512
+
+#define IDE_READ(reg, data)	inb(IDE_PORTBASE + (reg))
 #define IDE_WRITE(reg, data)	outb(IDE_PORTBASE + (reg), data)
+#define IDE_FETCH(dst)	\
+	insl(IDE_PORTBASE + ATA_REG_DATA, dst, SECTOR_SIZE / 4)
+
+static void
+waitdisk(void)
+{
+	while ((IDE_READ(ATA_REG_STATUS) & (ATA_BUSY | ATA_DRDY)) != ATA_DRDY)
+		/* nothing */;
+}
 
 static void
 readsect(void *dst, size_t sector)
 {
 	/* For bootloaders, the code should be as compact as possible. */
 	waitdisk();
+
+	IDE_WRITE(ATA_REG_NSECT, 1);
+	IDE_WRITE(ATA_REG_LBAL, sector & 0xff);
+	IDE_WRITE(ATA_REG_LBAM, (sector >> 8) & 0xff);
+	IDE_WRITE(ATA_REG_LBAH, (sector >> 16) & 0xff);
+	IDE_WRITE(ATA_REG_DEVSEL,
+	    ((sector >> 24) & 0xff) | (ATA_DEVICE_OBS | ATA_LBA));
+	IDE_WRITE(ATA_REG_CMD, ATA_CMD_PIO_READ);
+
+	waitdisk();
+
+	IDE_FETCH(dst);
 }
 
 static void
