@@ -18,10 +18,12 @@
 
 include $(top_srcdir)/env.am
 
-noinst_PROGRAMS = kernel.elf
-noinst_DATA = kernel.s
+noinst_LTLIBRARIES = libmips.la
+noinst_DATA = vmaim.lds
 
-CLEANFILES = kernel.s
+CLEANFILES = vmaim.lds
 
-kernel_elf_SOURCES = entry.S kernel.ld
-kernel_elf_LDFLAGS = -T kernel.ld -nostdlib
+libmips_la_SOURCES = entry.S
+
+vmaim.lds: vmaim.lds.S
+	$(COMPILE) -E -P $^ -o $@

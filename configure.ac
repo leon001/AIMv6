@@ -22,12 +22,16 @@
 AC_INIT([AIMv6], [0.1], [davidgao1001@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
+AC_CONFIG_MACRO_DIR([./m4])
+
 AC_PROG_CC
 AC_PROG_CC_STDC
 AC_C_CONST
 AC_C_RESTRICT
 AC_C_VOLATILE
 AC_C_INLINE
+AIM_GCC_FUNC_ATTRIBUTE([noreturn])
+AIM_GCC_FUNC_ATTRIBUTE([weak])
 
 AM_PROG_AS
 AM_PROG_AR
@@ -36,103 +40,103 @@ AC_CHECK_TOOL([OBJCOPY], [objcopy])
 
 LT_INIT
 
-# package information
-AC_ARG_VAR([ARCH], [target architecture])
-AC_SUBST([ARCH])
-AC_ARG_VAR([MACH], [target machine])
-AC_SUBST([MACH])
+# target machine
+AIM_ARG_VAR([ARCH], [target architecture])
+
+AIM_ARG_VAR([MACH], [target machine])
 AC_SUBST([PREFIXED_MACH], [mach-$MACH])
-AC_ARG_VAR([MEM], [installed memory])
-AC_SUBST([MEM])
 
-# deal with architectures
-case $ARCH in
-	mips32)
+# default configurations
+AS_VAR_SET([with_kstacksize], [4096])
+
+AS_CASE([$ARCH], 
+	[mips32], [
 		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
-	;;
-	mips64)
+	],
+	[mips64], [
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
-	;;
-esac
+	],
+	[mips*], [
+		AS_VAR_SET([with_nr_cpus], [4])
+	]
+)
 
-# deal with platforms
-# select what to compile for the firmware and the kernel
-# and add corresponding macro defines
-case $MACH in
-	zynq)
-		uart_zynq="primary"
-		sd_zynq="primary"
-		timer_a9="primary"
-	;;
-esac
+AS_CASE([$MACH],
+	[zynq], [
+		AS_VAR_SET([with_fwstack_order], [12])
+		AS_VAR_SET([enable_uart_zynq], [yes])
+		AS_VAR_SET([enable_sd_zynq], [yes])
+		AS_VAR_SET([enable_timer_a9], [yes])
+		AS_VAR_SET([with_primary_console], [uart-zynq])
+		AS_VAR_SET([with_primary_storage], [sd-zynq])
+		AS_VAR_SET([with_primary_timing], [timer-a9])
+	],
+	[msim], [
+		AS_VAR_SET([with_fwstack_order], [12])
+		AS_VAR_SET([enable_uart_msim], [yes])
+		AS_VAR_SET([with_primary_console], [uart-msim])
+		AS_VAR_SET([with_msim_kbd_pa], [0x1f000000])
+		AS_VAR_SET([with_msim_lp_pa], [0x1f000010])
+		AS_VAR_SET([with_msim_disk_pa], [0x1f000020])
+		AS_VAR_SET([with_msim_order_pa], [0x1f000100])
+		AS_VAR_SET([with_msim_mb_pa], [0x1f000200])
+		AS_VAR_SET([with_msim_mb_order], [4])
+		AS_VAR_SET([with_msim_rtc_pa], [0x1f000080])
+		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
+		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
+	], 
+	[AC_MSG_ERROR([No machine specified])]
+)
 
-# libraries
-# none
+# target details
+AIM_ARG_WITH([mem-size], [MEM_SIZE], [amount of memory installed], [detect])
+AC_SUBST([MEM_SIZE], [$with_mem_size])
 
-# header files
-# none
+AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [detect])
+AC_SUBST([NR_CPUS], [$with_cpus])
 
-# types
-# none
+AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
+	[size of kernel stack])
 
-# structures
-# none
+AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
+	[order of firmware stack per CPU (size=1<<order)])
 
-# compiler characteristics
-# none
+# MSIM
+AIM_ARG_WITH([msim-kbd-pa], [MSIM_KBD_PHYSADDR],
+	[MSIM keyboard physical address])
+AIM_ARG_WITH([msim-lp-pa], [MSIM_LP_PHYSADDR],
+	[MSIM printer physical address])
+AIM_ARG_WITH([msim-disk-pa], [MSIM_DISK_PHYSADDR],
+	[MSIM disk physical address])
+AIM_ARG_WITH([msim-order-pa], [MSIM_ORDER_PHYSADDR],
+	[MSIM IPC device physical address])
+AIM_ARG_WITH([msim-mb-base], [MSIM_ORDER_MAILBOX_BASE],
+	[MSIM IPC device mailbox base address])
+AIM_ARG_WITH([msim-mb-order], [MSIM_ORDER_MAILBOX_ORDER],
+	[order of MSIM IPC device mailbox (size=1<<order)])
+AIM_ARG_WITH([msim-rtc-pa], [MSIM_RTC_PHYSADDR],
+	[MSIM real time clock physical address])
+AIM_ARG_WITH([msim-firmware-bin], [MSIM_FIRMWARE_BIN],
+	[MSIM firmware binary file name])
+AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
+	[MSIM disk image file name])
 
-# library functions
-# none
+# Drivers
+AIM_ARG_ENABLE([uart-zynq], [UART_ZYNQ], [zynq UART driver])
+AIM_ARG_ENABLE([uart-msim], [UART_MSIM], [MSIM UART driver])
+AIM_ARG_ENABLE([sd-zynq], [SD_ZYNQ], [zynq SD driver])
+AIM_ARG_ENABLE([timer-a9], [TIMER_A9], [Cortex-A9 MPCore timer driver])
 
-# system services
-# none
+# Primary Driver Selection
+AIM_ARG_WITH([primary-console], [PRIMARY_CONSOLE], [primary console])
+AIM_ARG_WITH([primary-storage], [PRIMARY_STORAGE], [primary storage])
+AIM_ARG_WITH([primary-timing], [PRIMARY_TIMING], [primary timing])
 
-AIM_SET_ARG([nr-cpus], [NR_CPUS], [Number of cores], [4])
-
-# option checks
+# per-target configuration
 AS_CASE($MACH,
-	[msim], [AIM_SET_ARG([msim-kbd-pa],
-			     [MSIM_KBD_PHYSADDR],
-			     [MSIM keyboard physical address],
-			     [0x1f000000])
-		 AIM_SET_ARG([msim-lp-pa],
-			     [MSIM_LP_PHYSADDR],
-			     [MSIM printer physical address],
-			     [0x1f000010])
-		 AIM_SET_ARG([msim-disk-pa],
-			     [MSIM_DISK_PHYSADDR],
-			     [MSIM disk physical address],
-			     [0x1f000020])
-		 AIM_SET_ARG([msim-order-pa],
-			     [MSIM_ORDER_PHYSADDR],
-			     [MSIM IPC device physical address],
-			     [0x1f000100])
-		 AIM_SET_ARG([msim-mb-base],
-			     [MSIM_ORDER_MAILBOX_BASE],
-			     [MSIM IPC device mailbox base address],
-			     [0x1f000200])
-		 AIM_SET_ARG([msim-mb-order],
-			     [MSIM_ORDER_MAILBOX_ORDER],
-			     [order of MSIM IPC device mailbox (size=1<<order)],
-			     [4])
-		 AIM_SET_ARG([msim-rtc-pa],
-			     [MSIM_RTC_PHYSADDR],
-			     [MSIM real time clock physical address],
-			     [0x1f000080])
-		 AIM_SET_ARGSTR([msim-firmware-bin],
-			     [MSIM_FIRMWARE_BIN],
-			     [MSIM firmware binary file name],
-			     ["firmware.bin"])
-		 AIM_SET_ARGSTR([msim-disk-img],
-			     [MSIM_DISK_IMG],
-			     [MSIM disk image file name],
-			     ["disk.img"])
-		 AIM_SET_ARG([fwstack-order],
-			     [FWSTACKORDER],
-			     [order of firmware stack per CPU (size=1<<order)],
-			     [12])
+	[msim], [
 		 AIM_SUBST_MULTILINE(MSIM_CONF_CPULIST,
-			  `for (( i=0; $i<$with_nr_cpus; i=$i+1 )); do \
+			  `for (( i=0; $i<$with_cpus; i=$i+1 )); do \
 			  	echo add dcpu cpu$i; \
 			  done`)
 		 AC_SUBST(MSIM_CONF_FIRMWARE_BIN, $with_msim_firmware_bin)
@@ -155,21 +159,14 @@ AS_CASE($MACH,
 			   done`)
 		 AC_SUBST(MSIM_CONF_RTCPA,
 			  `printf 0x%08x $with_msim_rtc_pa`)
-		 ],
-	[zynq], [
-		 ],
-	[AC_MSG_ERROR([No machine specified])])
+])
 
 AM_CONDITIONAL([ARCH_ARMV7A],
 	[test x$ARCH = xarmv7a])
 AM_CONDITIONAL([ARCH_MIPS32],
 	[test x$ARCH = xmips32])
-AM_CONDITIONAL([UART_ZYNQ],
-	[test x$uart_zynq = xprimary -o x$uart_zynq = xsecondary])
-AM_CONDITIONAL([SD_ZYNQ],
-	[test x$sd_zynq = xprimary -o x$sd_zynq = xsecondary])
-AM_CONDITIONAL([TIMER_A9],
-	[test x$timer_a9 = xprimary -o x$timer_a9 = xsecondary])
+AM_CONDITIONAL([ARCH_MIPS64],
+	[test x$ARCH = xmips64])
 AM_CONDITIONAL([UART_MSIM],
 	[test x$MACH = xmsim])
 AM_CONDITIONAL([BLOCK_MSIM],
@@ -207,6 +204,7 @@ AC_CONFIG_FILES([
 	kern/Makefile
 	kern/arch/Makefile
 	kern/arch/armv7a/Makefile
+	kern/arch/armv7a/mach-zynq/Makefile
 	kern/arch/i386/Makefile
 	kern/arch/mips/Makefile
 	kern/init/Makefile
@@ -216,4 +214,43 @@ AC_CONFIG_FILES([
 	user/Makefile
 ])
 AC_OUTPUT
+
+AC_MSG_NOTICE([
+=========================
+  Configuration Summary
+=========================
+
+General
+--------
+  version:	${VERSION}
+  build:	${build}
+  host:		${host}
+  compiler:	${CC}
+  CPPFLAGS:	${CPPFLAGS}
+  CFLAGS:	${CFLAGS}
+  LDFLAGS:	${LDFLAGS}
+
+Target
+--------
+  architecture:	${ARCH}
+  machine:	${MACH}
+  processors:	${NR_CPUS}
+  memory:	${MEM_SIZE}
+
+Drivers
+--------
+  uart-zynq:	${enable_uart_zynq}
+  sd-zynq:	${enable_sd_zynq}
+  timer-a9:	${enable_timer_a9}
+
+Primary Drivers
+--------
+  console:	${with_primary_console}
+  storage:	${with_primary_storage}
+  timing:	${with_primary_timing}
+
+Firmware
+--------
+  stack order:	${with_fwstack_order}
+])
 
