@@ -19,7 +19,7 @@ include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libc.la
 
-libc_la_SOURCES = \
+COMMON_SRCS = \
 	snprintf.c \
 	memcpy.c \
 	$(top_srcdir)/include/sys/types.h \
@@ -28,3 +28,6 @@ libc_la_SOURCES = \
 	stdio.h \
 	string.h
 
+libc_la_SOURCES = $(COMMON_SRCS)
+
+# [BarclayII] I wonder how should we deal with arch code in libc...
