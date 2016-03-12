@@ -130,6 +130,7 @@ AC_DEFUN([AIM_ARG_ENABLE], [
 ])
 
 # AIM_SUPPORT_ARCH([space_separated_list])
+# E.g. if ARCH=armv7a, define an automake conditional ARCH_ARMV7A
 AC_DEFUN([AIM_SUPPORT_ARCH], [
 	m4_foreach_w([var], [$1], [
 		AM_CONDITIONAL([ARCH_]m4_toupper(var), [test x$ARCH = x]var)
