@@ -1,4 +1,4 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -17,17 +17,7 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libc.la
+noinst_LTLIBRARIES = libc-i386.la
 
-COMMON_SRCS = \
-	snprintf.c \
-	memcpy.c \
-	memset.c \
-	$(top_srcdir)/include/sys/types.h \
-	stdarg.h \
-	stddef.h \
-	stdio.h \
-	string.h
-
-libc_la_SOURCES = $(COMMON_SRCS)
+libc_i386_la_SOURCES = memset.c
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -15,19 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-include $(top_srcdir)/env.am
+SUBDIRS = $(ARCH)
 
-noinst_LTLIBRARIES = libc.la
-
-COMMON_SRCS = \
-	snprintf.c \
-	memcpy.c \
-	memset.c \
-	$(top_srcdir)/include/sys/types.h \
-	stdarg.h \
-	stddef.h \
-	stdio.h \
-	string.h
-
-libc_la_SOURCES = $(COMMON_SRCS)
-
+DIST_SUBDIRS = i386
