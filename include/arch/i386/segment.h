@@ -15,7 +15,7 @@
 #define SEG_UDATA 5  // user data+stack
 #define SEG_TSS   6  // this process's task state
 
-#ifndef __ASSEMBLY__
+#ifndef __ASSEMBLER__
 /*
  * Segment descriptor structure
  */
@@ -78,8 +78,8 @@ struct segdesc {
 	1,					\
 	0,					\
 	(unsigned int)(base) >> 24		\
-} \
-#else	/* __ASSEMBLY__ */
+}
+#else	/* __ASSEMBLER__ */
 /*
  * For assemblies to define segments.
  */
@@ -96,7 +96,7 @@ struct segdesc {
 	.word (((lim) >> 12) & 0xffff), ((base) & 0xffff);	\
 	.byte (((base) >> 16) & 0xff), (0x90 | (type)),		\
 		(0xC0 | (((lim) >> 28) & 0xf)), (((base) >> 24) & 0xff)
-#endif	/* !__ASSEMBLY__ */
+#endif	/* !__ASSEMBLER__ */
 
 #define STA_X		0x8	/* Executable (i.e. code or data) */
 #define STA_E		0x4	/* Data: whether the segment grows down */

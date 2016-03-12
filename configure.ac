@@ -113,6 +113,7 @@ AS_CASE([$MACH],
 		AC_DEFINE([UART_BASE2], [0x1fe001e8],
 			[Loongson 3A UART base address 2 - Do not change])
 	],
+	[qemu-generic], [],
 	[AC_MSG_ERROR([No machine specified])]
 )
 
@@ -231,6 +232,8 @@ AC_CONFIG_FILES([
 	kern/dev/Makefile
 	lib/Makefile
 	lib/libc/Makefile
+	lib/libc/arch/Makefile
+	lib/libc/arch/i386/Makefile
 	tools/Makefile
 	user/Makefile
 ])

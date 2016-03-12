@@ -178,7 +178,8 @@ seta20.2:
 	ljmp	$(SEG_KCODE << 3), $start32
 
 	/* Now we're executing 32-bit code */
-.start32
+.code32
+start32:
 	/* Set up data segment *selectors* */
 	movw	$(SEG_KDATA << 3), %ax
 	movw	%ax, %ds

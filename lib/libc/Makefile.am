@@ -17,6 +17,8 @@
 
 include $(top_srcdir)/env.am
 
+SUBDIRS = arch
+
 noinst_LTLIBRARIES = libc.la
 
 COMMON_SRCS = \
