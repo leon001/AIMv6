@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <init.h>
+#ifndef _DRIVERS_SERIAL_UART_NS16550_H
+#define _DRIVERS_SERIAL_UART_NS16550_H
 
-/* TODO: just a test, should be removed */
-extern int uart_printf(const char *, ...);
-void early_arch_init(void)
-{
-	uart_printf("Hello from kernel!\n");
-	early_mach_init();
-}
+void uart_init(void);
+void uart_enable(void);
+void uart_disable(void);
+
+#endif

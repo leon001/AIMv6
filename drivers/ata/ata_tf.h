@@ -1,4 +1,5 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/*
+ * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,12 +17,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <init.h>
+#ifndef _DRIVERS_ATA_ATA_TF_H
+#define _DRIVERS_ATA_ATA_TF_H
 
-/* TODO: just a test, should be removed */
-extern int uart_printf(const char *, ...);
-void early_arch_init(void)
-{
-	uart_printf("Hello from kernel!\n");
-	early_mach_init();
-}
+/*
+ * ATA task file, containing a register configuration for a command.
+ */
+struct ata_tf {
+	uint8_t		data;	/* Data, recv only */
+	union {
+		uint8_t	error;
+		uint8_t	feature;
+	};
+	uint8_t		count;
+	uint8_t		lbal;
+	uint8_t		lbam;
+	uint8_t		lbah;
+	union {
+		uint8_t	devsel;
+		uint8_t	device;
+	};
+	union {
+		uint8_t	status;	/* recv only */
+		uint8_t	command;/* send only */
+	};
+};
+
+#endif

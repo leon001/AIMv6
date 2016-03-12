@@ -30,6 +30,10 @@ if UART_MSIM
 SRCS += uart-msim.c uart-msim.h
 endif
 
+if UART_NS16550
+SRCS += uart-ns16550.h uart-ns16550.c uart-ns16550-regs.h
+endif
+
 libserial_raw_la_SOURCES = $(SRCS)
 libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 libserial_raw_la_LIBADD = $(top_builddir)/lib/libc/libc.la

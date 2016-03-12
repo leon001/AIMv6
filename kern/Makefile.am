@@ -29,6 +29,7 @@ noinst_DATA = vmaim.s
 
 vmaim_elf_SOURCES =
 # DO NOT CHANGE THE ORDER OF ARCHIVES HERE!
+# [BarclayII] FIXME: give a reason here or think of a better solution...
 vmaim_elf_LDADD = \
 	arch/$(ARCH)/libentry.la \
 	init/libinit.la \

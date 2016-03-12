@@ -30,6 +30,7 @@ AC_C_CONST
 AC_C_RESTRICT
 AC_C_VOLATILE
 AC_C_INLINE
+AC_C_TYPEOF
 AIM_GCC_FUNC_ATTRIBUTE([noreturn])
 AIM_GCC_FUNC_ATTRIBUTE([weak])
 
@@ -104,6 +105,14 @@ AS_CASE([$MACH],
 		AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
 			[MSIM disk image file name])
 	],
+	[loongson3a], [
+		# you don't really have any option here.
+		AS_VAR_SET([enable_uart_ns16550], [yes])
+		AC_DEFINE([UART_BASE1], [0x1fe001e0],
+			[Loongson 3A UART base address 1 - Do not change])
+		AC_DEFINE([UART_BASE2], [0x1fe001e8],
+			[Loongson 3A UART base address 2 - Do not change])
+	],
 	[AC_MSG_ERROR([No machine specified])]
 )
 
@@ -123,6 +132,7 @@ AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 # Drivers
 AIM_ARG_ENABLE([uart-zynq], [UART_ZYNQ], [zynq UART driver])
 AIM_ARG_ENABLE([uart-msim], [UART_MSIM], [MSIM UART driver])
+AIM_ARG_ENABLE([uart-ns16550], [UART_NS16550], [NS16550 UART driver])
 AIM_ARG_ENABLE([sd-zynq], [SD_ZYNQ], [zynq SD driver])
 AIM_ARG_ENABLE([timer-a9], [TIMER_A9], [Cortex-A9 MPCore timer driver])
 
@@ -165,8 +175,19 @@ AIM_SUPPORT_ARCH([armv7a i386 mips32 mips64])
 
 AM_CONDITIONAL([UART_MSIM],
 	[test x$MACH = xmsim])
+# FIXME: probably should relate to --enable-uart-ns16550 option?
+AM_CONDITIONAL([UART_NS16550],
+	[test x$MACH = xloongson3a])
 AM_CONDITIONAL([BLOCK_MSIM],
 	[test x$MACH = xmsim])
+
+# Skip firmware
+AM_CONDITIONAL([NO_FIRMWARE],
+	[test x$MACH = xloongson3a -o x$ARCH = xi386])
+# Skip bootloader
+AM_CONDITIONAL([NO_BOOTLOADER],
+	[test x$MACH = xloongson3a])
+
 # change mips32 and mips64 to mips afterwards, because the CFLAGS are
 # different, but the source files are in the same directory.
 if test x$ARCH = xmips32 -o x$ARCH = xmips64; then
@@ -205,6 +226,7 @@ AC_CONFIG_FILES([
 	kern/arch/mips/Makefile
 	kern/arch/mips/mach-generic/Makefile
 	kern/arch/mips/mach-msim/Makefile
+	kern/arch/mips/mach-loongson3a/Makefile
 	kern/init/Makefile
 	kern/dev/Makefile
 	lib/Makefile
