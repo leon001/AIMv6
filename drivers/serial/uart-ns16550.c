@@ -45,6 +45,8 @@ void uart_init(void)
 	 * It's probably best to leave NS16550 setup to machine-specific
 	 * code.  The initialization routine between Loongson 3A and QEMU-i386
 	 * are *VERY* different.
+	 *
+	 * This should be done in early_console_init().
 	 */
 }
 
