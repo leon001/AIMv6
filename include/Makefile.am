@@ -20,6 +20,7 @@ nobase_noinst_HEADERS = \
 
 noinst_HEADERS = \
 	bootsect.h \
+	console.h \
 	device.h \
 	elf.h \
 	file.h \

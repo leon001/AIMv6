@@ -19,7 +19,8 @@ include $(top_srcdir)/env.am
 
 SUBDIRS = \
 	arch \
-	init
+	init \
+	dev
 
 CLEANFILES = vmaim.s
 
