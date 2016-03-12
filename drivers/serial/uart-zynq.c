@@ -115,13 +115,13 @@ void uart_putbyte(unsigned char byte)
 /* FIXME zedboard uses UART1 only */
 #define UART_BASE	UART1_PHYSBASE
 
-void early_console_init()
+void __weak early_console_init()
 {
 	__uart_zynq_init(UART_BASE);
 	__uart_zynq_enable(UART_BASE);
 }
 
-void early_console__putbyte(unsigned char byte)
+void __weak early_console__putbyte(unsigned char byte)
 {
 	__uart_zynq_putbyte(UART_BASE, byte);
 }
