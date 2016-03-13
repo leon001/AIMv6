@@ -86,24 +86,6 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
 		AS_VAR_SET([with_cpus], [4])
-		AIM_ARG_WITH([msim-kbd-pa], [MSIM_KBD_PHYSADDR],
-			[MSIM keyboard physical address])
-		AIM_ARG_WITH([msim-lp-pa], [MSIM_LP_PHYSADDR],
-			[MSIM printer physical address])
-		AIM_ARG_WITH([msim-disk-pa], [MSIM_DISK_PHYSADDR],
-			[MSIM disk physical address])
-		AIM_ARG_WITH([msim-order-pa], [MSIM_ORDER_PHYSADDR],
-			[MSIM IPC device physical address])
-		AIM_ARG_WITH([msim-mb-base], [MSIM_ORDER_MAILBOX_BASE],
-			[MSIM IPC device mailbox base address])
-		AIM_ARG_WITH([msim-mb-order], [MSIM_ORDER_MAILBOX_ORDER],
-			[order of MSIM IPC device mailbox (size=1<<order)])
-		AIM_ARG_WITH([msim-rtc-pa], [MSIM_RTC_PHYSADDR],
-			[MSIM real time clock physical address])
-		AIM_ARG_WITH([msim-firmware-bin], [MSIM_FIRMWARE_BIN],
-			[MSIM firmware binary file name])
-		AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
-			[MSIM disk image file name])
 	],
 	[loongson3a], [
 		# you don't really have any option here.
@@ -115,6 +97,26 @@ AS_CASE([$MACH],
 	],
 	[AC_MSG_ERROR([No machine specified])]
 )
+
+# msim
+AIM_ARG_WITH([msim-kbd-pa], [MSIM_KBD_PHYSADDR],
+	[MSIM keyboard physical address])
+AIM_ARG_WITH([msim-lp-pa], [MSIM_LP_PHYSADDR],
+	[MSIM printer physical address])
+AIM_ARG_WITH([msim-disk-pa], [MSIM_DISK_PHYSADDR],
+	[MSIM disk physical address])
+AIM_ARG_WITH([msim-order-pa], [MSIM_ORDER_PHYSADDR],
+	[MSIM IPC device physical address])
+AIM_ARG_WITH([msim-mb-base], [MSIM_ORDER_MAILBOX_BASE],
+	[MSIM IPC device mailbox base address])
+AIM_ARG_WITH([msim-mb-order], [MSIM_ORDER_MAILBOX_ORDER],
+	[order of MSIM IPC device mailbox (size=1<<order)])
+AIM_ARG_WITH([msim-rtc-pa], [MSIM_RTC_PHYSADDR],
+	[MSIM real time clock physical address])
+AIM_ARG_WITH([msim-firmware-bin], [MSIM_FIRMWARE_BIN],
+	[MSIM firmware binary file name])
+AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
+	[MSIM disk image file name])
 
 # target details
 AIM_ARG_WITH([mem-size], [MEM_SIZE], [amount of memory installed], [detect])
@@ -171,12 +173,8 @@ AS_CASE($MACH,
 			  `printf 0x%08x $with_msim_rtc_pa`)
 ])
 
-AM_CONDITIONAL([ARCH_ARMV7A],
-	[test x$ARCH = xarmv7a])
-AM_CONDITIONAL([ARCH_MIPS32],
-	[test x$ARCH = xmips32])
-AM_CONDITIONAL([ARCH_MIPS64],
-	[test x$ARCH = xmips64])
+AIM_SUPPORT_ARCH([armv7a i386 mips32 mips64])
+
 AM_CONDITIONAL([UART_MSIM],
 	[test x$MACH = xmsim])
 # FIXME: probably should relate to --enable-uart-ns16550 option?
