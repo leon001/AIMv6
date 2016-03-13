@@ -32,7 +32,6 @@ endif
 
 libserial_raw_la_SOURCES = $(SRCS)
 libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
-libserial_raw_la_LIBADD = $(top_builddir)/lib/libc/libc.la
 
 libserial_la_SOURCES = $(SRCS)
 

@@ -46,6 +46,11 @@ void uart_puts(const char *str)
  * This uart_puts() function automatically prepends a carriage return
  * before a newline.  Exceptions can be explicitly made in their own
  * device drivers.
+ *
+ * NOTE:
+ * In disassemblies you can still see the code of this weak function.
+ * This is *correct*.  The strong function code appears before the weak
+ * function, and therefore the weak code would never be executed.
  */
 
 void __weak uart_puts(const char *str)
