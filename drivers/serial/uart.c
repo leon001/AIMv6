@@ -43,16 +43,13 @@ void uart_puts(const char *str)
  * If a serial console requires \r\n to change line, we usually don't
  * want to specify "\r\n" in C string.
  *
- * This uart_puts() function automatically prepends a carriage return
- * before a newline.  Exceptions can be explicitly made in their own
- * device drivers.
+ * This uart_puts() function automatically prepend a carriage return
+ * before a newline, but this is done within the underlying driver.
  */
 
-void __weak uart_puts(const char *str)
+void uart_puts(const char *str)
 {
 	for (; *str != '\0'; ++str) {
-		if (*str == '\n')
-			uart_putbyte('\r');
 		uart_putbyte((unsigned char)*str);
 	}
 }

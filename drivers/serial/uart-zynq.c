@@ -105,6 +105,8 @@ unsigned char uart_getbyte(void)
 
 void uart_putbyte(unsigned char byte)
 {
+	if (byte == '\n')
+		__uart_zynq_putbyte(UART_BASE, '\r');
 	__uart_zynq_putbyte(UART_BASE, byte);
 }
 
@@ -123,6 +125,8 @@ void __weak early_console_init()
 
 void __weak early_console__putbyte(unsigned char byte)
 {
+	if (byte == '\n')
+		__uart_zynq_putbyte(UART_BASE, '\r');
 	__uart_zynq_putbyte(UART_BASE, byte);
 }
 
