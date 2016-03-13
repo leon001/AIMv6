@@ -16,9 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 .arm
 
-.text
+.section .low_text
 
 /* Broadcast entry points */
 .globl master_entry
@@ -53,7 +57,9 @@ clbss_l:
 	movs	fp, sp
 
 	/* Call into early_init */
-	bl	master_early_init
+	ldr	r0, =master_early_init
+	sub	r0, #KERN_BASE
+	blx	r0
 
 slave_entry:
 	/* Slave cores also set states, but DO NOT clear bss */
@@ -66,7 +72,9 @@ slave_entry:
 	movs	fp, sp
 
 	/* Call into early_init */
-	bl	slave_early_init
+	ldr	r0, =slave_early_init
+	subs	r0, r0, #KERN_BASE
+	blx	r0
 
 lock:
 	mov	r0, #1			/* prepare a non-zero value */

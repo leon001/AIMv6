@@ -31,9 +31,13 @@
 
 #ifdef RAW /* baremetal driver */
 
-void uart_puts(const char *str)
+int uart_puts(const char *str)
 {
 	for (; *str != '\0'; ++str)
+#ifdef CONSOLE_NEED_CR
+		if (*str == '\n')
+			uart_putchar('\r');
+#endif /* CONSOLE_NEED_CR */
 		uart_putchar((unsigned char)*str);
 }
 
