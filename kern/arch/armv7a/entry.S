@@ -58,7 +58,8 @@ clbss_l:
 
 	/* Call into early_init */
 	ldr	r0, =master_early_init
-	sub	r0, #KERN_BASE
+	ldr	r1, =KERN_BASE
+	subs	r0, r0, r1
 	blx	r0
 
 slave_entry:
@@ -73,7 +74,8 @@ slave_entry:
 
 	/* Call into early_init */
 	ldr	r0, =slave_early_init
-	subs	r0, r0, #KERN_BASE
+	ldr	r1, =KERN_BASE
+	subs	r0, r0, r1
 	blx	r0
 
 lock:
