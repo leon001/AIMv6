@@ -124,3 +124,7 @@ Run MSIM to bring up the operating system.
 
 See documents in (TO BE FILLED) for more details.
 
+## Contributing to AIMv6
+
+Read `doc/patterns.md` for code styles and design patterns adopted in our
+project.  It is highly recommended to follow the guidelines there.
