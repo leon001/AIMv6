@@ -133,8 +133,14 @@ AIM_ARG_WITH([primary-console], [PRIMARY_CONSOLE], [primary console])
 AIM_ARG_WITH([primary-storage], [PRIMARY_STORAGE], [primary storage])
 AIM_ARG_WITH([primary-timing], [PRIMARY_TIMING], [primary timing])
 
+AS_CASE([${with_primary_console}],
+	[uart-zynq],[
+		AC_DEFINE_UNQUOTED([CONSOLE_NEED_CR], [], [Primary console needs CR])
+	]
+)
+
 # per-target configuration
-AS_CASE($MACH,
+AS_CASE([$MACH],
 	[msim], [
 		 AIM_SUBST_MULTILINE([MSIM_CONF_CPULIST],
 		 	`for (( i=0; $i<$with_cpus; i=$i+1 )); do \
