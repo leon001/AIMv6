@@ -116,6 +116,9 @@ AC_SUBST([MEM_SIZE], [$with_mem_size])
 AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [detect])
 AC_SUBST([NR_CPUS], [$with_cpus])
 
+AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0x80000000])
+AC_SUBST([KERN_BASE], [$with_kern_base])
+
 AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 	[size of kernel stack])
 
@@ -133,7 +136,7 @@ AIM_ARG_WITH([primary-console], [PRIMARY_CONSOLE], [primary console])
 AIM_ARG_WITH([primary-storage], [PRIMARY_STORAGE], [primary storage])
 AIM_ARG_WITH([primary-timing], [PRIMARY_TIMING], [primary timing])
 
-AS_CASE([${with_primary_console}],
+AS_CASE([$with_primary_console],
 	[uart-zynq],[
 		AC_DEFINE_UNQUOTED([CONSOLE_NEED_CR], [], [Primary console needs CR])
 	]

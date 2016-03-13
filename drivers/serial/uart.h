@@ -28,10 +28,10 @@
 #include <libc/stddef.h>
 
 unsigned char uart_getchar(void);
-void uart_putchar(unsigned char c);
-void uart_puts(const char *str);
-ssize_t uart_printf(const char *fmt, ...);
-ssize_t uart_vprintf(const char *fmt, va_list ap);
+int uart_putchar(unsigned char c);
+int uart_puts(const char *str);
+int uart_printf(const char *fmt, ...);
+int uart_vprintf(const char *fmt, va_list ap);
 
 #ifdef RAW /* baremetal driver */
 

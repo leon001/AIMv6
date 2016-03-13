@@ -48,7 +48,7 @@ void uart_puts(const char *str)
  * configuration
  */
 
-void __weak uart_puts(const char *str)
+int __weak uart_puts(const char *str)
 {
 	for (; *str != '\0'; ++str) {
 #ifdef CONSOLE_NEED_CR
@@ -57,11 +57,12 @@ void __weak uart_puts(const char *str)
 #endif /* CONSOLE_NEED_CR */
 		uart_putchar((unsigned char)*str);
 	}
+	return 0;
 }
 
 #endif /* RAW */
 
-ssize_t uart_printf(const char *fmt, ...)
+int uart_printf(const char *fmt, ...)
 {
 	int result;
 	va_list ap;
@@ -71,7 +72,7 @@ ssize_t uart_printf(const char *fmt, ...)
 	return result;
 }
 
-ssize_t uart_vprintf(const char *fmt, va_list ap)
+int uart_vprintf(const char *fmt, va_list ap)
 {
 	int result;
 	char printf_buf[BUFSIZ];

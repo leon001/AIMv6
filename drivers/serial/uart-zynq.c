@@ -72,10 +72,11 @@ unsigned char __uart_zynq_getchar(uint32_t base)
 	return read8(base + UART_OFFSET_FIFO);
 }
 
-void __uart_zynq_putchar(uint32_t base, unsigned char c)
+int __uart_zynq_putchar(uint32_t base, unsigned char c)
 {
 	while (read32(base + UART_OFFSET_SR) & UART_SR_TXFULL);
 	write8(base + UART_OFFSET_FIFO, c);
+	return 0;
 }
 
 #ifdef RAW /* baremetal driver */
@@ -103,36 +104,44 @@ unsigned char uart_getchar(void)
 	__uart_zynq_getchar(UART_BASE);
 }
 
-void uart_putchar(unsigned char c)
+int uart_putchar(unsigned char c)
 {
-	__uart_zynq_putchar(UART_BASE, c);
+	return __uart_zynq_putchar(UART_BASE, c);
 }
 
 #else /* not RAW, or kernel driver */
 
 #if PRIMARY_CONSOLE == uart_zynq
 
+/* from kernel */
+#include <console.h>
+
 /* FIXME zedboard uses UART1 only */
 #define UART_BASE	UART1_PHYSBASE
 
-void __weak early_console_init()
+static int early_console_putchar(unsigned char c)
 {
-	__uart_zynq_init(UART_BASE);
-	__uart_zynq_enable(UART_BASE);
+	return __uart_zynq_putchar(UART_BASE, c);
 }
 
-static void early_console_putchar(unsigned char c)
-{
-	__uart_zynq_putchar(UART_BASE, c);
-}
-
-static void early_console_puts(const char *str)
+static int early_console_puts(const char *str)
 {
 	for (; *str != '\0'; ++str) {
 		if (*str == '\n')
 			__uart_zynq_putchar(UART_BASE, '\r');
 		__uart_zynq_putchar(UART_BASE, (unsigned char)*str);
 	}
+	return 0;
+}
+
+void __weak early_console_init()
+{
+	__uart_zynq_init(UART_BASE);
+	__uart_zynq_enable(UART_BASE);
+	set_console(
+		early_console_putchar - KERN_BASE,
+		early_console_puts - KERN_BASE
+	);
 }
 
 #endif /* PRIMARY_CONSOLE */
