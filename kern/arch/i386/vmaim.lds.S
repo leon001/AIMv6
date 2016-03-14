@@ -21,7 +21,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #undef i386
-OUTPUT_ARCH(i386)
+OUTPUT_FORMAT(elf32-i386)
 ENTRY(master_entry)
 
 SECTIONS

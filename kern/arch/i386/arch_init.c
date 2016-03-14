@@ -27,3 +27,9 @@ void early_arch_init(void)
 {
 	//early_mach_init();
 }
+
+void early_console_init(void)
+{
+	// A dummy routine. should not appear here.
+}
+
