@@ -86,7 +86,8 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
 	], 
 	[pc], [
-	]
+		AS_VAR_SET([with_fwstack_order], [12])
+	],
 	[AC_MSG_ERROR([No machine specified])]
 )
 
