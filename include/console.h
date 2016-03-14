@@ -19,8 +19,14 @@
 #ifndef _CONSOLE_H
 #define _CONSOLE_H
 
+typedef int (*putchar_fp)(unsigned char c);
+typedef int (*puts_fp)(const char *s);
+
 void early_console_init();
-void early_console__putbyte(unsigned char byte);
+
+void set_console(putchar_fp putchar, puts_fp puts);
+
+int kprintf(const char *fmt, ...);
 
 #endif /* _CONSOLE_H */
 

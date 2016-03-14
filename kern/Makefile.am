@@ -33,6 +33,7 @@ vmaim_elf_LDADD = \
 	arch/$(ARCH)/libentry.la \
 	init/libinit.la \
 	arch/$(ARCH)/lib$(ARCH).la \
+	dev/libdev.la \
 	$(top_builddir)/drivers/libdrivers.la \
 	$(top_builddir)/lib/libc/libc.la \
 	arch/$(ARCH)/vmaim.lds

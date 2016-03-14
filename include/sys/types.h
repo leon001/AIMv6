@@ -45,6 +45,9 @@ typedef unsigned int bool;
 #define false	0
 #define true	1
 
+#define	NULL	0
+#define EOF	-1
+
 typedef unsigned long size_t;
 typedef signed long ssize_t;
 

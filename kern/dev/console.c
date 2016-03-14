@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -18,42 +18,35 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
-#include <uart.h>
-#include <uart-msim.h>
-#include <io.h>
+/* from kernel */
+#include <sys/types.h>
+#include <console.h>
 
-void uart_init(void)
+static putchar_fp __putchar;
+static puts_fp __puts;
+
+void set_console(putchar_fp putchar, puts_fp puts)
 {
-	/* nothing */
+	__putchar = putchar;
+	__puts = puts;
 }
 
-void uart_enable(void)
+int kprintf(const char *fmt, ...)
 {
-	/* nothing */
+	return 0;
 }
 
-void uart_disable(void)
+int kputchar(int c)
 {
-	/* nothing */
+	if (__putchar == NULL) return EOF;
+	return __putchar(c);
 }
 
-unsigned char uart_getchar(void)
+int kputs(const char *s)
 {
-	unsigned char b;
-	while (b = read8(MSIM_UART_INPUT))
-		/* nothing */;
-	return b;
-}
-
-void uart_putchar(unsigned char c)
-{
-	write8(MSIM_UART_OUTPUT, c);
-}
-
-void early_console_init(void)
-{
-	/* nothing */
+	if (__puts == NULL) return EOF;
+	return __puts(s);
 }
 

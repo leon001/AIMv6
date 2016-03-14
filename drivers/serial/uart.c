@@ -31,10 +31,14 @@
 
 #ifdef RAW /* baremetal driver */
 
-void uart_puts(const char *str)
+int uart_puts(const char *str)
 {
 	for (; *str != '\0'; ++str)
-		uart_putbyte((unsigned char)*str);
+#ifdef CONSOLE_NEED_CR
+		if (*str == '\n')
+			uart_putchar('\r');
+#endif /* CONSOLE_NEED_CR */
+		uart_putchar((unsigned char)*str);
 }
 
 #else /* not RAW, or kernel driver */
@@ -43,9 +47,9 @@ void uart_puts(const char *str)
  * If a serial console requires \r\n to change line, we usually don't
  * want to specify "\r\n" in C string.
  *
- * This uart_puts() function automatically prepends a carriage return
- * before a newline.  Exceptions can be explicitly made in their own
- * device drivers.
+ * uart_puts() function should prepend a carriage return
+ * before a newline if needed. In this case, set CONSOLE_NEED_CR during
+ * configuration
  *
  * NOTE:
  * In disassemblies you can still see the code of this weak function.
@@ -53,18 +57,21 @@ void uart_puts(const char *str)
  * function, and therefore the weak code would never be executed.
  */
 
-void __weak uart_puts(const char *str)
+int uart_puts(const char *str)
 {
 	for (; *str != '\0'; ++str) {
+#ifdef CONSOLE_NEED_CR
 		if (*str == '\n')
-			uart_putbyte('\r');
-		uart_putbyte((unsigned char)*str);
+			uart_putchar('\r');
+#endif /* CONSOLE_NEED_CR */
+		uart_putchar((unsigned char)*str);
 	}
+	return 0;
 }
 
 #endif /* RAW */
 
-ssize_t uart_printf(const char *fmt, ...)
+int uart_printf(const char *fmt, ...)
 {
 	int result;
 	va_list ap;
@@ -74,7 +81,7 @@ ssize_t uart_printf(const char *fmt, ...)
 	return result;
 }
 
-ssize_t uart_vprintf(const char *fmt, va_list ap)
+int uart_vprintf(const char *fmt, va_list ap)
 {
 	int result;
 	char printf_buf[BUFSIZ];
