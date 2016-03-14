@@ -23,10 +23,13 @@
 /* from kernel */
 #include <sys/types.h>
 #include <init.h>
+#include <console.h>
 
 void __noreturn master_early_init(void)
 {
 	early_arch_init();
+	early_console_init();
+	kprintf("KERN: Hello, world!");
 	while (1);
 }
 

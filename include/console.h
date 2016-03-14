@@ -1,5 +1,4 @@
 /* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
- * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -17,28 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_SERIAL_UART_H
-#define _DRIVERS_SERIAL_UART_H
+#ifndef _CONSOLE_H
+#define _CONSOLE_H
 
-/* from kernel */
-#include <sys/types.h>
+typedef int (*putchar_fp)(unsigned char c);
+typedef int (*puts_fp)(const char *s);
 
-/* from libc */
-#include <libc/stdarg.h>
-#include <libc/stddef.h>
+void early_console_init();
 
-unsigned char uart_getchar(void);
-int uart_putchar(unsigned char c);
-int uart_puts(const char *str);
-int uart_printf(const char *fmt, ...);
-int uart_vprintf(const char *fmt, va_list ap);
+void set_console(putchar_fp putchar, puts_fp puts);
 
-#ifdef RAW /* baremetal driver */
+int kprintf(const char *fmt, ...);
 
-#else /* not RAW, or kernel driver */
-
-#endif /* RAW */
-
-
-#endif /* _DRIVERS_SERIAL_UART_H */
+#endif /* _CONSOLE_H */
 

@@ -36,24 +36,31 @@ SECTIONS
 
 	. = ALIGN(4K);
 
-	.text : {
+	.low_text : {
+		_low_text_begin = .;
+		*(.low_text);
+		_low_text_end = .;
+	}
+
+	. += KERN_BASE;
+
+	.text : AT(. - KERN_BASE) {
 		_text_begin = .;
-		*(.vector);
 		*(.text);
 		_text_end = .;
 	}
 	
-	.rodata : {
+	.rodata : AT(. - KERN_BASE) {
 		*(.rodata);
 	}
 	
-	.bss : {
+	.bss : AT(. - KERN_BASE) {
 		_bss_begin = .;
 		*(.bss);
 		_bss_end = .;
 	}
 
-	.data : {
+	.data : AT(. - KERN_BASE) {
 		*(.data);
 	}
 

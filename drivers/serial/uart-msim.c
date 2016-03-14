@@ -39,7 +39,7 @@ void uart_disable(void)
 	/* nothing */
 }
 
-unsigned char uart_getbyte(void)
+unsigned char uart_getchar(void)
 {
 	unsigned char b;
 	while (b = read8(MSIM_UART_INPUT))
@@ -47,9 +47,9 @@ unsigned char uart_getbyte(void)
 	return b;
 }
 
-void uart_putbyte(unsigned char byte)
+void uart_putchar(unsigned char c)
 {
-	write8(MSIM_UART_OUTPUT, byte);
+	write8(MSIM_UART_OUTPUT, c);
 }
 
 #ifdef RAW
@@ -58,7 +58,7 @@ void uart_putbyte(unsigned char byte)
 void uart_puts(const char *str)
 {
 	for (; *str != '\0'; ++str)
-		uart_putbyte((unsigned char)*str);
+		uart_putchar((unsigned char)*str);
 }
 #endif
 

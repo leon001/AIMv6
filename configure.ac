@@ -57,7 +57,7 @@ AS_CASE([$ARCH],
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
 	],
 	[mips*], [
-		AS_VAR_SET([with_nr_cpus], [4])
+		AS_VAR_SET([with_cpus], [4])
 	]
 )
 
@@ -79,11 +79,12 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_lp_pa], [0x1f000010])
 		AS_VAR_SET([with_msim_disk_pa], [0x1f000020])
 		AS_VAR_SET([with_msim_order_pa], [0x1f000100])
-		AS_VAR_SET([with_msim_mb_pa], [0x1f000200])
+		AS_VAR_SET([with_msim_mb_base], [0x1f000200])
 		AS_VAR_SET([with_msim_mb_order], [4])
 		AS_VAR_SET([with_msim_rtc_pa], [0x1f000080])
 		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
+		AS_VAR_SET([with_cpus], [4])
 	], 
 	[pc], [
 		AS_VAR_SET([with_fwstack_order], [12])
@@ -91,20 +92,7 @@ AS_CASE([$MACH],
 	[AC_MSG_ERROR([No machine specified])]
 )
 
-# target details
-AIM_ARG_WITH([mem-size], [MEM_SIZE], [amount of memory installed], [detect])
-AC_SUBST([MEM_SIZE], [$with_mem_size])
-
-AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [detect])
-AC_SUBST([NR_CPUS], [$with_cpus])
-
-AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
-	[size of kernel stack])
-
-AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
-	[order of firmware stack per CPU (size=1<<order)])
-
-# MSIM
+# msim
 AIM_ARG_WITH([msim-kbd-pa], [MSIM_KBD_PHYSADDR],
 	[MSIM keyboard physical address])
 AIM_ARG_WITH([msim-lp-pa], [MSIM_LP_PHYSADDR],
@@ -124,6 +112,22 @@ AIM_ARG_WITH([msim-firmware-bin], [MSIM_FIRMWARE_BIN],
 AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
 	[MSIM disk image file name])
 
+# target details
+AIM_ARG_WITH([mem-size], [MEM_SIZE], [amount of memory installed], [detect])
+AC_SUBST([MEM_SIZE], [$with_mem_size])
+
+AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [detect])
+AC_SUBST([NR_CPUS], [$with_cpus])
+
+AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0x80000000])
+AC_SUBST([KERN_BASE], [$with_kern_base])
+
+AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
+	[size of kernel stack])
+
+AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
+	[order of firmware stack per CPU (size=1<<order)])
+
 # Drivers
 AIM_ARG_ENABLE([uart-zynq], [UART_ZYNQ], [zynq UART driver])
 AIM_ARG_ENABLE([uart-msim], [UART_MSIM], [MSIM UART driver])
@@ -135,13 +139,20 @@ AIM_ARG_WITH([primary-console], [PRIMARY_CONSOLE], [primary console])
 AIM_ARG_WITH([primary-storage], [PRIMARY_STORAGE], [primary storage])
 AIM_ARG_WITH([primary-timing], [PRIMARY_TIMING], [primary timing])
 
+AS_CASE([$with_primary_console],
+	[uart-zynq],[
+		AC_DEFINE_UNQUOTED([CONSOLE_NEED_CR], [], [Primary console needs CR])
+	]
+)
+
 # per-target configuration
-AS_CASE($MACH,
+AS_CASE([$MACH],
 	[msim], [
-		 AIM_SUBST_MULTILINE(MSIM_CONF_CPULIST,
-			  `for (( i=0; $i<$with_cpus; i=$i+1 )); do \
-			  	echo add dcpu cpu$i; \
-			  done`)
+		 AIM_SUBST_MULTILINE([MSIM_CONF_CPULIST],
+		 	`for (( i=0; $i<$with_cpus; i=$i+1 )); do \
+			echo add dcpu cpu$i; \
+			done`
+		 )
 		 AC_SUBST(MSIM_CONF_FIRMWARE_BIN, $with_msim_firmware_bin)
 		 AC_SUBST(MSIM_CONF_KBDPA,
 			  `printf 0x%08x $with_msim_kbd_pa`)
@@ -153,7 +164,7 @@ AS_CASE($MACH,
 		 AC_SUBST(MSIM_CONF_ORDERPA,
 			  `printf 0x%08x $with_msim_order_pa`)
 		 AIM_SUBST_MULTILINE(MSIM_CONF_MBLIST,
-			  `for (( i=0; $i<$with_nr_cpus; i=$i+1 )); do \
+			  `for (( i=0; $i<$with_cpus; i=$i+1 )); do \
 			   pa=$(( $with_msim_mb_base \
 				+ ( $i << $with_msim_mb_order ) )); \
 			   printf "add rwm mb%d 0x%08x\n" $i $pa; \
@@ -210,7 +221,10 @@ AC_CONFIG_FILES([
 	kern/arch/armv7a/mach-zynq/Makefile
 	kern/arch/i386/Makefile
 	kern/arch/mips/Makefile
+	kern/arch/mips/mach-generic/Makefile
+	kern/arch/mips/mach-msim/Makefile
 	kern/init/Makefile
+	kern/dev/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	tools/Makefile
@@ -243,6 +257,7 @@ Target
 Drivers
 --------
   uart-zynq:	${enable_uart_zynq}
+  uart-msim:	${enable_uart_msim}
   sd-zynq:	${enable_sd_zynq}
   timer-a9:	${enable_timer_a9}
 

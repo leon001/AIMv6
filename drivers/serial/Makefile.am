@@ -34,3 +34,4 @@ libserial_raw_la_SOURCES = $(SRCS)
 libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 
 libserial_la_SOURCES = $(SRCS)
+

@@ -1,5 +1,4 @@
 /* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
- * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -17,28 +16,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_SERIAL_UART_H
-#define _DRIVERS_SERIAL_UART_H
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
 /* from kernel */
 #include <sys/types.h>
+#include <console.h>
 
-/* from libc */
-#include <libc/stdarg.h>
-#include <libc/stddef.h>
+static putchar_fp __putchar;
+static puts_fp __puts;
 
-unsigned char uart_getchar(void);
-int uart_putchar(unsigned char c);
-int uart_puts(const char *str);
-int uart_printf(const char *fmt, ...);
-int uart_vprintf(const char *fmt, va_list ap);
+void set_console(putchar_fp putchar, puts_fp puts)
+{
+	__putchar = putchar;
+	__puts = puts;
+}
 
-#ifdef RAW /* baremetal driver */
+int kprintf(const char *fmt, ...)
+{
+	return 0;
+}
 
-#else /* not RAW, or kernel driver */
+int kputchar(int c)
+{
+	if (__putchar == NULL) return EOF;
+	return __putchar(c);
+}
 
-#endif /* RAW */
-
-
-#endif /* _DRIVERS_SERIAL_UART_H */
+int kputs(const char *s)
+{
+	if (__puts == NULL) return EOF;
+	return __puts(s);
+}
 
