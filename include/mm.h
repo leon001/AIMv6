@@ -16,28 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _CONSOLE_H
-#define _CONSOLE_H
+#ifndef _MM_H
+#define _MM_H
 
-typedef int (*putchar_fp)(unsigned char c);
-typedef int (*puts_fp)(const char *s);
+#define early_kva2pa(kva)	((kva) - KERN_BASE)
 
-void early_console_init();
-
-/* set_console(putchar, puts)
- * Register two routines to use as kernel console
- * These function pointers need to be in high address space.
- * Registered routines should be compiled as PIC and will work in both
- * address spaces.
+/* get_addr_space()
+ * determine whether we are running in low address or in high address
+ * return values:
+ * 0 - low address
+ * 1 - high address
+ * negative - reserved for errors
  */
-void set_console(putchar_fp putchar, puts_fp puts);
+int get_addr_space();
 
-/* kernel console output routines
- * these will work in both address spaces.
- */
-int kprintf(const char *fmt, ...);
-int kputchar(int c);
-int kputs(const char *s);
-
-#endif /* _CONSOLE_H */
+#endif /* _MM_H */
 

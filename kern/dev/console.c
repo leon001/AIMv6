@@ -23,9 +23,10 @@
 /* from kernel */
 #include <sys/types.h>
 #include <console.h>
+#include <mm.h>
 
-static putchar_fp __putchar;
-static puts_fp __puts;
+static putchar_fp __putchar = NULL;
+static puts_fp __puts = NULL;
 
 void set_console(putchar_fp putchar, puts_fp puts)
 {
@@ -40,13 +41,39 @@ int kprintf(const char *fmt, ...)
 
 int kputchar(int c)
 {
-	if (__putchar == NULL) return EOF;
-	return __putchar(c);
+	putchar_fp putchar = __putchar;
+
+	switch(get_addr_space()){
+		case 0:
+			putchar = early_kva2pa(__putchar);
+			break;
+		case 1:
+			putchar = __putchar;
+			break;
+		default:
+			putchar = NULL;
+	}
+
+	if (putchar == NULL) return EOF;
+	return putchar(c);
 }
 
 int kputs(const char *s)
 {
-	if (__puts == NULL) return EOF;
-	return __puts(s);
+	puts_fp puts = __puts;
+
+	switch(get_addr_space()){
+		case 0:
+			puts = early_kva2pa(__puts);
+			break;
+		case 1:
+			puts = __puts;
+			break;
+		default:
+			puts = NULL;
+	}
+
+	if (puts == NULL) return EOF;
+	return puts(s);
 }
 

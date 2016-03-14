@@ -139,8 +139,8 @@ void __weak early_console_init()
 	__uart_zynq_init(UART_BASE);
 	__uart_zynq_enable(UART_BASE);
 	set_console(
-		early_console_putchar - KERN_BASE,
-		early_console_puts - KERN_BASE
+		early_console_putchar,
+		early_console_puts
 	);
 }
 
