@@ -85,6 +85,9 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
 		AS_VAR_SET([with_cpus], [4])
+	], 
+	[pc], [
+		AS_VAR_SET([with_fwstack_order], [12])
 	],
 	[AC_MSG_ERROR([No machine specified])]
 )

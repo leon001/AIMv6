@@ -33,8 +33,8 @@ master_entry:
 	msr	cpsr_c, 0xDF
 
 	/* Clear BSS */
-	ldr	r0, =_bss_begin
-	ldr	r1, =_bss_end
+	ldr	r0, = _bss_begin - KERN_BASE
+	ldr	r1, = _bss_end - KERN_BASE
 	mov	r2, #0x00000000
 clbss_l:
 	cmp	r0, r1
@@ -53,13 +53,11 @@ clbss_l:
 	 * We are calling a leaf routine, and it is hand-written so it doesn't
 	 * save anything on stack.
 	 */
-	ldr	sp, =boot_stack
+	ldr	sp, = boot_stack - KERN_BASE
 	movs	fp, sp
 
 	/* Call into early_init */
-	ldr	r0, =master_early_init
-	ldr	r1, =KERN_BASE
-	subs	r0, r0, r1
+	ldr	r0, = master_early_init - KERN_BASE
 	blx	r0
 
 slave_entry:
@@ -69,18 +67,17 @@ slave_entry:
 	/* Lock up early access resource and setup stack */
 	bl	lock
 	/* The above subroutine call is safe. See explainations above. */
-	ldr	sp, =boot_stack
+	ldr	sp, = boot_stack - KERN_BASE
 	movs	fp, sp
 
 	/* Call into early_init */
-	ldr	r0, =slave_early_init
-	ldr	r1, =KERN_BASE
-	subs	r0, r0, r1
+	ldr	r0, = slave_early_init - KERN_BASE
 	blx	r0
 
 lock:
 	mov	r0, #1			/* prepare a non-zero value */
-	ldr	r1, =early_spinlock	/* load lock address */
+	ldr	r1, = early_spinlock - KERN_BASE
+					/* load lock address */
 lock_loop:
 	ldrex	r5, [r1]		/* load lock value */
 	cmp	r5, #0
