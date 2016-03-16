@@ -33,6 +33,19 @@ Add whatever reasonable code style & programming practices here as reminders.
     does not include the option (except, of course, for the feature the
     option provides.)
 
+### Code style notes
+
+1. A function without arguments **MUST** be declared like
+```C
+void foo(void);
+```
+  The keyword `void` inside the parentheses **MUST NOT** be omitted, as nothing
+  inside the parentheses means it can take *any* number of parameters, which
+  is equivalent to
+```C
+void foo(...);
+```
+
 ### Functions
 
 1. Internal functions **MAY** be prepended with double underscores `__`.

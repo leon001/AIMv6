@@ -26,4 +26,7 @@ if BLOCK_MSIM
 libblock_raw_la_SOURCES += msim-ddisk.c msim-ddisk.h
 endif
 
-
+if ARCH_MIPS32
+libblock_raw_la_CFLAGS = $(MIPS_NOPIC_CFLAGS)
+libblock_raw_la_CCASFLAGS = $(MIPS_NOPIC_CCASFLAGS)
+endif

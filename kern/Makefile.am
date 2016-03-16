@@ -40,4 +40,3 @@ vmaim_elf_LDADD = \
 # FIXME need better solution
 # ld can find the script from input files
 vmaim_elf_LDFLAGS = $(AM_LDFLAGS) -T arch/$(ARCH)/vmaim.lds
-

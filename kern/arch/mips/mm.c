@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,24 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MM_H
-#define _MM_H
-
-#define early_kva2pa(kva)	((kva) - KERN_BASE)
-
-/* get_addr_space()
- * determine whether we are running in low address or in high address
- * return values:
- * 0 - low address
- * 1 - high address
- * negative - reserved for errors
- *
- * FIXME:
- * Need a better name.  Also, hardwiring return values with
- * literals is probably not a good idea.
- * Can be changed into at_lower() or before_kernmap() or alike.
- */
-int get_addr_space(void);
-
-#endif /* _MM_H */
-
+int get_addr_space(void)
+{
+	/* MIPS kernels always run in high address space (0x80000000+);
+	 * the kernel space mapping is hardwired by MIPS architecture.
+	 * We don't have any choice. */
+	return 1;
+}

@@ -24,11 +24,6 @@
 /* from uart driver */
 #include <uart.h>
 
-/* from libc */
-#include <libc/stdio.h>
-
-#define BUFSIZ	1024
-
 #ifdef RAW /* baremetal driver */
 
 int uart_puts(const char *str)
@@ -57,6 +52,9 @@ int uart_puts(const char *str)
  * function, and therefore the weak code would never be executed.
  */
 
+/* FIXME: using early_console_puts() and device descriptor (in future),
+ * should be removed */
+#if 0
 int uart_puts(const char *str)
 {
 	for (; *str != '\0'; ++str) {
@@ -68,25 +66,6 @@ int uart_puts(const char *str)
 	}
 	return 0;
 }
+#endif
 
 #endif /* RAW */
-
-int uart_printf(const char *fmt, ...)
-{
-	int result;
-	va_list ap;
-	va_start(ap, fmt);
-	result = uart_vprintf(fmt, ap);
-	va_end(ap);
-	return result;
-}
-
-int uart_vprintf(const char *fmt, va_list ap)
-{
-	int result;
-	char printf_buf[BUFSIZ];
-	result = vsnprintf(printf_buf, BUFSIZ, fmt, ap);
-	uart_puts(printf_buf);
-	return result;
-}
-

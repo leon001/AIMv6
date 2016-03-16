@@ -33,5 +33,10 @@ endif
 libserial_raw_la_SOURCES = $(SRCS)
 libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 
+if ARCH_MIPS32
+libserial_raw_la_CFLAGS = $(MIPS_NOPIC_CFLAGS)
+libserial_raw_la_CCASFLAGS = $(MIPS_NOPIC_CCASFLAGS)
+endif
+
 libserial_la_SOURCES = $(SRCS)
 

@@ -25,7 +25,8 @@ CLEANFILES = boot.bin boot.s
 
 boot_elf_SOURCES = bootsect.c bootsect.ld
 boot_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
-boot_elf_CFLAGS = $(AM_CFLAGS) -Os
+boot_elf_CFLAGS = $(MIPS_NOPIC_CFLAGS) -Os
+boot_elf_CCASFLAGS = $(MIPS_NOPIC_CCASFLAGS)
 boot_elf_LDFLAGS = $(AM_LDFLAGS) -T bootsect.ld -nostdlib
 
 boot.bin: boot.elf
