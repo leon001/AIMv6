@@ -36,15 +36,15 @@ Add whatever reasonable code style & programming practices here as reminders.
 ### Code style notes
 
 1. A function without arguments **MUST** be declared like
-```C
-void foo(void);
-```
+
+        void foo(void);
+
   The keyword `void` inside the parentheses **MUST NOT** be omitted, as nothing
   inside the parentheses means it can take *any* number of parameters, which
   is equivalent to
-```C
-void foo(...);
-```
+
+      void foo(...);
+
 2. Internal functions **MAY** be prepended with double underscores `__`.
   * Code outside the source file **MUST NOT** call the internal functions,
     which are, functions whose names are prepended with double underscores `__`.
