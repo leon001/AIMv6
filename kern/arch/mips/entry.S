@@ -96,7 +96,12 @@ main_entry:
 	 * PIC note: ordinarily we need to save gp register since jumping
 	 * to another global function would probably clobber the register.
 	 * However, we are not returning here, so we'll just let it happen.
+	 *
+	 * The .cprestore directive, which saves gp onto stack, is a hack to
+	 * suppress the warning message from assembler.  We don't care about
+	 * the value anyway.
 	 */
+	.cprestore
 	jal	master_early_init
 
 die:	b	die
