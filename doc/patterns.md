@@ -45,15 +45,21 @@ void foo(void);
 ```C
 void foo(...);
 ```
-
-### Functions
-
-1. Internal functions **MAY** be prepended with double underscores `__`.
+2. Internal functions **MAY** be prepended with double underscores `__`.
   * Code outside the source file **MUST NOT** call the internal functions,
     which are, functions whose names are prepended with double underscores `__`.
   * The internal functions is **RECOMMENDED** to be declared as `static`.
 
-### `early_console_init()`
+### Source organization notes
+
+1. The file names in `include` directory, `include/arch/$ARCH` directory, and
+  `include/arch/$ARCH/mach-$MACH` directory **MUST** be unique, as `gcc`
+  looks for headers in all three directories, and will be confused if there
+  are duplicates.
+
+### Design notes
+
+#### `early_console_init()`
 
 Each driver **MAY** provide a weak `early_console_init()` function for a default
 console initialization.  Architecture-specific or machine-specific kernel code
