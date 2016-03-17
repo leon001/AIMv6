@@ -92,6 +92,10 @@ main_entry:
 	/*
 	 * We know that we won't return from master_early_init(), so
 	 * we don't need to save anything prior to calling the function.
+	 *
+	 * PIC note: ordinarily we need to save gp register since jumping
+	 * to another global function would probably clobber the register.
+	 * However, we are not returning here, so we'll just let it happen.
 	 */
 	jal	master_early_init
 
