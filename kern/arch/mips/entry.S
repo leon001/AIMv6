@@ -36,6 +36,34 @@
  * and wait for some sort of signal from the master.
  */
 BEGIN(__start)
+	/* PIC environment preparation */
+setup_pic:
+	/*
+	 * MIPS did not consider PIC at time of design.  When the concept
+	 * of PIC was mentioned, MIPS ABI designated register 't9' to store
+	 * the address of entry of current routine the processor is running.
+	 * Furthermore, MIPS ABI stated that register 'gp' points to the
+	 * Global Offset Table (GOT).
+	 *
+	 * Unfortunately, we cannot assume that BIOS and/or bootloaders would
+	 * set up a PIC environment (i.e. 'gp' and 't9') for us, as most
+	 * operating systems including Linux runs a non-PIC kernel on MIPS.
+	 * So we have to set up both registers by our own.
+	 */
+
+	/* We need to obtain the entry of __start dynamically first, by
+	 * calling a Branch-And-Link, retrieving the return address, and
+	 * compute the address manually.  To ensure correctness, optimization
+	 * and instruction reordering should be turned off. */
+	.set	noreorder
+	bal	locate
+	nop
+locate:
+	SUBU	t9, ra, 8
+	.set	reorder
+	/* Now set up gp */
+	LI	gp, _gp
+	ADDU	gp, t9
 	/* Ensure that we are inside kernel mode. */
 	MFC032	a0, CP0_STATUS
 	or	a0, ST_EXCM
@@ -49,8 +77,8 @@ BEGIN(__start)
 	 * to 0, so we are going to clean it first.
 	 */
 init_bss:
-	LI	s1, __bss_begin__
-	LI	s2, __bss_end__
+	LA	s1, __bss_begin__
+	LA	s2, __bss_end__
 1:	bge	s1, s2, 9f
 	sw	zero, (s1)
 	ADDU	s1, 4
@@ -67,5 +95,5 @@ main_entry:
 	 */
 	jal	master_early_init
 
-die:	j	die
+die:	b	die
 END(__start)

@@ -24,9 +24,10 @@ CLEANFILES = firmware.bin firmware.s
 
 firmware_elf_SOURCES = entry.S main.c firmware.ld
 firmware_elf_LDFLAGS = -T firmware.ld -nostdlib
-firmware_elf_LDADD = $(top_builddir)/drivers/libdrivers-raw.la \
-		     $(top_builddir)/lib/libc/libc.la
+firmware_elf_LDADD = $(top_builddir)/drivers/libdrivers-raw.la
 firmware_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
+firmware_elf_CCASFLAGS = $(MIPS_NOPIC_CCASFLAGS)
+firmware_elf_CFLAGS = $(MIPS_NOPIC_CFLAGS)
 
 firmware.bin: firmware.elf
 	$(OBJCOPY) -O binary -j.text -j.rodata -j.data -j.bss $^ $@

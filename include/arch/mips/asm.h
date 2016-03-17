@@ -222,4 +222,16 @@ sym:		.long	long
 #define MFC032		mfc0
 #define MTC032		mtc0
 
+/* PIC codes */
+#ifdef __ASSEMBLER__
+	.macro	PICCALL dest
+	LOAD	t9, %got(\dest)(gp)
+	jalr	t9
+	.endm
+
+	.macro	PICLA	reg ref
+	LOAD	\reg, %got(\ref)(gp)
+	.endm
+#endif
+
 #endif

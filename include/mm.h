@@ -1,5 +1,4 @@
 /* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
- * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -17,28 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_SERIAL_UART_H
-#define _DRIVERS_SERIAL_UART_H
+#ifndef _MM_H
+#define _MM_H
 
-/* from kernel */
-#include <sys/types.h>
+#define early_kva2pa(kva)	((kva) - KERN_BASE)
 
-/* from libc */
-#include <libc/stdarg.h>
-#include <libc/stddef.h>
+/* get_addr_space()
+ * determine whether we are running in low address or in high address
+ * return values:
+ * 0 - low address
+ * 1 - high address
+ * negative - reserved for errors
+ *
+ * FIXME:
+ * Need a better name.  Also, hardwiring return values with
+ * literals is probably not a good idea.
+ * Can be changed into at_lower() or before_kernmap() or alike.
+ */
+int get_addr_space(void);
 
-unsigned char uart_getchar(void);
-int uart_putchar(unsigned char c);
-int uart_puts(const char *str);
-int uart_printf(const char *fmt, ...);
-int uart_vprintf(const char *fmt, va_list ap);
-
-#ifdef RAW /* baremetal driver */
-
-#else /* not RAW, or kernel driver */
-
-#endif /* RAW */
-
-
-#endif /* _DRIVERS_SERIAL_UART_H */
+#endif /* _MM_H */
 

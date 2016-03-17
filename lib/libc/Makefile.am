@@ -27,4 +27,3 @@ libc_la_SOURCES = \
 	stddef.h \
 	stdio.h \
 	string.h
-

@@ -17,3 +17,7 @@
 
 include $(top_srcdir)/env.am
 
+noinst_LTLIBRARIES = libdev.la
+
+libdev_la_SOURCES = console.c
+

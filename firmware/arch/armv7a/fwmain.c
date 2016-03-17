@@ -61,9 +61,9 @@ void fwpanic(const char *fmt, ...)
 	va_list ap;
 	va_start(ap, fmt);
 	uart_vprintf(fmt, ap);
-	for (;;)
-		/* nothing */;
 	va_end(ap);
+	
+	while (1);
 }
 
 void readdisk(size_t sector, size_t offset, void *buf, size_t len)
@@ -77,7 +77,7 @@ void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 	for (; len > 0; len -= l) {
 		l = MIN2(len, SECTOR_SIZE - offset);
 		if (sd_read((uint32_t)sector_buf, 1, sector) != 0)
-			fwpanic("read disk error");
+			fwpanic("read disk error\n");
 		memcpy(buf, &sector_buf[offset], l);
 		offset = 0;
 		buf += l;
@@ -98,20 +98,20 @@ void fw_main(void)
 	/* Initialize and enable UART */
 	uart_init();
 	uart_enable();
-	uart_puts("FW: Hello!\r\n");
+	uart_puts("FW: Hello!\n");
 
 	/* Initialize SDHCI interface */
 	sd_init();
-	uart_puts("FW: SD Controller initialized.\r\n");
+	uart_puts("FW: SD Controller initialized.\n");
 
 	/* Initialize SD card */
 	ret = sd_init_card();
 	if (ret == 0)
-		uart_puts("FW: SD Card initialized.\r\n");
+		uart_puts("FW: SD Card initialized.\n");
 	else if (ret == 1)
-		uart_puts("FW: SDHC Card initialized.\r\n");
+		uart_puts("FW: SDHC Card initialized.\n");
 	else {
-		uart_puts("FW: Card initialization failed.\r\n");
+		uart_puts("FW: Card initialization failed.\n");
 		goto spin;
 	}
 
@@ -124,17 +124,17 @@ void fw_main(void)
 
 	/* Read MBR */
 	ret = sd_read((u32)mbr, 1, 0);
-	if (ret == 0) uart_puts("FW: Card read OK.\r\n");
+	if (ret == 0) uart_puts("FW: Card read OK.\n");
 	else {
-		uart_puts("FW: Card read failed.\r\n");
+		uart_puts("FW: Card read failed.\n");
 		goto spin;
 	}
 
 	/* Check MBR */
 	if (mbr[510] == 0x55 && mbr[511] == 0xAA) {
-		uart_puts("FW: MBR valid.\r\n");
+		uart_puts("FW: MBR valid.\n");
 		mbr_entry();
-	} else uart_puts("FW: MBR not valid.\r\n");
+	} else uart_puts("FW: MBR not valid.\n");
 
 spin:
 	while (1);

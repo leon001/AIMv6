@@ -58,4 +58,6 @@
 #define TO_CAC(x)	(IO_CAC_BASE + (x))
 #define TO_UNCAC(x)	(IO_UNCAC_BASE + (x))
 
+#define early_kva2pa(x)	((x) - IO_CAC_BASE)
+
 #endif

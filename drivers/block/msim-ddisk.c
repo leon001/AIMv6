@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <mm.h>
+#include <arch-mm.h>
 #include <io.h>
 #include <config.h>
 #include <libc/string.h>

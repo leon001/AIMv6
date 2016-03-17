@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Xiaofei Bai <xffbai@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -20,22 +20,50 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-/* from kernel */
-#include <sys/types.h>
-#include <init.h>
-#include <console.h>
+#undef i386
+OUTPUT_FORMAT(elf32-i386)
+ENTRY(master_entry)
 
-void __noreturn master_early_init(void)
+SECTIONS
 {
-	early_arch_init();
-	early_console_init();
-	kprintf("KERN: Hello, world!");
-	while (1);
+	/DISCARD/ : {}
+
+	. = ALIGN(4K);
+
+	.low_text : {
+		_low_text_begin = .;
+		*(.low_text);
+		_low_text_end = .;
+	}
+
+	. += KERN_BASE;
+
+	.text : AT(. - KERN_BASE) {
+		_text_begin = .;
+		*(.text);
+		_text_end = .;
+	}
+	
+	.rodata : AT(. - KERN_BASE) {
+		*(.rodata);
+	}
+	
+	.bss : AT(. - KERN_BASE) {
+		_bss_begin = .;
+		*(.bss);
+		_bss_end = .;
+	}
+
+	.data : AT(. - KERN_BASE) {
+		*(.data);
+	}
+
+	. = ALIGN(16K);
+
+	.boot : {
+		PROVIDE(boot_pgdir = .);
+		. += 16K; /* early pgdir */
+		. += 4K; /* early stack */
+		PROVIDE(boot_stack = .);
+	}
 }
-
-void __noreturn slave_early_init(void)
-{
-	while (1);
-}
-
-

@@ -86,6 +86,9 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
 		AS_VAR_SET([with_cpus], [4])
+	], 
+	[pc], [
+		AS_VAR_SET([with_fwstack_order], [12])
 	],
 	[loongson3a], [
 		# you don't really have any option here.
@@ -125,6 +128,9 @@ AC_SUBST([MEM_SIZE], [$with_mem_size])
 AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [detect])
 AC_SUBST([NR_CPUS], [$with_cpus])
 
+AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0x80000000])
+AC_SUBST([KERN_BASE], [$with_kern_base])
+
 AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 	[size of kernel stack])
 
@@ -143,8 +149,14 @@ AIM_ARG_WITH([primary-console], [PRIMARY_CONSOLE], [primary console])
 AIM_ARG_WITH([primary-storage], [PRIMARY_STORAGE], [primary storage])
 AIM_ARG_WITH([primary-timing], [PRIMARY_TIMING], [primary timing])
 
+AS_CASE([$with_primary_console],
+	[uart-zynq],[
+		AC_DEFINE_UNQUOTED([CONSOLE_NEED_CR], [], [Primary console needs CR])
+	]
+)
+
 # per-target configuration
-AS_CASE($MACH,
+AS_CASE([$MACH],
 	[msim], [
 		 AIM_SUBST_MULTILINE([MSIM_CONF_CPULIST],
 		 	`for (( i=0; $i<$with_cpus; i=$i+1 )); do \
