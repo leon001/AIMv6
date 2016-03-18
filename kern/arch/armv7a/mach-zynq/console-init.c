@@ -35,7 +35,7 @@ void early_console_init(void)
 {
 	uart_zynq_init(UART_BASE);
 	uart_zynq_enable(UART_BASE);
-	set_console(early_console_putchar, NULL);
+	set_console(early_console_putchar, DEFAULT_KPUTS);
 }
 
 #endif /* PRIMARY_CONSOLE */

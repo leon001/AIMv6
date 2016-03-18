@@ -33,6 +33,6 @@ void early_console_init(void)
 {
 	uart_msim_init();
 
-	set_console(early_console_putchar, NULL);
+	set_console(early_console_putchar, DEFAULT_KPUTS);
 }
 
