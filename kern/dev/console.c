@@ -28,6 +28,22 @@
 static putchar_fp __putchar = NULL;
 static puts_fp __puts = NULL;
 
+/*
+ * In most cases,
+ * 1. Outputting a string to a console can be decomposed into
+ *    outputting characters one-by-one.
+ * 2. A new line on a console is a carriage return ('\r') followed
+ *    by a line feed ('\n').
+ * If your console device satisfies the two characteristics above,
+ * you can use default kputs() implementation by
+ *
+ *     set_console(your_putchar, NULL);
+ *
+ * Exceptions may exist, e.g. an efficient CGA console driver.  In
+ * this case, set up console output functions by
+ *
+ *     set_console(your_putchar, your_puts);
+ */
 void set_console(putchar_fp putchar, puts_fp puts)
 {
 	__putchar = putchar;
@@ -39,41 +55,48 @@ int kprintf(const char *fmt, ...)
 	return 0;
 }
 
+static putchar_fp __get_kputchar(void)
+{
+	switch(get_addr_space()){
+	case 0:
+		return early_kva2pa(__putchar);
+	case 1:
+		return __putchar;
+	default:
+		return NULL;
+	}
+}
+
 int kputchar(int c)
 {
-	putchar_fp putchar = __putchar;
+	putchar_fp putchar = __get_kputchar();
 
-	switch(get_addr_space()){
-		case 0:
-			putchar = early_kva2pa(__putchar);
-			break;
-		case 1:
-			putchar = __putchar;
-			break;
-		default:
-			putchar = NULL;
+	if (putchar == NULL)
+		return EOF;
+	return putchar(c);
+}
+
+static int __kputs(const char *s)
+{
+	putchar_fp putchar = __get_kputchar();
+
+	if (putchar == NULL)
+		return EOF;
+
+	for (; *s != '\0'; ++s) {
+		if (*s == '\n')
+			putchar('\r');
+		putchar(*s);
 	}
 
-	if (putchar == NULL) return EOF;
-	return putchar(c);
+	return 0;
 }
 
 int kputs(const char *s)
 {
-	puts_fp puts = __puts;
-
-	switch(get_addr_space()){
-		case 0:
-			puts = early_kva2pa(__puts);
-			break;
-		case 1:
-			puts = __puts;
-			break;
-		default:
-			puts = NULL;
-	}
-
-	if (puts == NULL) return EOF;
-	return puts(s);
+	if (__puts != NULL)
+		return __puts(s);
+	else
+		return __kputs(s);
 }
 

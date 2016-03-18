@@ -30,4 +30,8 @@
 #define MSIM_UART_OUTPUT	MSIM_LP_PHYSADDR
 #define MSIM_UART_INPUT		MSIM_KBD_PHYSADDR
 
+void uart_msim_init(void);
+int uart_msim_putchar(unsigned long, unsigned char);
+unsigned char uart_msim_getchar(unsigned long);
+
 #endif

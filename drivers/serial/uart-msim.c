@@ -24,13 +24,17 @@
 #include <uart-msim.h>
 #include <io.h>
 
-int __uart_msim_putchar(unsigned long base, unsigned char c)
+void uart_msim_init(void)
+{
+}
+
+int uart_msim_putchar(unsigned long base, unsigned char c)
 {
 	write8(base, c);
 	return 0;
 }
 
-unsigned char __uart_msim_getchar(unsigned long base)
+unsigned char uart_msim_getchar(unsigned long base)
 {
 	unsigned char b;
 	while (!(b = read8(base)))
@@ -57,42 +61,14 @@ void uart_disable(void)
 
 unsigned char uart_getchar(void)
 {
-	return __uart_msim_getchar(MSIM_UART_INPUT);
+	return uart_msim_getchar(MSIM_UART_INPUT);
 }
 
 int uart_putchar(unsigned char c)
 {
-	return __uart_msim_putchar(MSIM_UART_OUTPUT, c);
+	return uart_msim_putchar(MSIM_UART_OUTPUT, c);
 }
 
 #else
-
-#include <console.h>
-
-static int early_console_putchar(unsigned char c)
-{
-	return __uart_msim_putchar(MSIM_UART_OUTPUT, c);
-}
-
-/* FIXME: I think we only need to provide a separate early_console_putchar().
- * The logic of early_console_puts() is the same.
- * Moreover, since we have kputchar(), why not use kputchar() to implement
- * kputs()?  This way, we can avoid providing driver-specific puts()
- * implementation altogether. */
-static int early_console_puts(const char *str)
-{
-	for (; *str != '\0'; ++str) {
-		if (*str == '\n')
-			__uart_msim_putchar(MSIM_UART_OUTPUT, '\r');
-		__uart_msim_putchar(MSIM_UART_OUTPUT, (unsigned char)*str);
-	}
-	return 0;
-}
-
-
-void early_console_init(void)
-{
-	set_console(early_console_putchar, early_console_puts);
-}
 
 #endif

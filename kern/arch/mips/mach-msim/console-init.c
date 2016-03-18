@@ -16,27 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_SERIAL_UART_ZYNQ_H
-#define _DRIVERS_SERIAL_UART_ZYNQ_H
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-#include <sys/types.h>
+#include <libc/stddef.h>
+#include <console.h>
+#include <drivers/serial/uart-msim.h>
 
-void uart_zynq_enable(uint32_t);
-void uart_zynq_disable(uint32_t);
-void uart_zynq_init(uint32_t);
-unsigned char uart_zynq_getchar(uint32_t);
-int uart_zynq_putchar(uint32_t, unsigned char);
+int early_console_putchar(unsigned char c)
+{
+	return uart_msim_putchar(MSIM_UART_OUTPUT, c);
+}
 
-#ifdef RAW /* baremetal driver */
+void early_console_init(void)
+{
+	uart_msim_init();
 
-void uart_init(void);
-void uart_enable(void);
-void uart_disable(void);
-
-#else /* not RAW, or kernel driver */
-
-#endif /* RAW */
-
-
-#endif /* _DRIVERS_SERIAL_UART_ZYNQ_H */
+	set_console(early_console_putchar, NULL);
+}
 

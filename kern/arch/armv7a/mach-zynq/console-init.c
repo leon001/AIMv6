@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,27 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_SERIAL_UART_ZYNQ_H
-#define _DRIVERS_SERIAL_UART_ZYNQ_H
+/* moved from drivers/serial/uart-zynq.c */
+#include <console.h>
 
-#include <sys/types.h>
+#if PRIMARY_CONSOLE == uart_zynq
 
-void uart_zynq_enable(uint32_t);
-void uart_zynq_disable(uint32_t);
-void uart_zynq_init(uint32_t);
-unsigned char uart_zynq_getchar(uint32_t);
-int uart_zynq_putchar(uint32_t, unsigned char);
+#include <drivers/serial/uart-zynq.h>
 
-#ifdef RAW /* baremetal driver */
+/* FIXME zedboard uses UART1 only */
+#define UART_BASE	UART1_PHYSBASE
 
-void uart_init(void);
-void uart_enable(void);
-void uart_disable(void);
+int early_console_putchar(unsigned char c)
+{
+	return uart_zynq_putchar(UART_BASE, c);
+}
 
-#else /* not RAW, or kernel driver */
+void early_console_init(void)
+{
+	uart_zynq_init(UART_BASE);
+	uart_zynq_enable(UART_BASE);
+	set_console(early_console_putchar, NULL);
+}
 
-#endif /* RAW */
+#endif /* PRIMARY_CONSOLE */
 
-
-#endif /* _DRIVERS_SERIAL_UART_ZYNQ_H */
 
