@@ -27,9 +27,9 @@ noinst_DATA = firmware.bin firmware.s
 firmware_elf_SOURCES = fwasm.S fwmain.c
 firmware_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
 firmware_elf_LDADD = \
-	firmware.lds \
 	$(top_builddir)/drivers/libdrivers-raw.la \
 	$(top_builddir)/lib/libc/libc.la
+firmware_elf_DEPENDENCIES = firmware.lds
 # FIXME need better solution
 # ld can find the script from input files
 firmware_elf_LDFLAGS = $(AM_LDFLAGS) -T firmware.lds
