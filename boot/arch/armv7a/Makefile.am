@@ -25,10 +25,11 @@ noinst_DATA = bootloader.bin bootloader.s
 CLEANFILES = bootloader.bin bootloader.s boot.lds
 
 bootloader_elf_SOURCES = bootmain.c
-bootloader_elf_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
-bootloader_elf_CFLAGS = $(AM_CFLAGS) -Os
 bootloader_elf_DEPENDENCIES = boot.lds
-bootloader_elf_LDFLAGS = $(AM_LDFLAGS) -T boot.lds
+bootloader_elf_CPPFLAGS = $(AM_CPPFLAGS_NOPIC) -DRAW
+bootloader_elf_CFLAGS = $(AM_CFLAGS_NOPIC) -Os
+bootloader_elf_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
+bootloader_elf_LDFLAGS = $(AM_LDFLAGS_NOPIC) -T boot.lds
 
 boot.lds: boot.lds.S
 	$(COMPILE) -E -P $^ -o $@

@@ -31,12 +31,10 @@ SRCS += uart-msim.c uart-msim.h
 endif
 
 libserial_raw_la_SOURCES = $(SRCS)
-libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS) -DRAW
-
-if ARCH_MIPS32
-libserial_raw_la_CFLAGS = $(MIPS_NOPIC_CFLAGS)
-libserial_raw_la_CCASFLAGS = $(MIPS_NOPIC_CCASFLAGS)
-endif
+libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC) -DRAW
+libserial_raw_la_CFLAGS = $(AM_CFLAGS_NOPIC)
+libserial_raw_la_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
+libserial_raw_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)
 
 libserial_la_SOURCES = $(SRCS)
 

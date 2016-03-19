@@ -28,6 +28,10 @@ libdrivers_raw_la_LIBADD = \
 	$(builddir)/sd/libsd-raw.la \
 	$(builddir)/serial/libserial-raw.la \
 	$(builddir)/timer/libtimer-raw.la
+libdrivers_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC)
+libdrivers_raw_la_CFLAGS = $(AM_CFLAGS_NOPIC)
+libdrivers_raw_la_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
+libdrivers_raw_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)
 
 libdrivers_la_SOURCES =
 libdrivers_la_LIBADD = \

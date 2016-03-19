@@ -176,6 +176,7 @@ AS_CASE([$MACH],
 ])
 
 AIM_SUPPORT_ARCH([armv7a i386 mips32 mips64])
+AIM_SUPPORT_MACH([msim zynq pc])
 
 AM_CONDITIONAL([UART_MSIM],
 	[test x$MACH = xmsim])
