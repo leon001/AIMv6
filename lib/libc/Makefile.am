@@ -17,6 +17,8 @@
 
 include $(top_srcdir)/env.am
 
+SUBDIRS = arch
+
 noinst_LTLIBRARIES = \
 	libc-nopic.la \
 	libc.la
@@ -24,6 +26,7 @@ noinst_LTLIBRARIES = \
 SRCS = \
 	snprintf.c \
 	memcpy.c \
+	memset.c \
 	$(top_srcdir)/include/sys/types.h \
 	stdarg.h \
 	stddef.h \

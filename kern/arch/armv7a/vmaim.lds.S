@@ -47,6 +47,10 @@ SECTIONS
 	.text : AT(. - KERN_BASE) {
 		_text_begin = .;
 		*(.text);
+		. = ALIGN(4);
+		*(.got.plt);
+		. = ALIGN(4);
+		*(.got); /* Global offset table */
 		_text_end = .;
 	}
 	

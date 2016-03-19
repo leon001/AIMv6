@@ -16,10 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <init.h>
-
-void early_arch_init(void)
+#include <asm.h>
+/* Use stosb instruction to overwrite default implementation */
+void *
+memset(void *dst, int c, size_t n)
 {
-	early_mach_init();
-	uart_printf("Hello from kernel!\n");
+	stosb(dst, c, n);
+	return dst;
 }

@@ -44,10 +44,10 @@ AIMv6 does not come with any test suites right now.
 
 ### MIPS
 
-Currently two platforms are (planned to be) supported on MIPS architecture:
+Currently two platforms are supported on MIPS architecture:
 
 1. [MSIM](http://d3s.mff.cuni.cz/~holub/sw/msim/)
-2. Loongson 3A (TBD)
+2. Loongson 3A
 
 #### MSIM configuration
 
@@ -118,7 +118,11 @@ Run MSIM to bring up the operating system.
 
 ### Loongson 3A
 
-(TBD)
+You should prepare a SATA-to-USB converter or something to enable you to upload
+your kernel image into the hard disk inside Loongson 3A box.
+
+Replace the `boot/vmlinux` file with the kernel image you compiled, and you're
+done.
 
 ## Running AIMv6
 

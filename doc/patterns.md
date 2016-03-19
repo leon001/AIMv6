@@ -59,9 +59,26 @@ Add whatever reasonable code style & programming practices here as reminders.
 
 ### Design notes
 
+#### Drivers
+
+Each driver **MUST** be designed so that it can be compiled and loaded as
+kernel module(s).
+
+1. Drivers **MUST** be compiled into PIC.
+
+2. Internal functions **MUST** be prepended with double underscores `__`, and
+   **MUST** be declared as `static`, so that drivers will not interfere with
+   each other.
+
+3. Each driver (or any other kernel module) **MUST** provide exactly one single
+   routine to register its interface (structs or pointers) to the kernel. It
+   **SHOULD** initialize the module, and **MAY** probe for device, but it
+   **SHOULD NOT** initialize the driver or the device.
+
 #### `early_console_init()`
 
 Each driver **MAY** provide a weak `early_console_init()` function for a default
 console initialization.  Architecture-specific or machine-specific kernel code
 **MAY** override the driver-provided default initialization routine with its
 own, in which case `early_console_init()` **MUST** be a strong function.
+

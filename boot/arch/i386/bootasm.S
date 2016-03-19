@@ -178,7 +178,8 @@ seta20.2:
 	ljmp	$(SEG_KCODE << 3), $start32
 
 	/* Now we're executing 32-bit code */
-.start32
+.code32
+start32:
 	/* Set up data segment *selectors* */
 	movw	$(SEG_KDATA << 3), %ax
 	movw	%ax, %ds
@@ -227,6 +228,11 @@ gdt:
 	SEG_ASM(STA_X|STA_R, 0x0, 0xffffffff)
 	SEG_ASM(STA_W, 0x0, 0xffffffff)
 
+	/*
+	 * The LGDT instruction accepts an address of a structure containing:
+	 * (1) the size of the GDT minus 1, and
+	 * (2) the address of the GDT itself.
+	 */
 gdtdesc:
 	.word	(gdtdesc - gdt - 1)
 	.long	gdt

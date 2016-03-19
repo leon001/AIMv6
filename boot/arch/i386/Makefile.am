@@ -17,3 +17,14 @@
 
 include $(top_srcdir)/env.am
 
+noinst_PROGRAMS = boot.elf
+noinst_DATA = boot.bin boot.s
+
+CLEANFILES = boot.bin boot.s
+
+# TODO: add a linker script here
+boot_elf_SOURCES = bootasm.S bootmain.c
+boot_elf_LDFLAGS = $(AM_LDFLAGS) -N -e start -Ttext 0x7c00
+
+boot.bin: boot.elf
+	$(OBJCOPY) -O binary -j.text $^ $@

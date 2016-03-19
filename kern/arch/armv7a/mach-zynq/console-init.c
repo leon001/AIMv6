@@ -22,6 +22,7 @@
 #if PRIMARY_CONSOLE == uart_zynq
 
 #include <drivers/serial/uart-zynq.h>
+#include <drivers/serial/uart-zynq-hw.h>
 
 /* FIXME zedboard uses UART1 only */
 #define UART_BASE	UART1_PHYSBASE
