@@ -249,7 +249,9 @@ AC_CONFIG_FILES([
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile
+	lib/libc/arch/armv7a/Makefile
 	lib/libc/arch/i386/Makefile
+	lib/libc/arch/mips/Makefile
 	tools/Makefile
 	user/Makefile
 ])

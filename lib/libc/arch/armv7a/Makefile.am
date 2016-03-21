@@ -1,4 +1,3 @@
-# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 #
 # This file is part of AIMv6.
@@ -17,8 +16,4 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 include $(top_srcdir)/env.am
-
-SUBDIRS = $(ARCH)
-
-DIST_SUBDIRS = armv7a i386 mips
 
