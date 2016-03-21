@@ -22,7 +22,7 @@
 typedef int (*putchar_fp)(unsigned char c);
 typedef int (*puts_fp)(const char *s);
 
-void early_console_init(void);
+int early_console_init(void);
 
 /* set_console(putchar, puts)
  * Register two routines to use as kernel console

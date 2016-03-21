@@ -21,12 +21,6 @@
 
 #include <sys/types.h>
 
-void uart_zynq_enable(uint32_t);
-void uart_zynq_disable(uint32_t);
-void uart_zynq_init(uint32_t);
-unsigned char uart_zynq_getchar(uint32_t);
-int uart_zynq_putchar(uint32_t, unsigned char);
-
 #ifdef RAW /* baremetal driver */
 
 void uart_init(void);

@@ -24,27 +24,31 @@
 #include <uart-zynq-hw.h>
 
 #include <io.h>
+#include <console.h>
+
+/* FIXME zedboard uses UART1 only */
+#define UART_BASE	UART1_PHYSBASE
 
 /* internal routines */
 
-void uart_zynq_enable(uint32_t base)
+static void __uart_zynq_enable(uint32_t base)
 {
 	/* Enable TX and RX */
 	write32(base + UART_OFFSET_CR, UART_CR_TX_EN | UART_CR_RX_EN);
 }
 
-void uart_zynq_disable(uint32_t base)
+static void __uart_zynq_disable(uint32_t base)
 {
 	/* Disable TX and RX */
 	write32(base + UART_OFFSET_CR, UART_CR_TX_DIS | UART_CR_RX_DIS);
 }
 
-void uart_zynq_init(uint32_t base)
+static void __uart_zynq_init(uint32_t base)
 {
 	/* Disable interrupts */
 	write32(base + UART_OFFSET_IDR, UART_IXR_MASK);
 	/* Disable TX and RX */
-	uart_zynq_disable(base);
+	__uart_zynq_disable(base);
 	/* Reset TX and RX, Clear FIFO */
 	write32(base + UART_OFFSET_CR, UART_CR_TXRST | UART_CR_RXRST);
 	/* Clear Flags */
@@ -66,50 +70,71 @@ void uart_zynq_init(uint32_t base)
 		UART_CR_RX_DIS | UART_CR_TX_DIS | UART_CR_STOPBRK);
 }
 
-unsigned char uart_zynq_getchar(uint32_t base)
+static unsigned char __uart_zynq_getchar(uint32_t base)
 {
 	while (read32(base + UART_OFFSET_SR) & UART_SR_RXEMPTY);
 	return read8(base + UART_OFFSET_FIFO);
 }
 
-int uart_zynq_putchar(uint32_t base, unsigned char c)
+/* uart-zynq never fails to output a byte if it can block execution,
+ * so this internal function returns nothing.
+ * Note that all corresponding interface routines should return an int
+ * to indicate success or failure.
+ */
+static int __uart_zynq_putchar(uint32_t base, unsigned char c)
 {
 	while (read32(base + UART_OFFSET_SR) & UART_SR_TXFULL);
 	write8(base + UART_OFFSET_FIFO, c);
-	return 0;
 }
 
 #ifdef RAW /* baremetal driver */
 
-/* FIXME zedboard uses UART1 only */
-#define UART_BASE	UART1_PHYSBASE
-
 void uart_init(void)
 {
-	uart_zynq_init(UART_BASE);
+	__uart_zynq_init(UART_BASE);
 }
 
 void uart_enable(void)
 {
-	uart_zynq_enable(UART_BASE);
+	__uart_zynq_enable(UART_BASE);
 }
 
 void uart_disable(void)
 {
-	uart_zynq_disable(UART_BASE);
+	__uart_zynq_disable(UART_BASE);
 }
 
 unsigned char uart_getchar(void)
 {
-	uart_zynq_getchar(UART_BASE);
+	return __uart_zynq_getchar(UART_BASE);
 }
 
 int uart_putchar(unsigned char c)
 {
-	return uart_zynq_putchar(UART_BASE, c);
+	__uart_zynq_putchar(UART_BASE, c);
+	return 0;
 }
 
 #else /* not RAW, or kernel driver */
+
+#if PRIMARY_CONSOLE == uart_zynq
+
+/* Meant to register to kernel, so this interface routine is static */
+static int early_console_putchar(unsigned char c)
+{
+	__uart_zynq_putchar(UART_BASE, c);
+	return 0;
+}
+
+int early_console_init(void)
+{
+	__uart_zynq_init(UART_BASE);
+	__uart_zynq_enable(UART_BASE);
+	set_console(early_console_putchar, DEFAULT_KPUTS);
+	return 0;
+}
+
+#endif /* PRIMARY_CONSOLE == uart_zynq */
 
 #endif /* RAW */
 
