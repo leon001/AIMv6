@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+ * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -22,19 +23,23 @@
 
 #include <uart.h>
 #include <uart-msim.h>
-#include <io.h>
 
-void uart_msim_init(void)
+#include <io.h>
+#include <console.h>
+
+/* uart-msim is a combined device, so there's two base address */
+static void __uart_msim_init(addr_t lp_base, addr_t kbd_base)
 {
+	/* nothing */
 }
 
-int uart_msim_putchar(unsigned long base, unsigned char c)
+static int __uart_msim_putchar(addr_t base, unsigned char c)
 {
 	write8(base, c);
 	return 0;
 }
 
-unsigned char uart_msim_getchar(unsigned long base)
+static unsigned char __uart_msim_getchar(addr_t base)
 {
 	unsigned char b;
 	while (!(b = read8(base)))
@@ -42,11 +47,11 @@ unsigned char uart_msim_getchar(unsigned long base)
 	return b;
 }
 
-#ifdef RAW
+#ifdef RAW /* baremetal driver */
 
 void uart_init(void)
 {
-	/* nothing */
+	__uart_msim_init();
 }
 
 void uart_enable(void)
@@ -69,6 +74,18 @@ int uart_putchar(unsigned char c)
 	return uart_msim_putchar(MSIM_UART_OUTPUT, c);
 }
 
-#else
+#else /* not RAW, or kernel driver */
 
-#endif
+#if PRIMARY_CONSOLE == uart_msim
+
+int early_console_init(void)
+{
+	__uart_msim_init(void);
+	set_console(__uart_msim_putchar, DEFAULT_KPUTS);
+	return 0;
+}
+
+#endif /* PRIMARY_CONSOLE == uart_msim */
+
+#endif /* RAW */
+

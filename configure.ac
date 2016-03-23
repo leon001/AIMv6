@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # autoconf requirements
-# none
+AC_PREREQ([2.69.169])
 
 AC_INIT([AIMv6], [0.1], [davidgao1001@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -25,7 +25,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_MACRO_DIR([./m4])
 
 AC_PROG_CC
-AC_PROG_CC_STDC
+AC_PROG_CC_C11
 AC_C_CONST
 AC_C_RESTRICT
 AC_C_VOLATILE

@@ -36,3 +36,4 @@ libdrivers_raw_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)
 libdrivers_la_SOURCES =
 libdrivers_la_LIBADD = \
 	$(builddir)/serial/libserial.la
+

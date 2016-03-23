@@ -27,13 +27,17 @@
 #include <libc/stdarg.h>
 #include <libc/stddef.h>
 
+#ifdef RAW /* baremetal driver */
+
+void uart_init(void);
+void uart_enable(void);
+void uart_disable(void);
+
 unsigned char uart_getchar(void);
 int uart_putchar(unsigned char c);
 int uart_puts(const char *str);
 int uart_printf(const char *fmt, ...);
 int uart_vprintf(const char *fmt, va_list ap);
-
-#ifdef RAW /* baremetal driver */
 
 #else /* not RAW, or kernel driver */
 

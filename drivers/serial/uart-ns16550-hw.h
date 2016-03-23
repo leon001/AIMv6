@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_SERIAL_UART_NS16550_REGS_H
-#define _DRIVERS_SERIAL_UART_NS16550_REGS_H
+#ifndef _DRIVERS_SERIAL_UART_NS16550_HW_H
+#define _DRIVERS_SERIAL_UART_NS16550_HW_H
 
 /*
  * NS16550 registers.
@@ -127,4 +127,5 @@
 #define UART_MSR_DDSR		0x02
 #define UART_MSR_DCTS		0x01
 
-#endif
+#endif /* _DRIVERS_SERIAL_UART_NS16550_HW_H */
+

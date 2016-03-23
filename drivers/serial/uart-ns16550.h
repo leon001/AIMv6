@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+ * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -19,8 +20,12 @@
 #ifndef _DRIVERS_SERIAL_UART_NS16550_H
 #define _DRIVERS_SERIAL_UART_NS16550_H
 
-void uart_init(void);
-void uart_enable(void);
-void uart_disable(void);
+#ifdef RAW /* baremetal driver */
+
+#else /* not RAW, or kernel driver */
+
+#endif /* RAW */
+
 
 #endif
+

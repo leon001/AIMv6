@@ -37,6 +37,7 @@ static inline uint32_t read32(uint32_t addr)
 	return *(volatile uint32_t *)addr;
 }
 
+/* Not atomic, just for convenience */
 static inline uint64_t read64(uint32_t addr)
 {
 	return *(volatile uint64_t *)addr;
@@ -58,6 +59,7 @@ static inline void write32(uint32_t addr, uint32_t data)
 	*(volatile uint32_t *)addr = data;
 }
 
+/* Not atomic, just for convenience */
 static inline void write64(uint32_t addr, uint64_t data)
 {
 	*(volatile uint64_t *)addr = data;

@@ -31,7 +31,7 @@ SRCS += uart-msim.c uart-msim.h
 endif
 
 if UART_NS16550
-SRCS += uart-ns16550.h uart-ns16550.c uart-ns16550-regs.h
+SRCS += uart-ns16550.h uart-ns16550.c uart-ns16550-hw.h
 endif
 
 libserial_raw_la_SOURCES = $(SRCS)

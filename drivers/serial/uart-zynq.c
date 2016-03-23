@@ -20,10 +20,13 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <sys/types.h>
+
 #include <uart-zynq.h>
 #include <uart-zynq-hw.h>
 
 #include <io.h>
+#include <device.h>
 #include <console.h>
 
 /* FIXME zedboard uses UART1 only */
@@ -31,8 +34,13 @@
 
 /* internal routines */
 
-static void __uart_zynq_enable(uint32_t base)
+static int __uart_zynq_enable(struct bus_device * bus, addr_t base)
 {
+	bus_write_fp bus_write32;
+
+	if (bus != NULL) {
+//		bus_write32 = bus->bus_ops
+	}
 	/* Enable TX and RX */
 	write32(base + UART_OFFSET_CR, UART_CR_TX_EN | UART_CR_RX_EN);
 }

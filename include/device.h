@@ -31,25 +31,62 @@ struct device {
 	struct file_ops file_ops;
 
 	struct device_driver * driver;
-}
+};
 
 struct chr_device {
 	struct device;
 
 	/* Reserved for later use */
-}
+};
 
 struct blk_device {
 	struct device;
 
 	struct blk_ops blk_ops;
-}
+};
 
 struct net_device {
 	struct device;
 
 	/* Reserved for later use */
-}
+};
+
+/* Bus subsystem details */
+
+/* forward */
+struct bus_device;
+
+/*
+ * Buses vary in address width, and may provide multiple data access width.
+ * A single bus may have quite some read/write routines, and may even not come
+ * in pairs.
+ * Bus access may or may not encounter failures. In the latter case, access
+ * routines simply return 0 to indicate a success.
+ */
+typedef int (*bus_read_fp)(struct bus_device * inst,
+	addr_t addr, uint64_t *ptr);
+typedef int (*bus_write_fp)(struct bus_device * inst,
+	addr_t addr, uint64_t val);
+
+/*
+ * To get acess routines like listed above, a caller should ask for them.
+ * Data width MUST be given. These routines may return now in and only in cases
+ * that the underlying bus controller cannot handle the given data width.
+ * A single bus cannot have multiple address widths, and the value is written
+ * in struct bus_device.
+ */
+struct bus_ops {
+	bus_read_fp * (*bus_get_read_fp)(
+		struct bus_device * inst, int data_width);
+	bus_write_fp * (*bus_get_write_fp)(
+		struct bus_device * inst, int data_width);
+};
+
+struct bus_device {
+	struct device;
+	int addr_width;
+	struct bus_ops bus_ops;
+};
 
 #endif /* _DEVICE_H */
 
