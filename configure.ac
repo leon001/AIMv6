@@ -17,7 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # autoconf requirements
-AC_PREREQ([2.69.169])
+# Note: Autotools 2.69.169 is *not* packaged in Ubuntu/Fedora.
+AC_PREREQ([2.69])
 
 AC_INIT([AIMv6], [0.1], [davidgao1001@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -25,7 +26,8 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_MACRO_DIR([./m4])
 
 AC_PROG_CC
-AC_PROG_CC_C11
+# replaced with AX_CHECK_COMPILE_FLAG
+#AC_PROG_CC_C11
 AC_C_CONST
 AC_C_RESTRICT
 AC_C_VOLATILE
@@ -33,6 +35,8 @@ AC_C_INLINE
 AC_C_TYPEOF
 AIM_GCC_FUNC_ATTRIBUTE([noreturn])
 AIM_GCC_FUNC_ATTRIBUTE([weak])
+AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
+AIM_REQUIRE_COMPILE_FLAG([-std=c11])
 
 AM_PROG_AS
 AM_PROG_AR

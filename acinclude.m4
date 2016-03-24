@@ -145,3 +145,12 @@ AC_DEFUN([AIM_SUPPORT_MACH], [
 	])
 ])
 
+# AIM_REQUIRE_COMPILE_FLAG([cflag])
+# Require compiler to support cflag, or fail immediately.
+AC_DEFUN([AIM_REQUIRE_COMPILE_FLAG], [
+	AX_CHECK_COMPILE_FLAG(
+		$1,
+		[CFLAGS+=" $1"],
+		[echo "cc does not support $1" && exit 1]
+	)
+])
