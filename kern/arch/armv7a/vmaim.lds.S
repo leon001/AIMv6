@@ -36,41 +36,48 @@ SECTIONS
 
 	. = ALIGN(4K);
 
-	.low_text : {
+	.low_text . : {
 		_low_text_begin = .;
-		*(.low_text);
+		*(.low_text)
 		_low_text_end = .;
 	}
 
 	. += KERN_BASE;
 
-	.text : AT(. - KERN_BASE) {
-		_text_begin = .;
-		*(.text);
+	. = .;
+	_text_begin = .;
+	.text . : AT(_text_begin - KERN_BASE) {
+		*(.text)
 		. = ALIGN(4);
-		*(.got.plt);
-		. = ALIGN(4);
-		*(.got); /* Global offset table */
-		_text_end = .;
+		*(.got) /* Global offset table */
 	}
+	_text_end = .;
 	
-	.rodata : AT(. - KERN_BASE) {
-		*(.rodata);
+	. = .;
+	_rodata_begin = .;
+	.rodata . : AT(_rodata_begin - KERN_BASE) {
+		*(.rodata)
 	}
-	
-	.bss : AT(. - KERN_BASE) {
-		_bss_begin = .;
-		*(.bss);
-		_bss_end = .;
-	}
+	_rodata_end = .;
 
-	.data : AT(. - KERN_BASE) {
-		*(.data);
+	. = .;
+	_bss_begin = .;
+	.bss . : AT(_bss_begin - KERN_BASE) {
+		*(.bss)
 	}
+	_bss_end = .;
+
+	. = .;
+	_data_begin = .;
+	.data . : AT(_data_begin - KERN_BASE) {
+		*(.data)
+	}
+	_data_end = .;
 
 	. = ALIGN(16K);
 
-	.boot : {
+	. = .;
+	.boot . : {
 		PROVIDE(boot_pgdir = .);
 		. += 16K; /* early pgdir */
 		. += 4K; /* early stack */

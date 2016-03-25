@@ -32,12 +32,14 @@
 
 int uart_puts(const char *str)
 {
-	for (; *str != '\0'; ++str)
+	for (; *str != '\0'; ++str) {
 #ifdef CONSOLE_NEED_CR
 		if (*str == '\n')
 			uart_putchar('\r');
 #endif /* CONSOLE_NEED_CR */
 		uart_putchar((unsigned char)*str);
+	}
+	return 0;
 }
 
 int uart_printf(const char *fmt, ...)

@@ -1,7 +1,6 @@
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
-# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
-# This file is part of AIMv6.
+# This program is part of AIMv6.
 #
 # AIMv6 is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,24 +17,15 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = io block sd serial timer
+noinst_LTLIBRARIES = libio-raw.la libio.la
 
-noinst_LTLIBRARIES = libdrivers-raw.la libdrivers.la
+SRCS = io_mem.c io_mem.h
 
-libdrivers_raw_la_SOURCES =
-libdrivers_raw_la_LIBADD = \
-	$(builddir)/io/libio-raw.la \
-	$(builddir)/block/libblock-raw.la \
-	$(builddir)/sd/libsd-raw.la \
-	$(builddir)/serial/libserial-raw.la \
-	$(builddir)/timer/libtimer-raw.la
-libdrivers_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC)
-libdrivers_raw_la_CFLAGS = $(AM_CFLAGS_NOPIC)
-libdrivers_raw_la_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
-libdrivers_raw_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)
+libio_raw_la_SOURCES = $(SRCS)
+libio_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC)
+libio_raw_la_CFLAGS = $(AM_CFLAGS_NOPIC)
+libio_raw_la_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
+libio_raw_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)
 
-libdrivers_la_SOURCES =
-libdrivers_la_LIBADD = \
-	$(builddir)/io/libio.la \
-	$(builddir)/serial/libserial.la
+libio_la_SOURCES = $(SRCS)
 

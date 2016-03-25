@@ -35,7 +35,7 @@ SRCS += uart-ns16550.h uart-ns16550.c uart-ns16550-hw.h
 endif
 
 libserial_raw_la_SOURCES = $(SRCS)
-libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC) -DRAW
+libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC)
 libserial_raw_la_CFLAGS = $(AM_CFLAGS_NOPIC)
 libserial_raw_la_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
 libserial_raw_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)

@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # autoconf requirements
-AC_PREREQ([2.69.169])
+AC_PREREQ([2.69.159])
 
 AC_INIT([AIMv6], [0.1], [davidgao1001@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -25,7 +25,9 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_MACRO_DIR([./m4])
 
 AC_PROG_CC
-AC_PROG_CC_C11
+AS_CASE([$ac_cv_prog_cc_c11],
+	[no], [AC_MSG_ERROR([Compiler does not support C11.])]
+)
 AC_C_CONST
 AC_C_RESTRICT
 AC_C_VOLATILE
@@ -226,6 +228,7 @@ AC_CONFIG_FILES([
 	doc/Makefile
 	drivers/Makefile
 	drivers/block/Makefile
+	drivers/io/Makefile
 	drivers/sd/Makefile
 	drivers/serial/Makefile
 	drivers/timer/Makefile

@@ -19,13 +19,18 @@
 #ifndef _DEVICE_H
 #define _DEVICE_H
 
+#include <sys/types.h>
 #include <file.h>
+
+/* forward */
+struct bus_device;
 
 struct device {
 	const char * name;
 	int id_major, id_minor;
 
-	//struct bus_type * bus;
+	struct bus_device * bus;
+	addr_t base;
 	//struct device * parent;
 
 	struct file_ops file_ops;
@@ -53,9 +58,6 @@ struct net_device {
 
 /* Bus subsystem details */
 
-/* forward */
-struct bus_device;
-
 /*
  * Buses vary in address width, and may provide multiple data access width.
  * A single bus may have quite some read/write routines, and may even not come
@@ -75,17 +77,14 @@ typedef int (*bus_write_fp)(struct bus_device * inst,
  * A single bus cannot have multiple address widths, and the value is written
  * in struct bus_device.
  */
-struct bus_ops {
-	bus_read_fp * (*bus_get_read_fp)(
-		struct bus_device * inst, int data_width);
-	bus_write_fp * (*bus_get_write_fp)(
-		struct bus_device * inst, int data_width);
-};
 
 struct bus_device {
 	struct device;
 	int addr_width;
-	struct bus_ops bus_ops;
+	bus_read_fp (*get_read_fp)(
+		struct bus_device * inst, int data_width);
+	bus_write_fp (*get_write_fp)(
+		struct bus_device * inst, int data_width);
 };
 
 #endif /* _DEVICE_H */
