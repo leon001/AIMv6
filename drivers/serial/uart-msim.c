@@ -106,7 +106,7 @@ int uart_putchar(unsigned char c)
 
 #if PRIMARY_CONSOLE == uart_msim
 
-static int early_console_putchar(unsigned char c)
+int early_console_putchar(unsigned char c)
 {
 	__uart_msim_putchar(&__early_uart_msim_lp, c);
 	return 0;
@@ -114,6 +114,8 @@ static int early_console_putchar(unsigned char c)
 
 int early_console_init(void)
 {
+	__early_uart_msim_lp.bus = &early_memory_bus;
+	__early_uart_msim_kbd.bus = &early_memory_bus;
 	__uart_msim_init(&__early_uart_msim_lp, &__early_uart_msim_kbd);
 	set_console(early_console_putchar, DEFAULT_KPUTS);
 	return 0;

@@ -58,12 +58,14 @@ setup_pic:
 	.set	noreorder
 	bal	locate
 	nop
+	/* Idea from UBoot: we embed the value of _gp in the entry code, and
+	 * fetch the value during execution there. */
+	.word	_gp		/* at __start + 8 = t9 + 8 */
 locate:
 	SUBU	t9, ra, 8
+	LOAD	gp, 8(t9)
 	.set	reorder
 	/* Now set up gp */
-	LI	gp, _gp
-	ADDU	gp, t9
 	/* Ensure that we are inside kernel mode. */
 	MFC032	a0, CP0_STATUS
 	or	a0, ST_EXCM
