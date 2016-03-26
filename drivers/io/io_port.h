@@ -19,6 +19,8 @@
 #ifndef _DRIVERS_IO_PORT_H
 #define _DRIVERS_IO_PORT_H
 
+#include <sys/types.h>
+
 /*
  * A port I/O bus is a bus on which devices are accessed via IN and
  * OUT instructions, or its equivalents.
@@ -33,7 +35,12 @@
  *
  * Every machine have at most one port I/O bus.
  */
-extern struct bus_device port_bus;
+extern struct bus_device portio_bus;
+
+/* Connect Port I/O bus to another bus. */
+void portio_bus_connect(struct bus_device *portio,
+			struct bus_device *bus,
+			addr_t base);
 
 #endif /* _DRIVERS_IO_PORT_H */
 

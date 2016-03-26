@@ -12,7 +12,7 @@
 /*
  * C wrappers for i386 instructions.
  */
-static inline unsigned char
+static inline uint8_t
 inb(unsigned short port)
 {
 	unsigned char data;
@@ -25,7 +25,7 @@ inb(unsigned short port)
 }
 
 static inline void
-outb(unsigned short port, unsigned char data)
+outb(unsigned short port, uint8_t data)
 {
 	asm volatile (
 		"out %0, %1"
@@ -34,8 +34,42 @@ outb(unsigned short port, unsigned char data)
 	);
 }
 
+static inline uint16_t
+inw(unsigned short port)
+{
+	unsigned char data;
+	asm volatile (
+		"in %1, %0"
+		: "=a"(data)
+		: "d" (port)
+	);
+	return data;
+}
+
 static inline void
-outw(unsigned short port, unsigned char data)
+outw(unsigned short port, uint16_t data)
+{
+	asm volatile (
+		"out %0, %1"
+		: /* no output */
+		: "a"(data), "d"(port)
+	);
+}
+
+static inline uint32_t
+ind(unsigned short port)
+{
+	unsigned char data;
+	asm volatile (
+		"in %1, %0"
+		: "=a"(data)
+		: "d" (port)
+	);
+	return data;
+}
+
+static inline void
+outd(unsigned short port, uint32_t data)
 {
 	asm volatile (
 		"out %0, %1"
