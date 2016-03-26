@@ -35,6 +35,14 @@ Add whatever reasonable code style & programming practices here as reminders.
 
 ### Code style notes
 
+#### General
+
+1. Pushing a commit with only code style changes is **NOT RECOMMENDED**.  Code
+  style fix is really minor comparing to refactoring, bug fixes, new features,
+  etc.
+
+#### Functions
+
 1. A function without arguments **MUST** be declared like
 
         void foo(void);
@@ -50,6 +58,28 @@ Add whatever reasonable code style & programming practices here as reminders.
     which are, functions whose names are prepended with double underscores `__`.
   * The internal functions is **RECOMMENDED** to be declared as `static`.
 
+#### Pointers
+
+1. Pointer declaration **MUST** go like
+
+        int *a;
+
+  Leave one space between asterisk and type indicator, and do not leave
+  a space between asterisk and pointer variable/function name.  There is no
+  reason not to do so.
+
+#### `typedef`
+
+1. `typedef` *SHOULD* only be used in order to do either of the following:
+  - provide clearer aliases (e.g. `uint8_t` against `unsigned char`).
+  - hide what is inside (e.g. `pte_t`).  In this case, the data structure
+    **MUST** be accessed via accessor functions to provide encapsulation.
+    Doubly consider when doing so.
+2. If necessary, data types *SHOULD* be `typedef`'d as `foo_t`, that is, ended
+  with `_t`.
+3. If necessary, function pointers *SHOULD* be `typedef`'d as `foo_fp`, that
+  is, ended with `_fp`.
+
 ### Source organization notes
 
 1. The file names in `include` directory, `include/arch/$ARCH` directory, and
@@ -59,7 +89,27 @@ Add whatever reasonable code style & programming practices here as reminders.
 
 ### Design notes
 
-#### Drivers
+#### Driver framework
+
+**Please review and update as needed.**
+
+##### Principles
+
+1. Every concrete hardware is a device.
+2. A device could be a *character* device, a *block* device, a *network*
+  device.  Driver framework *SHOULD* reserve for future weird types of
+  device.
+3. A device is always connected to a bus.
+  * Memory-mapped I/O can be viewed as a memory bus.
+  * So does port-mapped I/O.
+4. A bus is a device.
+5. Kernel communicates with buses either directly or via other buses,
+  depending on physical connection.
+  * E.g., kernel communicates with memory bus directly.
+  * E.g., kernel can communicate with PCI bus via a memory bus.
+6. Kernel *SHOULD* communicate with devices other than buses via buses.
+
+##### Styles
 
 Each driver **MUST** be designed so that it can be compiled and loaded as
 kernel module(s).
