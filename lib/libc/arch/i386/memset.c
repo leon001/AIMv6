@@ -16,31 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_MM_H
-#define _ASM_MM_H
-
-#include <addrspace.h>
-
-static inline unsigned long kv2p(void *x)
+#include <asm.h>
+/* Use stosb instruction to overwrite default implementation */
+void *
+memset(void *dst, int c, size_t n)
 {
-	unsigned long a = (unsigned long)x;
-	if (a > KSEG1)
-		return a - KSEG1;
-	else if (a > KSEG0)
-		return a - KSEG0;
-#ifdef USE_MIPS64
-	else if (a > IO_CAC_BASE)
-		return a - IO_CAC_BASE;
-	else if (a > IO_UNCAC_BASE)
-		return a - IO_UNCAC_BASE;
-#endif
-	else
-		return -1;	/* should be something like panic() */
+	stosb(dst, c, n);
+	return dst;
 }
-
-static inline void *p2kv(unsigned long x)
-{
-	return (void *)(TO_CAC(x));
-}
-
-#endif

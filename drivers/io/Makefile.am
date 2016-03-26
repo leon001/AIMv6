@@ -1,6 +1,6 @@
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 #
-# This file is part of AIMv6.
+# This program is part of AIMv6.
 #
 # AIMv6 is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,20 +17,15 @@
 
 include $(top_srcdir)/env.am
 
-dist_noinst_DATA = boot.lds.S
+noinst_LTLIBRARIES = libio-raw.la libio.la
 
-noinst_PROGRAMS = bootloader.elf
-noinst_DATA = bootloader.bin bootloader.s
+SRCS = io_mem.c io_mem.h
 
-CLEANFILES = bootloader.bin bootloader.s boot.lds
+libio_raw_la_SOURCES = $(SRCS)
+libio_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC)
+libio_raw_la_CFLAGS = $(AM_CFLAGS_NOPIC)
+libio_raw_la_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
+libio_raw_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)
 
-bootloader_elf_SOURCES = bootmain.c
-bootloader_elf_DEPENDENCIES = boot.lds
-bootloader_elf_CPPFLAGS = $(AM_CPPFLAGS_NOPIC) -DRAW
-bootloader_elf_CFLAGS = $(AM_CFLAGS_NOPIC) -Os
-bootloader_elf_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
-bootloader_elf_LDFLAGS = $(AM_LDFLAGS_NOPIC) -T boot.lds
-
-boot.lds: boot.lds.S
-	$(COMPILE) -E -P $^ -o $@
+libio_la_SOURCES = $(SRCS)
 

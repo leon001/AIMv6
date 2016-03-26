@@ -17,8 +17,11 @@
  */
 
 #include <init.h>
+#include <console.h>
 
 void early_arch_init(void)
 {
 	early_mach_init();
+	kputs("Hello from kernel!\n");
 }
+

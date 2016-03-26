@@ -18,16 +18,6 @@
 nobase_noinst_HEADERS = \
 	sys/types.h
 
-# FIXME:
-# I still think that it's better practice to put all arch-specific headers
-# into a directory like 'asm', so that arch-specific code should include
-# a header like <asm/asm.h>.
-# The reason is that, if we do not put them into a directory, we are
-# essentially forbidding same filenames for arch-specific header and
-# general header.  E.g. if include/arch/mips/mm.h and include/mm.h exist,
-# only one of them would be included, and you can't tell which would be
-# included exactly.
-# I renamed arch/mips/mm.h to arch/mips/arch-mm.h as a hotfix.
 noinst_HEADERS = \
 	bootsect.h \
 	console.h \
@@ -45,7 +35,6 @@ noinst_HEADERS = \
 	arch/mips/io.h \
 	arch/mips/irq.h \
 	arch/mips/mipsregs.h \
-	arch/mips/arch-mm.h \
 	arch/mips/regdef.h \
 	arch/mips/smp.h \
 	arch/mips/mach-msim/mach-smp.h

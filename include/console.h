@@ -22,7 +22,7 @@
 typedef int (*putchar_fp)(unsigned char c);
 typedef int (*puts_fp)(const char *s);
 
-void early_console_init(void);
+int early_console_init(void);
 
 /* set_console(putchar, puts)
  * Register two routines to use as kernel console
@@ -32,12 +32,15 @@ void early_console_init(void);
  */
 void set_console(putchar_fp putchar, puts_fp puts);
 
+
 /* kernel console output routines
  * these will work in both address spaces.
  */
 int kprintf(const char *fmt, ...);
 int kputchar(int c);
 int kputs(const char *s);
+int __default_kputs(const char *s);
+#define DEFAULT_KPUTS __default_kputs
 
 #endif /* _CONSOLE_H */
 

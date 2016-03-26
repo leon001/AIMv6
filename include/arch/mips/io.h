@@ -27,19 +27,20 @@
 /*
  * in8() and out8() for MIPS receives physical address as parameter
  */
+
 #define read8(addr)		\
-	(*(volatile uchar *)iomap(addr))
+	(*(volatile uint8_t *)iomap((unsigned long)(addr)))
 #define write8(addr, data)	\
-	((*(volatile uchar *)iomap(addr)) = (data))
+	((*(volatile uint8_t *)iomap((unsigned long)(addr))) = (data))
 
 #define read16(addr)		\
-	(*(volatile ushort *)iomap(addr))
+	(*(volatile uint16_t *)iomap((unsigned long)(addr)))
 #define write16(addr, data)	\
-	((*(volatile ushort *)iomap(addr)) = (data))
+	((*(volatile uint16_t *)iomap((unsigned long)(addr))) = (data))
 
 #define read32(addr)		\
-	(*(volatile uint *)iomap(addr))
+	(*(volatile uint32_t *)iomap((unsigned long)(addr)))
 #define write32(addr, data)	\
-	((*(volatile uint *)iomap(addr)) = (data))
+	((*(volatile uint32_t *)iomap((unsigned long)(addr))) = (data))
 
 #endif

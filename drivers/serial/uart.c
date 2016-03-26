@@ -23,17 +23,23 @@
 
 /* from uart driver */
 #include <uart.h>
+/* from libc */
+#include <libc/stdio.h>
+
+#define BUFSIZ	1024
 
 #ifdef RAW /* baremetal driver */
 
 int uart_puts(const char *str)
 {
-	for (; *str != '\0'; ++str)
+	for (; *str != '\0'; ++str) {
 #ifdef CONSOLE_NEED_CR
 		if (*str == '\n')
 			uart_putchar('\r');
 #endif /* CONSOLE_NEED_CR */
 		uart_putchar((unsigned char)*str);
+	}
+	return 0;
 }
 
 #else /* not RAW, or kernel driver */

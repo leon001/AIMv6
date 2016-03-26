@@ -1,3 +1,4 @@
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 #
 # This file is part of AIMv6.
@@ -17,28 +18,7 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = \
-	arch \
-	init \
-	dev
+SUBDIRS = $(ARCH)
 
-CLEANFILES = vmaim.s
+DIST_SUBDIRS = armv7a i386 mips
 
-noinst_PROGRAMS = vmaim.elf
-noinst_DATA = vmaim.s
-
-vmaim_elf_SOURCES =
-# DO NOT CHANGE THE ORDER OF ARCHIVES HERE!
-# Linkers go through input files one by one and will NOT go back.
-# If an object has no used symbol, it is discarded.
-# Static library order must always solve the refer graph topologically.
-# NO circular reference is allowed.
-vmaim_elf_LDADD = \
-	arch/$(ARCH)/libentry.la \
-	init/libinit.la \
-	dev/libdev.la \
-	arch/$(ARCH)/lib$(ARCH).la \
-	$(top_builddir)/drivers/libdrivers.la \
-	$(top_builddir)/lib/libc/libc.la
-vmaim_elf_DEPENDENCIES = arch/$(ARCH)/vmaim.lds
-vmaim_elf_LDFLAGS = $(AM_LDFLAGS) -T arch/$(ARCH)/vmaim.lds

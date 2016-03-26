@@ -123,7 +123,7 @@ void fw_main(void)
 	 */
 
 	/* Read MBR */
-	ret = sd_read((u32)mbr, 1, 0);
+	ret = sd_read((uint32_t)mbr, 1, 0);
 	if (ret == 0) uart_puts("FW: Card read OK.\n");
 	else {
 		uart_puts("FW: Card read failed.\n");

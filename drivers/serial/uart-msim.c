@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+ * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -22,27 +23,63 @@
 
 #include <uart.h>
 #include <uart-msim.h>
-#include <io.h>
 
-int __uart_msim_putchar(unsigned long base, unsigned char c)
+#include <io.h>
+#include <console.h>
+#include <device.h>
+#include <drivers/io/io_mem.h>
+
+/*
+ * Design note:
+ * Strictly speaking, MSIM line printer (lp) and keyboard (kbd) drivers
+ * have to be implemented in separate files.
+ */
+
+/* Should only be used before memory management is initialized */
+static struct chr_device __early_uart_msim_lp = {
+	.base = MSIM_LP_PHYSADDR
+};
+
+static struct chr_device __early_uart_msim_kbd = {
+	.base = MSIM_KBD_PHYSADDR
+};
+
+/* uart-msim is a combined device, so there's two base address */
+static void __uart_msim_init(struct chr_device *lp, struct chr_device *kbd)
 {
-	write8(base, c);
+}
+
+static int __uart_msim_putchar(struct chr_device *lp, unsigned char c)
+{
+	struct bus_device *bus = lp->bus;
+	bus_write_fp bus_write8 = bus->get_write_fp(bus, 8);
+	bus_write8(bus, lp->base, c);
 	return 0;
 }
 
-unsigned char __uart_msim_getchar(unsigned long base)
+static unsigned char __uart_msim_getchar(struct chr_device *kbd)
 {
-	unsigned char b;
-	while (!(b = read8(base)))
-		/* nothing */;
+	uint64_t b;
+	struct bus_device *bus = kbd->bus;
+
+	bus_read_fp bus_read8 = bus->get_read_fp(bus, 8);
+
+	do {
+		bus_read8(bus, kbd->base, &b);
+	} while (!b);
+
 	return b;
 }
 
-#ifdef RAW
+#ifdef RAW /* baremetal driver */
 
 void uart_init(void)
 {
-	/* nothing */
+	/* MSIM line printer and keyboard are memory-mapped devices */
+	__early_uart_msim_lp.bus = &early_memory_bus;
+	__early_uart_msim_kbd.bus = &early_memory_bus;
+
+	__uart_msim_init(&__early_uart_msim_lp, &__early_uart_msim_kbd);
 }
 
 void uart_enable(void)
@@ -57,42 +94,34 @@ void uart_disable(void)
 
 unsigned char uart_getchar(void)
 {
-	return __uart_msim_getchar(MSIM_UART_INPUT);
+	return __uart_msim_getchar(&__early_uart_msim_kbd);
 }
 
 int uart_putchar(unsigned char c)
 {
-	return __uart_msim_putchar(MSIM_UART_OUTPUT, c);
+	return __uart_msim_putchar(&__early_uart_msim_lp, c);
 }
 
-#else
+#else /* not RAW, or kernel driver */
 
-#include <console.h>
+#if PRIMARY_CONSOLE == uart_msim
 
-static int early_console_putchar(unsigned char c)
+int early_console_putchar(unsigned char c)
 {
-	return __uart_msim_putchar(MSIM_UART_OUTPUT, c);
-}
-
-/* FIXME: I think we only need to provide a separate early_console_putchar().
- * The logic of early_console_puts() is the same.
- * Moreover, since we have kputchar(), why not use kputchar() to implement
- * kputs()?  This way, we can avoid providing driver-specific puts()
- * implementation altogether. */
-static int early_console_puts(const char *str)
-{
-	for (; *str != '\0'; ++str) {
-		if (*str == '\n')
-			__uart_msim_putchar(MSIM_UART_OUTPUT, '\r');
-		__uart_msim_putchar(MSIM_UART_OUTPUT, (unsigned char)*str);
-	}
+	__uart_msim_putchar(&__early_uart_msim_lp, c);
 	return 0;
 }
 
-
-void early_console_init(void)
+int early_console_init(void)
 {
-	set_console(early_console_putchar, early_console_puts);
+	__early_uart_msim_lp.bus = &early_memory_bus;
+	__early_uart_msim_kbd.bus = &early_memory_bus;
+	__uart_msim_init(&__early_uart_msim_lp, &__early_uart_msim_kbd);
+	set_console(early_console_putchar, DEFAULT_KPUTS);
+	return 0;
 }
 
-#endif
+#endif /* PRIMARY_CONSOLE == uart_msim */
+
+#endif /* RAW */
+

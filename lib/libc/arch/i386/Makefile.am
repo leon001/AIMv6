@@ -1,4 +1,4 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -17,20 +17,7 @@
 
 include $(top_srcdir)/env.am
 
-dist_noinst_DATA = boot.lds.S
+noinst_LTLIBRARIES = libc-i386.la
 
-noinst_PROGRAMS = bootloader.elf
-noinst_DATA = bootloader.bin bootloader.s
-
-CLEANFILES = bootloader.bin bootloader.s boot.lds
-
-bootloader_elf_SOURCES = bootmain.c
-bootloader_elf_DEPENDENCIES = boot.lds
-bootloader_elf_CPPFLAGS = $(AM_CPPFLAGS_NOPIC) -DRAW
-bootloader_elf_CFLAGS = $(AM_CFLAGS_NOPIC) -Os
-bootloader_elf_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
-bootloader_elf_LDFLAGS = $(AM_LDFLAGS_NOPIC) -T boot.lds
-
-boot.lds: boot.lds.S
-	$(COMPILE) -E -P $^ -o $@
+libc_i386_la_SOURCES = memset.c
 

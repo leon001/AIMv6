@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # autoconf requirements
-# none
+AC_PREREQ([2.69])
 
 AC_INIT([AIMv6], [0.1], [davidgao1001@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -25,7 +25,11 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_MACRO_DIR([./m4])
 
 AC_PROG_CC
-AC_PROG_CC_STDC
+# TODO: put these into acinclude.m4
+AIM_PROG_CC_C11
+AS_CASE([$aim_prog_cc_c11],
+	[no], [AC_MSG_ERROR([Compiler does not support C11.])]
+)
 AC_C_CONST
 AC_C_RESTRICT
 AC_C_VOLATILE
@@ -33,6 +37,7 @@ AC_C_INLINE
 AC_C_TYPEOF
 AIM_GCC_FUNC_ATTRIBUTE([noreturn])
 AIM_GCC_FUNC_ATTRIBUTE([weak])
+AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
 
 AM_PROG_AS
 AM_PROG_AR
@@ -43,9 +48,11 @@ LT_INIT
 
 # target machine
 AIM_ARG_VAR([ARCH], [target architecture])
+AIM_SUPPORT_ARCH([armv7a i386 mips32 mips64])
 
 AIM_ARG_VAR([MACH], [target machine])
 AC_SUBST([PREFIXED_MACH], [mach-$MACH])
+AIM_SUPPORT_MACH([msim loongson3a zynq pc generic unknown])
 
 # default configurations
 AS_VAR_SET([with_kstacksize], [4096])
@@ -68,6 +75,7 @@ AS_CASE([$MACH],
 		AS_VAR_SET([enable_uart_zynq], [yes])
 		AS_VAR_SET([enable_sd_zynq], [yes])
 		AS_VAR_SET([enable_timer_a9], [yes])
+
 		AS_VAR_SET([with_primary_console], [uart-zynq])
 		AS_VAR_SET([with_primary_storage], [sd-zynq])
 		AS_VAR_SET([with_primary_timing], [timer-a9])
@@ -75,7 +83,11 @@ AS_CASE([$MACH],
 	[msim], [
 		AS_VAR_SET([with_fwstack_order], [12])
 		AS_VAR_SET([enable_uart_msim], [yes])
+		AS_VAR_SET([enable_block_msim], [yes])
+
 		AS_VAR_SET([with_primary_console], [uart-msim])
+		AS_VAR_SET([with_primary_storage], [block-msim])
+
 		AS_VAR_SET([with_msim_kbd_pa], [0x1f000000])
 		AS_VAR_SET([with_msim_lp_pa], [0x1f000010])
 		AS_VAR_SET([with_msim_disk_pa], [0x1f000020])
@@ -91,13 +103,18 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_fwstack_order], [12])
 	],
 	[loongson3a], [
-		# you don't really have any option here.
 		AS_VAR_SET([enable_uart_ns16550], [yes])
+
+		AS_VAR_SET([with_primary_console], [uart-ns16550])
+
 		AC_DEFINE([UART_BASE1], [0x1fe001e0],
 			[Loongson 3A UART base address 1 - Do not change])
 		AC_DEFINE([UART_BASE2], [0x1fe001e8],
 			[Loongson 3A UART base address 2 - Do not change])
 	],
+	[qemu-generic], [],
+	[generic], [],
+	[unknown], [],
 	[AC_MSG_ERROR([No machine specified])]
 )
 
@@ -141,6 +158,7 @@ AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 AIM_ARG_ENABLE([uart-zynq], [UART_ZYNQ], [zynq UART driver])
 AIM_ARG_ENABLE([uart-msim], [UART_MSIM], [MSIM UART driver])
 AIM_ARG_ENABLE([uart-ns16550], [UART_NS16550], [NS16550 UART driver])
+AIM_ARG_ENABLE([block-msim], [BLOCK_MSIM], [MSIM block device driver])
 AIM_ARG_ENABLE([sd-zynq], [SD_ZYNQ], [zynq SD driver])
 AIM_ARG_ENABLE([timer-a9], [TIMER_A9], [Cortex-A9 MPCore timer driver])
 
@@ -185,16 +203,6 @@ AS_CASE([$MACH],
 			  `printf 0x%08x $with_msim_rtc_pa`)
 ])
 
-AIM_SUPPORT_ARCH([armv7a i386 mips32 mips64])
-
-AM_CONDITIONAL([UART_MSIM],
-	[test x$MACH = xmsim])
-# FIXME: probably should relate to --enable-uart-ns16550 option?
-AM_CONDITIONAL([UART_NS16550],
-	[test x$MACH = xloongson3a])
-AM_CONDITIONAL([BLOCK_MSIM],
-	[test x$MACH = xmsim])
-
 # Skip firmware
 AM_CONDITIONAL([NO_FIRMWARE],
 	[test x$MACH = xloongson3a -o x$ARCH = xi386])
@@ -223,6 +231,7 @@ AC_CONFIG_FILES([
 	doc/Makefile
 	drivers/Makefile
 	drivers/block/Makefile
+	drivers/io/Makefile
 	drivers/sd/Makefile
 	drivers/serial/Makefile
 	drivers/timer/Makefile
@@ -245,6 +254,10 @@ AC_CONFIG_FILES([
 	kern/dev/Makefile
 	lib/Makefile
 	lib/libc/Makefile
+	lib/libc/arch/Makefile
+	lib/libc/arch/armv7a/Makefile
+	lib/libc/arch/i386/Makefile
+	lib/libc/arch/mips/Makefile
 	tools/Makefile
 	user/Makefile
 ])

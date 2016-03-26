@@ -19,37 +19,74 @@
 #ifndef _DEVICE_H
 #define _DEVICE_H
 
+#include <sys/types.h>
 #include <file.h>
+
+/* forward */
+struct bus_device;
 
 struct device {
 	const char * name;
 	int id_major, id_minor;
 
-	//struct bus_type * bus;
+	struct bus_device * bus;
+	addr_t base;
 	//struct device * parent;
 
 	struct file_ops file_ops;
 
 	struct device_driver * driver;
-}
+};
 
 struct chr_device {
 	struct device;
 
 	/* Reserved for later use */
-}
+};
 
 struct blk_device {
 	struct device;
 
 	struct blk_ops blk_ops;
-}
+};
 
 struct net_device {
 	struct device;
 
 	/* Reserved for later use */
-}
+};
+
+/* Bus subsystem details */
+
+/*
+ * Buses vary in address width, and may provide multiple data access width.
+ * A single bus may have quite some read/write routines, and may even not come
+ * in pairs.
+ * Bus access may or may not encounter failures. In the latter case, access
+ * routines simply return 0 to indicate a success.
+ * TODO: explain why we fix buffer pointer as a uint64_t pointer.
+ */
+typedef int (*bus_read_fp)(struct bus_device * inst,
+	addr_t addr, uint64_t *ptr);
+typedef int (*bus_write_fp)(struct bus_device * inst,
+	addr_t addr, uint64_t val);
+
+/*
+ * To get acess routines like listed above, a caller should ask for them.
+ * Data width MUST be given. These routines may return now in and only in cases
+ * that the underlying bus controller cannot handle the given data width.
+ * A single bus cannot have multiple address widths, and the value is written
+ * in struct bus_device.
+ */
+
+struct bus_device {
+	struct device;
+	int addr_width;
+	bus_read_fp (*get_read_fp)(
+		struct bus_device * inst, int data_width);
+	bus_write_fp (*get_write_fp)(
+		struct bus_device * inst, int data_width);
+};
 
 #endif /* _DEVICE_H */
 
