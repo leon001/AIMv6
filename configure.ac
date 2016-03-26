@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # autoconf requirements
-AC_PREREQ([2.69.159])
+AC_PREREQ([2.69])
 
 AC_INIT([AIMv6], [0.1], [davidgao1001@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -25,7 +25,9 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_MACRO_DIR([./m4])
 
 AC_PROG_CC
-AS_CASE([$ac_cv_prog_cc_c11],
+# TODO: put these into acinclude.m4
+AIM_PROG_CC_C11
+AS_CASE([$aim_prog_cc_c11],
 	[no], [AC_MSG_ERROR([Compiler does not support C11.])]
 )
 AC_C_CONST
