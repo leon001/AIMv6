@@ -59,7 +59,27 @@ Add whatever reasonable code style & programming practices here as reminders.
 
 ### Design notes
 
-#### Drivers
+#### Driver framework
+
+**Please review and update as needed.**
+
+##### Principles
+
+1. Every concrete hardware is a device.
+2. A device could be a *character* device, a *block* device, a *network*
+  device.  Driver framework *SHOULD* reserve for future weird types of
+  device.
+3. A device is always connected to a bus.
+  * Memory-mapped I/O can be viewed as a memory bus.
+  * So does port-mapped I/O.
+4. A bus is a device.
+5. Kernel communicates with buses either directly or via other buses,
+  depending on physical connection.
+  * E.g., kernel communicates with memory bus directly.
+  * E.g., kernel can communicate with PCI bus via a memory bus.
+6. Kernel *SHOULD* communicate with devices other than buses via buses.
+
+##### Styles
 
 Each driver **MUST** be designed so that it can be compiled and loaded as
 kernel module(s).
