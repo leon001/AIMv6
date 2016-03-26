@@ -95,21 +95,28 @@ Add whatever reasonable code style & programming practices here as reminders.
 
 ##### Principles
 
-1. Every concrete hardware is a device.
+1. A device is defined as a set of hardware.
+  * This set of hardware may either be concrete or virtual.
+  * A piece of physical hardware may be viewed as more than one device.
+  * Parts within the processor may also be accessed as devices.
 2. A device could be a *character* device, a *block* device, a *network*
-  device.  Driver framework *SHOULD* reserve for future weird types of
-  device.
-3. A device is always connected to a bus.
-  * Memory-mapped I/O can be viewed as a memory bus.
-  * So does port-mapped I/O.
-4. A bus is a device.
+  device, or a *bus* device. Driver framework *SHOULD* reserve for future
+  weird types of devices.
+3. A device is always connected to a bus, with only a few exceptions.
+  * The physical memory address space is viewed as a bus device. Since it is
+    directly connected to some processor, it's `bus` pointer is set to `NULL`.
+  * When directly accessible from the processor (possibly via `IN` and `OUT`)
+    instructions, the IO port address space is viewed as a bus device, which
+    is treated as above.
+4. The kernel has routines for all directly-accessible buses, but should only
+  be used inside corresponding drivers.
 5. Kernel communicates with buses either directly or via other buses,
   depending on physical connection.
   * E.g., kernel communicates with memory bus directly.
   * E.g., kernel can communicate with PCI bus via a memory bus.
 6. Kernel *SHOULD* communicate with devices other than buses via buses.
 
-##### Styles
+##### Design guidelines
 
 Each driver **MUST** be designed so that it can be compiled and loaded as
 kernel module(s).
@@ -122,8 +129,14 @@ kernel module(s).
 
 3. Each driver (or any other kernel module) **MUST** provide exactly one single
    routine to register its interface (structs or pointers) to the kernel. It
-   **SHOULD** initialize the module, and **MAY** probe for device, but it
-   **SHOULD NOT** initialize the driver or the device.
+   **SHOULD** initialize the module, and **MAY** probe and/or initialize
+   the device.
+
+4. A bus device's driver **SHOULD** handle the case when it is directly
+   accessible from the processor. This part can only be omitted when NO
+   processor can access it directly, which is PCI's case.
+
+5. Whenever possible, drivers **MUST** ask bus drivers for access functions.
 
 #### `early_console_init()`
 
