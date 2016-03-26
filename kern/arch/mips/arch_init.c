@@ -21,4 +21,5 @@
 void early_arch_init(void)
 {
 	early_mach_init();
+	uart_printf("Hello from kernel!\n");
 }

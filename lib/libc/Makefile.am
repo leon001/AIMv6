@@ -17,13 +17,27 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libc.la
+SUBDIRS = arch
 
-libc_la_SOURCES = \
+noinst_LTLIBRARIES = \
+	libc-nopic.la \
+	libc.la
+
+SRCS = \
 	snprintf.c \
 	memcpy.c \
+	memset.c \
 	$(top_srcdir)/include/sys/types.h \
 	stdarg.h \
 	stddef.h \
 	stdio.h \
 	string.h
+
+libc_nopic_la_SOURCES = $(SRCS)
+libc_nopic_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC)
+libc_nopic_la_CFLAGS = $(AM_CFLAGS_NOPIC)
+libc_nopic_la_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
+libc_nopic_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)
+
+libc_la_SOURCES = $(SRCS)
+

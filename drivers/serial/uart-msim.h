@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+ * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -19,10 +20,6 @@
 #ifndef _DRIVERS_SERIAL_UART_MSIM_H
 #define _DRIVERS_SERIAL_UART_MSIM_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /*
  * Although MSIM take the notion of a keyboard and a line printer.  In our code
  * we treat the keyboard and line printer as a serial.
@@ -30,8 +27,12 @@
 #define MSIM_UART_OUTPUT	MSIM_LP_PHYSADDR
 #define MSIM_UART_INPUT		MSIM_KBD_PHYSADDR
 
-void uart_msim_init(void);
-int uart_msim_putchar(unsigned long, unsigned char);
-unsigned char uart_msim_getchar(unsigned long);
+#ifdef RAW /* baremetal driver */
+
+#else /* not RAW, or kernel driver */
+
+#endif /* RAW */
+
 
 #endif
+
