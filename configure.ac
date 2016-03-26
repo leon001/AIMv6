@@ -148,6 +148,14 @@ AC_SUBST([NR_CPUS], [$with_cpus])
 AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0x80000000])
 AC_SUBST([KERN_BASE], [$with_kern_base])
 
+AIM_ARG_WITH([kmmap-base], [KMMAP_BASE], [start of kernel dynamic mapping],
+	[0xf0000000])
+AC_SUBST([KMMAP_BASE], [$with_kmmap_base])
+
+AIM_ARG_WITH([reserved-base], [RESERVED_BASE], [start of reserved high address],
+	[0xfffff000])
+AC_SUBST([RESERVED_BASE], [$with_reserved_base])
+
 AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 	[size of kernel stack])
 
@@ -284,6 +292,12 @@ Target
   machine:	${MACH}
   processors:	${NR_CPUS}
   memory:	${MEM_SIZE}
+
+Kernel
+--------
+  KERN_BASE:	${with_kern_base}
+  KMMAP_BASE:	${with_kmmap_base}
+  RESERVED:	${with_reserved_base}
 
 Drivers
 --------

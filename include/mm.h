@@ -20,6 +20,7 @@
 #define _MM_H
 
 #define early_kva2pa(kva)	((kva) - KERN_BASE)
+#define early_pa2kva(pa)	((pa) + KERN_BASE)
 
 /* get_addr_space()
  * determine whether we are running in low address or in high address
