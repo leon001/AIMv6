@@ -24,9 +24,6 @@
  * Although MSIM take the notion of a keyboard and a line printer.  In our code
  * we treat the keyboard and line printer as a serial.
  */
-#define MSIM_UART_OUTPUT	MSIM_LP_PHYSADDR
-#define MSIM_UART_INPUT		MSIM_KBD_PHYSADDR
-
 #ifdef RAW /* baremetal driver */
 
 #else /* not RAW, or kernel driver */

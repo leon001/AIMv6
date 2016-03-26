@@ -37,7 +37,7 @@
 static int __read8(struct bus_device * inst, addr_t addr, uint64_t *ptr)
 {
 	if (inst == &early_memory_bus) {
-		*ptr = read8(addr);
+		*ptr = (uint64_t)read8(addr);
 		return 0;
 	} else return EOF;
 }
@@ -45,7 +45,7 @@ static int __read8(struct bus_device * inst, addr_t addr, uint64_t *ptr)
 static int __read16(struct bus_device * inst, addr_t addr, uint64_t *ptr)
 {
 	if (inst == &early_memory_bus) {
-		*ptr = read16(addr);
+		*ptr = (uint64_t)read16(addr);
 		return 0;
 	} else return EOF;
 }
@@ -53,7 +53,7 @@ static int __read16(struct bus_device * inst, addr_t addr, uint64_t *ptr)
 static int __read32(struct bus_device * inst, addr_t addr, uint64_t *ptr)
 {
 	if (inst == &early_memory_bus) {
-		*ptr = read32(addr);
+		*ptr = (uint64_t)read32(addr);
 		return 0;
 	} else return EOF;
 }
@@ -61,7 +61,7 @@ static int __read32(struct bus_device * inst, addr_t addr, uint64_t *ptr)
 static int __write8(struct bus_device * inst, addr_t addr, uint64_t val)
 {
 	if (inst == &early_memory_bus) {
-		write8(addr, val);
+		write8(addr, (uint8_t)val);
 		return 0;
 	} else return EOF;
 }
@@ -69,7 +69,7 @@ static int __write8(struct bus_device * inst, addr_t addr, uint64_t val)
 static int __write16(struct bus_device * inst, addr_t addr, uint64_t val)
 {
 	if (inst == &early_memory_bus) {
-		write16(addr, val);
+		write16(addr, (uint16_t)val);
 		return 0;
 	} else return EOF;
 }
@@ -77,7 +77,7 @@ static int __write16(struct bus_device * inst, addr_t addr, uint64_t val)
 static int __write32(struct bus_device * inst, addr_t addr, uint64_t val)
 {
 	if (inst == &early_memory_bus) {
-		write32(addr, val);
+		write32(addr, (uint32_t)val);
 		return 0;
 	} else return EOF;
 }
