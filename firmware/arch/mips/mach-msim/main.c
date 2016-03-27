@@ -52,7 +52,7 @@ void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 	offset %= SECTOR_SIZE;
 
 	for (; len > 0; len -= l) {
-		l = MIN2(len, SECTOR_SIZE - offset);
+		l = min2(len, SECTOR_SIZE - offset);
 		if (msim_dd_read_sector(MSIM_DISK_PHYSADDR,
 		    sector, sector_buf, true) < 0)
 			fwpanic("read disk error");
