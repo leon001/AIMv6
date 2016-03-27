@@ -25,90 +25,112 @@
 
 #include <io.h>
 #include <console.h>
+#include <platform.h>
 
-/*
- * FIXME:
- * Only an example demonstrating difference between x86 UART and other
- * UART accesses.
- */
 #ifdef ARCH_I386
-/* Here UART_BASE is a port-mapped base */
-#define UART_READ(base, x)		inb((base) + (x))
-#define UART_WRITE(base, x, d)		outb((base) + (x), (d))
-#else /* !ARCH_I386 */
-#define UART_READ(base, x)		read8((base) + (x))
-#define UART_WRITE(base, x, d)		write8((base) + (x), (d))
-#endif /* ARCH_I386 */
+#define NS16550_PORTIO		/* cases where NS16550 is on a port I/O bus */
+#endif
 
 /* internal routines */
 
-static void __uart_ns16550_init(uint32_t base)
+static void __uart_ns16550_init(struct chr_device *inst)
 {
-	/* Currently nothing to be done here */
+	/* TODO: check if the following configuration works across all
+	 * UARTs */
+	write8(bus, inst->base + UART_FIFO_CONTROL,
+	    UART_FCR_RTB_4 | UART_FCR_RST_TRANSMIT | UART_FCR_RST_RECEIVER |
+	    UART_FCR_ENABLE);
+	write8(bus, inst->base + UART_LINE_CONTROL, UART_LCR_DLAB);
+	write8(bus, inst->base + UART_DIVISOR_LSB,
+	    (UART_FREQ / UART_BAUDRATE) & 0xff);
+	write8(bus, inst->base + UART_DIVISOR_MSB,
+	    ((UART_FREQ / UART_BAUDRATE) >> 8) & 0xff);
+	write8(bus, inst->base + UART_LINE_CONTROL,
+	    UART_LCR_DATA_8BIT |
+	    UART_LCR_STOP_1BIT |
+	    UART_LCR_PARITY_NONE);
 }
 
-static void __uart_ns16550_enable(uint32_t base)
+static void __uart_ns16550_enable(struct chr_device *inst)
 {
-	UART_WRITE(base, UART_MODEM_CONTROL, UART_MCR_RTSC | UART_MCR_DTRC);
+	struct bus_device *bus = inst->bus;
+	bus_write_fp *write8 = bus->get_write_fp(bus, widthof(uint8_t));
+
+	if (write8 == NULL)
+		return;		/* should panic? */
+
+	write8(bus, inst->base + UART_MODEM_CONTROL,
+	    UART_MCR_RTSC | UART_MCR_DTRC);
 }
 
-static void __uart_ns16550_disable(uint32_t base)
+static void __uart_ns16550_disable(struct chr_device *inst)
 {
-	UART_WRITE(base, UART_MODEM_CONTROL, 0);
+	struct bus_device *bus = inst->bus;
+	bus_write_fp *write8 = bus->get_write_fp(bus, widthof(uint8_t));
+
+	if (write8 == NULL)
+		return;		/* should panic? */
+
+	write8(bus, inst->base + UART_MODEM_CONTROL, 0);
 }
 
-static void __uart_ns16550_enable_interrupt(uint32_t base)
+static void __uart_ns16550_enable_interrupt(struct chr_device *inst)
 {
-	UART_WRITE(base, UART_INTR_ENABLE, UART_IER_RBFI);
+	struct bus_device *bus = inst->bus;
+	bus_write_fp *write8 = bus->get_write_fp(bus, widthof(uint8_t));
+
+	if (write8 == NULL)
+		return;		/* should panic? */
+
+	write8(bus, inst->base + UART_INTR_ENABLE, UART_IER_RBFI);
 }
 
-static void __uart_ns16550_disable_interrupt(uint32_t base)
+static void __uart_ns16550_disable_interrupt(struct chr_device *inst)
 {
-	UART_WRITE(base, UART_INTR_ENABLE, 0);
+	struct bus_device *bus = inst->bus;
+	bus_write_fp *write8 = bus->get_write_fp(bus, widthof(uint8_t));
+
+	if (write8 == NULL)
+		return;		/* should panic? */
+
+	write8(bus, inst->base + UART_INTR_ENABLE, 0);
 }
 
-static unsigned char __uart_ns16550_getchar(uint32_t base)
+static unsigned char __uart_ns16550_getchar(struct chr_device *inst)
 {
-	while (!(UART_READ(base, UART_LINE_STATUS) & UART_LSR_DATA_READY))
-		/* nothing */;
-	return UART_READ(base, UART_RCV_BUFFER);
+	struct bus_device *bus = inst->bus;
+	bus_read_fp *read8 = bus->get_read_fp(bus, widthof(uint8_t));
+	uint64_t buf;
+
+	if (read8 == NULL)
+		return 0;		/* should panic? */
+	do {
+		read8(bus, inst->base + UART_LINE_STATUS, &buf);
+	} while (buf & UART_LSR_DATA_READY);
+
+	read8(bus, inst->base + UART_RCV_BUFFER, &buf);
+	return (unsigned char)buf;
 }
 
-static int __uart_ns16550_putchar(uint32_t base, unsigned char c)
+static int __uart_ns16550_putchar(struct chr_device *inst, unsigned char c)
 {
-	while (!(UART_READ(base, UART_LINE_STATUS) & UART_LSR_THRE))
-		/* nothing */;
-	UART_WRITE(base, UART_TRANS_HOLD, c);
+	struct bus_device *bus = inst->bus;
+	bus_read_fp *read8 = bus->get_read_fp(bus, widthof(uint8_t));
+	bus_write_fp *write8 = bus->get_write_fp(bus, widthof(uint8_t));
+	uint64_t buf;
+
+	if (read8 == NULL || write8 == NULL)
+		return EOF;
+
+	do {
+		read8(bus, inst->base + UART_LINE_STATUS, &buf);
+	} while (buf & UART_LSR_THRE);
+
+	write8(bus, inst->base + UART_TRANS_HOLD, c);
 	return 0;
 }
 
 #ifdef RAW /* baremetal driver */
-
-void uart_init(void)
-{
-	__uart_ns16550_init(UART_BASE);
-}
-
-void uart_enable(void)
-{
-	__uart_ns16550_enable(UART_BASE);
-}
-
-void uart_disable(void)
-{
-	__uart_ns16550_disable(UART_BASE);
-}
-
-unsigned char uart_getchar(void)
-{
-	return __uart_ns16550_getchar(UART_BASE);
-}
-
-int uart_putchar(unsigned char c)
-{
-	__uart_ns16550_putchar(UART_BASE, c);
-	return 0;
-}
 
 #else /* not RAW, or kernel driver */
 
@@ -117,14 +139,21 @@ int uart_putchar(unsigned char c)
 /* Meant to register to kernel, so this interface routine is static */
 static int early_console_putchar(unsigned char c)
 {
-	__uart_ns16550_putchar(UART_BASE, c);
+	__uart_ns16550_putchar(&__early_uart_ns16550, c);
 	return 0;
 }
 
 int early_console_init(void)
 {
-	__uart_ns16550_init(UART_BASE);
-	__uart_ns16550_enable(UART_BASE);
+	/* select bus for NS16550 */
+#ifdef NS16550_PORTIO
+	__early_uart_ns16550.bus = &portio_bus;
+#else
+	__early_uart_ns16550.bus = &early_memory_bus;
+#endif
+
+	__uart_ns16550_init(&__early_uart_ns16550);
+	__uart_ns16550_enable(&__early_uart_ns16550);
 	set_console(early_console_putchar, DEFAULT_KPUTS);
 	return 0;
 }
@@ -132,4 +161,8 @@ int early_console_init(void)
 #endif /* PRIMARY_CONSOLE == uart_ns16550 */
 
 #endif /* RAW */
+
+static struct chr_device __early_uart_ns16550 = {
+	.base = UART_BASE
+};
 

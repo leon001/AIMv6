@@ -19,12 +19,11 @@
 #ifndef _PLATFORM_H
 #define _PLATFORM_H
 
-/* inb(x) = *(LOONGSON3A_PORTIO_BASE + x) */
-#define LOONGSON3A_PORTIO_BASE		0x18000000
-#define LOONGSON3A_UART_BASE		0x1fe001e0
+/* port base for x86 UART */
+#define COM1		0x3f8
 
 /* for UART */
-#define UART_BASE	LOONGSON3A_UART_BASE
-#define UART_FREQ	2073600
+#define UART_BASE	COM1
+#define UART_FREQ	1843200
 
 #endif
