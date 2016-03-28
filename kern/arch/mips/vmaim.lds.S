@@ -42,14 +42,6 @@ SECTIONS {
 	.rodata : {
 		*(.rodata*);
 	}
-	.data : {
-		*(.data*);
-	}
-	.bss : {
-		PROVIDE(__bss_begin__ = .);
-		*(.bss*);
-		PROVIDE(__bss_end__ = .);
-	}
 	/* Global Offset Table (GOT) for position independent code.
 	 * Since we are using our own linker script, we must provide
 	 * the base address of GOT, denoted by symbol _gp, to our linker.
@@ -68,6 +60,15 @@ SECTIONS {
 	PROVIDE(_gp = ALIGN (16) + 0x7ff0);
 	.got : {
 		*(.got*);
+	}
+	.data : {
+		*(.data*);
+	}
+	/* Uninitialized sections comes after */
+	.bss : {
+		PROVIDE(__bss_begin__ = .);
+		*(.bss*);
+		PROVIDE(__bss_end__ = .);
 	}
 	/*
 	 * MIPS ISA doesn't require alignment, paging or anything else

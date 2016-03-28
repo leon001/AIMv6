@@ -122,7 +122,7 @@ static unsigned char __uart_ns16550_getchar(struct chr_device *inst)
 		return 0;		/* should panic? */
 	do {
 		bus_read8(bus, inst->base + UART_LINE_STATUS, &buf);
-	} while (buf & UART_LSR_DATA_READY);
+	} while (!(buf & UART_LSR_DATA_READY));
 
 	bus_read8(bus, inst->base + UART_RCV_BUFFER, &buf);
 	return (unsigned char)buf;
@@ -140,7 +140,7 @@ static int __uart_ns16550_putchar(struct chr_device *inst, unsigned char c)
 
 	do {
 		bus_read8(bus, inst->base + UART_LINE_STATUS, &buf);
-	} while (buf & UART_LSR_THRE);
+	} while (!(buf & UART_LSR_THRE));
 
 	bus_write8(bus, inst->base + UART_TRANS_HOLD, c);
 	return 0;
