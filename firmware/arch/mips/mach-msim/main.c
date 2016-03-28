@@ -24,6 +24,7 @@
 #include <libc/stddef.h>
 #include <libc/string.h>
 #include <smp.h>
+#include <util.h>
 #include <drivers/serial/uart.h>
 #include <drivers/block/hd.h>
 #include <drivers/block/msim-ddisk.h>

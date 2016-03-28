@@ -59,11 +59,15 @@ setup_pic:
 	bal	locate
 	nop
 	/* Idea from UBoot: we embed the value of _gp in the entry code, and
-	 * fetch the value during execution there. */
+	 * fetch the value during execution there.
+	 * Note for MIPS64: we know that _gp is above KSEG0, so storing
+	 * the low 32 bits would suffice, as LW instruction would sign-extend
+	 * the high 32 bits with all 1s.
+	 */
 	.word	_gp		/* at __start + 8 = t9 + 8 */
 locate:
 	SUBU	t9, ra, 8
-	LOAD	gp, 8(t9)
+	lw	gp, 8(t9)
 	.set	reorder
 	/* Now set up gp */
 	/* Ensure that we are inside kernel mode. */
