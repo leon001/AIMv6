@@ -19,12 +19,7 @@
 #ifndef _DRIVERS_SERIAL_UART_ZYNQ_H
 #define _DRIVERS_SERIAL_UART_ZYNQ_H
 
-
 #ifdef RAW /* baremetal driver */
-
-void uart_init(void);
-void uart_enable(void);
-void uart_disable(void);
 
 #else /* not RAW, or kernel driver */
 

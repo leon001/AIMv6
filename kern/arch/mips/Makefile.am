@@ -27,7 +27,7 @@ include $(top_srcdir)/env.am
 KERN_SUBDIRS = mach-generic $(PREFIXED_MACH)
 
 SUBDIRS = $(KERN_SUBDIRS)
-DIST_SUBDIRS = mach-generic mach-msim
+DIST_SUBDIRS = mach-generic mach-msim mach-loongson3a
 
 noinst_LTLIBRARIES = libmips.la libentry.la
 noinst_DATA = vmaim.lds
@@ -36,7 +36,7 @@ CLEANFILES = vmaim.lds
 
 libentry_la_SOURCES = entry.S
 
-libmips_la_SOURCES = arch_init.c
+libmips_la_SOURCES = arch_init.c mm.c
 libmips_la_LIBADD = \
 		    $(PREFIXED_MACH)/lib$(MACH).la
 

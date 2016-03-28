@@ -222,4 +222,23 @@ sym:		.long	long
 #define MFC032		mfc0
 #define MTC032		mtc0
 
+#ifndef __ASSEMBLER__
+
+#include <panic.h>
+
+#define inb(a)	\
+	panic("Unsupported inb instruction: %d\n", (a))
+#define inw(a)	\
+	panic("Unsupported inw instruction: %d\n", (a))
+#define ind(a)	\
+	panic("Unsupported ind instruction: %d\n", (a))
+#define outb(a, x)	\
+	panic("Unsupported outb instruction: %d, %d\n", (a), (x))
+#define outw(a, x)	\
+	panic("Unsupported outw instruction: %d, %d\n", (a), (x))
+#define outd(a, x)	\
+	panic("Unsupported outd instruction: %d, %d\n", (a), (x))
+
+#endif	/* !__ASSEMBLER__ */
+
 #endif

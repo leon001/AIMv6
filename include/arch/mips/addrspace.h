@@ -53,9 +53,37 @@
 #define IO_CAC_BASE	(XKPHY + 0x1800000000000000)
 #define IO_UNCAC_BASE	(XKPHY + 0x1000000000000000)
 
-#endif
+#endif	/* USE_MIPS32 || USE_MIPS64 */
 
 #define TO_CAC(x)	(IO_CAC_BASE + (x))
 #define TO_UNCAC(x)	(IO_UNCAC_BASE + (x))
+
+#define early_kva2pa(x)	((x) - IO_CAC_BASE)
+
+#ifndef __ASSEMBLER__
+
+static inline unsigned long kv2p(void *x)
+{
+	unsigned long a = (unsigned long)x;
+	if (a > KSEG1)
+		return a - KSEG1;
+	else if (a > KSEG0)
+		return a - KSEG0;
+#ifdef USE_MIPS64
+	else if (a > IO_CAC_BASE)
+		return a - IO_CAC_BASE;
+	else if (a > IO_UNCAC_BASE)
+		return a - IO_UNCAC_BASE;
+#endif
+	else
+		return -1;	/* should be something like panic() */
+}
+
+static inline void *p2kv(unsigned long x)
+{
+	return (void *)(TO_CAC(x));
+}
+
+#endif	/* !__ASSEMBLER__ */
 
 #endif

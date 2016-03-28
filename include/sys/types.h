@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+ * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -32,23 +33,47 @@
 #endif	/* !__ASSEMBLER__ */
 
 #ifndef __ASSEMBLER__
-typedef unsigned char uint8, uchar, byte, __u8, u8, uint8_t;
-typedef signed char __s8, int8_t;
-typedef unsigned short uint16, ushort, __u16, u16, uint16_t;
-typedef signed short __s16, int16_t;
-typedef unsigned int uint32, uint, __u32, u32, uint32_t;
-typedef signed int __s32, int32_t;
+
+/* 
+ * Type usage should be unified across AIMv6.
+ * When a foreign module is imported, it MUST either apply AIMv6 type naming, 
+ * or provide typedefs by itself. Normally typedefs SHOULD NOT be added to
+ * this header.
+ */
+
+typedef unsigned char	uint8_t;
+typedef signed char	int8_t;
+typedef unsigned short	uint16_t;
+typedef signed short	int16_t;
+typedef unsigned int	uint32_t;
+typedef signed int	int32_t;
+typedef unsigned long long	uint64_t;
+typedef signed long long	int64_t;
+
 typedef unsigned long ulong;
-typedef unsigned long long uint64, __u64, u64, uint64_t;
-typedef signed long long int64, __s64, int64_t;
+
 typedef unsigned int bool;
 #define false	0
 #define true	1
 
+#define EOF	-1
+
+/* For in-memory objects, same as POSIX */
 typedef unsigned long size_t;
 typedef signed long ssize_t;
 
 typedef void *uintptr_t;
+#define	NULL	0
+
+/*
+ * For use with other address space, like physical address space,
+ * IO address space, etc. Note that 64-bit address spaces may present even on
+ * 32-bit systems.
+ * Use the unsigned version to indicate address and size,
+ * the signed version to indicate offset.
+ */
+typedef unsigned long long addr_t;
+typedef signed long long saddr_t;
 
 /* A generic void function pointer type, allow any number of arguments */
 typedef void (*generic_fp)();

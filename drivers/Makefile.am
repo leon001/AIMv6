@@ -18,17 +18,24 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = block sd serial timer
+SUBDIRS = io block sd serial timer
 
 noinst_LTLIBRARIES = libdrivers-raw.la libdrivers.la
 
 libdrivers_raw_la_SOURCES =
 libdrivers_raw_la_LIBADD = \
+	$(builddir)/io/libio-raw.la \
 	$(builddir)/block/libblock-raw.la \
 	$(builddir)/sd/libsd-raw.la \
 	$(builddir)/serial/libserial-raw.la \
 	$(builddir)/timer/libtimer-raw.la
+libdrivers_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC)
+libdrivers_raw_la_CFLAGS = $(AM_CFLAGS_NOPIC)
+libdrivers_raw_la_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
+libdrivers_raw_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)
 
 libdrivers_la_SOURCES =
 libdrivers_la_LIBADD = \
+	$(builddir)/io/libio.la \
 	$(builddir)/serial/libserial.la
+

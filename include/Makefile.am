@@ -25,6 +25,7 @@ noinst_HEADERS = \
 	elf.h \
 	file.h \
 	init.h \
+	mm.h \
 	sleep.h \
 	arch/armv7a/io.h \
 	arch/armv7a/mach-zynq/mach.h \
@@ -34,8 +35,7 @@ noinst_HEADERS = \
 	arch/mips/io.h \
 	arch/mips/irq.h \
 	arch/mips/mipsregs.h \
-	arch/mips/mm.h \
 	arch/mips/regdef.h \
 	arch/mips/smp.h \
-	arch/mips/mach-msim/mach-smp.h
-
+	arch/mips/mach-msim/mach-smp.h \
+	arch/mips/mach-loongson3a/platform.h

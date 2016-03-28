@@ -28,13 +28,5 @@
 #define BUFSIZ		1024
 #endif
 
-#define MEMBER_OFFSET(struct, member_name) \
-	((unsigned long)&(((struct *)0)->member_name))
-
-#define member_to_struct(addr, struct, member_name) \
-	((struct *)((unsigned long)(addr) - MEMBER_OFFSET(struct, member_name)))
-
-#define MIN2(a, b)	(((a) < (b)) ? (a) : (b))
-
 #endif /* _LIBC_STDDEF_H */
 

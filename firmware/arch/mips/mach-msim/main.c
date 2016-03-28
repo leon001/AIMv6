@@ -24,6 +24,7 @@
 #include <libc/stddef.h>
 #include <libc/string.h>
 #include <smp.h>
+#include <util.h>
 #include <drivers/serial/uart.h>
 #include <drivers/block/hd.h>
 #include <drivers/block/msim-ddisk.h>
@@ -35,18 +36,16 @@ unsigned char fwstack[NR_CPUS][FWSTACKSIZE];
 typedef void (*mbr_entry_fp)
     (void (*)(size_t, size_t, void *, size_t), uintptr_t);
 
-void fwpanic(const char *fmt, ...)
+void fwpanic(const char *msg)
 {
-	va_list ap;
-	va_start(ap, fmt);
-	uart_vprintf(fmt, ap);
+	uart_puts(msg);
 	for (;;)
 		/* nothing */;
-	va_end(ap);
 }
 
 void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 {
+	int i;
 	unsigned char sector_buf[SECTOR_SIZE];
 	size_t l = 0;
 
@@ -54,11 +53,12 @@ void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 	offset %= SECTOR_SIZE;
 
 	for (; len > 0; len -= l) {
-		l = MIN2(len, SECTOR_SIZE - offset);
+		l = min2(len, SECTOR_SIZE - offset);
 		if (msim_dd_read_sector(MSIM_DISK_PHYSADDR,
 		    sector, sector_buf, true) < 0)
 			fwpanic("read disk error");
-		memcpy(buf, &sector_buf[offset], l);
+		for (i = 0; i < l; ++i)
+			*(unsigned char *)(buf + i) = sector_buf[offset + i];
 		offset = 0;
 		buf += l;
 		++sector;
@@ -68,7 +68,8 @@ void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 void main(void)
 {
 	char mbr[SECTOR_SIZE];
-	uart_puts("FW: Hello world!\n");
+	uart_init();
+	uart_puts("FW: Hello world!\r\n");
 	msim_dd_init(MSIM_DISK_PHYSADDR);
 	if (msim_dd_read_sector(MSIM_DISK_PHYSADDR, 0, mbr, true) == 0) {
 		/*

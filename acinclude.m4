@@ -129,3 +129,28 @@ AC_DEFUN([AIM_ARG_ENABLE], [
 	AS_VAR_POPDEF([default_var])
 ])
 
+# AIM_SUPPORT_ARCH([space_separated_list])
+# E.g. if ARCH=armv7a, define an automake conditional ARCH_ARMV7A
+AC_DEFUN([AIM_SUPPORT_ARCH], [
+	m4_foreach_w([var], [$1], [
+		AM_CONDITIONAL([ARCH_]m4_toupper(var), [test x$ARCH = x]var)
+	])
+])
+
+# AIM_SUPPORT_MACH([space_separated_list])
+# E.g. if MACH=zynq, define an automake conditional MACH_ZYNQ
+AC_DEFUN([AIM_SUPPORT_MACH], [
+	m4_foreach_w([var], [$1], [
+		AM_CONDITIONAL([MACH_]m4_toupper(var), [test x$ARCH = x]var)
+	])
+])
+
+# AIM_REQUIRE_COMPILE_FLAG([cflag])
+# Require compiler to support cflag, or fail immediately.
+AC_DEFUN([AIM_REQUIRE_COMPILE_FLAG], [
+	AX_CHECK_COMPILE_FLAG(
+		$1,
+		[CFLAGS+=" $1"],
+		[echo "cc does not support $1" && exit 1]
+	)
+])

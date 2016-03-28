@@ -42,9 +42,29 @@ SECTIONS {
 	.rodata : {
 		*(.rodata*);
 	}
+	/* Global Offset Table (GOT) for position independent code.
+	 * Since we are using our own linker script, we must provide
+	 * the base address of GOT, denoted by symbol _gp, to our linker.
+	 *
+	 * Don't ask me why I select this value; this is the default choice
+	 * of GCC.  You can view the default linker script used by GCC and
+	 * see the same line via the following options:
+	 * -Wl,--verbose
+	 * You may notice one difference.  The reason I choose 'PROVIDE'
+	 * instead of 'HIDDEN' is somewhat complex.  We could not ensure
+	 * that BIOSes or bootloaders may set up GP and t9 registers for
+	 * us (because AFAIK current operating systems including Linux
+	 * and OpenBSD still uses a non-PIC kernel).  We have to setup GP
+	 * and t9 by our own.
+	 */
+	PROVIDE(_gp = ALIGN (16) + 0x7ff0);
+	.got : {
+		*(.got*);
+	}
 	.data : {
 		*(.data*);
 	}
+	/* Uninitialized sections comes after */
 	.bss : {
 		PROVIDE(__bss_begin__ = .);
 		*(.bss*);

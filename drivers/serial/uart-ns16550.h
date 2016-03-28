@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+ * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,31 +17,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_MM_H
-#define _ASM_MM_H
+#ifndef _DRIVERS_SERIAL_UART_NS16550_H
+#define _DRIVERS_SERIAL_UART_NS16550_H
 
-#include <addrspace.h>
+#ifdef RAW /* baremetal driver */
 
-static inline unsigned long kv2p(void *x)
-{
-	unsigned long a = (unsigned long)x;
-	if (a > KSEG1)
-		return a - KSEG1;
-	else if (a > KSEG0)
-		return a - KSEG0;
-#ifdef USE_MIPS64
-	else if (a > IO_CAC_BASE)
-		return a - IO_CAC_BASE;
-	else if (a > IO_UNCAC_BASE)
-		return a - IO_UNCAC_BASE;
-#endif
-	else
-		return -1;	/* should be something like panic() */
-}
+#else /* not RAW, or kernel driver */
 
-static inline void *p2kv(unsigned long x)
-{
-	return (void *)(TO_CAC(x));
-}
+#endif /* RAW */
+
 
 #endif
+
