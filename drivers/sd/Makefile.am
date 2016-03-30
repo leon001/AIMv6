@@ -20,7 +20,10 @@ include $(top_srcdir)/env.am
 noinst_LTLIBRARIES = libsd-raw.la
 
 libsd_raw_la_SOURCES = sd.c sd.h
-libsd_raw_la_CPPFLAGS =  $(AM_CPPFLAGS) -DRAW
+libsd_raw_la_CPPFLAGS =  $(AM_CPPFLAGS_NOPIC) -DRAW
+libsd_raw_la_CFLAGS =  $(AM_CFLAGS_NOPIC)
+libsd_raw_la_CCASFLAGS =  $(AM_CCASFLAGS_NOPIC)
+libsd_raw_la_LDFLAGS =  $(AM_LDFLAGS_NOPIC)
 
 if SD_ZYNQ
 libsd_raw_la_SOURCES += sd-zynq.c sd-zynq.h sd-zynq-hw.h

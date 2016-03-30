@@ -29,15 +29,17 @@ noinst_DATA = vmaim.s
 
 vmaim_elf_SOURCES =
 # DO NOT CHANGE THE ORDER OF ARCHIVES HERE!
-vmaim_elf_LDADD = \
+# Linkers go through input files one by one and will NOT go back.
+# If an object has no used symbol, it is discarded.
+# Static library order must always solve the refer graph topologically.
+# NO circular reference is allowed.
+KERNEL_LIBS = \
 	arch/$(ARCH)/libentry.la \
 	init/libinit.la \
-	arch/$(ARCH)/lib$(ARCH).la \
 	dev/libdev.la \
+	arch/$(ARCH)/lib$(ARCH).la \
 	$(top_builddir)/drivers/libdrivers.la \
-	$(top_builddir)/lib/libc/libc.la \
-	arch/$(ARCH)/vmaim.lds
-# FIXME need better solution
-# ld can find the script from input files
+	$(top_builddir)/lib/libc/libc.la
+vmaim_elf_LDADD = $(KERNEL_LIBS)
+vmaim_elf_DEPENDENCIES = arch/$(ARCH)/vmaim.lds $(KERNEL_LIBS)
 vmaim_elf_LDFLAGS = $(AM_LDFLAGS) -T arch/$(ARCH)/vmaim.lds
-

@@ -29,7 +29,9 @@ CLEANFILES = vmaim.lds
 
 libentry_la_SOURCES = entry.S
 
-libarmv7a_la_SOURCES = arch_init.c
+libarmv7a_la_SOURCES = \
+	arch_init.c \
+	mm.c
 libarmv7a_la_LIBADD = $(PREFIXED_MACH)/lib$(MACH).la
 
 vmaim.lds: vmaim.lds.S

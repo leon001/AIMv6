@@ -20,10 +20,11 @@ include $(top_srcdir)/env.am
 noinst_LTLIBRARIES = libblock-raw.la
 
 libblock_raw_la_SOURCES = hd.h
-libblock_raw_la_CPPFLAGS =  $(AM_CPPFLAGS) -DRAW
+libblock_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC) -DRAW
+libblock_raw_la_CFLAGS = $(AM_CFLAGS_NOPIC)
+libblock_raw_la_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
+libblock_raw_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)
 
 if BLOCK_MSIM
 libblock_raw_la_SOURCES += msim-ddisk.c msim-ddisk.h
 endif
-
-

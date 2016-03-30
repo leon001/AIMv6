@@ -23,7 +23,6 @@
 
 /* from uart driver */
 #include <uart.h>
-
 /* from libc */
 #include <libc/stdio.h>
 
@@ -32,27 +31,6 @@
 #ifdef RAW /* baremetal driver */
 
 int uart_puts(const char *str)
-{
-	for (; *str != '\0'; ++str)
-#ifdef CONSOLE_NEED_CR
-		if (*str == '\n')
-			uart_putchar('\r');
-#endif /* CONSOLE_NEED_CR */
-		uart_putchar((unsigned char)*str);
-}
-
-#else /* not RAW, or kernel driver */
-
-/*
- * If a serial console requires \r\n to change line, we usually don't
- * want to specify "\r\n" in C string.
- *
- * uart_puts() function should prepend a carriage return
- * before a newline if needed. In this case, set CONSOLE_NEED_CR during
- * configuration
- */
-
-int __weak uart_puts(const char *str)
 {
 	for (; *str != '\0'; ++str) {
 #ifdef CONSOLE_NEED_CR
@@ -64,24 +42,36 @@ int __weak uart_puts(const char *str)
 	return 0;
 }
 
+#else /* not RAW, or kernel driver */
+
+/*
+ * If a serial console requires \r\n to change line, we usually don't
+ * want to specify "\r\n" in C string.
+ *
+ * uart_puts() function should prepend a carriage return
+ * before a newline if needed. In this case, set CONSOLE_NEED_CR during
+ * configuration
+ *
+ * NOTE:
+ * In disassemblies you can still see the code of this weak function.
+ * This is *correct*.  The strong function code appears before the weak
+ * function, and therefore the weak code would never be executed.
+ */
+
+/* FIXME: using early_console_puts() and device descriptor (in future),
+ * should be removed */
+#if 0
+int uart_puts(const char *str)
+{
+	for (; *str != '\0'; ++str) {
+#ifdef CONSOLE_NEED_CR
+		if (*str == '\n')
+			uart_putchar('\r');
+#endif /* CONSOLE_NEED_CR */
+		uart_putchar((unsigned char)*str);
+	}
+	return 0;
+}
+#endif
+
 #endif /* RAW */
-
-int uart_printf(const char *fmt, ...)
-{
-	int result;
-	va_list ap;
-	va_start(ap, fmt);
-	result = uart_vprintf(fmt, ap);
-	va_end(ap);
-	return result;
-}
-
-int uart_vprintf(const char *fmt, va_list ap)
-{
-	int result;
-	char printf_buf[BUFSIZ];
-	result = vsnprintf(printf_buf, BUFSIZ, fmt, ap);
-	uart_puts(printf_buf);
-	return result;
-}
-

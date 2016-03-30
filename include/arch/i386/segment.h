@@ -15,7 +15,7 @@
 #define SEG_UDATA 5  // user data+stack
 #define SEG_TSS   6  // this process's task state
 
-#ifndef __ASSEMBLY__
+#ifndef __ASSEMBLER__
 /*
  * Segment descriptor structure
  */
@@ -24,7 +24,7 @@ struct segdesc {
 	unsigned int	base_15_0:16;	/* Base: Bits 15-0 */
 	unsigned int	base_23_16:8;	/* Base: Bits 23-16 */
 	unsigned int	type:4;	/* Segment type, see STA_ constants */
-	unsigned int	s:1;	/* Always 1 */
+	unsigned int	s:1;	/* 0 if system segment, 1 if application */
 	unsigned int	dpl:2;	/* Privilege, see DPL_ constants */
 	unsigned int	p:1;	/* Present */
 	unsigned int	lim_19_16:4;	/* Limit: Bits 19-16 */
@@ -34,7 +34,52 @@ struct segdesc {
 	unsigned int	g:1;	/* Limit is page or byte granularity */
 	unsigned int	base_31_24:8;	/* Base: Bits 31-24 */
 }
-#else	/* __ASSEMBLY__ */
+
+/*
+ * For present segments, we usually only care the following properties:
+ * (1) segment type (readable/writable/executable/etc.)
+ * (2) segment base address
+ * (3) segment size (or, number of bytes).
+ * (4) segment privilege (user or kernel)
+ *
+ * Setting the page granularity bit (g) does not necessarily need the
+ * paging mechanism (default off) to be turned on, so we use page
+ * granularity by default.
+ *
+ * Note that if we are using page granularity, the "limit" field counts
+ * pages rather than bytes.
+ */
+#define SEG(type, base, size, dpl)	(struct segdesc) {	\
+	((size) >> 12) & 0xffff,			\
+	(unsigned int)(base) & 0xffff,		\
+	((unsigned int)(base) >> 16) & 0xff,	\
+	type,					\
+	1,					\
+	dpl,					\
+	1,					\
+	(unsigned int)(size) >> 28,		\
+	0,					\
+	0,					\
+	1,					\
+	1,					\
+	(unsigned int)(base) >> 24		\
+} \
+#define SEG16(type, base, size, dpl)	(struct segdesc) {	\
+	(size) & 0xffff,			\
+	(unsigned int)(base) & 0xffff,		\
+	((unsigned int)(base) >> 16) & 0xff,	\
+	type,					\
+	1,					\
+	dpl,					\
+	1,					\
+	(unsigned int)(size) >> 16,		\
+	0,					\
+	0,					\
+	1,					\
+	0,					\
+	(unsigned int)(base) >> 24		\
+}
+#else	/* __ASSEMBLER__ */
 /*
  * For assemblies to define segments.
  */
@@ -51,7 +96,7 @@ struct segdesc {
 	.word (((lim) >> 12) & 0xffff), ((base) & 0xffff);	\
 	.byte (((base) >> 16) & 0xff), (0x90 | (type)),		\
 		(0xC0 | (((lim) >> 28) & 0xf)), (((base) >> 24) & 0xff)
-#endif	/* !__ASSEMBLY__ */
+#endif	/* !__ASSEMBLER__ */
 
 #define STA_X		0x8	/* Executable (i.e. code or data) */
 #define STA_E		0x4	/* Data: whether the segment grows down */

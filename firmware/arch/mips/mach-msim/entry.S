@@ -119,9 +119,9 @@ BEGIN(master_entry)
 	 * from firmware to where they really should be.
 	 */
 reloc_data:
-	LI	s0, __rodata_end__
-	LI	s1, __data_begin__
-	LI	s2, __data_end__
+	LA	s0, __rodata_end__
+	LA	s1, __data_begin__
+	LA	s2, __data_end__
 1:	bge	s1, s2, 9f
 	lw	t0, (s0)
 	sw	t0, (s1)
@@ -146,8 +146,8 @@ reloc_data:
 	 * and ".bss" cleaning in assembly here.
 	 */
 init_bss:
-	LI	s1, __bss_begin__
-	LI	s2, __bss_end__
+	LA	s1, __bss_begin__
+	LA	s2, __bss_end__
 1:	bge	s1, s2, 9f
 	sw	zero, (s1)
 	ADDU	s1, 4

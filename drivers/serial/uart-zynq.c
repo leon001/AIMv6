@@ -20,131 +20,161 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <sys/types.h>
+
 #include <uart-zynq.h>
 #include <uart-zynq-hw.h>
 
-#include <io.h>
+#include <device.h>
+#include <console.h>
+
+#include <drivers/io/io_mem.h>
+
+/* FIXME zedboard uses UART1 only */
+#define UART_BASE	UART1_PHYSBASE
+
+/* Should only be used before memory management is initialized */
+static struct chr_device __early_uart_zynq = {
+	.base = UART_BASE
+};
 
 /* internal routines */
 
-static void __uart_zynq_enable(uint32_t base)
+static inline void __uart_zynq_enable(struct chr_device * inst)
 {
+	struct bus_device * bus = inst->bus;
+	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+
 	/* Enable TX and RX */
-	write32(base + UART_OFFSET_CR, UART_CR_TX_EN | UART_CR_RX_EN);
+	bus_write32(bus, inst->base + UART_OFFSET_CR,
+		UART_CR_TX_EN | UART_CR_RX_EN);
 }
 
-static void __uart_zynq_disable(uint32_t base)
+static inline void __uart_zynq_disable(struct chr_device * inst)
 {
+	struct bus_device * bus = inst->bus;
+	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+
 	/* Disable TX and RX */
-	write32(base + UART_OFFSET_CR, UART_CR_TX_DIS | UART_CR_RX_DIS);
+	bus_write32(bus, inst->base + UART_OFFSET_CR,
+		UART_CR_TX_DIS | UART_CR_RX_DIS);
 }
 
-static void __uart_zynq_init(uint32_t base)
+static inline void __uart_zynq_init(struct chr_device * inst)
 {
+	struct bus_device * bus = inst->bus;
+	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+
 	/* Disable interrupts */
-	write32(base + UART_OFFSET_IDR, UART_IXR_MASK);
+	bus_write32(bus, inst->base + UART_OFFSET_IDR, UART_IXR_MASK);
 	/* Disable TX and RX */
-	__uart_zynq_disable(base);
+	__uart_zynq_disable(inst);
 	/* Reset TX and RX, Clear FIFO */
-	write32(base + UART_OFFSET_CR, UART_CR_TXRST | UART_CR_RXRST);
+	bus_write32(bus, inst->base + UART_OFFSET_CR,
+		UART_CR_TXRST | UART_CR_RXRST);
 	/* Clear Flags */
-	write32(base + UART_OFFSET_ISR, UART_IXR_MASK);
+	bus_write32(bus, inst->base + UART_OFFSET_ISR, UART_IXR_MASK);
 	/* Mode Reset to Normal/8-N-1 */
-	write32(base + UART_OFFSET_MR,
+	bus_write32(bus, inst->base + UART_OFFSET_MR,
 		UART_MR_CHMODE_NORM | UART_MR_CHARLEN_8_BIT |
 		UART_MR_PARITY_NONE | UART_MR_STOPMODE_1_BIT);
 	/* Trigger Reset */
-	write32(base + UART_OFFSET_RXWM, UART_RXWM_RESET_VAL);
-	write32(base + UART_OFFSET_TXWM, UART_TXWM_RESET_VAL);
+	bus_write32(bus, inst->base + UART_OFFSET_RXWM, UART_RXWM_RESET_VAL);
+	bus_write32(bus, inst->base + UART_OFFSET_TXWM, UART_TXWM_RESET_VAL);
 	/* Disable RX timeout */
-	write32(base + UART_OFFSET_RXTOUT, UART_RXTOUT_DISABLE);
+	bus_write32(bus, inst->base + UART_OFFSET_RXTOUT, UART_RXTOUT_DISABLE);
 	/* Reset baud rate generator and divider to genetate 115200 */
-	write32(base + UART_OFFSET_BAUDGEN, 0x3E);
-	write32(base + UART_OFFSET_BAUDDIV, 0x06);
+	bus_write32(bus, inst->base + UART_OFFSET_BAUDGEN, 0x3E);
+	bus_write32(bus, inst->base + UART_OFFSET_BAUDDIV, 0x06);
 	/* Set CR Value */
-	write32(base + UART_OFFSET_CR,
+	bus_write32(bus, inst->base + UART_OFFSET_CR,
 		UART_CR_RX_DIS | UART_CR_TX_DIS | UART_CR_STOPBRK);
 }
 
-unsigned char __uart_zynq_getchar(uint32_t base)
+static inline unsigned char __uart_zynq_getchar(struct chr_device * inst)
 {
-	while (read32(base + UART_OFFSET_SR) & UART_SR_RXEMPTY);
-	return read8(base + UART_OFFSET_FIFO);
+	struct bus_device * bus = inst->bus;
+	bus_read_fp bus_read8 = bus->get_read_fp(bus, 8);
+	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
+	uint64_t tmp;
+
+	do {
+		bus_read32(bus, inst->base + UART_OFFSET_SR, &tmp);
+	} while (tmp & UART_SR_RXEMPTY);
+	bus_read8(bus, inst->base + UART_OFFSET_FIFO, &tmp);
+
+	return (unsigned char)tmp;
+	/* if anything goes wrong, this routine should return EOF */
 }
 
-int __uart_zynq_putchar(uint32_t base, unsigned char c)
+/* all corresponding interface routines should return an int
+ * to indicate success or failure.
+ */
+static inline int __uart_zynq_putchar(struct chr_device * inst, unsigned char c)
 {
-	while (read32(base + UART_OFFSET_SR) & UART_SR_TXFULL);
-	write8(base + UART_OFFSET_FIFO, c);
+	struct bus_device * bus = inst->bus;
+	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
+	bus_write_fp bus_write8 = bus->get_write_fp(bus, 8);
+	uint64_t tmp;
+
+	do {
+		bus_read32(bus, inst->base + UART_OFFSET_SR, &tmp);
+	} while (tmp & UART_SR_TXFULL);
+	bus_write8(bus, inst->base + UART_OFFSET_FIFO, c);
+
 	return 0;
 }
 
 #ifdef RAW /* baremetal driver */
 
-/* FIXME zedboard uses UART1 only */
-#define UART_BASE	UART1_PHYSBASE
-
 void uart_init(void)
 {
-	__uart_zynq_init(UART_BASE);
+	__early_uart_zynq.bus = &early_memory_bus;
+	__uart_zynq_init(&__early_uart_zynq);
 }
 
 void uart_enable(void)
 {
-	__uart_zynq_enable(UART_BASE);
+	__uart_zynq_enable(&__early_uart_zynq);
 }
 
 void uart_disable(void)
 {
-	__uart_zynq_disable(UART_BASE);
+	__uart_zynq_disable(&__early_uart_zynq);
 }
 
 unsigned char uart_getchar(void)
 {
-	__uart_zynq_getchar(UART_BASE);
+	return __uart_zynq_getchar(&__early_uart_zynq);
 }
 
 int uart_putchar(unsigned char c)
 {
-	return __uart_zynq_putchar(UART_BASE, c);
+	__uart_zynq_putchar(&__early_uart_zynq, c);
+	return 0;
 }
 
 #else /* not RAW, or kernel driver */
 
 #if PRIMARY_CONSOLE == uart_zynq
 
-/* from kernel */
-#include <console.h>
-
-/* FIXME zedboard uses UART1 only */
-#define UART_BASE	UART1_PHYSBASE
-
+/* Meant to register to kernel, so this interface routine is static */
 static int early_console_putchar(unsigned char c)
 {
-	return __uart_zynq_putchar(UART_BASE, c);
-}
-
-static int early_console_puts(const char *str)
-{
-	for (; *str != '\0'; ++str) {
-		if (*str == '\n')
-			__uart_zynq_putchar(UART_BASE, '\r');
-		__uart_zynq_putchar(UART_BASE, (unsigned char)*str);
-	}
+	__uart_zynq_putchar(&__early_uart_zynq, c);
 	return 0;
 }
 
-void __weak early_console_init()
+int early_console_init(void)
 {
-	__uart_zynq_init(UART_BASE);
-	__uart_zynq_enable(UART_BASE);
-	set_console(
-		early_console_putchar - KERN_BASE,
-		early_console_puts - KERN_BASE
-	);
+	__early_uart_zynq.bus = &early_memory_bus;
+	__uart_zynq_init(&__early_uart_zynq);
+	__uart_zynq_enable(&__early_uart_zynq);
+	set_console(early_console_putchar, DEFAULT_KPUTS);
+	return 0;
 }
 
-#endif /* PRIMARY_CONSOLE */
+#endif /* PRIMARY_CONSOLE == uart_zynq */
 
 #endif /* RAW */
 

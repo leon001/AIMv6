@@ -29,7 +29,7 @@ void __noreturn master_early_init(void)
 {
 	early_arch_init();
 	early_console_init();
-	kprintf("KERN: Hello, world!");
+	kputs("KERN: Hello, world!\n");
 	while (1);
 }
 
