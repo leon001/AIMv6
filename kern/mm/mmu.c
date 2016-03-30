@@ -20,23 +20,26 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-/* from kernel */
-#include <sys/types.h>
-#include <init.h>
-#include <console.h>
+/*
+ * This source file provides upper-level utilities to handle memory mappings.
+ * On different systems, memory management unit (MMU)s may look different,
+ * may have different names and interfaces, or may even be absent (like MIPS).
+ * From the kernel's point of view, we want to unify their access interface,
+ * so this wrapper is here.
+ */
 
-void __noreturn master_early_init(void)
+/*
+ * It may take a lot of configuration logic to decide how early mappings should
+ * be done. This leads to even more trouble when we mark these mappings
+ * in proper kernel data structures later.
+ * AIMv6 uses a very simple queue located in .bss to solve the problem:
+ *   Early initialization routines submit 
+ */
+
+static __early_mapping_queue[]
+
+void clear_early_mapping_queue()
 {
-	early_arch_init();
-	early_console_init();
-	kputs("KERN: Hello, world!\n");
-	mmu_init();
-	while (1);
+	
 }
-
-void __noreturn slave_early_init(void)
-{
-	while (1);
-}
-
 

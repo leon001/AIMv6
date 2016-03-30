@@ -34,6 +34,8 @@ SECTIONS
 {
 	/DISCARD/ : {}
 
+	. = RAM_PHYSBASE;
+
 	. = ALIGN(4K);
 
 	.low_text . : {

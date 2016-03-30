@@ -41,8 +41,3 @@ int get_addr_space()
 	return (pc > KERN_BASE);
 }
 
-void mmu_init()
-{
-
-}
-
