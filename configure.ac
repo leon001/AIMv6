@@ -71,6 +71,8 @@ AS_CASE([$ARCH],
 
 AS_CASE([$MACH],
 	[zynq], [
+		AS_VAR_SET([with_ram_physbase], [0x00100000])
+
 		AS_VAR_SET([with_fwstack_order], [12])
 		AS_VAR_SET([enable_uart_zynq], [yes])
 		AS_VAR_SET([enable_sd_zynq], [yes])
@@ -139,6 +141,10 @@ AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
 	[MSIM disk image file name])
 
 # target details
+AIM_ARG_WITH([ram-physbase], [RAM_PHYSBASE], [physical memory start point],
+	[0x00000000])
+AC_SUBST([RAM_PHYSBASE], [$with_ram_physbase])
+
 AIM_ARG_WITH([mem-size], [MEM_SIZE], [amount of memory installed], [detect])
 AC_SUBST([MEM_SIZE], [$with_mem_size])
 
@@ -260,6 +266,7 @@ AC_CONFIG_FILES([
 	kern/arch/mips/mach-loongson3a/Makefile
 	kern/init/Makefile
 	kern/dev/Makefile
+	kern/mm/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile
