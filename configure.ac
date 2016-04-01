@@ -66,6 +66,10 @@ AS_CASE([$ARCH],
 	],
 	[mips*], [
 		AS_VAR_SET([with_cpus], [4])
+	],
+	[i386], [
+		AS_VAR_SET([enable_uart_ns16550], [yes])
+		AS_VAR_SET([with_primary_console], [uart-ns16550])
 	]
 )
 

@@ -24,7 +24,8 @@ CLEANFILES = boot.bin boot.s
 
 # TODO: add a linker script here
 boot_elf_SOURCES = bootasm.S bootmain.c
-boot_elf_LDFLAGS = $(AM_LDFLAGS) -N -e start -Ttext 0x7c00
+boot_elf_CFLAGS = $(AM_CFLAGS_NOPIC) -Os
+boot_elf_LDFLAGS = $(AM_LDFLAGS_NOPIC) -N -e start -Ttext 0x7c00
 
 boot.bin: boot.elf
 	$(OBJCOPY) -O binary -j.text $^ $@

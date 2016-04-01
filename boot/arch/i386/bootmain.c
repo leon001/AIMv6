@@ -10,6 +10,7 @@
 
 #include <asm.h>
 #include <elf.h>
+#include <bootsect.h>
 #include <sys/types.h>
 #include <drivers/ata/ata.h>
 
@@ -56,11 +57,14 @@ readsect(void *dst, size_t sector)
 	IDE_PIO_FETCH(dst);
 }
 
+/*
+ * Read @count bytes from disk at @offset bytes to @pa.
+ */
 static void
 readseg(unsigned char *pa, size_t count, size_t offset)
 {
 	unsigned char *epa = pa + count;
-	unsigned int sector = (offset / SECTOR_SIZE) + 1;
+	unsigned int sector = offset / SECTOR_SIZE;
 
 	pa -= offset % SECTOR_SIZE;
 
@@ -75,9 +79,16 @@ bootmain(void)
 	struct elf32_phdr *ph, *eph;
 	void (*entry)(void);
 	unsigned char *pa;
+	/* Here 'start' points to the assembler entrance, whose memory
+	 * address is 0x7c00. */
+	extern unsigned char *start;
+	/* By executing this piece of code, MBR is already loaded into
+	 * memory. */
+	struct mbr *mbr = (struct mbr *)&start;
 
 	/* Read a reasonably sized block to fetch all headers we need */
-	readseg((unsigned char *)elf, PGSIZE, 0);
+	readseg((unsigned char *)elf, PGSIZE,
+	    mbr->part_entry[1].first_sector_lba * SECTOR_SIZE);
 
 	/*
 	 * Traverse each program header and load every segment.

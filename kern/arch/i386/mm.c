@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Xiaofei Bai <xffbai@gmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -21,10 +21,26 @@
 #endif /* HAVE_CONFIG_H */
 
 /* from kernel */
-#include <init.h>
+#include <sys/types.h>
 
-void early_arch_init(void)
+/* get_addr_space()
+ * determine whether we are running in low address or in high address
+ * return values:
+ * 0 - low address
+ * 1 - high address
+ * negative - reserved for errors
+ */
+int get_addr_space()
 {
-	//early_mach_init();
+	uint32_t pc;
+
+	/* TODO: check if this is ok... */
+	asm volatile (
+		"	call	__get_eip;"
+		"__get_eip:"
+		"	pop	%0;"
+		:"=r" (pc)
+	);
+	return (pc > KERN_BASE);
 }
 

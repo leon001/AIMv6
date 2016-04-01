@@ -38,23 +38,24 @@ SECTIONS
 
 	. += KERN_BASE;
 
-	.text : AT(. - KERN_BASE) {
+	.text : AT(_low_text_end) {
 		_text_begin = .;
 		*(.text);
 		_text_end = .;
 	}
 	
-	.rodata : AT(. - KERN_BASE) {
+	.rodata : {
 		*(.rodata);
+		_rodata_end = .;
 	}
 	
-	.bss : AT(. - KERN_BASE) {
+	.bss : {
 		_bss_begin = .;
 		*(.bss);
 		_bss_end = .;
 	}
 
-	.data : AT(. - KERN_BASE) {
+	.data : {
 		*(.data);
 	}
 
