@@ -20,7 +20,9 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+/* A hack for disabling the preprocessor to replace $ARCH automatically */
 #undef i386
+
 OUTPUT_FORMAT(elf32-i386)
 ENTRY(master_entry)
 
@@ -28,35 +30,40 @@ SECTIONS
 {
 	/DISCARD/ : {}
 
-	. = ALIGN(4K);
+	/* Note that we should probably reserve further more space for
+	 * bootloader use.  See boot/arch/i386/bootmain.c for such
+	 * demonstration. */
+	. = ALIGN(256K);
 
-	.low_text : {
-		_low_text_begin = .;
-		*(.low_text);
-		_low_text_end = .;
+	/* Strangely, ld does not put section names such as .low_text
+	 * into a loadable segment. */
+	.text.entry : {
+		_text_entry_begin = .;
+		*(.text.entry);
+		_text_entry_end = .;
 	}
 
 	. += KERN_BASE;
 
-	.text : AT(_low_text_end) {
+	.text : AT(_text_entry_end) {
 		_text_begin = .;
-		*(.text);
+		*(.text*);
 		_text_end = .;
 	}
 	
 	.rodata : {
-		*(.rodata);
+		*(.rodata*);
 		_rodata_end = .;
 	}
 	
 	.bss : {
 		_bss_begin = .;
-		*(.bss);
+		*(.bss*);
 		_bss_end = .;
 	}
 
 	.data : {
-		*(.data);
+		*(.data*);
 	}
 
 	. = ALIGN(16K);

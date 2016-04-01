@@ -85,29 +85,19 @@ bootmain(void)
 	/* By executing this piece of code, MBR is already loaded into
 	 * memory. */
 	struct mbr *mbr = (struct mbr *)&start;
+	size_t part_offset = mbr->part_entry[1].first_sector_lba * SECTOR_SIZE;
 
 	/* Read a reasonably sized block to fetch all headers we need */
-	readseg((unsigned char *)elf, PGSIZE,
-	    mbr->part_entry[1].first_sector_lba * SECTOR_SIZE);
+	readseg((unsigned char *)elf, PGSIZE, part_offset);
 
-	/*
-	 * Traverse each program header and load every segment.
-	 * I wonder why xv6 reads every segment regardless of flags.
-	 */
 	ph = (struct elf32_phdr *)(ELF_BUFFER + elf->e_phoff);
 	eph = ph + elf->e_phnum;
 
 	for (; ph < eph; ++ph) {
-		pa = (unsigned char *)(ph->p_paddr);
-		readseg((unsigned char *)pa, ph->p_filesz, ph->p_offset);
-		if (ph->p_memsz > ph->p_filesz)
-			/*
-			 * We don't use memset() here because we don't want
-			 * to add libc dependency into our bootloader.
-			 */
-			stosb(pa + ph->p_filesz,
-			    0,
-			    ph->p_memsz - ph->p_filesz);
+		if (ph->p_type == PT_LOAD) {
+			pa = (unsigned char *)(ph->p_paddr);
+			readseg(pa, ph->p_filesz, part_offset + ph->p_offset);
+		}
 	}
 
 	/* Jump to ELF entry... */

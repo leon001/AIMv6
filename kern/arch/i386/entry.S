@@ -20,7 +20,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-.text
+.section .entry
 
 /* Broadcast entry points */
 .globl master_entry
