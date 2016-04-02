@@ -20,6 +20,10 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <sys/types.h>
+
+#include <mm.h>
+
 /*
  * This source file provides upper-level utilities to handle memory mappings.
  * On different systems, memory management unit (MMU)s may look different,
@@ -33,13 +37,64 @@
  * be done. This leads to even more trouble when we mark these mappings
  * in proper kernel data structures later.
  * AIMv6 uses a very simple queue located in .bss to solve the problem:
- *   Early initialization routines submit 
+ * Early initialization routines submit mappings, and the platform-independent
+ * routines will call underlying platform-dependent ones to apply them.
+ * These data structure are kept in memory, and will later be used to
+ * initialize the page allocator and the kmmap subsystem.
  */
 
-static __early_mapping_queue[]
+#define EARLY_MAPPING_QUEUE_LENGTH	10
 
-void clear_early_mapping_queue()
+/* internal data structure */
+static int __early_mapping_queue_size;
+static struct early_mapping __early_mapping_queue[EARLY_MAPPING_QUEUE_LENGTH];
+
+void early_mapping_clear(void)
 {
-	
+	__early_mapping_queue_size = 0;
+	/* No need to overwrite anything */
+}
+
+/* add a mapping entry */
+int early_mapping_add(struct early_mapping *entry)
+{
+	if (__early_mapping_queue_size > EARLY_MAPPING_QUEUE_LENGTH) {
+		/* Bad data structure. Panic immediately to prevent damage. */
+		/* FIXME: panic is not yet implemented. */
+		while (1);
+	}
+	if (__early_mapping_queue_size == EARLY_MAPPING_QUEUE_LENGTH) {
+		/* Queue full */
+		return EOF;
+	}
+	/* TODO: check for overlap */
+	__early_mapping_queue[__early_mapping_queue_size] = *entry;
+	__early_mapping_queue_size += 1;
+	return 0;
+}
+
+/*
+ * basic iterator. Caller should not work with internal data structure.
+ * If given a pointer to some early mapping entry, return the next one.
+ * If given a NULL, return the first entry.
+ * If given some invalid entry, or if no more entries are available, return
+ * NULL.
+ */
+struct early_mapping *early_mapping_next(struct early_mapping *base)
+{
+	struct early_mapping *next;
+	int tmp;
+
+	if (base == NULL) {
+		next = __early_mapping_queue;
+	} else {
+		next = base + 1; /* One entry */
+	}
+	tmp = next - __early_mapping_queue;
+	if (tmp < 0 || tmp >= __early_mapping_queue_size) {
+		return NULL;
+	} else {
+		return next;
+	}
 }
 
