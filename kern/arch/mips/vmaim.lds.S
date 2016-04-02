@@ -67,8 +67,10 @@ SECTIONS {
 	/* Uninitialized sections comes after */
 	.bss : {
 		PROVIDE(__bss_begin__ = .);
+		PROVIDE(_bss_begin = .);
 		*(.bss*);
 		PROVIDE(__bss_end__ = .);
+		PROVIDE(_bss_end = .);
 	}
 	/*
 	 * MIPS ISA doesn't require alignment, paging or anything else

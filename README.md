@@ -158,7 +158,7 @@ dd if=kern/arch/mips/kernel.elf of=/dev/mapper/loop0p2 conv=notrunc
 
 Run MSIM to bring up the operating system.
 
-### Loongson 3A
+#### Loongson 3A
 
 You should prepare a SATA-to-USB converter or something to enable you to upload
 your kernel image into the hard disk inside Loongson 3A box.

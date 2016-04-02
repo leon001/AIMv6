@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 Xiaofei Bai <xffbai@gmail.com>
+ * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -20,11 +21,36 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-.section .entry
-
 /* Broadcast entry points */
 .globl master_entry
 .globl slave_entry
+
+/*
+ * x86 assembly have two syntax: AT&T syntax and Intel syntax.  Linux
+ * and GNU toolchain users are probably more familiar with AT&T syntax,
+ * while Windows users may get in touch with Intel syntax first.
+ *
+ * Compared to Intel syntax, AT&T syntax is counter-intuitive in many
+ * aspects.  For example,
+ *     movl %eax, %ebx
+ * means EBX = EAX, rather than EAX = EBX.
+ * Another example,
+ *     movl 10000, %eax
+ * means storing *memory content at address 10000* into register EAX.  To
+ * load a number into a register (as intended), you will have to do the
+ * following:
+ *     movl $10000, %eax
+ *
+ * Nevertheless, in this project we are sticking to AT&T syntax, since
+ * we are using GNU toolchain which prefers AT&T syntax by default, and
+ * we don't want to create additional inconsistencies to make things worse.
+ *
+ * In some comments we would be using Intel syntax notations though, as they
+ * are much more readable.  Specifically, [EAX] means memory address EAX.
+ *
+ * References:
+ * https://en.wikibooks.org/wiki/X86_Assembly/GAS_Syntax
+ */
 
 master_entry:
 	/* Reset state and disable interrupts */
@@ -33,35 +59,35 @@ master_entry:
 	cld
 
 	/* Load KERN_BASE for arithmetics */
-	movl	%esi, KERN_BASE
+	#movl	%esi, KERN_BASE
 
 	/* Clear BSS */
-	movl	%eax, _bss_begin
-	subl	%eax, %esi
-	movl	%edx, _bss_end
-	subl	%edx, %esi
-	movl	%ecx, 0x00000000
-clbss_l:
-	cmpl	%eax, %edx
-	jge	master_t1
-	movl	(%eax), %ecx
-	addl	%eax, 4
-	jmp	clbss_l
+	movl	$_bss_begin, %edi
+	movl	$_bss_end, %ecx
+	subl	%edi, %ecx		/* ECX = _bss_end - _bss_begin */
+	xor	%eax, %eax
+	/*
+	 * STOSB stores byte AL at memory address [ES:EDI], and then
+	 * increments (or decrements if DF=1, in our case DF is cleared
+	 * by CLD instruction) EDI.
+	 * REP prefix repeats the instruction ECX times.
+	 */
+	rep stosb
 
 	/* Lock up early access resource and setup stack */
 master_t1:
-	movl	%edi, master_t2
+	movl	$master_t2, %edi
 	jmp	lock
 
 master_t2:
 	/* Set up stack */
-	movl	%esp, boot_stack
-	subl	%esp, %esi
-	movl	%ebp, %esp
+	movl	$boot_stack, %esp
+	#subl	%esp, %esi
+	movl	%esp, %ebp
 
 	/* Call into early_init */
-	movl	%eax, master_early_init
-	subl	%eax, %esi
+	movl	$master_early_init, %eax
+	#subl	%eax, %esi
 	call 	*%eax
 
 slave_entry:
@@ -71,29 +97,29 @@ slave_entry:
 	cld
 
 	/* Load KERN_BASE for arithmetics */
-	movl	%esi, KERN_BASE
+	#movl	%esi, KERN_BASE
 
 	/* Lock up early access resource and setup stack */
-	movl	%edi, slave_t1
+	movl	$slave_t1, %edi
 	jmp	lock
 
 slave_t1:
 	/* Set up a real stack */
-	movl	%esp, boot_stack
-	subl	%esp, %esi
-	movl	%ebp, %esp
+	movl	$boot_stack, %esp
+	#subl	%esp, %esi
+	movl	%esp, %ebp
 
 	/* Call into early_init */
-	movl	%eax, slave_early_init
-	subl	%eax, %esi
+	movl	$slave_early_init, %eax
+	#subl	%eax, %esi
 	call 	*%eax
 
 lock:
 	/* a spin lock */
 	xorl	%edx, %edx
 	incl	%edx
-	movl	%ebx, early_spinlock
-	subl	%ebx, %esi
+	movl	$early_spinlock, %ebx
+	#subl	%ebx, %esi
 spin_lock_retry:
 	xorl	%eax, %eax
 	cmpxchgl	%edx, (%ebx)

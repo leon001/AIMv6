@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 Xiaofei Bai <xffbai@gmail.com>
+ * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -33,20 +34,26 @@ SECTIONS
 	/* Note that we should probably reserve further more space for
 	 * bootloader use.  See boot/arch/i386/bootmain.c for such
 	 * demonstration. */
+
+	/*
+	 * IMPORTANT:
+	 * Strangely, sections such as .low_text are not put into a
+	 * loadable segment.
+	 *
+	 * As such, I'm unable to put the virtual addresses into high
+	 * address space (>KERN_BASE), since doing that will make
+	 * the entry reside in high address space as well.
+	 *
+	 * Another consequence is that get_addr_space() have to return
+	 * 1 all the time to make __get_kputchar() find the correct
+	 * address.
+	 */
 	. = ALIGN(256K);
 
-	/* Strangely, ld does not put section names such as .low_text
-	 * into a loadable segment. */
-	.text.entry : {
-		_text_entry_begin = .;
-		*(.text.entry);
-		_text_entry_end = .;
-	}
+	/* . += KERN_BASE; */
 
-	. += KERN_BASE;
-
-	.text : AT(_text_entry_end) {
-		_text_begin = .;
+	_text_begin = .;
+	.text : {
 		*(.text*);
 		_text_end = .;
 	}
@@ -64,6 +71,16 @@ SECTIONS
 
 	.data : {
 		*(.data*);
+	}
+
+	.got : {
+		*(.got*);
+		*(.igot*);
+	}
+
+	/* probably redundant */
+	.plt : {
+		*(.plt*);
 	}
 
 	. = ALIGN(16K);

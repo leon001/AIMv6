@@ -24,15 +24,13 @@
 #include <sys/types.h>
 #include <asm.h>
 
-/* get_addr_space()
- * determine whether we are running in low address or in high address
- * return values:
- * 0 - low address
- * 1 - high address
- * negative - reserved for errors
- */
-int get_addr_space(void)
+/* The __noinline decorator is probably redundant */
+__noinline unsigned long get_pc(void)
 {
-	return 1;
+	unsigned long pc;
+	asm volatile (
+		"movl	4(%%ebp), %0"
+		: "=r"(pc)
+	);
+	return pc;
 }
-
