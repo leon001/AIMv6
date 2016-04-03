@@ -30,6 +30,7 @@ void __noreturn master_early_init(void)
 	early_arch_init();
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
+	//mmu_init();
 	while (1);
 }
 

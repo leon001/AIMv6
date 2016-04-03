@@ -55,13 +55,21 @@ int kprintf(const char *fmt, ...)
 	return 0;
 }
 
-static putchar_fp __get_kputchar(void)
+/*
+ * Before returning any function pointer, make sure its address space is
+ * correct.
+ */
+static inline putchar_fp __get_kputchar(void)
 {
+	putchar_fp ret = __putchar;
+
 	switch(get_addr_space()) {
 	case 0:
-		return early_kva2pa(__putchar);
+		if (ret >= KERN_BASE) ret = early_kva2pa(ret);
+		return ret;
 	case 1:
-		return __putchar;
+		if (ret < KERN_BASE) ret = early_pa2kva(ret);
+		return ret;
 	default:
 		return NULL;
 	}
@@ -76,7 +84,7 @@ int kputchar(int c)
 	return putchar(c);
 }
 
-static int __kputs(const char *s)
+static inline int __kputs(const char *s)
 {
 	putchar_fp putchar = __get_kputchar();
 
@@ -97,13 +105,21 @@ int __default_kputs(const char *s)
 	return __kputs(s);
 }
 
-static puts_fp __get_kputs(void)
+/*
+ * Before returning any function pointer, make sure its address space is
+ * correct.
+ */
+static inline puts_fp __get_kputs(void)
 {
+	puts_fp ret = __puts;
+
 	switch(get_addr_space()) {
 	case 0:
-		return early_kva2pa(__puts);
+		if (ret >= KERN_BASE) ret = early_kva2pa(ret);
+		return ret;
 	case 1:
-		return __puts;
+		if (ret < KERN_BASE) ret = early_pa2kva(ret);
+		return ret;
 	default:
 		return NULL;
 	}

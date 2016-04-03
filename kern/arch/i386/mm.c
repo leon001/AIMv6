@@ -33,6 +33,6 @@
  */
 int get_addr_space(void)
 {
-	return 1;
+	return (get_pc() > KERN_BASE);
 }
 
