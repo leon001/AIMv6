@@ -33,7 +33,7 @@
 #include <drivers/io/io_mem.h>
 #include <drivers/io/io_port.h>
 
-#ifdef ARCH_I386
+#if ARCH == i386
 #define NS16550_PORTIO		/* cases where NS16550 is on a port I/O bus */
 #endif
 
