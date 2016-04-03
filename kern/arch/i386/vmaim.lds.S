@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 Xiaofei Bai <xffbai@gmail.com>
+ * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -20,7 +21,9 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+/* A hack for disabling the preprocessor to replace $ARCH automatically */
 #undef i386
+
 OUTPUT_FORMAT(elf32-i386)
 ENTRY(master_entry)
 
@@ -28,34 +31,56 @@ SECTIONS
 {
 	/DISCARD/ : {}
 
-	. = ALIGN(4K);
+	/* Note that we should probably reserve further more space for
+	 * bootloader use.  See boot/arch/i386/bootmain.c for such
+	 * demonstration. */
 
-	.low_text : {
-		_low_text_begin = .;
-		*(.low_text);
-		_low_text_end = .;
-	}
+	/*
+	 * IMPORTANT:
+	 * Strangely, sections such as .low_text are not put into a
+	 * loadable segment.
+	 *
+	 * As such, I'm unable to put the virtual addresses into high
+	 * address space (>KERN_BASE), since doing that will make
+	 * the entry reside in high address space as well.
+	 *
+	 * Another consequence is that get_addr_space() have to return
+	 * 1 all the time to make __get_kputchar() find the correct
+	 * address.
+	 */
+	. = ALIGN(256K);
 
-	. += KERN_BASE;
+	/* . += KERN_BASE; */
 
-	.text : AT(. - KERN_BASE) {
-		_text_begin = .;
-		*(.text);
+	_text_begin = .;
+	.text : {
+		*(.text*);
 		_text_end = .;
 	}
 	
-	.rodata : AT(. - KERN_BASE) {
-		*(.rodata);
+	.rodata : {
+		*(.rodata*);
+		_rodata_end = .;
 	}
 	
-	.bss : AT(. - KERN_BASE) {
+	.bss : {
 		_bss_begin = .;
-		*(.bss);
+		*(.bss*);
 		_bss_end = .;
 	}
 
-	.data : AT(. - KERN_BASE) {
-		*(.data);
+	.data : {
+		*(.data*);
+	}
+
+	.got : {
+		*(.got*);
+		*(.igot*);
+	}
+
+	/* probably redundant */
+	.plt : {
+		*(.plt*);
 	}
 
 	. = ALIGN(16K);

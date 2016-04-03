@@ -7,6 +7,10 @@
 #ifndef _ASM_ASM_H
 #define _ASM_ASM_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/types.h>
 
 /*
@@ -113,5 +117,7 @@ stosb(void *addr, int data, size_t cnt)
 		: "memory", "cc"
 	);
 }
+
+__noinline unsigned long get_pc(void);
 
 #endif

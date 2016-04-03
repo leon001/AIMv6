@@ -24,6 +24,7 @@
 
 #include <io.h>
 #include <device.h>
+#include <util.h>
 
 #include <asm.h>	/* inb() and outb() should be declared there */
 #include <io_port.h>
