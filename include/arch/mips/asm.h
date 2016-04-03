@@ -226,12 +226,14 @@ sym:		.long	long
 
 #include <panic.h>
 
+/* To enable panicking while executing something like a = inb(b)
+ * without compilation error */
 #define inb(a)	\
-	panic("Unsupported inb instruction: %d\n", (a))
+	({ panic("Unsupported inb instruction: %d\n", (a)); 0; })
 #define inw(a)	\
-	panic("Unsupported inw instruction: %d\n", (a))
+	({ panic("Unsupported inw instruction: %d\n", (a)); 0; })
 #define ind(a)	\
-	panic("Unsupported ind instruction: %d\n", (a))
+	({ panic("Unsupported ind instruction: %d\n", (a)); 0; })
 #define outb(a, x)	\
 	panic("Unsupported outb instruction: %d, %d\n", (a), (x))
 #define outw(a, x)	\
