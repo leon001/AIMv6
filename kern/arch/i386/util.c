@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -22,27 +22,15 @@
 
 /* from kernel */
 #include <sys/types.h>
+#include <asm.h>
 
-/* get_addr_space()
- * determine whether we are running in low address or in high address
- * return values:
- * 0 - low address
- * 1 - high address
- * negative - reserved for errors
- */
-int get_addr_space()
+/* The __noinline decorator is probably redundant */
+__noinline unsigned long get_pc(void)
 {
-	uint32_t pc;
-
+	unsigned long pc;
 	asm volatile (
-		"mov	%[pc], pc"
-		:[pc] "=r" (pc)
+		"movl	4(%%ebp), %0"
+		: "=r"(pc)
 	);
-	return (pc > KERN_BASE);
+	return pc;
 }
-
-void mmu_init()
-{
-
-}
-

@@ -36,7 +36,7 @@ typedef void (*entry_fp)(void);
  * is a fundamental technique in dynamic linking.  The most important
  * consequence of introducing PIC is that the applications no longer
  * need to bring the code of C library functions by themselves.
- * However, using PIC in firmware, bootloader and kernel is rather tedious,
+ * However, using PIC in firmware and bootloader is rather tedious,
  * so we are not going to do it here.
  */
 void boot(void (*readdisk)(size_t, size_t, void *, size_t), uintptr_t mbr_addr)
