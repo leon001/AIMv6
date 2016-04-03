@@ -35,6 +35,11 @@
 
 /* Should only be used before memory management is initialized */
 static struct chr_device __early_uart_zynq = {
+	/*
+	 * if we set .bus here, we'd get a hard-coded high address.
+	 * we initialize .bus in a routine to run in low address,
+	 * -fPIC will ensure that we get a low address as well.
+	 */
 	.base = UART_BASE
 };
 
