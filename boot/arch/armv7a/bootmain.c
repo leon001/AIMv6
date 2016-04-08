@@ -28,7 +28,7 @@
 #include <libc/stddef.h>
 
 #define FW_BASE		0x1FF00000
-#define MBR_ADDR	0x00100000
+#define MBR_ADDR	0x1FE00000
 
 /*
  * The first 446 bytes contains this piece of code.
@@ -63,11 +63,17 @@ int boot_main(void)
 	entry_t entry;
 	Elf32_Off pos = 0;
 
-	uart_puts("BL: Hello\r\n");
+	uart_puts("BL: Hello!\r\n");
 
 	struct mbr *mbr = (struct mbr *)MBR_ADDR;
-	uint32_t lba = mbr->part_entry[1].first_sector_lba;
+	uint32_t lba;
 	uintptr_t seg;
+
+	uint8_t *src = (uint8_t *)&(mbr->part_entry[1].first_sector_lba);
+	uint8_t *des = (uint8_t *)&lba;
+	for (int i = 0; i < sizeof(lba); ++i) {
+		des[i] = src[i];
+	}
 
 	/*
 	 * Basically, we're reading a statically-linked ELF file.
@@ -88,15 +94,16 @@ int boot_main(void)
 	for (i = 0; i < eh.e_phnum; ++i) {
 		readdisk(lba, pos, &ph, sizeof(ph));
 		if (ph.p_type == PT_LOAD) {
-			seg = (void *)ph.p_vaddr;
+			seg = (void *)ph.p_paddr;
 			readdisk(lba, ph.p_offset, seg, ph.p_filesz);
 		}
 		pos += eh.e_phentsize;
 	}
 
 	entry = (entry_t)(eh.e_entry);
+	uart_puts("BL: Kernel loaded.\r\n");
 	(*entry)();
 
-spin:
+//spin:
 	while (1);
 }

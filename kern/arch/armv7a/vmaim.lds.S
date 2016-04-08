@@ -25,8 +25,11 @@ ENTRY(master_entry)
 
 MEMORY
 {
-	MEM (WX) :
-		ORIGIN = 1M,
+	PMEM (WX) :
+		ORIGIN = RAM_PHYSBASE,
+		LENGTH = MEM_SIZE - 1M
+	VMEM (WX) :
+		ORIGIN = KERN_BASE,
 		LENGTH = MEM_SIZE - 1M
 }
 
@@ -34,57 +37,46 @@ SECTIONS
 {
 	/DISCARD/ : {}
 
-	. = RAM_PHYSBASE;
-
-	. = ALIGN(4K);
-
-	.low_text . : {
+	.low_text : {
 		_low_text_begin = .;
 		*(.low_text)
 		_low_text_end = .;
-	}
+	} >PMEM AT>PMEM
 
-	. += KERN_BASE;
-
-	. = .;
-	_text_begin = .;
-	.text . : AT(_text_begin - KERN_BASE) {
+	.text : {
+		_text_begin = .;
 		*(.text)
-		. = ALIGN(4);
-		*(.got) /* Global offset table */
-	}
-	_text_end = .;
-	
-	. = .;
-	_rodata_begin = .;
-	.rodata . : AT(_rodata_begin - KERN_BASE) {
+		_text_end = .;
+	} >VMEM AT>PMEM
+
+	.got : {
+		*(.got)
+	} >VMEM AT>PMEM
+
+	.rodata : {
+		_rodata_begin = .;
 		*(.rodata)
-	}
-	_rodata_end = .;
+		_rodata_end = .;
+	} >VMEM AT>PMEM
 
-	. = .;
-	_bss_begin = .;
-	.bss . : AT(_bss_begin - KERN_BASE) {
-		*(.bss)
-	}
-	_bss_end = .;
-
-	. = .;
-	_data_begin = .;
-	.data . : AT(_data_begin - KERN_BASE) {
+	.data : {
+		_data_begin = .;
 		*(.data)
-	}
-	_data_end = .;
+		_data_end = .;
+	} >VMEM AT>PMEM
 
-	. = ALIGN(16K);
+	.bss : {
+		_bss_begin = .;
+		*(.bss)
+		_bss_end = .;
+	} >VMEM AT>PMEM
 
-	. = .;
-	.boot . : {
+	.boot ALIGN(16K) : {
 		PROVIDE(boot_pgdir = .);
 		. += 16K; /* early pgdir */
 		. += 4K; /* early stack */
 		PROVIDE(boot_stack = .);
-	}
+	} >VMEM AT>PMEM
 }
 
 

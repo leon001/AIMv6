@@ -89,7 +89,7 @@ __attribute__ ((noreturn))
 void fw_main(void)
 {
 	int ret;
-	volatile uint8_t *mbr = (void *)0x100000; /* THIS IS NOT A NULL! */
+	volatile uint8_t *mbr = (void *)0x1FE00000; /* THIS IS NOT A NULL! */
 	void (*mbr_entry)() = (void *)mbr;
 
 	/* Wait for UART fifo to flush */
