@@ -66,10 +66,19 @@ void fwpanic(const char *fmt, ...)
 	while (1);
 }
 
+void fwdump(void)
+{
+	uart_puts("FW: Dump routine called.\r\n");
+	/* TODO */
+}
+
 void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 {
-	unsigned char sector_buf[SECTOR_SIZE];
+	volatile unsigned char sector_buf[SECTOR_SIZE];
 	size_t l = 0;
+
+	uart_printf("FW: readdisk(0x%x, 0x%x, 0x%x, 0x%x)\r\n",
+		sector, offset, buf, len);
 
 	sector += offset / SECTOR_SIZE;
 	offset %= SECTOR_SIZE;
@@ -78,7 +87,7 @@ void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 		l = MIN2(len, SECTOR_SIZE - offset);
 		if (sd_read((uint32_t)sector_buf, 1, sector) != 0)
 			fwpanic("read disk error\n");
-		memcpy(buf, &sector_buf[offset], l);
+		memcpy(buf, (void *)&sector_buf[offset], l);
 		offset = 0;
 		buf += l;
 		++sector;

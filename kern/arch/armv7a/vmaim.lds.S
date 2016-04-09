@@ -20,6 +20,8 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <mm.h>
+
 OUTPUT_ARCH(arm)
 ENTRY(master_entry)
 
@@ -33,50 +35,58 @@ MEMORY
 		LENGTH = MEM_SIZE - 1M
 }
 
+PHDRS
+{
+	text_low PT_LOAD;
+	text PT_LOAD;
+	data PT_LOAD;
+}
+
 SECTIONS
 {
 	/DISCARD/ : {}
 
-	.low_text : {
-		_low_text_begin = .;
-		*(.low_text)
-		_low_text_end = .;
-	} >PMEM AT>PMEM
+	.text.low RAM_PHYSBASE : {
+		_text_low_begin = .;
+		*(.text.low)
+		_text_low_end = .;
+	} >PMEM AT>PMEM :text_low
 
-	.text : {
+	.text early_pa2kva(_text_low_end) : {
 		_text_begin = .;
 		*(.text)
 		_text_end = .;
-	} >VMEM AT>PMEM
+	} >VMEM AT>PMEM :text
 
 	.got : {
 		*(.got)
-	} >VMEM AT>PMEM
+		*(.got.plt)
+	} >VMEM AT>PMEM :data
 
 	.rodata : {
 		_rodata_begin = .;
 		*(.rodata)
 		_rodata_end = .;
-	} >VMEM AT>PMEM
+	} >VMEM AT>PMEM :data
 
 	.data : {
 		_data_begin = .;
-		*(.data)
+		*(.data*)
 		_data_end = .;
-	} >VMEM AT>PMEM
+	} >VMEM AT>PMEM :data
 
 	.bss : {
 		_bss_begin = .;
 		*(.bss)
 		_bss_end = .;
-	} >VMEM AT>PMEM
+	} >VMEM AT>PMEM :NONE
 
 	.boot ALIGN(16K) : {
 		PROVIDE(boot_pgdir = .);
 		. += 16K; /* early pgdir */
 		. += 4K; /* early stack */
 		PROVIDE(boot_stack = .);
-	} >VMEM AT>PMEM
+	} >VMEM AT>PMEM :NONE
 }
 
 

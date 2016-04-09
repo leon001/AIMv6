@@ -19,8 +19,10 @@
 #ifndef _MM_H
 #define _MM_H
 
-#define early_kva2pa(kva)	((kva) - KERN_BASE)
-#define early_pa2kva(pa)	((pa) + KERN_BASE)
+#define early_kva2pa(kva)	((kva) + RAM_PHYSBASE - KERN_BASE)
+#define early_pa2kva(pa)	((pa) - RAM_PHYSBASE + KERN_BASE)
+
+#ifndef __ASSEMBLER__
 
 /*
  * Data structure to hold early mappings.
@@ -55,6 +57,8 @@ struct early_mapping *early_mapping_next(struct early_mapping *base);
  * Can be changed into at_lower() or before_kernmap() or alike.
  */
 int get_addr_space(void);
+
+#endif /* __ASSEMBLY__ */
 
 #endif /* _MM_H */
 

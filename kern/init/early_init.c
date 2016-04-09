@@ -27,6 +27,8 @@
 
 void __noreturn master_early_init(void)
 {
+	generic_fp dump = (generic_fp)0x1ff0000C;
+	dump();
 	early_arch_init();
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
