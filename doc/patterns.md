@@ -95,26 +95,37 @@ Add whatever reasonable code style & programming practices here as reminders.
 
 ##### Principles
 
+[TBD]
+
 1. A device is defined as a set of hardware.
   * This set of hardware may either be concrete or virtual.
   * A piece of physical hardware may be viewed as more than one device.
-  * Parts within the processor may also be accessed as devices.
-2. A device could be a *character* device, a *block* device, a *network*
+2. Accessing devices:
+  * Peripherals **MUST** be accessed as one or more devices.
+  * Hardwares connected to southbridge **SHOULD** be accessed as one or more
+    devices.
+    - This include (but not limited to) interrupt controllers, real-time
+      clocks, PCI bus, SMBus, and many more.
+  * Hardwares connected to northbridge **MAY** be accessed as one or more
+    devices.
+  * Parts within the processor *MAY* also be accessed as devices.
+3. A device could be a *character* device, a *block* device, a *network*
   device, or a *bus* device. Driver framework *SHOULD* reserve for future
   weird types of devices.
-3. A device is always connected to a bus, with only a few exceptions.
+4. A device is always connected to a bus, with only a few exceptions.
   * The physical memory address space is viewed as a bus device. Since it is
     directly connected to some processor, it's `bus` pointer is set to `NULL`.
   * When directly accessible from the processor (possibly via `IN` and `OUT`)
     instructions, the IO port address space is viewed as a bus device, which
     is treated as above.
-4. The kernel has routines for all directly-accessible buses, but should only
+5. Kernel **MUST** communicate with all devices via this driver framework.
+6. The kernel has routines for all directly-accessible buses, but should only
   be used inside corresponding drivers.
-5. Kernel communicates with buses either directly or via other buses,
+7. Kernel communicates with buses either directly or via other buses,
   depending on physical connection.
   * E.g., kernel communicates with memory bus directly.
   * E.g., kernel can communicate with PCI bus via a memory bus.
-6. Kernel *SHOULD* communicate with devices other than buses via buses.
+8. Kernel *SHOULD* communicate with devices other than buses via buses.
 
 ##### Design guidelines
 
@@ -145,3 +156,10 @@ console initialization.  Architecture-specific or machine-specific kernel code
 **MAY** override the driver-provided default initialization routine with its
 own, in which case `early_console_init()` **MUST** be a strong function.
 
+Because of principle (4), and we are using a register-based interface, we are
+essentially messing up with function pointers, which stores address of
+routine entries.  And the virtual address of routine entries differ before and
+after setting up memory mappings.  Therefore, in `kputs()` and `kputchar()` we
+added additional logic to determine whether we are running at lower or upper
+address space, and compute absolute addresses from stored function pointers
+afterwards. [TBD]
