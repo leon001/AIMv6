@@ -23,6 +23,7 @@
 #include <sys/types.h>
 
 #include <mm.h>
+#include <mmu.h>
 
 /*
  * This source file provides upper-level utilities to handle memory mappings.
@@ -44,6 +45,8 @@
  */
 
 #define EARLY_MAPPING_QUEUE_LENGTH	10
+
+extern page_index_head_t *boot_page_index;
 
 /* internal data structure */
 static int __early_mapping_queue_size;
@@ -95,6 +98,20 @@ struct early_mapping *early_mapping_next(struct early_mapping *base)
 		return NULL;
 	} else {
 		return next;
+	}
+}
+
+int page_index_init()
+{
+	struct early_mapping *mapping = early_mapping_next;
+	int ret;
+
+	page_index_clear(boot_page_index);
+
+	for (; mapping != NULL; mapping = early_mapping_next) {
+		ret = page_index_early_map(boot_page_index, mapping->phys_addr,
+			mapping->virt_addr, mapping->size);
+		if (ret == EOF) return EOF;
 	}
 }
 

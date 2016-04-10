@@ -69,6 +69,7 @@ int page_index_early_map(page_index_head_t * index, addr_t paddr, size_t vaddr,
 		paddr += ARM_SECT_SIZE;
 		vaddr += ARM_SECT_SIZE;
 	}
+	return 0;
 }
 
 /* get_addr_space()

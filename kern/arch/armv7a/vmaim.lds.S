@@ -82,7 +82,7 @@ SECTIONS
 	} >VMEM AT>PMEM :NONE
 
 	.boot ALIGN(16K) : {
-		PROVIDE(boot_pgdir = .);
+		PROVIDE(boot_page_index = .);
 		. += 16K; /* early pgdir */
 		. += 4K; /* early stack */
 		PROVIDE(boot_stack = .);
