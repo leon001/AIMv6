@@ -19,7 +19,11 @@
 #ifndef _DRIVERS_IO_MEM_H
 #define _DRIVERS_IO_MEM_H
 
+#include <device.h>
+
 extern struct bus_device early_memory_bus;
+
+void io_mem_init(void);
 
 #endif /* _DRIVERS_IO_MEM_H */
 

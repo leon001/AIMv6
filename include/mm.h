@@ -24,6 +24,7 @@
 
 #ifndef __ASSEMBLER__
 
+#include <sys/types.h>
 #include <mmu.h>
 
 /* TODO: pick a place and move these away */
@@ -42,15 +43,15 @@ struct early_mapping {
 	size_t	virt_addr;
 	size_t	size;
 	int	type;
+};
 #define	EARLY_MAPPING_MEMORY	0
 #define EARLY_MAPPING_KMMAP	1
-};
 
 void early_mapping_clear(void);
 int early_mapping_add(struct early_mapping *entry);
 struct early_mapping *early_mapping_next(struct early_mapping *base);
 
-int page_index_init();
+int page_index_init(page_index_head_t *boot_page_index);
 
 /* get_addr_space()
  * determine whether we are running in low address or in high address

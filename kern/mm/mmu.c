@@ -46,8 +46,6 @@
 
 #define EARLY_MAPPING_QUEUE_LENGTH	10
 
-extern page_index_head_t *boot_page_index;
-
 /* internal data structure */
 static int __early_mapping_queue_size;
 static struct early_mapping __early_mapping_queue[EARLY_MAPPING_QUEUE_LENGTH];
@@ -101,17 +99,18 @@ struct early_mapping *early_mapping_next(struct early_mapping *base)
 	}
 }
 
-int page_index_init()
+int page_index_init(page_index_head_t *boot_page_index)
 {
-	struct early_mapping *mapping = early_mapping_next;
+	struct early_mapping *mapping = early_mapping_next(NULL);
 	int ret;
 
 	page_index_clear(boot_page_index);
 
-	for (; mapping != NULL; mapping = early_mapping_next) {
+	for (; mapping != NULL; mapping = early_mapping_next(mapping)) {
 		ret = page_index_early_map(boot_page_index, mapping->phys_addr,
 			mapping->virt_addr, mapping->size);
 		if (ret == EOF) return EOF;
 	}
+	return 0;
 }
 

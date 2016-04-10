@@ -75,5 +75,5 @@ typedef arm_pte_l1_t page_index_head_t;
 
 void page_index_clear(page_index_head_t * index);
 int page_index_early_map(page_index_head_t * index, addr_t paddr, size_t vaddr,
-	size_t length)
+	size_t length);
 

@@ -32,7 +32,7 @@
 #include <io.h>
 #include <device.h>
 
-#include <io_mem.h>
+#include <io-mem.h>
 
 static int __read8(struct bus_device * inst, addr_t addr, uint64_t *ptr)
 {
@@ -108,9 +108,16 @@ static bus_write_fp __get_write_fp(struct bus_device * inst, int data_width)
 
 /* Should only be used before memory management is initialized */
 struct bus_device early_memory_bus = {
-	/* FIXME */
-	.addr_width = 32,
-	.get_read_fp = __get_read_fp,
-	.get_write_fp = __get_write_fp
+	.addr_width = 32
 };
+
+void io_mem_init(void)
+{
+	generic_fp dump = (generic_fp)0x1ff0000c;
+	dump();
+	early_memory_bus.get_read_fp = __get_read_fp;
+	dump();
+	early_memory_bus.get_write_fp = __get_write_fp;
+	dump();
+}
 

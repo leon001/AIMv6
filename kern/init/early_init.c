@@ -24,14 +24,16 @@
 #include <sys/types.h>
 #include <init.h>
 #include <console.h>
+#include <mm.h>
 
 void __noreturn master_early_init(void)
 {
-	generic_fp dump = (generic_fp)0x1ff0000C;
-	dump();
+	extern page_index_head_t *boot_page_index;
+
 	early_arch_init();
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
+	page_index_init(boot_page_index);
 	//mmu_init();
 	while (1);
 }

@@ -35,7 +35,7 @@ void page_index_clear(page_index_head_t * index)
 	arm_pte_l1_t * page_table = index;
 	int i;
 	for (i = 0; i < ARM_PT_L1_LENGTH; ++i) {
-		index[i] = 0;
+		page_table[i] = 0;
 	}
 }
 

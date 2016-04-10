@@ -29,7 +29,7 @@
 #include <console.h>
 #include <mm.h>
 
-#include <drivers/io/io_mem.h>
+#include <drivers/io/io-mem.h>
 
 /* FIXME zedboard uses UART1 only */
 #define UART_BASE	UART1_PHYSBASE
