@@ -24,6 +24,12 @@
 
 #ifndef __ASSEMBLER__
 
+#include <mmu.h>
+
+/* TODO: pick a place and move these away */
+#define ALIGN_CHECK(addr, align) \
+	((addr) % (align) == 0)
+
 /*
  * Data structure to hold early mappings.
  * type indicates how the mapping should be treated after we

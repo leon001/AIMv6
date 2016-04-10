@@ -23,6 +23,54 @@
 /* from kernel */
 #include <sys/types.h>
 
+#include <mm.h>
+#include <mmu.h>
+
+/*
+ * by CLEARing a page index, caller assumes it contains no allocated space.
+ * Often used to initialize a page index.
+ */
+void page_index_clear(page_index_head_t * index)
+{
+	arm_pte_l1_t * page_table = index;
+	int i;
+	for (i = 0; i < ARM_PT_L1_LENGTH; ++i) {
+		index[i] = 0;
+	}
+}
+
+/* This internal routine does not check for bad parameters */
+static inline void __arm_map_sect(arm_pte_l1_t * page_table, addr_t paddr,
+	size_t vaddr, uint32_t ap, uint32_t dom)
+{
+	arm_pte_l1_t entry = ARM_PT_L1_SECT;
+	entry |= paddr >> ARM_SECT_SHIFT << 20;
+	entry |= ap << 10;
+	entry |= dom << 5;
+	page_table[vaddr >> ARM_SECT_SHIFT] = entry;
+}
+
+/*
+ * Early map routine does not try to allocate memory.
+ */
+int page_index_early_map(page_index_head_t * index, addr_t paddr, size_t vaddr,
+	size_t length)
+{
+	/* alignment check */
+	if (ALIGN_CHECK(paddr, ARM_SECT_SIZE) &&
+	    ALIGN_CHECK(vaddr, ARM_SECT_SIZE) &&
+	    ALIGN_CHECK(vaddr, ARM_SECT_SIZE) != 1) {
+		return EOF;
+	}
+	/* map each ARM SECT */
+	size_t vend = vaddr + length;
+	while (vaddr < vend) {
+		__arm_map_sect(index, paddr, vaddr, ARM_PT_AP_USER_NONE, 0);
+		paddr += ARM_SECT_SIZE;
+		vaddr += ARM_SECT_SIZE;
+	}
+}
+
 /* get_addr_space()
  * determine whether we are running in low address or in high address
  * return values:
