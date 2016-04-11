@@ -175,3 +175,10 @@ See documents in (TO BE FILLED) for more details.
 Read `doc/patterns.md` for code styles and design patterns adopted in our
 project.  It is highly recommended to follow the guidelines there.
 
+## BUGS
+
+1. (TO BE FIXED) x86/ARM kernel yield bad address for global variables
+  before/after relocating to high address, because GCC is not responsible for
+  finding address of global variables after *relocation during execution*.
+  * MIPS is unaffected since we do not relocate the kernel to high address;
+    it is already there.
