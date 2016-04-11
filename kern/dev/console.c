@@ -127,8 +127,6 @@ static inline puts_fp __get_kputs(void)
 
 int kputs(const char *s)
 {
-	generic_fp dump = (generic_fp)0x1ff0000c;
-	dump();
 	puts_fp puts = __get_kputs();
 
 	if (puts == NULL)

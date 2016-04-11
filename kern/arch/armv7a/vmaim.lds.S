@@ -39,6 +39,7 @@ PHDRS
 {
 	text_low PT_LOAD;
 	text PT_LOAD;
+	rodata PT_LOAD;
 	data PT_LOAD;
 }
 
@@ -61,13 +62,13 @@ SECTIONS
 	.got : {
 		*(.got)
 		*(.got.plt)
-	} >VMEM AT>PMEM :data
+	} >VMEM AT>PMEM :rodata
 
 	.rodata : {
 		_rodata_begin = .;
 		*(.rodata)
 		_rodata_end = .;
-	} >VMEM AT>PMEM :data
+	} >VMEM AT>PMEM :rodata
 
 	.data : {
 		_data_begin = .;
