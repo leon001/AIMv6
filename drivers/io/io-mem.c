@@ -113,11 +113,7 @@ struct bus_device early_memory_bus = {
 
 void io_mem_init(void)
 {
-	generic_fp dump = (generic_fp)0x1ff0000c;
-	dump();
 	early_memory_bus.get_read_fp = __get_read_fp;
-	dump();
 	early_memory_bus.get_write_fp = __get_write_fp;
-	dump();
 }
 
