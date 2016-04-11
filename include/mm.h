@@ -52,6 +52,7 @@ int early_mapping_add(struct early_mapping *entry);
 struct early_mapping *early_mapping_next(struct early_mapping *base);
 
 int page_index_init(page_index_head_t *boot_page_index);
+int mmu_init(page_index_head_t *boot_page_index);
 
 /* get_addr_space()
  * determine whether we are running in low address or in high address

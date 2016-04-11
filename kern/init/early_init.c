@@ -34,7 +34,7 @@ void __noreturn master_early_init(void)
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
 	page_index_init(boot_page_index);
-	//mmu_init();
+	mmu_init(boot_page_index);
 	while (1);
 }
 

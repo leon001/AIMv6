@@ -72,6 +72,29 @@ int page_index_early_map(page_index_head_t * index, addr_t paddr, size_t vaddr,
 	return 0;
 }
 
+/*
+ * mmu_init()
+ * initialize the MMU with given page index
+ */
+int mmu_init(page_index_head_t * index)
+{
+    asm volatile (
+        /* Address */
+        "mcr     p15, 0, %[index], c2, c0, 0;"
+        /* access permission */
+        "mov     r0, #0x1;"
+        "mcr     p15, 0, r0, c3, c0, 0;"
+        /* turn on MMU */
+        "mrc     p15, 0, r0, c1, c0, 0;"
+        "orr     r0, r0, #0x1;"
+        "mcr     p15, 0, r0, c1, c0, 0;"
+        ::
+        /* For ARM cores, we have low address now, don't translate address. */
+        [index] "r" (index)
+    );
+    return 0;
+}
+
 /* get_addr_space()
  * determine whether we are running in low address or in high address
  * return values:
