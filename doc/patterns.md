@@ -35,6 +35,14 @@ Add whatever reasonable code style & programming practices here as reminders.
 
 ### Code style notes
 
+#### General
+
+1. Pushing a commit with only code style changes is **NOT RECOMMENDED**.  Code
+  style fix is really minor comparing to refactoring, bug fixes, new features,
+  etc.
+
+#### Functions
+
 1. A function without arguments **MUST** be declared like
 
         void foo(void);
@@ -50,6 +58,28 @@ Add whatever reasonable code style & programming practices here as reminders.
     which are, functions whose names are prepended with double underscores `__`.
   * The internal functions is **RECOMMENDED** to be declared as `static`.
 
+#### Pointers
+
+1. Pointer declaration **MUST** go like
+
+        int *a;
+
+  Leave one space between asterisk and type indicator, and do not leave
+  a space between asterisk and pointer variable/function name.  There is no
+  reason not to do so.
+
+#### `typedef`
+
+1. `typedef` *SHOULD* only be used in order to do either of the following:
+  - provide clearer aliases (e.g. `uint8_t` against `unsigned char`).
+  - hide what is inside (e.g. `pte_t`).  In this case, the data structure
+    **MUST** be accessed via accessor functions to provide encapsulation.
+    Doubly consider when doing so.
+2. If necessary, data types *SHOULD* be `typedef`'d as `foo_t`, that is, ended
+  with `_t`.
+3. If necessary, function pointers *SHOULD* be `typedef`'d as `foo_fp`, that
+  is, ended with `_fp`.
+
 ### Source organization notes
 
 1. The file names in `include` directory, `include/arch/$ARCH` directory, and
@@ -59,7 +89,45 @@ Add whatever reasonable code style & programming practices here as reminders.
 
 ### Design notes
 
-#### Drivers
+#### Driver framework
+
+**Please review and update as needed.**
+
+##### Principles
+
+[TBD]
+
+1. A device is defined as a set of hardware.
+  * This set of hardware may either be concrete or virtual.
+  * A piece of physical hardware may be viewed as more than one device.
+2. Accessing devices:
+  * Peripherals **MUST** be accessed as one or more devices.
+  * Hardwares connected to southbridge **SHOULD** be accessed as one or more
+    devices.
+    - This include (but not limited to) interrupt controllers, real-time
+      clocks, PCI bus, SMBus, and many more.
+  * Hardwares connected to northbridge **MAY** be accessed as one or more
+    devices.
+  * Parts within the processor *MAY* also be accessed as devices.
+3. A device could be a *character* device, a *block* device, a *network*
+  device, or a *bus* device. Driver framework *SHOULD* reserve for future
+  weird types of devices.
+4. A device is always connected to a bus, with only a few exceptions.
+  * The physical memory address space is viewed as a bus device. Since it is
+    directly connected to some processor, it's `bus` pointer is set to `NULL`.
+  * When directly accessible from the processor (possibly via `IN` and `OUT`)
+    instructions, the IO port address space is viewed as a bus device, which
+    is treated as above.
+5. Kernel **MUST** communicate with all devices via this driver framework.
+6. The kernel has routines for all directly-accessible buses, but should only
+  be used inside corresponding drivers.
+7. Kernel communicates with buses either directly or via other buses,
+  depending on physical connection.
+  * E.g., kernel communicates with memory bus directly.
+  * E.g., kernel can communicate with PCI bus via a memory bus.
+8. Kernel *SHOULD* communicate with devices other than buses via buses.
+
+##### Design guidelines
 
 Each driver **MUST** be designed so that it can be compiled and loaded as
 kernel module(s).
@@ -72,8 +140,14 @@ kernel module(s).
 
 3. Each driver (or any other kernel module) **MUST** provide exactly one single
    routine to register its interface (structs or pointers) to the kernel. It
-   **SHOULD** initialize the module, and **MAY** probe for device, but it
-   **SHOULD NOT** initialize the driver or the device.
+   **SHOULD** initialize the module, and **MAY** probe and/or initialize
+   the device.
+
+4. A bus device's driver **SHOULD** handle the case when it is directly
+   accessible from the processor. This part can only be omitted when NO
+   processor can access it directly, which is PCI's case.
+
+5. Whenever possible, drivers **MUST** ask bus drivers for access functions.
 
 #### `early_console_init()`
 
@@ -82,3 +156,10 @@ console initialization.  Architecture-specific or machine-specific kernel code
 **MAY** override the driver-provided default initialization routine with its
 own, in which case `early_console_init()` **MUST** be a strong function.
 
+Because of principle (4), and we are using a register-based interface, we are
+essentially messing up with function pointers, which stores address of
+routine entries.  And the virtual address of routine entries differ before and
+after setting up memory mappings.  Therefore, in `kputs()` and `kputchar()` we
+added additional logic to determine whether we are running at lower or upper
+address space, and compute absolute addresses from stored function pointers
+afterwards. [TBD]

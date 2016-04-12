@@ -20,7 +20,8 @@ include $(top_srcdir)/env.am
 SUBDIRS = \
 	arch \
 	init \
-	dev
+	dev \
+	mm
 
 CLEANFILES = vmaim.s
 
@@ -37,6 +38,7 @@ KERNEL_LIBS = \
 	arch/$(ARCH)/libentry.la \
 	init/libinit.la \
 	dev/libdev.la \
+	mm/libmm.la \
 	arch/$(ARCH)/lib$(ARCH).la \
 	$(top_builddir)/drivers/libdrivers.la \
 	$(top_builddir)/lib/libc/libc.la
