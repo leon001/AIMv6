@@ -45,7 +45,7 @@ PHDRS
 
 SECTIONS
 {
-	/DISCARD/ : {}
+	/DISCARD/ : {*(.rel.dyn)}
 
 	.text.low RAM_PHYSBASE : {
 		_text_low_begin = .;

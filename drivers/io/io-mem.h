@@ -21,7 +21,11 @@
 
 #include <device.h>
 
+//#pragma GCC visibility push(protected)
+
+__attribute__ ((visibility ("protected")))
 extern struct bus_device early_memory_bus;
+//#pragma GCC visibility pop
 
 void io_mem_init(void);
 

@@ -177,8 +177,8 @@ int early_console_init(void)
 	__uart_zynq_init(&__early_uart_zynq);
 	__uart_zynq_enable(&__early_uart_zynq);
 	set_console(
-		early_pa2kva(early_console_putchar),
-		early_pa2kva(DEFAULT_KPUTS)
+		early_console_putchar,
+		DEFAULT_KPUTS
 	);
 	return 0;
 }
