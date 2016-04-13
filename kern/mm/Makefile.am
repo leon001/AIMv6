@@ -1,6 +1,6 @@
 # Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 #
-# This program is part of AIMv6.
+# This file is part of AIMv6.
 #
 # AIMv6 is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,15 +17,7 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libio-raw.la libio.la
+noinst_LTLIBRARIES = libmm.la
 
-SRCS = io-mem.c io-mem.h io_port.c io_port.h
-
-libio_raw_la_SOURCES = $(SRCS)
-libio_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC)
-libio_raw_la_CFLAGS = $(AM_CFLAGS_NOPIC)
-libio_raw_la_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
-libio_raw_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)
-
-libio_la_SOURCES = $(SRCS)
+libmm_la_SOURCES = mmu.c
 

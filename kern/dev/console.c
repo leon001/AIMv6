@@ -65,10 +65,10 @@ static inline putchar_fp __get_kputchar(void)
 
 	switch(get_addr_space()) {
 	case 0:
-		if (ret >= KERN_BASE) ret = early_kva2pa(ret);
+		if (ret >= (putchar_fp)KERN_BASE) ret = early_kva2pa(ret);
 		return ret;
 	case 1:
-		if (ret < KERN_BASE) ret = early_pa2kva(ret);
+		if (ret < (putchar_fp)KERN_BASE) ret = early_pa2kva(ret);
 		return ret;
 	default:
 		return NULL;
@@ -115,10 +115,10 @@ static inline puts_fp __get_kputs(void)
 
 	switch(get_addr_space()) {
 	case 0:
-		if (ret >= KERN_BASE) ret = early_kva2pa(ret);
+		if (ret >= (puts_fp)KERN_BASE) ret = early_kva2pa(ret);
 		return ret;
 	case 1:
-		if (ret < KERN_BASE) ret = early_pa2kva(ret);
+		if (ret < (puts_fp)KERN_BASE) ret = early_pa2kva(ret);
 		return ret;
 	default:
 		return NULL;

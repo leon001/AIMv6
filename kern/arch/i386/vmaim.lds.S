@@ -1,5 +1,4 @@
-/* Copyright (C) 2016 Xiaofei Bai <xffbai@gmail.com>
- * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -21,74 +20,112 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <mmu.h>
+
 /* A hack for disabling the preprocessor to replace $ARCH automatically */
 #undef i386
 
-OUTPUT_FORMAT(elf32-i386)
+OUTPUT_ARCH(i386)
 ENTRY(master_entry)
+
+MEMORY
+{
+	PMEM (WX) :
+		ORIGIN = RAM_PHYSBASE,
+		LENGTH = MEM_SIZE - 1M
+	VMEM (WX) :
+		ORIGIN = KERN_BASE,
+		LENGTH = MEM_SIZE - 1M
+}
+
+/*
+ * If we do not manually specify how to arrange the sections into
+ * segments, ld would try to do the job by its own.  A bad consequence
+ * is that the virtual address (high address) and the physical address
+ * (low address) usually does not match, which breaks the equation
+ *
+ * KVA = PA - RAM_PHYSBASE + KERN_BASE
+ *
+ * For the same reason, we have to manually specify the alignment of
+ * each section, which should match the section headers displayed by
+ * readelf(1).
+ *
+ * Double check the result of readelf(1), and make sure that the
+ * equation above holds.
+ */
+
+PHDRS
+{
+	text_low PT_LOAD;
+	text PT_LOAD;
+	rodata PT_LOAD;
+	data PT_LOAD;
+}
 
 SECTIONS
 {
-	/DISCARD/ : {}
+	/DISCARD/ : {
+		/* This section wreaks havoc when arranging section
+		 * .text.low and .text.  As this garbage section appears
+		 * before .text.low, it essentially forces .text.low to
+		 * overlap section .text.
+		 *
+		 * One can verify by removing this section from here and
+		 * read the output of ld -M.
+		 *
+		 * Blacklisting this section results in a warning for
+		 * --build-id option.  In most cases this doesn't matter,
+		 * but I really hate warnings.  So one should add another
+		 * linker flag: --build-id=none
+		 */
+		*(.note.gnu.build-id)
+		/* .eh_frame and .eh_frame_hdr are also garbage sections
+		 * messing up program segments.
+		 */
+		*(.eh_frame*)
+	}
 
-	/* Note that we should probably reserve further more space for
-	 * bootloader use.  See boot/arch/i386/bootmain.c for such
-	 * demonstration. */
+	.text.low RAM_PHYSBASE : {
+		_text_low_begin = .;
+		*(.text.low)
+		_text_low_end = .;
+	} >PMEM AT>PMEM :text_low
 
-	/*
-	 * IMPORTANT:
-	 * Strangely, sections such as .low_text are not put into a
-	 * loadable segment.
-	 *
-	 * As such, I'm unable to put the virtual addresses into high
-	 * address space (>KERN_BASE), since doing that will make
-	 * the entry reside in high address space as well.
-	 *
-	 * Another consequence is that get_addr_space() have to return
-	 * 1 all the time to make __get_kputchar() find the correct
-	 * address.
-	 */
-	. = ALIGN(256K);
-
-	/* . += KERN_BASE; */
-
-	_text_begin = .;
-	.text : {
-		*(.text*);
+	.text early_pa2kva(_text_low_end) : {
+		_text_begin = .;
+		*(.text*)
 		_text_end = .;
-	}
-	
+	} >VMEM AT>PMEM :text
+
+	.got : ALIGN(4) {
+		*(.got*)
+		*(.igot*)
+	} >VMEM AT>PMEM :rodata
+
 	.rodata : {
-		*(.rodata*);
+		_rodata_begin = .;
+		*(.rodata*)
 		_rodata_end = .;
-	}
-	
+	} >VMEM AT>PMEM :rodata
+
+	.data : ALIGN(32) {
+		_data_begin = .;
+		*(.data*)
+		_data_end = .;
+	} >VMEM AT>PMEM :data
+
 	.bss : {
 		_bss_begin = .;
-		*(.bss*);
+		*(.bss)
 		_bss_end = .;
-	}
-
-	.data : {
-		*(.data*);
-	}
-
-	.got : {
-		*(.got*);
-		*(.igot*);
-	}
-
-	/* probably redundant */
-	.plt : {
-		*(.plt*);
-	}
-
-	. = ALIGN(16K);
+	} >VMEM AT>PMEM :NONE
 
 	.boot : {
-		PROVIDE(boot_pgdir = .);
+		PROVIDE(boot_page_index = .);
 		. += 16K; /* early pgdir */
 		. += 4K; /* early stack */
 		PROVIDE(boot_stack = .);
-	}
+	} >VMEM AT>PMEM :NONE
 }
+
+

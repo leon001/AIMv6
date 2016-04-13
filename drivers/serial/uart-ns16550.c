@@ -30,7 +30,7 @@
 #include <platform.h>
 #include <device.h>
 #include <console.h>
-#include <drivers/io/io_mem.h>
+#include <drivers/io/io-mem.h>
 #include <drivers/io/io_port.h>
 
 #if ARCH == i386

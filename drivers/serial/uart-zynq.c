@@ -27,8 +27,9 @@
 
 #include <device.h>
 #include <console.h>
+#include <mm.h>
 
-#include <drivers/io/io_mem.h>
+#include <drivers/io/io-mem.h>
 
 /* FIXME zedboard uses UART1 only */
 #define UART_BASE	UART1_PHYSBASE
@@ -175,7 +176,10 @@ int early_console_init(void)
 	__early_uart_zynq.bus = &early_memory_bus;
 	__uart_zynq_init(&__early_uart_zynq);
 	__uart_zynq_enable(&__early_uart_zynq);
-	set_console(early_console_putchar, DEFAULT_KPUTS);
+	set_console(
+		early_console_putchar,
+		DEFAULT_KPUTS
+	);
 	return 0;
 }
 

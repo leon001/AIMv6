@@ -24,13 +24,17 @@
 #include <sys/types.h>
 #include <init.h>
 #include <console.h>
+#include <mm.h>
 
 void __noreturn master_early_init(void)
 {
+	extern page_index_head_t *boot_page_index;
+
 	early_arch_init();
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
-	//mmu_init();
+	page_index_init(boot_page_index);
+	mmu_init(boot_page_index);
 	while (1);
 }
 

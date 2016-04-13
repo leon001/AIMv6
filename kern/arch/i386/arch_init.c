@@ -22,9 +22,11 @@
 
 /* from kernel */
 #include <init.h>
+#include <drivers/io/io_port.h>
 
 void early_arch_init(void)
 {
 	//early_mach_init();
+	portio_bus_init(&portio_bus);
 }
 

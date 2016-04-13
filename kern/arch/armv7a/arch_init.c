@@ -21,10 +21,13 @@
 #endif /* HAVE_CONFIG_H */
 
 /* from kernel */
+#include <sys/types.h>
 #include <init.h>
+#include <drivers/io/io-mem.h>
 
 void early_arch_init(void)
 {
+	io_mem_init();
 	early_mach_init();
 }
 
