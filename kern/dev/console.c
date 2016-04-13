@@ -65,17 +65,10 @@ static inline putchar_fp __get_kputchar(void)
 
 	switch(get_addr_space()) {
 	case 0:
-<<<<<<< HEAD
-		if (ret >= KERN_BASE) ret = early_kva2pa(ret);
-		return ret;
-	case 1:
-		if (ret < KERN_BASE) ret = early_pa2kva(ret);
-=======
 		if (ret >= (putchar_fp)KERN_BASE) ret = early_kva2pa(ret);
 		return ret;
 	case 1:
 		if (ret < (putchar_fp)KERN_BASE) ret = early_pa2kva(ret);
->>>>>>> arm-dev
 		return ret;
 	default:
 		return NULL;

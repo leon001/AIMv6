@@ -35,12 +35,14 @@
  *
  * Every machine have at most one port I/O bus.
  */
+__attribute__((visibility("hidden")))
 extern struct bus_device portio_bus;
 
 /* Connect Port I/O bus to another bus. */
 void portio_bus_connect(struct bus_device *portio,
 			struct bus_device *bus,
 			addr_t base);
+void portio_bus_init(struct bus_device *portio);
 
 #endif /* _DRIVERS_IO_PORT_H */
 

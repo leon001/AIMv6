@@ -164,6 +164,12 @@ void portio_bus_connect(struct bus_device *portio,
 	portio->bus = bus;
 }
 
+void portio_bus_init(struct bus_device *portio)
+{
+	portio->get_read_fp = __get_read_fp;
+	portio->get_write_fp = __get_write_fp;
+}
+
 /*
  * IMPORTANT NOTE:
  * Port I/O bus structure should be further initialized in
@@ -173,7 +179,5 @@ void portio_bus_connect(struct bus_device *portio,
 struct bus_device portio_bus = {
 	/* FIXME ? */
 	.addr_width = 32,
-	.get_read_fp = __get_read_fp,
-	.get_write_fp = __get_write_fp
 };
 

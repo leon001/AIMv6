@@ -28,9 +28,6 @@
 #ifndef _MMU_H
 #define _MMU_H
 
-/* from kernel */
-#include <sys/types.h>
-
 /*
  * [BarclayII] on MIPS, kernel virtual address is *always* (pa + KERN_BASE).
  * I guess the following should be put in arch-specific headers.
@@ -54,6 +51,9 @@
 #define ARM_PT_L1_FREE		0x0
 
 #ifndef __ASSEMBLER__
+
+/* from kernel */
+#include <sys/types.h>
 
 /*
  * Existing naming solutions like pde_t and pte_t does not pass enough
