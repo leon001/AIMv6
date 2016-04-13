@@ -30,13 +30,15 @@ void __noreturn master_early_init(void)
 {
 	extern page_index_head_t *boot_page_index;
 
+	early_mapping_clear();
+
 	early_arch_init();
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
 
 	/* add default mapping last */
 	early_mapping_add_memory(
-		get_mem_physbase(), 
+		get_mem_physbase(),
 		get_mem_size());
 /**/
 	struct early_mapping *mapping = early_mapping_next(NULL);
