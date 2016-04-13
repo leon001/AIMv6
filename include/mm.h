@@ -52,6 +52,7 @@ struct early_mapping {
 
 void early_mapping_clear(void);
 size_t early_mapping_add_memory(addr_t base, addr_t size);
+int early_mapping_add_kmmap(addr_t base, addr_t size);
 struct early_mapping *early_mapping_next(struct early_mapping *base);
 
 int page_index_init(page_index_head_t *boot_page_index);

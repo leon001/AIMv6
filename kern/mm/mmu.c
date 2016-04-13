@@ -49,11 +49,14 @@
 /* internal data structure */
 static int __early_mapping_queue_size;
 static struct early_mapping __early_mapping_queue[EARLY_MAPPING_QUEUE_LENGTH];
+static size_t __mem_top;
+static size_t __kmmap_top;
 
 void early_mapping_clear(void)
 {
 	__early_mapping_queue_size = 0;
-	/* No need to overwrite anything */
+	__mem_top = KERN_BASE;
+	__kmmap_top = KMMAP_BASE;
 }
 
 /* add a mapping entry */
@@ -68,7 +71,7 @@ static int __early_mapping_add(struct early_mapping *entry)
 		/* Queue full */
 		return EOF;
 	}
-	/* TODO: check for overlap */
+	/* TODO: check for overlap and alignment */
 	__early_mapping_queue[__early_mapping_queue_size] = *entry;
 	__early_mapping_queue_size += 1;
 	return 0;
@@ -76,23 +79,42 @@ static int __early_mapping_add(struct early_mapping *entry)
 
 size_t early_mapping_add_memory(addr_t base, addr_t size)
 {
-	static size_t mem_top = KERN_BASE;
 	/* check available address space */
-	if (mem_top >= KMMAP_BASE)
+	if (__mem_top >= KMMAP_BASE)
 		return 0;
-	if (size > KMMAP_BASE - KERN_BASE)
-		size = KMMAP_BASE - KERN_BASE;
+	if (size > __mem_top - KERN_BASE)
+		size = __mem_top - KERN_BASE;
 
 	/* construct the descriptor and register the mapping */
 	struct early_mapping desc = {
 		.paddr = base,
-		.vaddr = mem_top,
+		.vaddr = __mem_top,
 		.size = size,
 		.type = EARLY_MAPPING_MEMORY
 	};
 	int ret = __early_mapping_add(&desc);
-	if (ret == 0) return size;
-	else return 0;
+	if (ret != 0) return 0;/* fail */
+	__mem_top += size;
+	return size;
+}
+
+int early_mapping_add_kmmap(addr_t base, addr_t size)
+{
+	/* check available address space */
+	if (__kmmap_top >= RESERVED_BASE)
+		return EOF;
+
+	/* construct the descriptor and register the mapping */
+	struct early_mapping desc = {
+		.paddr = base,
+		.vaddr = __kmmap_top,
+		.size = size,
+		.type = EARLY_MAPPING_KMMAP
+	};
+	int ret = __early_mapping_add(&desc);
+	if (ret != 0) return EOF;
+	__kmmap_top += size;
+	return 0;
 }
 
 /*
