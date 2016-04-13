@@ -31,6 +31,9 @@
 #define ALIGN_CHECK(addr, align) \
 	((addr) % (align) == 0)
 
+addr_t get_mem_physbase();
+addr_t get_mem_size();
+
 /*
  * Data structure to hold early mappings.
  * type indicates how the mapping should be treated after we
@@ -39,8 +42,8 @@
  * EARLY_MAPPING_KMMAP - Will be translated to an ioremap() result.
  */
 struct early_mapping {
-	addr_t	phys_addr;
-	size_t	virt_addr;
+	addr_t	paddr;
+	size_t	vaddr;
 	size_t	size;
 	int	type;
 };
@@ -48,7 +51,7 @@ struct early_mapping {
 #define EARLY_MAPPING_KMMAP	1
 
 void early_mapping_clear(void);
-int early_mapping_add(struct early_mapping *entry);
+size_t early_mapping_add_memory(addr_t base, addr_t size);
 struct early_mapping *early_mapping_next(struct early_mapping *base);
 
 int page_index_init(page_index_head_t *boot_page_index);

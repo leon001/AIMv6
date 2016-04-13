@@ -43,42 +43,50 @@ PHDRS
 	data PT_LOAD;
 }
 
+RAM_SIZE = LENGTH(PMEM);
+
 SECTIONS
 {
-	/DISCARD/ : {*(.rel.dyn)}
+	/DISCARD/ : {}
 
 	.text.low RAM_PHYSBASE : {
 		_text_low_begin = .;
 		*(.text.low)
+		. = ALIGN(16);
 		_text_low_end = .;
 	} >PMEM AT>PMEM :text_low
 
 	.text early_pa2kva(_text_low_end) : {
 		_text_begin = .;
 		*(.text)
+		. = ALIGN(16);
 		_text_end = .;
 	} >VMEM AT>PMEM :text
 
 	.got : {
 		*(.got)
 		*(.got.plt)
+		. = ALIGN(16);
 	} >VMEM AT>PMEM :rodata
 
 	.rodata : {
 		_rodata_begin = .;
 		*(.rodata)
+		. = ALIGN(16);
 		_rodata_end = .;
 	} >VMEM AT>PMEM :rodata
 
 	.data : {
 		_data_begin = .;
 		*(.data*)
+		. = ALIGN(16);
 		_data_end = .;
 	} >VMEM AT>PMEM :data
 
 	.bss : {
 		_bss_begin = .;
 		*(.bss)
+		. = ALIGN(16);
 		_bss_end = .;
 	} >VMEM AT>PMEM :NONE
 

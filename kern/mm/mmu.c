@@ -57,7 +57,7 @@ void early_mapping_clear(void)
 }
 
 /* add a mapping entry */
-int early_mapping_add(struct early_mapping *entry)
+static int __early_mapping_add(struct early_mapping *entry)
 {
 	if (__early_mapping_queue_size > EARLY_MAPPING_QUEUE_LENGTH) {
 		/* Bad data structure. Panic immediately to prevent damage. */
@@ -72,6 +72,27 @@ int early_mapping_add(struct early_mapping *entry)
 	__early_mapping_queue[__early_mapping_queue_size] = *entry;
 	__early_mapping_queue_size += 1;
 	return 0;
+}
+
+size_t early_mapping_add_memory(addr_t base, addr_t size)
+{
+	static size_t mem_top = KERN_BASE;
+	/* check available address space */
+	if (mem_top >= KMMAP_BASE)
+		return 0;
+	if (size > KMMAP_BASE - KERN_BASE)
+		size = KMMAP_BASE - KERN_BASE;
+
+	/* construct the descriptor and register the mapping */
+	struct early_mapping desc = {
+		.paddr = base,
+		.vaddr = mem_top,
+		.size = size,
+		.type = EARLY_MAPPING_MEMORY
+	};
+	int ret = __early_mapping_add(&desc);
+	if (ret == 0) return size;
+	else return 0;
 }
 
 /*
@@ -107,8 +128,8 @@ int page_index_init(page_index_head_t *boot_page_index)
 	page_index_clear(boot_page_index);
 
 	for (; mapping != NULL; mapping = early_mapping_next(mapping)) {
-		ret = page_index_early_map(boot_page_index, mapping->phys_addr,
-			mapping->virt_addr, mapping->size);
+		ret = page_index_early_map(boot_page_index, mapping->paddr,
+			mapping->vaddr, mapping->size);
 		if (ret == EOF) return EOF;
 	}
 	return 0;

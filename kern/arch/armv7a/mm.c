@@ -26,6 +26,18 @@
 #include <mm.h>
 #include <mmu.h>
 
+addr_t get_mem_physbase()
+{
+	return RAM_PHYSBASE;
+}
+
+addr_t get_mem_size()
+{
+	/* FIXME */
+	extern void *RAM_SIZE;
+	return (addr_t)(size_t)&RAM_SIZE;
+}
+
 /*
  * by CLEARing a page index, caller assumes it contains no allocated space.
  * Often used to initialize a page index.

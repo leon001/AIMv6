@@ -33,6 +33,20 @@ void __noreturn master_early_init(void)
 	early_arch_init();
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
+
+	/* add default mapping last */
+	early_mapping_add_memory(
+		get_mem_physbase(), 
+		get_mem_size());
+/**/
+	struct early_mapping *mapping = early_mapping_next(NULL);
+
+	for (; mapping != NULL; mapping = early_mapping_next(mapping)) {
+		kprintf("early_mapping(P=0x%08x, V=0x%08x, S=0x%08x, %d)\n",
+			(size_t)mapping->paddr, (size_t)mapping->vaddr, 
+			(size_t)mapping->size, mapping->type);
+	}
+/**/
 	page_index_init(boot_page_index);
 	mmu_init(boot_page_index);
 	while (1);
