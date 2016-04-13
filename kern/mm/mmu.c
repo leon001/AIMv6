@@ -60,7 +60,7 @@ void early_mapping_clear(void)
 }
 
 /* add a mapping entry */
-static int __early_mapping_add(struct early_mapping *entry)
+int early_mapping_add(struct early_mapping *entry)
 {
 	if (__early_mapping_queue_size > EARLY_MAPPING_QUEUE_LENGTH) {
 		/* Bad data structure. Panic immediately to prevent damage. */
@@ -77,28 +77,28 @@ static int __early_mapping_add(struct early_mapping *entry)
 	return 0;
 }
 
-size_t early_mapping_add_memory(addr_t base, addr_t size)
+size_t early_mapping_add_memory(addr_t base, size_t size)
 {
 	/* check available address space */
 	if (__mem_top >= KMMAP_BASE)
 		return 0;
-	if (size > __mem_top - KERN_BASE)
-		size = __mem_top - KERN_BASE;
+	if (size > KMMAP_BASE - __mem_top)
+		size = KMMAP_BASE - __mem_top;
 
 	/* construct the descriptor and register the mapping */
 	struct early_mapping desc = {
 		.paddr = base,
 		.vaddr = __mem_top,
-		.size = size,
+		.size = (size_t)size,
 		.type = EARLY_MAPPING_MEMORY
 	};
-	int ret = __early_mapping_add(&desc);
+	int ret = early_mapping_add(&desc);
 	if (ret != 0) return 0;/* fail */
 	__mem_top += size;
 	return size;
 }
 
-int early_mapping_add_kmmap(addr_t base, addr_t size)
+int early_mapping_add_kmmap(addr_t base, size_t size)
 {
 	/* check available address space */
 	if (__kmmap_top >= RESERVED_BASE)
@@ -111,7 +111,7 @@ int early_mapping_add_kmmap(addr_t base, addr_t size)
 		.size = size,
 		.type = EARLY_MAPPING_KMMAP
 	};
-	int ret = __early_mapping_add(&desc);
+	int ret = early_mapping_add(&desc);
 	if (ret != 0) return EOF;
 	__kmmap_top += size;
 	return 0;

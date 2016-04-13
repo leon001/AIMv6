@@ -39,16 +39,18 @@ void __noreturn master_early_init(void)
 	/* add default mapping last */
 	early_mapping_add_memory(
 		get_mem_physbase(),
-		get_mem_size());
-/**/
-	struct early_mapping *mapping = early_mapping_next(NULL);
+		(size_t)get_mem_size());
 
+	/* dump some debug info */
+	kprintf("KERN: Total memory: 0x%08x\n", (size_t)get_mem_size());
+	struct early_mapping *mapping = early_mapping_next(NULL);
 	for (; mapping != NULL; mapping = early_mapping_next(mapping)) {
-		kprintf("early_mapping(P=0x%08x, V=0x%08x, S=0x%08x, %d)\n",
-			(size_t)mapping->paddr, (size_t)mapping->vaddr, 
-			(size_t)mapping->size, mapping->type);
+		kprintf("KERN: early_mapping(P=0x%08x, V=0x%08x, S=0x%08x, %d)\n",
+			(size_t)mapping->paddr, mapping->vaddr, 
+			mapping->size, mapping->type);
 	}
-/**/
+
+	/* initialize and apply page index */
 	page_index_init(boot_page_index);
 	mmu_init(boot_page_index);
 	while (1);
