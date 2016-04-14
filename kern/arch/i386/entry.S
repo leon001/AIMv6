@@ -69,15 +69,15 @@ master_entry:
 	 * This piece of code runs at low address, so we should be extremely
 	 * cautious about what addresses we are playing with.  Addresses
 	 * like _bss_begin and boot_stack are at high address and therefore
-	 * should be converted by macro early_kva2pa to obtain the
+	 * should be converted by macro premap_addr to obtain the
 	 * corresponding low address.  However, symbols appearing here (e.g.
 	 * master_t2) are inherently at low address, so we should *not*
 	 * convert them.
 	 */
 
 	/* Clear BSS */
-	movl	$early_kva2pa(_bss_begin), %edi
-	movl	$early_kva2pa(_bss_end), %ecx
+	movl	$premap_addr(_bss_begin), %edi
+	movl	$premap_addr(_bss_end), %ecx
 	subl	%edi, %ecx		/* ECX = _bss_end - _bss_begin */
 	xor	%eax, %eax
 	/*
@@ -95,12 +95,12 @@ master_t1:
 
 master_t2:
 	/* Set up stack */
-	movl	$early_kva2pa(boot_stack), %esp
+	movl	$premap_addr(boot_stack), %esp
 	#subl	%esp, %esi
 	movl	%esp, %ebp
 
 	/* Call into early_init */
-	movl	$early_kva2pa(master_early_init), %eax
+	movl	$premap_addr(master_early_init), %eax
 	#subl	%eax, %esi
 	call 	*%eax
 
@@ -119,12 +119,12 @@ slave_entry:
 
 slave_t1:
 	/* Set up a real stack */
-	movl	$early_kva2pa(boot_stack), %esp
+	movl	$premap_addr(boot_stack), %esp
 	#subl	%esp, %esi
 	movl	%esp, %ebp
 
 	/* Call into early_init */
-	movl	$early_kva2pa(slave_early_init), %eax
+	movl	$premap_addr(slave_early_init), %eax
 	#subl	%eax, %esi
 	call 	*%eax
 
@@ -132,7 +132,7 @@ lock:
 	/* a spin lock */
 	xorl	%edx, %edx
 	incl	%edx
-	movl	$early_kva2pa(early_spinlock), %ebx
+	movl	$premap_addr(early_spinlock), %ebx
 	#subl	%ebx, %esi
 spin_lock_retry:
 	xorl	%eax, %eax

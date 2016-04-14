@@ -111,9 +111,9 @@ struct bus_device early_memory_bus = {
 	.addr_width = 32
 };
 
-void io_mem_init(void)
+void io_mem_init(struct bus_device *memory_bus)
 {
-	early_memory_bus.get_read_fp = __get_read_fp;
-	early_memory_bus.get_write_fp = __get_write_fp;
+	memory_bus->get_read_fp = __get_read_fp;
+	memory_bus->get_write_fp = __get_write_fp;
 }
 
