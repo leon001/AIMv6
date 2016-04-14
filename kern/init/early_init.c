@@ -28,13 +28,10 @@
 
 void __noreturn master_early_init(void)
 {
-	extern page_index_head_t *boot_page_index;
-
 	early_arch_init();
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
-	page_index_init(boot_page_index);
-	mmu_init(boot_page_index);
+	early_mm_init();
 	while (1);
 }
 
