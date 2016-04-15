@@ -19,8 +19,40 @@
 #ifndef _MM_H
 #define _MM_H
 
-#define early_kva2pa(kva)	((kva) - KERN_BASE)
-#define early_pa2kva(pa)	((pa) + KERN_BASE)
+#include <mmu.h>
+
+#ifndef __ASSEMBLER__
+
+#include <sys/types.h>
+
+/* TODO: pick a place and move these away */
+#define ALIGN_CHECK(addr, align) \
+	((addr) % (align) == 0)
+
+/*
+ * Data structure to hold early mappings.
+ * type indicates how the mapping should be treated after we
+ * jump up to kernel address space.
+ * EARLY_MAPPING_MEMORY - Nothing will be done.
+ * EARLY_MAPPING_KMMAP - Will be translated to an ioremap() result.
+ */
+struct early_mapping {
+	addr_t	phys_addr;
+	size_t	virt_addr;
+	size_t	size;
+	int	type;
+};
+#define	EARLY_MAPPING_MEMORY	0
+#define EARLY_MAPPING_KMMAP	1
+
+void early_mapping_clear(void);
+int early_mapping_add(struct early_mapping *entry);
+struct early_mapping *early_mapping_next(struct early_mapping *base);
+
+int page_index_init(page_index_head_t *boot_page_index);
+int mmu_init(page_index_head_t *boot_page_index);
+
+void early_mm_init(void);	/* arch-specific */
 
 /* get_addr_space()
  * determine whether we are running in low address or in high address
@@ -35,6 +67,8 @@
  * Can be changed into at_lower() or before_kernmap() or alike.
  */
 int get_addr_space(void);
+
+#endif /* __ASSEMBLY__ */
 
 #endif /* _MM_H */
 

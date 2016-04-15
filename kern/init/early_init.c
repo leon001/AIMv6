@@ -24,13 +24,25 @@
 #include <sys/types.h>
 #include <init.h>
 #include <console.h>
+#include <mm.h>
+
+/*
+ * Probably should be put into something like arch/generic?
+ */
+__weak void early_mm_init(void)
+{
+	extern page_index_head_t *boot_page_index;
+
+	page_index_init(boot_page_index);
+	mmu_init(boot_page_index);
+}
 
 void __noreturn master_early_init(void)
 {
 	early_arch_init();
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
-	//mmu_init();
+	early_mm_init();
 	while (1);
 }
 
