@@ -78,6 +78,7 @@ SECTIONS {
 	 */
 	. = ALIGN(KSTACKSIZE);
 	.boot : {
+		PROVIDE(boot_page_index = .);
 		. += KSTACKSIZE;
 		PROVIDE(boot_stack = .);
 	}

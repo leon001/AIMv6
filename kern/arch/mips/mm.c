@@ -47,3 +47,4 @@ int get_addr_space(void)
 void early_mm_init(void)
 {
 }
+

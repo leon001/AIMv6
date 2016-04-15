@@ -54,11 +54,3 @@ int get_addr_space(void)
 {
 	return (get_pc() > KERN_BASE);
 }
-
-void early_mm_init(void)
-{
-	extern page_index_head_t *boot_page_index;
-
-	page_index_init(boot_page_index);
-	mmu_init(boot_page_index);
-}
