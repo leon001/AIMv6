@@ -30,9 +30,27 @@ void __noreturn master_early_init(void)
 {
 	extern page_index_head_t *boot_page_index;
 
+	early_mapping_clear();
+
 	early_arch_init();
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
+
+	/* add default mapping last */
+	early_mapping_add_memory(
+		get_mem_physbase(),
+		(size_t)get_mem_size());
+
+	/* dump some debug info */
+	kprintf("KERN: Total memory: 0x%08x\n", (size_t)get_mem_size());
+	struct early_mapping *mapping = early_mapping_next(NULL);
+	for (; mapping != NULL; mapping = early_mapping_next(mapping)) {
+		kprintf("KERN: early_mapping(P=0x%08x, V=0x%08x, S=0x%08x, %d)\n",
+			(size_t)mapping->paddr, mapping->vaddr, 
+			mapping->size, mapping->type);
+	}
+
+	/* initialize and apply page index */
 	page_index_init(boot_page_index);
 	mmu_init(boot_page_index);
 	while (1);

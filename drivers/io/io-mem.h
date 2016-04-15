@@ -23,7 +23,7 @@
 
 //#pragma GCC visibility push(protected)
 
-__attribute__ ((visibility ("protected")))
+__attribute__ ((visibility ("hidden")))
 extern struct bus_device early_memory_bus;
 //#pragma GCC visibility pop
 

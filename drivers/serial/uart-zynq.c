@@ -43,6 +43,7 @@ static struct chr_device __early_uart_zynq = {
 	 */
 	.base = UART_BASE
 };
+static addr_t __early_mapped_base;
 
 /* internal routines */
 
@@ -180,6 +181,9 @@ int early_console_init(void)
 		early_console_putchar,
 		DEFAULT_KPUTS
 	);
+	__early_mapped_base = early_mapping_add_kmmap(UART_BASE, 1<<20);
+	if (__early_mapped_base != 0)
+		while (1);
 	return 0;
 }
 
