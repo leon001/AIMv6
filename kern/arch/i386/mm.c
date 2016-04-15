@@ -54,4 +54,3 @@ int get_addr_space(void)
 {
 	return (get_pc() > KERN_BASE);
 }
-

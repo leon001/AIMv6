@@ -31,10 +31,9 @@
 /*
  * [BarclayII] on MIPS, kernel virtual address is *always* (pa + KERN_BASE).
  * I guess the following should be put in arch-specific headers.
- * In MIPS code, these are defined in <addrspace.h>
  */
-#define early_kva2pa(kva)	((kva) + RAM_PHYSBASE - KERN_BASE)
-#define early_pa2kva(pa)	((pa) - RAM_PHYSBASE + KERN_BASE)
+#define premap_addr(kva)	((kva) + KERN_START - KERN_BASE)
+#define postmap_addr(pa)	((pa) - KERN_START + KERN_BASE)
 
 #define ARM_SECT_SHIFT	20
 #define ARM_SECT_SIZE	(1 << ARM_SECT_SHIFT)

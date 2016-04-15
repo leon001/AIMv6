@@ -28,7 +28,7 @@
 
 void early_arch_init(void)
 {
-	io_mem_init();
+	io_mem_init(&early_memory_bus);
 	early_mach_init();
 
 	/* extra low address mapping */

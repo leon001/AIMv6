@@ -151,6 +151,10 @@ AIM_ARG_WITH([ram-physbase], [RAM_PHYSBASE], [physical memory start point],
 	[0x00000000])
 AC_SUBST([RAM_PHYSBASE], [$with_ram_physbase])
 
+AIM_ARG_WITH([kern-start], [KERN_START], [kernel loading physical address],
+	[0x00000000])
+AC_SUBST([KERN_START], [$with_kern_start])
+
 AIM_ARG_WITH([mem-size], [MEM_SIZE], [amount of memory installed], [detect])
 AC_SUBST([MEM_SIZE], [$with_mem_size])
 

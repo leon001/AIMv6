@@ -16,6 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <mmu.h>
+#include <sys/types.h>
+
+void page_index_clear(page_index_head_t * index)
+{
+}
+
+int page_index_early_map(page_index_head_t * index,
+			 addr_t paddr,
+			 size_t vaddr,
+			 size_t length)
+{
+	return 0;
+}
+
+int mmu_init(page_index_head_t *boot_page_index)
+{
+	return 0;
+}
+
 int get_addr_space(void)
 {
 	/* MIPS kernels always run in high address space (0x80000000+);
@@ -23,3 +43,8 @@ int get_addr_space(void)
 	 * We don't have any choice. */
 	return 1;
 }
+
+void early_mm_init(void)
+{
+}
+

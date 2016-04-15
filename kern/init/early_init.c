@@ -26,15 +26,12 @@
 #include <console.h>
 #include <mm.h>
 
-void __noreturn master_early_init(void)
+/*
+ * Probably should be put into something like arch/generic?
+ */
+__weak void early_mm_init(void)
 {
 	extern page_index_head_t *boot_page_index;
-
-	early_mapping_clear();
-
-	early_arch_init();
-	early_console_init();
-	kputs("KERN: Hello, world!\n");
 
 	/* add default mapping last */
 	early_mapping_add_memory(
@@ -53,6 +50,15 @@ void __noreturn master_early_init(void)
 	/* initialize and apply page index */
 	page_index_init(boot_page_index);
 	mmu_init(boot_page_index);
+}
+
+void __noreturn master_early_init(void)
+{
+	early_mapping_clear();
+	early_arch_init();
+	early_console_init();
+	kputs("KERN: Hello, world!\n");
+	early_mm_init();
 	while (1);
 }
 

@@ -44,7 +44,7 @@ MEMORY
  * is that the virtual address (high address) and the physical address
  * (low address) usually does not match, which breaks the equation
  *
- * KVA = PA - RAM_PHYSBASE + KERN_BASE
+ * KVA = PA - KERN_START + KERN_BASE
  *
  * For the same reason, we have to manually specify the alignment of
  * each section, which should match the section headers displayed by
@@ -85,13 +85,13 @@ SECTIONS
 		*(.eh_frame*)
 	}
 
-	.text.low RAM_PHYSBASE : {
+	.text.low KERN_START : {
 		_text_low_begin = .;
 		*(.text.low)
 		_text_low_end = .;
 	} >PMEM AT>PMEM :text_low
 
-	.text early_pa2kva(_text_low_end) : {
+	.text postmap_addr(_text_low_end) : {
 		_text_begin = .;
 		*(.text*)
 		_text_end = .;
