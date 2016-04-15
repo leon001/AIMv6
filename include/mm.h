@@ -53,12 +53,20 @@ struct early_mapping {
 
 void early_mapping_clear(void);
 size_t early_mapping_add_memory(addr_t base, size_t size);
-int early_mapping_add_kmmap(addr_t base, size_t size);
+size_t early_mapping_add_kmmap(addr_t base, size_t size);
 int early_mapping_add(struct early_mapping *entry);
 struct early_mapping *early_mapping_next(struct early_mapping *base);
 
 int page_index_init(page_index_head_t *boot_page_index);
 int mmu_init(page_index_head_t *boot_page_index);
+
+void mmu_handlers_clear(void);
+int mmu_handlers_add(generic_fp entry);
+void mmu_handlers_apply(void);
+
+void jump_handlers_clear(void);
+int jump_handlers_add(generic_fp entry);
+void jump_handlers_apply(void);
 
 /* get_addr_space()
  * determine whether we are running in low address or in high address
