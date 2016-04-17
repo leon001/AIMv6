@@ -31,16 +31,20 @@
 #define BOOT_E820MAP		0x8000
 #define BOOT_E820MAP_ERROR	(-1)
 
+#define E820MAX			20
+
 #ifndef __ASSEMBLER__
 
+#pragma pack(1)
 struct e820map {
 	uint32_t num;
-	__packed struct {
+	struct {
 		uint64_t start;
 		uint64_t size;
 		uint32_t type;
 	} map[E820MAX];
 };
+#pragma pack()
 
 #endif	/* !__ASSEMBLER__ */
 
