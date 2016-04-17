@@ -20,6 +20,7 @@
 
 #include <segment.h>
 #include <processor-flags.h>
+#include <mmu.h>
 
 /*
  * Just before entering into the boot loader, i386 runs in 16-bit "real" mode
@@ -142,6 +143,29 @@ seta20.2:
 	movb	$0xdf, %al
 	outb	%al, $0x60
 
+probemem:
+	/*
+	 * Reference:
+	 * http://wiki.osdev.org/Detecting_Memory_(x86)
+	 */
+	xorl	%ebx, %ebx
+	movl	%ebx, BOOT_E820MAP
+	movw	$(BOOT_E820MAP + 4), %di
+start_probe:
+	movl	$0xe820, %eax
+	movl	$24, %ecx
+	movl	$0x534d4150, %edx
+	int	$0x15
+	jnc	continue_probe
+	movl	$(-1), BOOT_E820MAP
+	jmp	prepare32
+continue_probe:
+	addw	$24, %di
+	incl	BOOT_E820MAP
+	test	%ebx, %ebx
+	jnz	start_probe
+
+prepare32:
 	/*
 	 * We would like to switch from real mode to protected mode then.
 	 * But before that, we need to set up a Global Descriptor Table (GDT),

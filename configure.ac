@@ -24,6 +24,8 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_CONFIG_MACRO_DIR([./m4])
 
+: ${CFLAGS=""}
+
 AC_PROG_CC
 # TODO: put these into acinclude.m4
 AIM_PROG_CC_C11
@@ -40,6 +42,8 @@ AIM_GCC_FUNC_ATTRIBUTE([weak])
 AIM_GCC_FUNC_ATTRIBUTE([noinline])
 AX_GCC_VAR_ATTRIBUTE([visibility])
 AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
+
+AC_SUBST([AIM_CFLAGS], [$aim_cflags])
 
 AM_PROG_AS
 AM_PROG_AR
