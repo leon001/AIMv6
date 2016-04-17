@@ -1,5 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
- * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -17,27 +16,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MMU_H
-#define _MMU_H
+#ifndef _MEMLAYOUT_H
+#define _MEMLAYOUT_H
+
+/*
+ * This file contains description of physical memory layout as well
+ * as virtual memory layout, other than what inside config.h
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#define premap_addr(kva)	((kva) + KERN_START - KERN_BASE)
-#define postmap_addr(pa)	((pa) - KERN_START + KERN_BASE)
-#define PAGE_SHIFT	12
-#define PAGE_SIZE	(1 << PAGE_SHIFT)
+#define BOOT_E820MAP		0x8000
+#define BOOT_E820MAP_ERROR	(-1)
 
 #ifndef __ASSEMBLER__
-#include <sys/types.h>
-typedef uint32_t pte_t, pde_t;
 
-typedef pde_t page_index_head_t;
+struct e820map {
+	uint32_t num;
+	__packed struct {
+		uint64_t start;
+		uint64_t size;
+		uint32_t type;
+	} map[E820MAX];
+};
 
-void page_index_clear(page_index_head_t * index);
-int page_index_early_map(page_index_head_t * index, addr_t paddr, size_t vaddr,
-	size_t length);
-#endif
+#endif	/* !__ASSEMBLER__ */
 
 #endif

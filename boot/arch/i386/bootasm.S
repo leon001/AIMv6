@@ -20,7 +20,7 @@
 
 #include <segment.h>
 #include <processor-flags.h>
-#include <mmu.h>
+#include <memlayout.h>
 
 /*
  * Just before entering into the boot loader, i386 runs in 16-bit "real" mode
