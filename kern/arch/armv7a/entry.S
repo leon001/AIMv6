@@ -90,6 +90,9 @@ lock_loop:
 	dmb				/* data memory barrier */
 	bx	lr			/* return */
 
+.globl master_upper_entry
+.globl slave_upper_entry
+
 .text
 
 master_upper_entry:

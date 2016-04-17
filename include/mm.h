@@ -68,6 +68,8 @@ void jump_handlers_clear(void);
 int jump_handlers_add(generic_fp entry);
 void jump_handlers_apply(void);
 
+void abs_jump(void *addr);
+
 /* get_addr_space()
  * determine whether we are running in low address or in high address
  * return values:

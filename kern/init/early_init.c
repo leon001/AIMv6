@@ -57,6 +57,9 @@ void __noreturn master_early_init(void)
 	mmu_init(&boot_page_index);
 	mmu_handlers_apply();
 	kputs("KERN: MMU is now on!\n");
+
+	extern uint32_t master_upper_entry;
+	abs_jump((void *)&master_upper_entry);
 	while (1);
 }
 
