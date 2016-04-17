@@ -98,7 +98,7 @@ size_t early_mapping_add_memory(addr_t base, size_t size)
 	return size;
 }
 
-int early_mapping_add_kmmap(addr_t base, size_t size)
+size_t early_mapping_add_kmmap(addr_t base, size_t size)
 {
 	/* check available address space */
 	if (__kmmap_top >= RESERVED_BASE)
@@ -112,9 +112,9 @@ int early_mapping_add_kmmap(addr_t base, size_t size)
 		.type = EARLY_MAPPING_KMMAP
 	};
 	int ret = early_mapping_add(&desc);
-	if (ret != 0) return EOF;
+	if (ret != 0) return 0;
 	__kmmap_top += size;
-	return 0;
+	return __kmmap_top - size;
 }
 
 /*
@@ -155,5 +155,70 @@ int page_index_init(page_index_head_t *boot_page_index)
 		if (ret == EOF) return EOF;
 	}
 	return 0;
+}
+
+/* handlers after mmu start and after jump */
+#define MMU_HANDLER_QUEUE_LENGTH	10
+static int __mmu_handler_queue_size;
+static generic_fp __mmu_handler_queue[MMU_HANDLER_QUEUE_LENGTH];
+
+void mmu_handlers_clear(void)
+{
+	__mmu_handler_queue_size = 0;
+}
+
+int mmu_handlers_add(generic_fp entry)
+{
+	if (__mmu_handler_queue_size > MMU_HANDLER_QUEUE_LENGTH) {
+		/* Bad data structure. Panic immediately to prevent damage. */
+		/* FIXME: panic is not yet implemented. */
+		while (1);
+	}
+	if (__mmu_handler_queue_size == MMU_HANDLER_QUEUE_LENGTH) {
+		/* Queue full */
+		return EOF;
+	}
+	__mmu_handler_queue[__mmu_handler_queue_size] = entry;
+	__mmu_handler_queue_size += 1;
+	return 0;
+}
+
+void mmu_handlers_apply(void)
+{
+	for (int i = 0; i < __mmu_handler_queue_size; ++i) {
+		__mmu_handler_queue[i]();
+	}
+}
+
+#define JUMP_HANDLER_QUEUE_LENGTH	10
+static int __jump_handler_queue_size;
+static generic_fp __jump_handler_queue[JUMP_HANDLER_QUEUE_LENGTH];
+
+void jump_handlers_clear(void)
+{
+	__jump_handler_queue_size = 0;
+}
+
+int jump_handlers_add(generic_fp entry)
+{
+	if (__jump_handler_queue_size > JUMP_HANDLER_QUEUE_LENGTH) {
+		/* Bad data structure. Panic immediately to prevent damage. */
+		/* FIXME: panic is not yet implemented. */
+		while (1);
+	}
+	if (__jump_handler_queue_size == JUMP_HANDLER_QUEUE_LENGTH) {
+		/* Queue full */
+		return EOF;
+	}
+	__jump_handler_queue[__jump_handler_queue_size] = entry;
+	__jump_handler_queue_size += 1;
+	return 0;
+}
+
+void jump_handlers_apply(void)
+{
+	for (int i = 0; i < __jump_handler_queue_size; ++i) {
+		__jump_handler_queue[i]();
+	}
 }
 
