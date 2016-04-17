@@ -168,7 +168,18 @@ done.
 
 ## Running AIMv6
 
-See documents in (TO BE FILLED) for more details.
+### ARM on qemu
+
+Below is an example on how to test AIMv6: (A lot of work needed here)
+
+```sh
+qemu-system-arm -M xilinx-zynq-a9 -m 512 -serial null -serial stdio \
+	-kernel firmware/arch/armv7a/firmware.elf -s -S
+```
+
+The `-s -S` option will enable gdb support on port 1234. You can then run
+`gdb firmware/arch/armv7a/firmware.elf` with needed options and connect to the
+emulator via `target remote:1234` in its command line.
 
 ## Contributing to AIMv6
 

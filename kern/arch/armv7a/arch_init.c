@@ -21,10 +21,25 @@
 #endif /* HAVE_CONFIG_H */
 
 /* from kernel */
+#include <sys/types.h>
 #include <init.h>
+#include <mm.h>
+#include <drivers/io/io-mem.h>
 
 void early_arch_init(void)
 {
+	io_mem_init(&early_memory_bus);
 	early_mach_init();
+
+	/* extra low address mapping */
+	addr_t mem_base = get_mem_physbase();
+	addr_t mem_size = get_mem_size();
+	struct early_mapping desc = {
+		.paddr = mem_base,
+		.vaddr = (size_t)mem_base,
+		.size = (size_t)mem_size,
+		.type = EARLY_MAPPING_TEMP
+	};
+	early_mapping_add(&desc);
 }
 

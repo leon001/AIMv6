@@ -25,10 +25,10 @@ ENTRY(boot_main)
 MEMORY
 {
 	MBR (rwx) :
-		ORIGIN = 1M,
+		ORIGIN = 510M,
 		LENGTH = 512
 	BSS (rw) :
-		ORIGIN = 1M + 512,
+		ORIGIN = 510M + 512,
 		LENGTH = 1M - 512
 }
 

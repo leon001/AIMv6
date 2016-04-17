@@ -26,6 +26,8 @@ fw_vector:
 	/* Interface */
 	ldr	pc, =uart_puts
 	ldr	pc, =readdisk
+	/* Debug */
+	ldr	pc, =fwdump
 
 .text
 

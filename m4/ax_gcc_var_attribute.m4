@@ -107,6 +107,12 @@ AC_DEFUN([AX_GCC_VAR_ATTRIBUTE], [
                 [dllexport], [
                     int foo __attribute__(($1));
                 ],
+                [visibility], [
+                    int foo_def __attribute__(($1("default")));
+                    int foo_hid __attribute__(($1("hidden")));
+                    int foo_int __attribute__(($1("internal")));
+                    int foo_pro __attribute__(($1("protected")));
+                ],
                 [init_priority], [
                     struct bar { bar() {} ~bar() {} };
                     bar b __attribute__(($1(65535/2)));
