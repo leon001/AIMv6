@@ -54,3 +54,13 @@ int get_addr_space(void)
 {
 	return (get_pc() > KERN_BASE);
 }
+
+void early_mm_init(void)
+{
+	__attribute__((visibility("hidden")))
+	    extern page_index_head_t boot_page_index;
+
+	struct e820map *e820map = (struct e820map *)BOOT_E820MAP;
+
+	/* Memory region layout from 0 to 0x100000 is fixed */
+}

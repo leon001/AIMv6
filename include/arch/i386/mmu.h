@@ -24,8 +24,8 @@
 #include <config.h>
 #endif
 
-#define premap_addr(kva)	((kva) + KERN_START - KERN_BASE)
-#define postmap_addr(pa)	((pa) - KERN_START + KERN_BASE)
+#define premap_addr(kva)	((kva) - KERN_BASE)
+#define postmap_addr(pa)	((pa) + KERN_BASE)
 #define PAGE_SHIFT	12
 #define PAGE_SIZE	(1 << PAGE_SHIFT)
 

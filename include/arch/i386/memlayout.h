@@ -36,14 +36,25 @@
 #ifndef __ASSEMBLER__
 
 #pragma pack(1)
+struct e820entry {
+	uint64_t start;
+	uint64_t size;
+	uint32_t type;
+	/*
+	 * Quoting OSDev:
+	 * The format of an entry is 2 uint64_t's and a uint32_t
+	 * in the 20 byte version, plus one additional uint32_t
+	 * in the 24 byte ACPI 3.0 version (but nobody has ever
+	 * seen a 24 byte one)
+	 */
+	uint32_t reserved;
+};
+
 struct e820map {
 	uint32_t num;
-	struct {
-		uint64_t start;
-		uint64_t size;
-		uint32_t type;
-	} map[E820MAX];
+	struct e820entry map[E820MAX];
 };
+
 #pragma pack()
 
 #endif	/* !__ASSEMBLER__ */

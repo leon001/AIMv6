@@ -25,6 +25,7 @@
 #include <init.h>
 #include <console.h>
 #include <mm.h>
+#include <memlayout.h>
 
 /*
  * Probably should be put into something like arch/generic?
@@ -33,13 +34,6 @@ __weak void early_mm_init(void)
 {
 	__attribute__ ((visibility ("hidden")))
 	extern page_index_head_t boot_page_index;
-
-	early_mapping_clear();
-	mmu_handlers_clear();
-
-	early_arch_init();
-	early_console_init();
-	kputs("KERN: Hello, world!\n");
 
 	/* add default mapping last */
 	early_mapping_add_memory(
@@ -56,8 +50,8 @@ __weak void early_mm_init(void)
 	}
 
 	/* initialize and apply page index */
-	page_index_init(boot_page_index);
-	mmu_init(boot_page_index);
+	page_index_init(&boot_page_index);
+	mmu_init(&boot_page_index);
 	mmu_handlers_apply();
 	kputs("KERN: MMU is now on!\n");
 }
@@ -65,6 +59,7 @@ __weak void early_mm_init(void)
 void __noreturn master_early_init(void)
 {
 	early_mapping_clear();
+	mmu_handlers_clear();
 	early_arch_init();
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
