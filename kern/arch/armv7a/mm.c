@@ -26,11 +26,23 @@
 #include <mm.h>
 #include <mmu.h>
 
+addr_t get_mem_physbase()
+{
+	return RAM_PHYSBASE;
+}
+
+addr_t get_mem_size()
+{
+	/* FIXME */
+	extern void *RAM_SIZE;
+	return (addr_t)(size_t)&RAM_SIZE;
+}
+
 /*
  * by CLEARing a page index, caller assumes it contains no allocated space.
  * Often used to initialize a page index.
  */
-void page_index_clear(page_index_head_t * index)
+void page_index_clear(pgindex_t * index)
 {
 	arm_pte_l1_t * page_table = index;
 	int i;
@@ -53,13 +65,13 @@ static inline void __arm_map_sect(arm_pte_l1_t * page_table, addr_t paddr,
 /*
  * Early map routine does not try to allocate memory.
  */
-int page_index_early_map(page_index_head_t * index, addr_t paddr, size_t vaddr,
+int page_index_early_map(pgindex_t * index, addr_t paddr, size_t vaddr,
 	size_t length)
 {
 	/* alignment check */
-	if (ALIGN_CHECK(paddr, ARM_SECT_SIZE) &&
-	    ALIGN_CHECK(vaddr, ARM_SECT_SIZE) &&
-	    ALIGN_CHECK(vaddr, ARM_SECT_SIZE) != 1) {
+	if (IS_ALIGNED(paddr, ARM_SECT_SIZE) &&
+	    IS_ALIGNED(vaddr, ARM_SECT_SIZE) &&
+	    IS_ALIGNED(vaddr, ARM_SECT_SIZE) != 1) {
 		return EOF;
 	}
 	/* map each ARM SECT */
@@ -76,7 +88,7 @@ int page_index_early_map(page_index_head_t * index, addr_t paddr, size_t vaddr,
  * mmu_init()
  * initialize the MMU with given page index
  */
-int mmu_init(page_index_head_t * index)
+int mmu_init(pgindex_t * index)
 {
     asm volatile (
         /* Address */

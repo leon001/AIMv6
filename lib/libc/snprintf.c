@@ -51,8 +51,7 @@ int vsnprintf(char *str, size_t size, const char *fmt, va_list ap)
 	} while (0)
 
 #define is_digit(ch)	(((ch) >= '0') && ((ch) <= '9'))
-
-	static const char *digits = "0123456789abcdef";
+#define digits(x)	(((char)(x) <= 9) ? ('0' + (char)(x)) : ('a' + (char)(x) - 10))
 
 	long val;
 	unsigned long uval;
@@ -91,7 +90,7 @@ fmt_loop:		switch (*fmt) {
 get_uint:			uval = va_arg(ap, unsigned long);
 print_uint:			buf_pos = 0;
 				while (uval > 0) {
-					buf[buf_pos++] = digits[uval % base];
+					buf[buf_pos++] = digits(uval % base);
 					uval /= base;
 				}
 				if (buf_pos == 0)

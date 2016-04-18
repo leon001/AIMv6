@@ -25,9 +25,8 @@
 
 #include <sys/types.h>
 
-/* TODO: pick a place and move these away */
-#define ALIGN_CHECK(addr, align) \
-	((addr) % (align) == 0)
+addr_t get_mem_physbase();
+addr_t get_mem_size();
 
 /*
  * Data structure to hold early mappings.
@@ -37,22 +36,41 @@
  * EARLY_MAPPING_KMMAP - Will be translated to an ioremap() result.
  */
 struct early_mapping {
-	addr_t	phys_addr;
-	size_t	virt_addr;
+	addr_t	paddr;
+	size_t	vaddr;
 	size_t	size;
 	int	type;
 };
 #define	EARLY_MAPPING_MEMORY	0
 #define EARLY_MAPPING_KMMAP	1
+#define EARLY_MAPPING_TEMP	2
 
 void early_mapping_clear(void);
+size_t early_mapping_add_memory(addr_t base, size_t size);
+size_t early_mapping_add_kmmap(addr_t base, size_t size);
 int early_mapping_add(struct early_mapping *entry);
 struct early_mapping *early_mapping_next(struct early_mapping *base);
 
-int page_index_init(page_index_head_t *boot_page_index);
-int mmu_init(page_index_head_t *boot_page_index);
+int page_index_init(pgindex_t *boot_page_index);
+int mmu_init(pgindex_t *boot_page_index);
 
 void early_mm_init(void);	/* arch-specific */
+
+void mmu_handlers_clear(void);
+int mmu_handlers_add(generic_fp entry);
+void mmu_handlers_apply(void);
+
+void jump_handlers_clear(void);
+int jump_handlers_add(generic_fp entry);
+void jump_handlers_apply(void);
+
+/*
+ * This routine jumps to an absolute address, regardless of MMU and page index
+ * state.
+ * by jumping to some address, callers acknowledge that C runtime components
+ * like stack are not preserved, and no return-like operation will be performed.
+ */
+void abs_jump(void *addr);
 
 /* get_addr_space()
  * determine whether we are running in low address or in high address

@@ -186,3 +186,5 @@ emulator via `target remote:1234` in its command line.
 Read `doc/patterns.md` for code styles and design patterns adopted in our
 project.  It is highly recommended to follow the guidelines there.
 
+## BUGS
+

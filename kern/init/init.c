@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,35 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <mmu.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
+/* from kernel */
 #include <sys/types.h>
+#include <console.h>
 
-void page_index_clear(pgindex_t * index)
+void __noreturn master_init(void)
 {
+	kputs("KERN: We are in high address!\n");
+	while (1);
 }
 
-int page_index_early_map(pgindex_t * index,
-			 addr_t paddr,
-			 size_t vaddr,
-			 size_t length)
+void __noreturn slave_init(void)
 {
-	return 0;
-}
-
-int mmu_init(pgindex_t *boot_page_index)
-{
-	return 0;
-}
-
-int get_addr_space(void)
-{
-	/* MIPS kernels always run in high address space (0x80000000+);
-	 * the kernel space mapping is hardwired by MIPS architecture.
-	 * We don't have any choice. */
-	return 1;
-}
-
-void early_mm_init(void)
-{
+	while (1);
 }
 

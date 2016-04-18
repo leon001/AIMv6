@@ -141,6 +141,13 @@ spin_lock_retry:
 
 	jmp	*%edi
 
+.globl	master_upper_entry
+.text
+master_upper_entry:
+	movl	$boot_stack, %esp
+	movl	$master_init, %eax
+	call	*%eax
+
 .bss
 
 	/* Broadcast a pointer the boot data lock, so we can release it later */

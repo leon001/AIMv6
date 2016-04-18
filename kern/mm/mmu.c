@@ -49,11 +49,14 @@
 /* internal data structure */
 static int __early_mapping_queue_size;
 static struct early_mapping __early_mapping_queue[EARLY_MAPPING_QUEUE_LENGTH];
+static size_t __mem_top;
+static size_t __kmmap_top;
 
 void early_mapping_clear(void)
 {
 	__early_mapping_queue_size = 0;
-	/* No need to overwrite anything */
+	__mem_top = KERN_BASE;
+	__kmmap_top = KMMAP_BASE;
 }
 
 /* add a mapping entry */
@@ -68,10 +71,50 @@ int early_mapping_add(struct early_mapping *entry)
 		/* Queue full */
 		return EOF;
 	}
-	/* TODO: check for overlap */
+	/* TODO: check for overlap and alignment */
 	__early_mapping_queue[__early_mapping_queue_size] = *entry;
 	__early_mapping_queue_size += 1;
 	return 0;
+}
+
+size_t early_mapping_add_memory(addr_t base, size_t size)
+{
+	/* check available address space */
+	if (__mem_top >= KMMAP_BASE)
+		return 0;
+	if (size > KMMAP_BASE - __mem_top)
+		size = KMMAP_BASE - __mem_top;
+
+	/* construct the descriptor and register the mapping */
+	struct early_mapping desc = {
+		.paddr = base,
+		.vaddr = __mem_top,
+		.size = (size_t)size,
+		.type = EARLY_MAPPING_MEMORY
+	};
+	int ret = early_mapping_add(&desc);
+	if (ret != 0) return 0;/* fail */
+	__mem_top += size;
+	return size;
+}
+
+size_t early_mapping_add_kmmap(addr_t base, size_t size)
+{
+	/* check available address space */
+	if (__kmmap_top >= RESERVED_BASE)
+		return EOF;
+
+	/* construct the descriptor and register the mapping */
+	struct early_mapping desc = {
+		.paddr = base,
+		.vaddr = __kmmap_top,
+		.size = size,
+		.type = EARLY_MAPPING_KMMAP
+	};
+	int ret = early_mapping_add(&desc);
+	if (ret != 0) return 0;
+	__kmmap_top += size;
+	return __kmmap_top - size;
 }
 
 /*
@@ -99,7 +142,7 @@ struct early_mapping *early_mapping_next(struct early_mapping *base)
 	}
 }
 
-int page_index_init(page_index_head_t *boot_page_index)
+int page_index_init(pgindex_t *boot_page_index)
 {
 	struct early_mapping *mapping = early_mapping_next(NULL);
 	int ret;
@@ -107,10 +150,75 @@ int page_index_init(page_index_head_t *boot_page_index)
 	page_index_clear(boot_page_index);
 
 	for (; mapping != NULL; mapping = early_mapping_next(mapping)) {
-		ret = page_index_early_map(boot_page_index, mapping->phys_addr,
-			mapping->virt_addr, mapping->size);
+		ret = page_index_early_map(boot_page_index, mapping->paddr,
+			mapping->vaddr, mapping->size);
 		if (ret == EOF) return EOF;
 	}
 	return 0;
+}
+
+/* handlers after mmu start and after jump */
+#define MMU_HANDLER_QUEUE_LENGTH	10
+static int __mmu_handler_queue_size;
+static generic_fp __mmu_handler_queue[MMU_HANDLER_QUEUE_LENGTH];
+
+void mmu_handlers_clear(void)
+{
+	__mmu_handler_queue_size = 0;
+}
+
+int mmu_handlers_add(generic_fp entry)
+{
+	if (__mmu_handler_queue_size > MMU_HANDLER_QUEUE_LENGTH) {
+		/* Bad data structure. Panic immediately to prevent damage. */
+		/* FIXME: panic is not yet implemented. */
+		while (1);
+	}
+	if (__mmu_handler_queue_size == MMU_HANDLER_QUEUE_LENGTH) {
+		/* Queue full */
+		return EOF;
+	}
+	__mmu_handler_queue[__mmu_handler_queue_size] = entry;
+	__mmu_handler_queue_size += 1;
+	return 0;
+}
+
+void mmu_handlers_apply(void)
+{
+	for (int i = 0; i < __mmu_handler_queue_size; ++i) {
+		__mmu_handler_queue[i]();
+	}
+}
+
+#define JUMP_HANDLER_QUEUE_LENGTH	10
+static int __jump_handler_queue_size;
+static generic_fp __jump_handler_queue[JUMP_HANDLER_QUEUE_LENGTH];
+
+void jump_handlers_clear(void)
+{
+	__jump_handler_queue_size = 0;
+}
+
+int jump_handlers_add(generic_fp entry)
+{
+	if (__jump_handler_queue_size > JUMP_HANDLER_QUEUE_LENGTH) {
+		/* Bad data structure. Panic immediately to prevent damage. */
+		/* FIXME: panic is not yet implemented. */
+		while (1);
+	}
+	if (__jump_handler_queue_size == JUMP_HANDLER_QUEUE_LENGTH) {
+		/* Queue full */
+		return EOF;
+	}
+	__jump_handler_queue[__jump_handler_queue_size] = entry;
+	__jump_handler_queue_size += 1;
+	return 0;
+}
+
+void jump_handlers_apply(void)
+{
+	for (int i = 0; i < __jump_handler_queue_size; ++i) {
+		__jump_handler_queue[i]();
+	}
 }
 

@@ -35,14 +35,8 @@
 #define UART_BASE	UART1_PHYSBASE
 
 /* Should only be used before memory management is initialized */
-static struct chr_device __early_uart_zynq = {
-	/*
-	 * if we set .bus here, we'd get a hard-coded high address.
-	 * we initialize .bus in a routine to run in low address,
-	 * -fPIC will ensure that we get a low address as well.
-	 */
-	.base = UART_BASE
-};
+static struct chr_device __early_uart_zynq;
+static size_t __early_mapped_base;
 
 /* internal routines */
 
@@ -165,21 +159,33 @@ int uart_putchar(unsigned char c)
 #if PRIMARY_CONSOLE == uart_zynq
 
 /* Meant to register to kernel, so this interface routine is static */
-static int early_console_putchar(unsigned char c)
+static int __early_console_putchar(unsigned char c)
 {
 	__uart_zynq_putchar(&__early_uart_zynq, c);
 	return 0;
 }
 
+static void __mmu_handler(void)
+{
+	__early_uart_zynq.base = __early_mapped_base;
+}
+
 int early_console_init(void)
 {
+	__early_uart_zynq.base = UART_BASE;
 	__early_uart_zynq.bus = &early_memory_bus;
 	__uart_zynq_init(&__early_uart_zynq);
 	__uart_zynq_enable(&__early_uart_zynq);
 	set_console(
-		early_console_putchar,
+		__early_console_putchar,
 		DEFAULT_KPUTS
 	);
+	__early_mapped_base = early_mapping_add_kmmap(UART0_PHYSBASE, 1<<20);
+	if (__early_mapped_base == 0)
+		while (1);
+	__early_mapped_base += UART_BASE - UART0_PHYSBASE;
+	if (mmu_handlers_add(__mmu_handler) != 0)
+		while (1);
 	return 0;
 }
 
