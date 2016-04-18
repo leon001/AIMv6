@@ -64,6 +64,12 @@ void jump_handlers_clear(void);
 int jump_handlers_add(generic_fp entry);
 void jump_handlers_apply(void);
 
+/*
+ * This routine jumps to an absolute address, regardless of MMU and page index
+ * state.
+ * by jumping to some address, callers acknowledge that C runtime components
+ * like stack are not preserved, and no return-like operation will be performed.
+ */
 void abs_jump(void *addr);
 
 /* get_addr_space()

@@ -47,12 +47,12 @@ static void probe_memory(void)
 		if (e820map->map[i].type == E820_RAM) {
 			desc.paddr = ALIGN_BELOW(
 			    (uint32_t)e820map->map[i].start,
-			    PAGE_SIZE
+			    XPAGE_SIZE
 			);
-			desc.vaddr = vaddr;
+			desc.vaddr = KERN_BASE + desc.paddr;
 			vaddr = ALIGN_ABOVE(
-			    vaddr + e820map->map[i].size,
-			    PAGE_SIZE
+			    desc.vaddr + e820map->map[i].size,
+			    XPAGE_SIZE
 			);
 			/* Overflow included */
 			
@@ -74,6 +74,16 @@ static void probe_memory(void)
 				break;
 		}
 	}
+}
+
+void
+abs_jump(void *addr)
+{
+	asm volatile (
+		"jmp	*%0"
+		: /* no output */
+		: "r"(addr)
+	);
 }
 
 void early_arch_init(void)

@@ -141,11 +141,11 @@ spin_lock_retry:
 
 	jmp	*%edi
 
-.text
 .globl	master_upper_entry
+.text
 master_upper_entry:
 	movl	$boot_stack, %esp
-	movl	master_init, %eax
+	movl	$master_init, %eax
 	call	*%eax
 
 .bss

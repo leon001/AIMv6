@@ -53,15 +53,15 @@ int page_index_early_map(pgindex_t *index,
 			 size_t length)
 {
 	xpte_t *xpte = (xpte_t *)index;
-	if (!(IS_ALIGNED(paddr, PAGE_SIZE) &&
-	      IS_ALIGNED(vaddr, PAGE_SIZE) &&
-	      IS_ALIGNED(length, PAGE_SIZE)))
+	if (!(IS_ALIGNED(paddr, XPAGE_SIZE) &&
+	      IS_ALIGNED(vaddr, XPAGE_SIZE) &&
+	      IS_ALIGNED(length, XPAGE_SIZE)))
 		return -1;
 
-	for (;
-	     vaddr < vaddr + length;
-	     vaddr += XPAGE_SIZE, paddr += XPAGE_SIZE) {
-		xpte[XPTX(vaddr)] = mkxpte(paddr, PTE_P | PTE_W | PTE_S);
+	for (size_t va = vaddr;
+	     va < vaddr + length;
+	     va += XPAGE_SIZE, paddr += XPAGE_SIZE) {
+		xpte[XPTX(va)] = mkxpte(paddr, PTE_P | PTE_WRITABLE | PTE_S);
 	}
 
 	return 0;
@@ -69,19 +69,21 @@ int page_index_early_map(pgindex_t *index,
 
 int mmu_init(pgindex_t *index)
 {
+	uint32_t reg;
 	asm volatile (
-		"movl	%%cr4, %%eax;"
-		"orl	%[cr4_flags], %%eax;"
-		"movl	%%eax, %%cr4;"
-		"movl	%[index], %%eax;"
-		"movl	%%eax, %%cr3;"
-		"movl	%%cr0, %%eax;"
-		"orl	%[cr0_flags], %%eax;"
-		"movl	%%eax, %%cr0;"
-		: /* no output */
+		"movl	%%cr4, %[reg];"
+		"orl	%[cr4_flags], %[reg];"
+		"movl	%[reg], %%cr4;"
+		"movl	%[index], %[reg];"
+		"movl	%[reg], %%cr3;"
+		"movl	%%cr0, %[reg];"
+		"orl	%[cr0_flags], %[reg];"
+		"movl	%[reg], %%cr0;"
+		: [reg]		"+r"(reg)
 		: [cr4_flags]	"i" (CR4_PSE),
 		  [index]	"r" (index),
 		  [cr0_flags]	"i" (CR0_PG | CR0_WP)
+		: "memory"
 	);
 	return 0;
 }
