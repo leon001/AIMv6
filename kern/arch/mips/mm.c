@@ -19,11 +19,11 @@
 #include <mmu.h>
 #include <sys/types.h>
 
-void page_index_clear(page_index_head_t * index)
+void page_index_clear(pgindex_t * index)
 {
 }
 
-int page_index_early_map(page_index_head_t * index,
+int page_index_early_map(pgindex_t * index,
 			 addr_t paddr,
 			 size_t vaddr,
 			 size_t length)
@@ -31,7 +31,7 @@ int page_index_early_map(page_index_head_t * index,
 	return 0;
 }
 
-int mmu_init(page_index_head_t *boot_page_index)
+int mmu_init(pgindex_t *boot_page_index)
 {
 	return 0;
 }

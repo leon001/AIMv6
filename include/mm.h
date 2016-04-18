@@ -25,10 +25,6 @@
 
 #include <sys/types.h>
 
-/* TODO: pick a place and move these away */
-#define ALIGN_CHECK(addr, align) \
-	((addr) % (align) == 0)
-
 addr_t get_mem_physbase();
 addr_t get_mem_size();
 
@@ -55,8 +51,8 @@ size_t early_mapping_add_kmmap(addr_t base, size_t size);
 int early_mapping_add(struct early_mapping *entry);
 struct early_mapping *early_mapping_next(struct early_mapping *base);
 
-int page_index_init(page_index_head_t *boot_page_index);
-int mmu_init(page_index_head_t *boot_page_index);
+int page_index_init(pgindex_t *boot_page_index);
+int mmu_init(pgindex_t *boot_page_index);
 
 void early_mm_init(void);	/* arch-specific */
 
@@ -67,6 +63,8 @@ void mmu_handlers_apply(void);
 void jump_handlers_clear(void);
 int jump_handlers_add(generic_fp entry);
 void jump_handlers_apply(void);
+
+void abs_jump(void *addr);
 
 /* get_addr_space()
  * determine whether we are running in low address or in high address

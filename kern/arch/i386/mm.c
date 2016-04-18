@@ -23,25 +23,10 @@
 /* from kernel */
 #include <sys/types.h>
 #include <asm.h>
-#include <mmu.h>
 #include <mm.h>
-
-void page_index_clear(page_index_head_t * index)
-{
-}
-
-int page_index_early_map(page_index_head_t * index,
-			 addr_t paddr,
-			 size_t vaddr,
-			 size_t length)
-{
-	return 0;
-}
-
-int mmu_init(page_index_head_t *boot_page_index)
-{
-	return 0;
-}
+#include <processor-flags.h>
+#include <util.h>
+#include <libc/string.h>
 
 /* get_addr_space()
  * determine whether we are running in low address or in high address
@@ -55,12 +40,48 @@ int get_addr_space(void)
 	return (get_pc() > KERN_BASE);
 }
 
-void early_mm_init(void)
+void page_index_clear(pgindex_t *index)
 {
-	__attribute__((visibility("hidden")))
-	    extern page_index_head_t boot_page_index;
+	memset(index, 0, PAGE_SIZE);
+}
 
-	struct e820map *e820map = (struct e820map *)BOOT_E820MAP;
+/*
+ */
+int page_index_early_map(pgindex_t *index,
+			 addr_t paddr,
+			 size_t vaddr,
+			 size_t length)
+{
+	xpte_t *xpte = (xpte_t *)index;
+	if (!(IS_ALIGNED(paddr, PAGE_SIZE) &&
+	      IS_ALIGNED(vaddr, PAGE_SIZE) &&
+	      IS_ALIGNED(length, PAGE_SIZE)))
+		return -1;
 
-	/* Memory region layout from 0 to 0x100000 is fixed */
+	for (;
+	     vaddr < vaddr + length;
+	     vaddr += XPAGE_SIZE, paddr += XPAGE_SIZE) {
+		xpte[XPTX(vaddr)] = mkxpte(paddr, PTE_P | PTE_W | PTE_S);
+	}
+
+	return 0;
+}
+
+int mmu_init(pgindex_t *index)
+{
+	asm volatile (
+		"movl	%%cr4, %%eax;"
+		"orl	%[cr4_flags], %%eax;"
+		"movl	%%eax, %%cr4;"
+		"movl	%[index], %%eax;"
+		"movl	%%eax, %%cr3;"
+		"movl	%%cr0, %%eax;"
+		"orl	%[cr0_flags], %%eax;"
+		"movl	%%eax, %%cr0;"
+		: /* no output */
+		: [cr4_flags]	"i" (CR4_PSE),
+		  [index]	"r" (index),
+		  [cr0_flags]	"i" (CR0_PG | CR0_WP)
+	);
+	return 0;
 }

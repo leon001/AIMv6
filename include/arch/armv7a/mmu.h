@@ -80,13 +80,13 @@ typedef uint32_t arm_pte_l1_t;
 typedef uint32_t arm_pte_l2_t;
 
 /*
- * Define page_index_head_t so interface routines can pass its pointer.
+ * Define pgindex_t so interface routines can pass its pointer.
  */
 
-typedef arm_pte_l1_t page_index_head_t;
+typedef arm_pte_l1_t pgindex_t;
 
-void page_index_clear(page_index_head_t * index);
-int page_index_early_map(page_index_head_t * index, addr_t paddr, size_t vaddr,
+void page_index_clear(pgindex_t * index);
+int page_index_early_map(pgindex_t * index, addr_t paddr, size_t vaddr,
 	size_t length);
 
 #endif

@@ -31,6 +31,12 @@
 #define BOOT_E820MAP		0x8000
 #define BOOT_E820MAP_ERROR	(-1)
 
+#define E820_RAM		1	/* Usable RAM */
+#define E820_RESERVED		2	/* Unusable */
+#define E820_RECLAIMABLE	3	/* ACPI reclaimable */
+#define E820_NVS		4	/* ACPI NVS */
+#define E820_BAD		5	/* Bad memory */
+
 #define E820MAX			20
 
 #ifndef __ASSEMBLER__

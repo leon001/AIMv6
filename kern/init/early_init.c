@@ -28,17 +28,21 @@
 #include <memlayout.h>
 
 /*
- * Probably should be put into something like arch/generic?
+ * NOTE: early mappings should be registered prior to calling this function.
+ * FIXME: Probably should be put into mm?
  */
-__weak void early_mm_init(void)
+void early_mm_init(void)
 {
 	__attribute__ ((visibility ("hidden")))
-	extern page_index_head_t boot_page_index;
+	extern pgindex_t boot_page_index;
 
 	/* add default mapping last */
+	/* [Gan] I don't think we should put this in generic code */
+#if 0
 	early_mapping_add_memory(
 		get_mem_physbase(),
 		(size_t)get_mem_size());
+#endif
 
 	/* dump some debug info */
 	kprintf("KERN: Total memory: 0x%08x\n", (size_t)get_mem_size());
@@ -64,6 +68,10 @@ void __noreturn master_early_init(void)
 	early_console_init();
 	kputs("KERN: Hello, world!\n");
 	early_mm_init();
+
+	extern uint32_t master_upper_entry;
+	abs_jump((void *)&master_upper_entry);
+	/* NOTREACHED */
 	while (1);
 }
 

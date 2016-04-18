@@ -23,10 +23,64 @@
 /* from kernel */
 #include <init.h>
 #include <drivers/io/io_port.h>
+#include <util.h>
+#include <mm.h>
+#include <memlayout.h>
+
+/* FIXME: put in mm.c? */
+static size_t mem_size = 0;
+
+/* FIXME: put in mm.c? */
+addr_t get_mem_size(void)
+{
+	return mem_size;
+}
+
+/* FIXME: put in mm.c? */
+static void probe_memory(void)
+{
+	struct e820map *e820map = (struct e820map *)BOOT_E820MAP;
+	struct early_mapping desc;
+	uint32_t vaddr = KERN_BASE;
+
+	for (int i = 0; i < e820map->num; ++i) {
+		if (e820map->map[i].type == E820_RAM) {
+			desc.paddr = ALIGN_BELOW(
+			    (uint32_t)e820map->map[i].start,
+			    PAGE_SIZE
+			);
+			desc.vaddr = vaddr;
+			vaddr = ALIGN_ABOVE(
+			    vaddr + e820map->map[i].size,
+			    PAGE_SIZE
+			);
+			/* Overflow included */
+			
+			desc.size = (size_t)min2(
+			    (int32_t)KMMAP_BASE,
+			    (int32_t)vaddr) - desc.vaddr;
+
+			early_mapping_add(&desc);
+
+			/* identity mapping */
+			desc.vaddr = desc.paddr;
+			early_mapping_add(&desc);
+
+			mem_size = max2(mem_size,
+			    (size_t)e820map->map[i].start +
+			    (size_t)e820map->map[i].size);
+
+			if ((int32_t)vaddr > (int32_t)KMMAP_BASE)
+				break;
+		}
+	}
+}
 
 void early_arch_init(void)
 {
 	//early_mach_init();
 	portio_bus_init(&portio_bus);
+
+	probe_memory();
 }
 

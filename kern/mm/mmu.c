@@ -142,7 +142,7 @@ struct early_mapping *early_mapping_next(struct early_mapping *base)
 	}
 }
 
-int page_index_init(page_index_head_t *boot_page_index)
+int page_index_init(pgindex_t *boot_page_index)
 {
 	struct early_mapping *mapping = early_mapping_next(NULL);
 	int ret;

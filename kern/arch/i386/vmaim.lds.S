@@ -121,6 +121,7 @@ SECTIONS
 	} >VMEM AT>PMEM :NONE
 
 	.boot : {
+		. = ALIGN(PAGE_SIZE);
 		PROVIDE(boot_page_index = .);
 		. += 16K; /* early pgdir */
 		. += 4K; /* early stack */
