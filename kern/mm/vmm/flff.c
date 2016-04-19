@@ -42,6 +42,33 @@ struct block {
 static struct block *head = NULL;
 //static lock_t lock;
 
+static void __insert(struct block *this, struct block *new)
+{
+	if (this == NULL) {
+		new->next = head;
+		new->prev = NULL;
+		head->prev = NULL;
+	} else {
+		new->next = this->next;
+		new->prev = this;
+		this->next = new;
+		if (this->next != NULL)
+			this->next->prev = new;
+	}
+}
+
+static void __unlink(struct block *this)
+{
+	if (this->prev == NULL)
+		head = this->next;
+	else
+		this->prev->next = this->next;
+	if (this->next != NULL)
+		this->next->prev = this->prev;
+	this->next = NULL;
+	this->prev = NULL;
+}
+
 static void *__alloc(size_t size, gfp_t flags)
 {
 	struct block *this, *newblock;
@@ -65,25 +92,11 @@ static void *__alloc(size_t size, gfp_t flags)
 		newblock = ((void *)this) + allocsize;
 		newblock->size = newsize;
 		newblock->free = true;
-		newblock->prev = this->prev;
-		newblock->next = this->next;
-		if (this->prev != NULL)
-			this->prev->next = newblock;
-		else
-			head = newblock;
-		if (this->next != NULL)
-			this->next->prev = newblock;
-	} else {
-		if (this->prev != NULL)
-			this->prev->next = this->next;
-		else
-			head = this->next;
-		if (this->next != NULL)
-			this->next->prev = this->prev;
+		__insert(this, newblock);
 	}
-	this->prev = NULL;
-	this->next = NULL;
+	this->size = allocsize;
 	this->free = false;
+	__unlink(this);
 	return (void *)(this + 1);
 }
 
