@@ -25,8 +25,11 @@ noinst_HEADERS = \
 	elf.h \
 	file.h \
 	init.h \
+	list.h \
 	mm.h \
+	pmm.h \
 	sleep.h \
+	vmm.h \
 	arch/armv7a/io.h \
 	arch/armv7a/mach-zynq/mach.h \
 	arch/mips/addrspace.h \

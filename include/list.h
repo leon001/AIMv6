@@ -1,5 +1,6 @@
 /* Copyright (C) xxxx Anonymous (from Linux source code)
  * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+ * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -19,6 +20,8 @@
 
 #ifndef _LIST_H
 #define _LIST_H
+
+#include <libc/stddef.h>
 
 /*
  * Simple doubly-linked list implementation
@@ -120,6 +123,9 @@ static inline int list_is_singular(const struct list_head *head)
 
 #define list_first_entry(ptr, type, member) \
 	list_entry((ptr)->next, type, member)
+
+#define list_next_entry(ptr, type, member) \
+	list_entry((ptr)->member.next, type, member)
 
 /*
  * For-each loops.

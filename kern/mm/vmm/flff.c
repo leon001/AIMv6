@@ -21,6 +21,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
+#include <list.h>
 
 /*
  * This file implements a first fit algorithm on a free list data structure
@@ -35,40 +36,11 @@ __attribute__ ((aligned(16)))
 struct block {
 	size_t size;
 	bool free;
-	struct block *prev;
-	struct block *next;
+	struct list_head node;
 };
 
-static struct block *head = NULL;
+static struct list_head __head;
 //static lock_t lock;
-
-static void __insert(struct block *this, struct block *new)
-{
-	if (this == NULL) {
-		new->next = head;
-		new->prev = NULL;
-		head->prev = new;
-		head = new;
-	} else {
-		new->next = this->next;
-		new->prev = this;
-		if (this->next != NULL)
-			this->next->prev = new;
-		this->next = new;
-	}
-}
-
-static void __unlink(struct block *this)
-{
-	if (this->prev == NULL)
-		head = this->next;
-	else
-		this->prev->next = this->next;
-	if (this->next != NULL)
-		this->next->prev = this->prev;
-	this->next = NULL;
-	this->prev = NULL;
-}
 
 static void *__alloc(size_t size, gfp_t flags)
 {
@@ -82,7 +54,7 @@ static void *__alloc(size_t size, gfp_t flags)
 	}
 	allocsize = size + sizeof(struct block);
 
-	for (this = head; this != NULL; this = this->next) {
+	for_each_entry(this, &__head, node) {
 		if (this->size >= allocsize)
 			break;
 	}
@@ -94,42 +66,45 @@ static void *__alloc(size_t size, gfp_t flags)
 		newblock->size = newsize;
 		newblock->free = true;
 		this->size = allocsize;
-		__insert(this, newblock);
+		list_add_after(&newblock->node, &this->node);
 	}
 	this->free = false;
-	__unlink(this);
+	list_del(&this->node);
 	return (void *)(this + 1);
 }
 
 static void __free(void *obj)
 {
-	struct block *this, *prev, *tmp = NULL;
+	struct block *this, *prev = NULL, *tmp, *next = NULL;
 
 	this = (struct block *)obj;
 	this -= 1;
 
-	prev = head;
-	while (prev != NULL && prev < this) {
-		tmp = prev;
-		prev = prev->next;
+	for_each_entry(tmp, &__head, node) {
+		if (tmp >= this)
+			break;
+		prev = tmp;
 	}
-	prev = tmp;
 
 	this->free = true;
-	__insert(prev, this);
+	if (prev != NULL)
+		list_add_after(&this->node, &prev->node);
+	else
+		list_add_after(&this->node, &__head);
 
 	/* merge downwards */
 	if (prev != NULL && (void *)prev + prev->size == (void *)this) {
 		prev->size += this->size;
-		__unlink(this);
+		list_del(&this->node);
 		this = prev;
 	}
 
 	/* merge upwards */
-	if (this->next != NULL && 
-	    (void *)this + this->size == (void *)(this->next)) {
-		this->size += this->next->size;
-		__unlink(this->next);
+	if (!list_is_last(&this->node, &__head))
+		next = list_next_entry(this, struct block, node);
+	if (next != NULL && (void *)this + this->size == (void *)next) {
+		this->size += next->size;
+		list_del(&next->node);
 	}
 }
 
@@ -150,9 +125,8 @@ int simple_allocator_bootstrap(void *pt, size_t size)
 	struct block *block = pt;
 	block->size = size;
 	block->free = true;
-	block->prev = NULL;
-	block->next = NULL;
-	head = block;
+	list_init(&__head);
+	list_add_after(&block->node, &__head);
 	__bootstrap_allocator.alloc = __alloc;
 	__bootstrap_allocator.free = __free;
 	__bootstrap_allocator.size = __size;
