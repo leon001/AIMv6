@@ -77,7 +77,7 @@ static void *__alloc(size_t size, gfp_t flags)
 		if (this->prev != NULL)
 			this->prev->next = this->next;
 		else
-			head = newblock;
+			head = this->next;
 		if (this->next != NULL)
 			this->next->prev = this->prev;
 	}

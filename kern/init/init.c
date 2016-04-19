@@ -23,6 +23,7 @@
 /* from kernel */
 #include <sys/types.h>
 #include <console.h>
+#include <mm.h>
 #include <vmm.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
