@@ -30,6 +30,7 @@
 #include <sys/types.h>
 
 #include <io.h>
+#include <mm.h>
 #include <device.h>
 
 #include <io-mem.h>
@@ -106,6 +107,12 @@ static bus_write_fp __get_write_fp(struct bus_device * inst, int data_width)
 	return NULL;
 }
 
+static void __jump_handler(void)
+{
+	early_memory_bus.get_read_fp = __get_read_fp;
+	early_memory_bus.get_write_fp = __get_write_fp;
+}
+
 /* Should only be used before memory management is initialized */
 struct bus_device early_memory_bus = {
 	.addr_width = 32
@@ -115,5 +122,9 @@ void io_mem_init(void)
 {
 	early_memory_bus.get_read_fp = __get_read_fp;
 	early_memory_bus.get_write_fp = __get_write_fp;
+#ifndef RAW
+	if (jump_handlers_add(__jump_handler) != 0)
+		while (1);
+#endif
 }
 

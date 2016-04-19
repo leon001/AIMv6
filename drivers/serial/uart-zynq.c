@@ -170,6 +170,15 @@ static void __mmu_handler(void)
 	__early_uart_zynq.base = __early_mapped_base;
 }
 
+static void __jump_handler(void)
+{
+	__early_uart_zynq.bus = &early_memory_bus;
+	set_console(
+		__early_console_putchar,
+		DEFAULT_KPUTS
+	);
+}
+
 int early_console_init(void)
 {
 	__early_uart_zynq.base = UART_BASE;
@@ -185,6 +194,8 @@ int early_console_init(void)
 		while (1);
 	__early_mapped_base += UART_BASE - UART0_PHYSBASE;
 	if (mmu_handlers_add(__mmu_handler) != 0)
+		while (1);
+	if (jump_handlers_add(__jump_handler) != 0)
 		while (1);
 	return 0;
 }

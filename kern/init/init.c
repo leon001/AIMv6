@@ -26,6 +26,7 @@
 
 void __noreturn master_init(void)
 {
+	void jump_handlers_apply(void);
 	kputs("KERN: We are in high address!\n");
 	while (1);
 }
