@@ -25,17 +25,22 @@
 #include <console.h>
 #include <vmm.h>
 
-#define BOOTSTRAP_POOL_SIZE	4096
+#define BOOTSTRAP_POOL_SIZE	1024
 
 void __noreturn master_init(void)
 {
 	__attribute__ ((aligned))
 	uint8_t bootstrap_pool[BOOTSTRAP_POOL_SIZE];
 
-	void jump_handlers_apply(void);
+	jump_handlers_apply();
 	kputs("KERN: We are in high address!\n");
 	simple_allocator_bootstrap(bootstrap_pool, BOOTSTRAP_POOL_SIZE);
 	kputs("KERN: Simple allocator bootstrapping!\n");
+	void *a, *b, *c;
+	a = kmalloc(16, 0);
+	b = kmalloc(32, 0);
+	c = kmalloc(16, 0);
+	kprintf("DEBUG: 0x%08x 0x%08x 0x%08x\n", a, b, c);
 	while (1);
 }
 
