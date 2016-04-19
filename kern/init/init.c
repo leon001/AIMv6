@@ -40,6 +40,7 @@ void __noreturn master_init(void)
 	void *a, *b, *c;
 	a = kmalloc(16, 0);
 	b = kmalloc(32, 0);
+	kfree(a);
 	c = kmalloc(16, 0);
 	kprintf("DEBUG: 0x%08x 0x%08x 0x%08x\n", a, b, c);
 	while (1);

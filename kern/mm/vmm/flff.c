@@ -47,13 +47,14 @@ static void __insert(struct block *this, struct block *new)
 	if (this == NULL) {
 		new->next = head;
 		new->prev = NULL;
-		head->prev = NULL;
+		head->prev = new;
+		head = new;
 	} else {
 		new->next = this->next;
 		new->prev = this;
-		this->next = new;
 		if (this->next != NULL)
 			this->next->prev = new;
+		this->next = new;
 	}
 }
 
@@ -88,16 +89,58 @@ static void *__alloc(size_t size, gfp_t flags)
 	if (this == NULL) return NULL;
 
 	newsize = this->size - allocsize;
-	if (newsize > 0) {
+	if (newsize >= sizeof(struct block) + ALLOC_ALIGN) {
 		newblock = ((void *)this) + allocsize;
 		newblock->size = newsize;
 		newblock->free = true;
+		this->size = allocsize;
 		__insert(this, newblock);
 	}
-	this->size = allocsize;
 	this->free = false;
 	__unlink(this);
 	return (void *)(this + 1);
+}
+
+static void __free(void *obj)
+{
+	struct block *this, *prev, *tmp = NULL;
+
+	this = (struct block *)obj;
+	this -= 1;
+
+	prev = head;
+	while (prev != NULL && prev < this) {
+		tmp = prev;
+		prev = prev->next;
+	}
+	prev = tmp;
+
+	this->free = true;
+	__insert(prev, this);
+
+	/* merge downwards */
+	if (prev != NULL && (void *)prev + prev->size == (void *)this) {
+		prev->size += this->size;
+		__unlink(this);
+		this = prev;
+	}
+
+	/* merge upwards */
+	if (this->next != NULL && 
+	    (void *)this + this->size == (void *)(this->next)) {
+		this->size += this->next->size;
+		__unlink(this->next);
+	}
+}
+
+size_t __size(void *obj)
+{
+	struct block *this;
+
+	this = (struct block *)obj;
+	this -= 1;
+
+	return this->size - sizeof(struct block);
 }
 
 static struct simple_allocator __bootstrap_allocator;
@@ -111,6 +154,8 @@ int simple_allocator_bootstrap(void *pt, size_t size)
 	block->next = NULL;
 	head = block;
 	__bootstrap_allocator.alloc = __alloc;
+	__bootstrap_allocator.free = __free;
+	__bootstrap_allocator.size = __size;
 	set_simple_allocator(&__bootstrap_allocator);
 	return 0;
 }
