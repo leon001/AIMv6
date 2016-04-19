@@ -23,25 +23,10 @@
 /* from kernel */
 #include <sys/types.h>
 #include <asm.h>
-#include <mmu.h>
 #include <mm.h>
-
-void page_index_clear(page_index_head_t * index)
-{
-}
-
-int page_index_early_map(page_index_head_t * index,
-			 addr_t paddr,
-			 size_t vaddr,
-			 size_t length)
-{
-	return 0;
-}
-
-int mmu_init(page_index_head_t *boot_page_index)
-{
-	return 0;
-}
+#include <processor-flags.h>
+#include <util.h>
+#include <libc/string.h>
 
 /* get_addr_space()
  * determine whether we are running in low address or in high address
@@ -53,4 +38,52 @@ int mmu_init(page_index_head_t *boot_page_index)
 int get_addr_space(void)
 {
 	return (get_pc() > KERN_BASE);
+}
+
+void page_index_clear(pgindex_t *index)
+{
+	memset(index, 0, PAGE_SIZE);
+}
+
+/*
+ */
+int page_index_early_map(pgindex_t *index,
+			 addr_t paddr,
+			 size_t vaddr,
+			 size_t length)
+{
+	xpte_t *xpte = (xpte_t *)index;
+	if (!(IS_ALIGNED(paddr, XPAGE_SIZE) &&
+	      IS_ALIGNED(vaddr, XPAGE_SIZE) &&
+	      IS_ALIGNED(length, XPAGE_SIZE)))
+		return -1;
+
+	for (size_t va = vaddr;
+	     va < vaddr + length;
+	     va += XPAGE_SIZE, paddr += XPAGE_SIZE) {
+		xpte[XPTX(va)] = mkxpte(paddr, PTE_P | PTE_WRITABLE | PTE_S);
+	}
+
+	return 0;
+}
+
+int mmu_init(pgindex_t *index)
+{
+	uint32_t reg;
+	asm volatile (
+		"movl	%%cr4, %[reg];"
+		"orl	%[cr4_flags], %[reg];"
+		"movl	%[reg], %%cr4;"
+		"movl	%[index], %[reg];"
+		"movl	%[reg], %%cr3;"
+		"movl	%%cr0, %[reg];"
+		"orl	%[cr0_flags], %[reg];"
+		"movl	%[reg], %%cr0;"
+		: [reg]		"+r"(reg)
+		: [cr4_flags]	"i" (CR4_PSE),
+		  [index]	"r" (index),
+		  [cr0_flags]	"i" (CR0_PG | CR0_WP)
+		: "memory"
+	);
+	return 0;
 }

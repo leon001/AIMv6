@@ -17,7 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Kernel utility functions */
+/* Kernel utility functions
+ * Put miscellaneous functions and macros here */
 
 #ifndef _UTIL_H
 #define _UTIL_H
@@ -44,5 +45,21 @@
 
 #define swap(a, b) \
 	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
+
+
+/* Note: ALIGNxxx are suited for powers of 2 only, while
+ * ROUNDxxx can deal with any integer value. */
+#define __ALIGN_MASK(x, a)	((typeof(x))((a) - 1))
+#define IS_ALIGNED(x, a)	(((x) & __ALIGN_MASK(x, a)) == 0)
+#define ALIGN_ABOVE(x, a)	((((x) - 1) | __ALIGN_MASK(x, a)) + 1)
+#define ALIGN_BELOW(x, a)	((x) & ~__ALIGN_MASK(x, a))
+#define PTR_ALIGN_ABOVE(p, a)	\
+	((typeof(p))ALIGN_ABOVE((unsigned long)(p), (a)))
+#define PTR_ALIGN_BELOW(p, a)	\
+	((typeof(p))ALIGN_BELOW((unsigned long)(p), (a)))
+
+#define ROUNDUP(x, d)		(DIV_ROUND_UP(x, d) * (d))
+#define ROUNDDOWN(x, d)		((x) - ((x) % (d)))
+#define ROUND_CLOSEST(x, d)	(((x) + ((d) / 2)) / (d))
 
 #endif

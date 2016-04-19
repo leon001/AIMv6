@@ -45,7 +45,9 @@ PHDRS
 
 SECTIONS
 {
-	/DISCARD/ : {*(.rel.dyn)}
+	/DISCARD/ : {}
+
+	RAM_SIZE = LENGTH(PMEM);
 
 	.text.low KERN_START : {
 		_text_low_begin = .;
@@ -64,19 +66,19 @@ SECTIONS
 		*(.got.plt)
 	} >VMEM AT>PMEM :rodata
 
-	.rodata : {
+	.rodata : ALIGN(16) {
 		_rodata_begin = .;
 		*(.rodata)
 		_rodata_end = .;
 	} >VMEM AT>PMEM :rodata
 
-	.data : {
+	.data : ALIGN(16) {
 		_data_begin = .;
 		*(.data*)
 		_data_end = .;
 	} >VMEM AT>PMEM :data
 
-	.bss : {
+	.bss : ALIGN(16) {
 		_bss_begin = .;
 		*(.bss)
 		_bss_end = .;

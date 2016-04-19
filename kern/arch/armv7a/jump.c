@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -18,38 +18,15 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
-#include <mmu.h>
-#include <sys/types.h>
-
-size_t get_mem_size(void)
+__noreturn
+void abs_jump(void *addr)
 {
-	return MEM_SIZE;
-}
-
-void page_index_clear(pgindex_t * index)
-{
-}
-
-int page_index_early_map(pgindex_t * index,
-			 addr_t paddr,
-			 size_t vaddr,
-			 size_t length)
-{
-	return 0;
-}
-
-int mmu_init(pgindex_t *boot_page_index)
-{
-	return 0;
-}
-
-int get_addr_space(void)
-{
-	/* MIPS kernels always run in high address space (0x80000000+);
-	 * the kernel space mapping is hardwired by MIPS architecture.
-	 * We don't have any choice. */
-	return 1;
+	asm volatile (
+		"bx %[addr];"
+		::
+		[addr] "r" (addr)
+	);
 }
 

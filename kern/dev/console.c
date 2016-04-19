@@ -24,6 +24,8 @@
 #include <sys/types.h>
 #include <console.h>
 #include <mm.h>
+/* from libc */
+#include <libc/stdio.h>
 
 static putchar_fp __putchar = NULL;
 static puts_fp __puts = NULL;
@@ -52,7 +54,14 @@ void set_console(putchar_fp putchar, puts_fp puts)
 
 int kprintf(const char *fmt, ...)
 {
-	return 0;
+	int result;
+	va_list ap;
+	va_start(ap, fmt);
+	char printf_buf[BUFSIZ];
+	result = vsnprintf(printf_buf, BUFSIZ, fmt, ap);
+	kputs(printf_buf);
+	va_end(ap);
+	return result;
 }
 
 /*
