@@ -25,7 +25,6 @@
 #include <init.h>
 #include <console.h>
 #include <mm.h>
-#include <memlayout.h>
 
 /*
  * NOTE: early mappings should be registered prior to calling this function.

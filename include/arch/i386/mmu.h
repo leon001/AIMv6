@@ -24,6 +24,8 @@
 #include <config.h>
 #endif
 
+#include <memlayout.h>
+
 #define premap_addr(kva)	((kva) - KERN_BASE)
 #define postmap_addr(pa)	((pa) + KERN_BASE)
 #define PAGE_SHIFT	12
