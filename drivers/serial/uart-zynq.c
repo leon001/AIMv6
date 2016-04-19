@@ -36,7 +36,6 @@
 
 /* Should only be used before memory management is initialized */
 static struct chr_device __early_uart_zynq;
-static size_t __early_mapped_base;
 
 /* internal routines */
 
@@ -157,6 +156,8 @@ int uart_putchar(unsigned char c)
 #else /* not RAW, or kernel driver */
 
 #if PRIMARY_CONSOLE == uart_zynq
+
+static size_t __early_mapped_base;
 
 /* Meant to register to kernel, so this interface routine is static */
 static int __early_console_putchar(unsigned char c)

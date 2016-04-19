@@ -23,11 +23,19 @@
 /* from kernel */
 #include <sys/types.h>
 #include <console.h>
+#include <vmm.h>
+
+#define BOOTSTRAP_POOL_SIZE	4096
 
 void __noreturn master_init(void)
 {
+	__attribute__ ((aligned))
+	uint8_t bootstrap_pool[BOOTSTRAP_POOL_SIZE];
+
 	void jump_handlers_apply(void);
 	kputs("KERN: We are in high address!\n");
+	simple_allocator_bootstrap(bootstrap_pool, BOOTSTRAP_POOL_SIZE);
+	kputs("KERN: Simple allocator bootstrapping!\n");
 	while (1);
 }
 

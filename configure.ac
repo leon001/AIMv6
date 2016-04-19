@@ -187,6 +187,13 @@ AS_CASE([$with_primary_console],
 	]
 )
 
+# Algorithms
+# MUST have unique names.
+# First fit is named "ff" as page allocator, "bcff" as simple allocator.
+AS_VAR_SET([with_simple_allocator], [flff])
+AIM_ARG_WITH([simple-allocator], [SIMPLE_ALLOCATOR], [non-caching memory object allocator])
+AM_CONDITIONAL([ALGO_FLFF], [test x$with_simple_allocator = xflff])
+
 # per-target configuration
 AS_CASE([$MACH],
 	[msim], [
@@ -267,6 +274,7 @@ AC_CONFIG_FILES([
 	kern/init/Makefile
 	kern/dev/Makefile
 	kern/mm/Makefile
+	kern/mm/vmm/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile

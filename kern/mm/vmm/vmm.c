@@ -20,20 +20,35 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-/*
- * This routine jumps to an absolute address, regardless of MMU and page index
- * state.
- * by jumping to some address, callers acknowledge that C runtime components
- * like stack are not preserved, and no return-like operation will be performed.
- */
-__noreturn
-void abs_jump(void *addr)
+#include <sys/types.h>
+
+#include <vmm.h>
+
+static struct simple_allocator *__simple_allocator = NULL;
+
+void set_simple_allocator(struct simple_allocator *allocator)
 {
-	asm volatile (
-		"bx %[addr];"
-		::
-		[addr] "r" (addr)
-	);
-	while (1);
+	__simple_allocator = allocator;
+}
+
+void *kmalloc(size_t size, gfp_t flags)
+{
+	if (__simple_allocator == NULL)
+		while (1);
+	return __simple_allocator->alloc(size, flags);
+}
+
+void kfree(void *obj)
+{
+	if (__simple_allocator == NULL)
+		while (1);
+	__simple_allocator->free(obj);
+}
+
+size_t ksize(void *obj)
+{
+	if (__simple_allocator == NULL)
+		while (1);
+	return __simple_allocator->size(obj);
 }
 
