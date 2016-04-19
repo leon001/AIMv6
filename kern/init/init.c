@@ -30,7 +30,7 @@
 
 void __noreturn master_init(void)
 {
-	__attribute__ ((aligned))
+	__attribute__ ((aligned(16)))
 	uint8_t bootstrap_pool[BOOTSTRAP_POOL_SIZE];
 
 	jump_handlers_apply();

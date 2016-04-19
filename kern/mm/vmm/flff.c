@@ -31,7 +31,7 @@
 
 #define ALLOC_ALIGN 16
 
-__attribute__ ((aligned))
+__attribute__ ((aligned(16)))
 struct block {
 	size_t size;
 	bool free;
