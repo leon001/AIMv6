@@ -43,7 +43,35 @@ static addr_t __free_space;
 
 static struct pages *__alloc(addr_t size, gfp_t flags)
 {
-	return NULL;
+	struct block *this, *newblock;
+	struct pages *ret;
+	size_t newsize;
+
+	if ((size & (PAGE_SIZE - 1)) != 0)
+		return NULL;
+	if (size > __free_space)
+		return NULL;
+
+	for_each_entry(this, &__head, node) {
+		if (this->size >= size)
+			break;
+	}
+	if (this == NULL) return NULL;
+
+	newsize = this->size - size;
+	if (newsize > 0) {
+		newblock = kmalloc(sizeof(struct block), 0);
+		newblock->paddr = this->paddr + size;
+		newblock->size = newsize;
+		list_add_after(&newblock->node, &this->node);
+	}
+	list_del(&this->node);
+	ret = kmalloc(sizeof(struct pages), 0);
+	ret->paddr = this->paddr;
+	ret->size = size;
+	__free_space -= size;
+	kfree(this);
+	return ret;
 }
 
 static void __free(struct pages *pages)

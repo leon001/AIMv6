@@ -43,6 +43,15 @@ void __noreturn master_init(void)
 	add_memory_pages();
 	kputs("KERN: Pages added.\n");
 	kprintf("KERN: Free memory: 0x%08x\n", (size_t)get_free_memory());
+	struct pages *p1, *p2;
+	p1 = alloc_pages(0x1000, 0);
+	p2 = alloc_pages(0x2000, 0);
+	kprintf("DEBUG: paddr=0x%08x, size=0x%08x\n", (size_t)p1->paddr, p1->size);
+	kprintf("DEBUG: paddr=0x%08x, size=0x%08x\n", (size_t)p2->paddr, p2->size);
+	free_pages(p1);
+	p1 = alloc_pages(0x1000, 0);
+	kprintf("DEBUG: paddr=0x%08x, size=0x%08x\n", (size_t)p1->paddr, p1->size);
+	kprintf("KERN: Free memory: 0x%08x\n", (size_t)get_free_memory());
 	while (1);
 }
 
