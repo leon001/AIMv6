@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _VMM_H
+#define _VMM_H
+
 #include <sys/types.h>
 
 /*
@@ -50,4 +53,8 @@ void set_simple_allocator(struct simple_allocator *allocator);
 void *kmalloc(size_t size, gfp_t flags);
 void kfree(void *obj);
 size_t ksize(void *obj);
+
+struct simple_allocator *get_simple_allocator(void);
+
+#endif /* _VMM_H */
 

@@ -52,3 +52,8 @@ size_t ksize(void *obj)
 	return __simple_allocator->size(obj);
 }
 
+struct simple_allocator *get_simple_allocator(void)
+{
+	return __simple_allocator;
+}
+

@@ -138,3 +138,20 @@ int page_allocator_init(void)
 	return 0;
 }
 
+int page_allocator_move(struct simple_allocator *old)
+{
+	struct block *this, *new;
+	for_each_entry(this, &__head, node) {
+		new = kmalloc(sizeof(struct block), 0);
+		if (new == NULL)
+			while (1);
+		new->paddr = this->paddr;
+		new->size = this->size;
+		list_add_after(&new->node, &this->node);
+		list_del(&this->node);
+		old->free(this);
+		this = new;
+	}
+	return 0;
+}
+

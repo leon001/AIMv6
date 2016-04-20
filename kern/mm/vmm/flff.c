@@ -28,6 +28,8 @@
  * to work as a simple allocator.
  */
 
+#include <mm.h>
+#include <pmm.h>
 #include <vmm.h>
 
 #define ALLOC_ALIGN 16
@@ -39,10 +41,14 @@ struct block {
 	struct list_head node;
 };
 
+
+static struct simple_allocator __bootstrap_allocator;
+static struct simple_allocator __allocator;
+static struct list_head __bootstrap_head;
 static struct list_head __head;
 //static lock_t lock;
 
-static void *__alloc(size_t size, gfp_t flags)
+static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 {
 	struct block *this, *newblock;
 	size_t allocsize, newsize;
@@ -54,7 +60,7 @@ static void *__alloc(size_t size, gfp_t flags)
 	}
 	allocsize = size + sizeof(struct block);
 
-	for_each_entry(this, &__head, node) {
+	for_each_entry(this, head, node) {
 		if (this->size >= allocsize)
 			break;
 	}
@@ -73,14 +79,14 @@ static void *__alloc(size_t size, gfp_t flags)
 	return (void *)(this + 1);
 }
 
-static void __free(void *obj)
+static inline void __free(struct list_head *head, void *obj)
 {
 	struct block *this, *prev = NULL, *tmp, *next = NULL;
 
 	this = (struct block *)obj;
 	this -= 1;
 
-	for_each_entry(tmp, &__head, node) {
+	for_each_entry(tmp, head, node) {
 		if (tmp >= this)
 			break;
 		prev = tmp;
@@ -90,7 +96,7 @@ static void __free(void *obj)
 	if (prev != NULL)
 		list_add_after(&this->node, &prev->node);
 	else
-		list_add_after(&this->node, &__head);
+		list_add_after(&this->node, head);
 
 	/* merge downwards */
 	if (prev != NULL && (void *)prev + prev->size == (void *)this) {
@@ -100,7 +106,7 @@ static void __free(void *obj)
 	}
 
 	/* merge upwards */
-	if (!list_is_last(&this->node, &__head))
+	if (!list_is_last(&this->node, head))
 		next = list_next_entry(this, struct block, node);
 	if (next != NULL && (void *)this + this->size == (void *)next) {
 		this->size += next->size;
@@ -108,7 +114,7 @@ static void __free(void *obj)
 	}
 }
 
-size_t __size(void *obj)
+static size_t __size(void *obj)
 {
 	struct block *this;
 
@@ -118,17 +124,35 @@ size_t __size(void *obj)
 	return this->size - sizeof(struct block);
 }
 
-static struct simple_allocator __bootstrap_allocator;
+static void *__bootstrap_alloc(size_t size, gfp_t flags)
+{
+	return __alloc(&__bootstrap_head, size, flags);
+}
+
+static void *__proper_alloc(size_t size, gfp_t flags)
+{
+	return __alloc(&__head, size, flags);
+}
+
+static void __bootstrap_free(void *obj)
+{
+	__free(&__bootstrap_head, obj);
+}
+
+static void __proper_free(void *obj)
+{
+	__free(&__head, obj);
+}
 
 int simple_allocator_bootstrap(void *pt, size_t size)
 {
 	struct block *block = pt;
 	block->size = size;
 	block->free = true;
-	list_init(&__head);
-	list_add_after(&block->node, &__head);
-	__bootstrap_allocator.alloc = __alloc;
-	__bootstrap_allocator.free = __free;
+	list_init(&__bootstrap_head);
+	list_add_after(&block->node, &__bootstrap_head);
+	__bootstrap_allocator.alloc = __bootstrap_alloc;
+	__bootstrap_allocator.free = __bootstrap_free;
 	__bootstrap_allocator.size = __size;
 	set_simple_allocator(&__bootstrap_allocator);
 	return 0;
@@ -136,6 +160,21 @@ int simple_allocator_bootstrap(void *pt, size_t size)
 
 int simple_allocator_init(void)
 {
+	struct pages *pages = alloc_pages(PAGE_SIZE, 0);
+	if (pages == NULL)
+		while (1);
+
+	struct block *block = 
+		(struct block *)(size_t)early_pa2kva(pages->paddr);
+	block->size = pages->size;
+	block->free = true;
+	kfree(pages);
+	list_init(&__head);
+	list_add_after(&block->node, &__head);
+	__allocator.alloc = __proper_alloc;
+	__allocator.free = __proper_free;
+	__allocator.size = __size;
+	set_simple_allocator(&__allocator);
 	return 0;
 }
 
