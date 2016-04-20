@@ -28,7 +28,7 @@
 
 void early_arch_init(void)
 {
-	io_mem_init();
+	io_mem_init(&early_memory_bus);
 	early_mach_init();
 
 	/* extra low address mapping */
@@ -41,5 +41,10 @@ void early_arch_init(void)
 		.type = EARLY_MAPPING_TEMP
 	};
 	early_mapping_add(&desc);
+
+	/* [Gan] moved from kern/init/early_init.c */
+	early_mapping_add_memory(
+		get_mem_physbase(),
+		(size_t)get_mem_size());
 }
 

@@ -49,13 +49,13 @@ SECTIONS
 
 	RAM_SIZE = LENGTH(PMEM);
 
-	.text.low RAM_PHYSBASE : {
+	.text.low KERN_START : {
 		_text_low_begin = .;
 		*(.text.low)
 		_text_low_end = .;
 	} >PMEM AT>PMEM :text_low
 
-	.text early_pa2kva(_text_low_end) : {
+	.text postmap_addr(_text_low_end) : {
 		_text_begin = .;
 		*(.text)
 		_text_end = .;

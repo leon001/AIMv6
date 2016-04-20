@@ -36,6 +36,7 @@
 
 /* Should only be used before memory management is initialized */
 static struct chr_device __early_uart_zynq;
+static size_t __early_mapped_base;
 
 /* internal routines */
 

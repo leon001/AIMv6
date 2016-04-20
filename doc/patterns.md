@@ -163,3 +163,13 @@ after setting up memory mappings.  Therefore, in `kputs()` and `kputchar()` we
 added additional logic to determine whether we are running at lower or upper
 address space, and compute absolute addresses from stored function pointers
 afterwards. [TBD]
+
+#### Early-stage works
+
+TODO: describe why we need `early_kva2pa()`s in early stage.  More precisely,
+why we did not work at high address in the first place?
+
+This design leads to an unfortunate consequence for GDB: you can no longer
+happily debug your kernel with C code when it is running in low address.
+However, as we finish only a little necessary work (mainly, for future
+compatibility with DTB) in low address, we regard it as tolerable.

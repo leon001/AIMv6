@@ -23,7 +23,8 @@ noinst_DATA = firmware.bin firmware.s
 CLEANFILES = firmware.bin firmware.s
 
 firmware_elf_SOURCES = entry.S main.c firmware.ld
-firmware_elf_LDADD = $(top_builddir)/drivers/libdrivers-raw.la
+firmware_elf_LDADD = $(top_builddir)/drivers/libdrivers-raw.la \
+		     $(top_builddir)/lib/libc/libc-nopic.la
 firmware_elf_CPPFLAGS = $(AM_CPPFLAGS_NOPIC) -DRAW
 firmware_elf_CFLAGS = $(AM_CFLAGS_NOPIC)
 firmware_elf_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)

@@ -20,12 +20,6 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-/*
- * This routine jumps to an absolute address, regardless of MMU and page index
- * state.
- * by jumping to some address, callers acknowledge that C runtime components
- * like stack are not preserved, and no return-like operation will be performed.
- */
 __noreturn
 void abs_jump(void *addr)
 {

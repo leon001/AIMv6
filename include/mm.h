@@ -19,10 +19,15 @@
 #ifndef _MM_H
 #define _MM_H
 
+<<<<<<< HEAD
 #define early_kva2pa(kva)	((kva) + RAM_PHYSBASE - KERN_BASE)
 #define early_pa2kva(pa)	((pa) - RAM_PHYSBASE + KERN_BASE)
+=======
+#include <mmu.h>
+>>>>>>> origin/mips-ls3a
 
 #include <sys/types.h>
+<<<<<<< HEAD
 #include <mmu.h>
 
 #ifndef __ASSEMBLER__
@@ -30,6 +35,8 @@
 /* TODO: pick a place and move these away */
 #define ALIGN_CHECK(addr, align) \
 	((addr) % (align) == 0)
+=======
+>>>>>>> origin/mips-ls3a
 
 addr_t get_mem_physbase();
 addr_t get_mem_size();
@@ -57,8 +64,10 @@ size_t early_mapping_add_kmmap(addr_t base, size_t size);
 int early_mapping_add(struct early_mapping *entry);
 struct early_mapping *early_mapping_next(struct early_mapping *base);
 
-int page_index_init(page_index_head_t *boot_page_index);
-int mmu_init(page_index_head_t *boot_page_index);
+int page_index_init(pgindex_t *boot_page_index);
+int mmu_init(pgindex_t *boot_page_index);
+
+void early_mm_init(void);	/* arch-specific */
 
 void mmu_handlers_clear(void);
 int mmu_handlers_add(generic_fp entry);
@@ -68,6 +77,12 @@ void jump_handlers_clear(void);
 int jump_handlers_add(generic_fp entry);
 void jump_handlers_apply(void);
 
+/*
+ * This routine jumps to an absolute address, regardless of MMU and page index
+ * state.
+ * by jumping to some address, callers acknowledge that C runtime components
+ * like stack are not preserved, and no return-like operation will be performed.
+ */
 void abs_jump(void *addr);
 
 /* get_addr_space()

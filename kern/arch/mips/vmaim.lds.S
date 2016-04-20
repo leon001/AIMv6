@@ -35,7 +35,7 @@ OUTPUT_FORMAT(TARGET)
 ENTRY(__start)
 
 SECTIONS {
-	. = 0xffffffff80300000;
+	. = KERN_START;
 	.text : {
 		*(.text*);
 	}
@@ -78,6 +78,7 @@ SECTIONS {
 	 */
 	. = ALIGN(KSTACKSIZE);
 	.boot : {
+		PROVIDE(boot_page_index = .);
 		. += KSTACKSIZE;
 		PROVIDE(boot_stack = .);
 	}

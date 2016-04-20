@@ -27,7 +27,7 @@
 #include <io.h>
 #include <console.h>
 #include <device.h>
-#include <drivers/io/io_mem.h>
+#include <drivers/io/io-mem.h>
 
 /*
  * Design note:

@@ -110,5 +110,15 @@ main_entry:
 	.cprestore
 	jal	master_early_init
 
-die:	b	die
+1:	b	1b
 END(__start)
+
+BEGIN(master_upper_entry)
+	.set	noreorder
+	.cpload	t9
+	.set	reorder
+	LA	sp, boot_stack
+	.cprestore
+	jal	master_init
+1:	b	1b
+END(master_upper_entry)
