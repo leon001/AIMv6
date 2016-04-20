@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <console.h>
 #include <mm.h>
+#include <pmm.h>
 #include <vmm.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
@@ -34,15 +35,14 @@ void __noreturn master_init(void)
 	uint8_t bootstrap_pool[BOOTSTRAP_POOL_SIZE];
 
 	jump_handlers_apply();
-	kputs("KERN: We are in high address!\n");
+	kputs("KERN: We are in high address.\n");
 	simple_allocator_bootstrap(bootstrap_pool, BOOTSTRAP_POOL_SIZE);
-	kputs("KERN: Simple allocator bootstrapping!\n");
-	void *a, *b, *c;
-	a = kmalloc(16, 0);
-	b = kmalloc(32, 0);
-	kfree(a);
-	c = kmalloc(16, 0);
-	kprintf("DEBUG: 0x%08x 0x%08x 0x%08x\n", a, b, c);
+	kputs("KERN: Simple allocator bootstrapping.\n");
+	page_allocator_init();
+	kputs("KERN: Page allocator initialized.\n");
+	add_memory_pages();
+	kputs("KERN: Pages added.\n");
+	kprintf("KERN: Free memory: 0x%08x\n", (size_t)get_free_memory());
 	while (1);
 }
 

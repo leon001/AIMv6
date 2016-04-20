@@ -44,7 +44,7 @@ struct simple_allocator {
 };
 
 int simple_allocator_bootstrap(void *pt, size_t size);
-int simple_allocator_init();
+int simple_allocator_init(void);
 void set_simple_allocator(struct simple_allocator *allocator);
 
 void *kmalloc(size_t size, gfp_t flags);

@@ -90,6 +90,8 @@ SECTIONS
 		. += 4K; /* early stack */
 		PROVIDE(boot_stack = .);
 	} >VMEM AT>PMEM :NONE
+	
+	PROVIDE(_kern_end = ALIGN(PAGE_SIZE));
 }
 
 

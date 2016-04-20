@@ -134,7 +134,7 @@ int simple_allocator_bootstrap(void *pt, size_t size)
 	return 0;
 }
 
-int simple_allocator_init()
+int simple_allocator_init(void)
 {
 	return 0;
 }

@@ -22,10 +22,10 @@
 #define early_kva2pa(kva)	((kva) + RAM_PHYSBASE - KERN_BASE)
 #define early_pa2kva(pa)	((pa) - RAM_PHYSBASE + KERN_BASE)
 
-#ifndef __ASSEMBLER__
-
 #include <sys/types.h>
 #include <mmu.h>
+
+#ifndef __ASSEMBLER__
 
 /* TODO: pick a place and move these away */
 #define ALIGN_CHECK(addr, align) \

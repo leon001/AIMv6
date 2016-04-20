@@ -16,30 +16,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #include <sys/types.h>
 
-/* FIXME change name and create seperate header */
-typedef uint32_t gfp_t;
-/* currently ignored */
+#include <pmm.h>
 
-struct pages {
-	addr_t paddr;
-	addr_t size;
-	gfp_t flags;
-};
+static struct page_allocator *__page_allocator = NULL;
 
-struct page_allocator {
-	struct pages *(*alloc)(addr_t count, gfp_t flags);
-	void (*free)(struct pages *pages);
-	addr_t (*get_free)(void);
-};
+void set_page_allocator(struct page_allocator *allocator)
+{
+	__page_allocator = allocator;
+}
 
-int page_allocator_init(void);
-void set_page_allocator(struct page_allocator *allocator);
+struct pages * alloc_pages(addr_t count, gfp_t flags)
+{
+	if (__page_allocator == NULL)
+		while (1);
+	return __page_allocator->alloc(count, flags);
+}
 
-struct pages * alloc_pages(addr_t count, gfp_t flags);
-void free_pages(struct pages *pages);
-addr_t get_free_memory(void);
+void free_pages(struct pages *pages)
+{
+	if (__page_allocator == NULL)
+		while (1);
+	__page_allocator->free(pages);
+}
 
-void add_memory_pages(void);
+addr_t get_free_memory(void)
+{
+	if (__page_allocator == NULL)
+		while (1);
+	return __page_allocator->get_free();
+}
 

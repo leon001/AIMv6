@@ -25,6 +25,9 @@
  * will be renamed. No interface should be changed anyway.
  */
 
+#ifndef _ARCH_MMU_H
+#define _ARCH_MMU_H
+
 /* from kernel */
 #include <sys/types.h>
 
@@ -32,6 +35,8 @@
 #define ARM_SECT_SIZE	(1 << ARM_SECT_SHIFT)
 #define ARM_PAGE_SHIFT	12
 #define ARM_PAGE_SIZE	(1 << ARM_PAGE_SHIFT)
+
+#define PAGE_SIZE	ARM_PAGE_SIZE
 
 #define ARM_PT_AP_USER_NONE	0x1
 #define ARM_PT_AP_USER_READ	0x2
@@ -60,6 +65,8 @@
 #define ARM_PT_L1_LENGTH	4096
 #define ARM_PT_L2_LENGTH	256
 
+#ifndef __ASSEMBLER__
+
 /*
  * ARM's page table entries have multiple formats for different usage, thus
  * defining structs are not encouraged.
@@ -76,4 +83,8 @@ typedef arm_pte_l1_t page_index_head_t;
 void page_index_clear(page_index_head_t * index);
 int page_index_early_map(page_index_head_t * index, addr_t paddr, size_t vaddr,
 	size_t length);
+
+#endif
+
+#endif /* _ARCH_MMU_H */
 

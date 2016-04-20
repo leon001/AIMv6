@@ -17,12 +17,13 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = vmm pmm
+noinst_LTLIBRARIES = libpmm.la
 
-noinst_LTLIBRARIES = libmm.la
+SRCS = pmm.c
 
-libmm_la_SOURCES = mmu.c
-libmm_la_LIBADD = \
-	vmm/libvmm.la \
-	pmm/libpmm.la
+if ALGO_FF
+SRCS += ff.c
+endif
+
+libpmm_la_SOURCES = $(SRCS)
 
