@@ -64,6 +64,7 @@ struct net_device {
  * in pairs.
  * Bus access may or may not encounter failures. In the latter case, access
  * routines simply return 0 to indicate a success.
+ * TODO: explain why we fix buffer pointer as a uint64_t pointer.
  */
 typedef int (*bus_read_fp)(struct bus_device * inst,
 	addr_t addr, uint64_t *ptr);

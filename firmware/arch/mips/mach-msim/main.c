@@ -24,6 +24,7 @@
 #include <libc/stddef.h>
 #include <libc/string.h>
 #include <smp.h>
+#include <util.h>
 #include <drivers/serial/uart.h>
 #include <drivers/block/hd.h>
 #include <drivers/block/msim-ddisk.h>
@@ -52,7 +53,7 @@ void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 	offset %= SECTOR_SIZE;
 
 	for (; len > 0; len -= l) {
-		l = MIN2(len, SECTOR_SIZE - offset);
+		l = min2(len, SECTOR_SIZE - offset);
 		if (msim_dd_read_sector(MSIM_DISK_PHYSADDR,
 		    sector, sector_buf, true) < 0)
 			fwpanic("read disk error");
@@ -67,6 +68,7 @@ void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 void main(void)
 {
 	char mbr[SECTOR_SIZE];
+	uart_init();
 	uart_puts("FW: Hello world!\r\n");
 	msim_dd_init(MSIM_DISK_PHYSADDR);
 	if (msim_dd_read_sector(MSIM_DISK_PHYSADDR, 0, mbr, true) == 0) {

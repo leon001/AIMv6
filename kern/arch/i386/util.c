@@ -1,5 +1,4 @@
 /* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
- * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -17,16 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LIBC_STDDEF_H
-#define _LIBC_STDDEF_H
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-#ifndef NULL
-#define NULL	(void *)0
-#endif
+/* from kernel */
+#include <sys/types.h>
+#include <asm.h>
 
-#ifndef BUFSIZ
-#define BUFSIZ		1024
-#endif
-
-#endif /* _LIBC_STDDEF_H */
-
+/* The __noinline decorator is probably redundant */
+__noinline unsigned long get_pc(void)
+{
+	unsigned long pc;
+	asm volatile (
+		"movl	4(%%ebp), %0"
+		: "=r"(pc)
+	);
+	return pc;
+}

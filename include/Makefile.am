@@ -40,4 +40,5 @@ noinst_HEADERS = \
 	arch/mips/mipsregs.h \
 	arch/mips/regdef.h \
 	arch/mips/smp.h \
-	arch/mips/mach-msim/mach-smp.h
+	arch/mips/mach-msim/mach-smp.h \
+	arch/mips/mach-loongson3a/platform.h

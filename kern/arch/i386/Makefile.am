@@ -27,7 +27,7 @@ CLEANFILES = vmaim.lds
 
 libentry_la_SOURCES = entry.S
 
-libi386_la_SOURCES = arch_init.c
+libi386_la_SOURCES = arch_init.c mm.c util.c
 
 vmaim.lds: vmaim.lds.S
 	$(COMPILE) -E -P $^ -o $@

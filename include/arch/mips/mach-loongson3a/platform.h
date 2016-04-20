@@ -1,5 +1,4 @@
 /* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
- * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -17,16 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LIBC_STDDEF_H
-#define _LIBC_STDDEF_H
+#ifndef _PLATFORM_H
+#define _PLATFORM_H
 
-#ifndef NULL
-#define NULL	(void *)0
+/* inb(x) = *(LOONGSON3A_PORTIO_BASE + x) */
+#define LOONGSON3A_PORTIO_BASE		0x18000000
+#define LOONGSON3A_UART_BASE		0x1fe001e0
+
+/* for UART */
+#define UART_BASE	LOONGSON3A_UART_BASE
+#define UART_FREQ	2073600
+
 #endif
-
-#ifndef BUFSIZ
-#define BUFSIZ		1024
-#endif
-
-#endif /* _LIBC_STDDEF_H */
-

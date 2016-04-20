@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,23 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#ifndef _PLATFORM_H
+#define _PLATFORM_H
 
-#include <libc/stddef.h>
-#include <console.h>
-#include <drivers/serial/uart-msim.h>
+/* port base for x86 UART */
+#define COM1		0x3f8
 
-int early_console_putchar(unsigned char c)
-{
-	return uart_msim_putchar(MSIM_UART_OUTPUT, c);
-}
+/* for UART */
+#define UART_BASE	COM1
+#define UART_FREQ	1843200
 
-void early_console_init(void)
-{
-	uart_msim_init();
-
-	set_console(early_console_putchar, DEFAULT_KPUTS);
-}
-
+#endif

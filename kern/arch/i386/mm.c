@@ -1,5 +1,4 @@
 /* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
- * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -17,16 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LIBC_STDDEF_H
-#define _LIBC_STDDEF_H
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-#ifndef NULL
-#define NULL	(void *)0
-#endif
+/* from kernel */
+#include <sys/types.h>
+#include <asm.h>
 
-#ifndef BUFSIZ
-#define BUFSIZ		1024
-#endif
-
-#endif /* _LIBC_STDDEF_H */
+/* get_addr_space()
+ * determine whether we are running in low address or in high address
+ * return values:
+ * 0 - low address
+ * 1 - high address
+ * negative - reserved for errors
+ */
+int get_addr_space(void)
+{
+	return (get_pc() > KERN_BASE);
+}
 

@@ -19,12 +19,23 @@
 #ifndef _DRIVERS_SERIAL_UART_NS16550_HW_H
 #define _DRIVERS_SERIAL_UART_NS16550_HW_H
 
+/* Check for platform-specific UART frequencies UART_FREQ as well as
+ * UART_BASE */
+#include <platform.h>
+/* If the platform has not defined UART frequency, we assume that it's
+ * an IBM PC UART, whose frequency is 1.8432MHz */
+#ifndef UART_FREQ
+#define UART_FREQ		1843200
+#endif
+
 /*
  * NS16550 registers.
  *
  * References:
  * https://www.freebsd.org/doc/en/articles/serial-uart/
  */
+
+#define UART_BAUDRATE		115200
 
 /*
  * TODO: verify if this register specification, as given in Loongson 2H
