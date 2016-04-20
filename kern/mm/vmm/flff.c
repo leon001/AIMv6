@@ -46,11 +46,12 @@ static struct simple_allocator __bootstrap_allocator;
 static struct simple_allocator __allocator;
 static struct list_head __bootstrap_head;
 static struct list_head __head;
+static struct pages *__backup = NULL;
 //static lock_t lock;
 
 static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 {
-	struct block *this, *newblock;
+	struct block *this, *newblock, *prev = NULL, *tmp;
 	size_t allocsize, newsize;
 
 	/* Make a good size */
@@ -64,7 +65,28 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 		if (this->size >= allocsize)
 			break;
 	}
-	if (this == NULL) return NULL;
+	if (&this->node == head) {
+		this = (struct block *)(size_t)early_pa2kva(__backup->paddr);
+		this->size = __backup->size;
+		this->free = true;
+		kfree(__backup);
+		for_each_entry(tmp, head, node) {
+			if (tmp >= this)
+				break;
+			prev = tmp;
+		}
+		if (prev != NULL)
+			list_add_after(&this->node, &prev->node);
+		else
+			list_add_after(&this->node, head);
+		__backup = alloc_pages(PAGE_SIZE, 0);
+		if (__backup == NULL)
+			while (1);
+		for_each_entry(this, head, node) {
+		if (this->size >= allocsize)
+			break;
+		}
+	}
 
 	newsize = this->size - allocsize;
 	if (newsize >= sizeof(struct block) + ALLOC_ALIGN) {
@@ -164,7 +186,7 @@ int simple_allocator_init(void)
 	if (pages == NULL)
 		while (1);
 
-	struct block *block = 
+	struct block *block =
 		(struct block *)(size_t)early_pa2kva(pages->paddr);
 	block->size = pages->size;
 	block->free = true;
@@ -174,6 +196,7 @@ int simple_allocator_init(void)
 	__allocator.alloc = __proper_alloc;
 	__allocator.free = __proper_free;
 	__allocator.size = __size;
+	__backup = alloc_pages(PAGE_SIZE, 0);
 	set_simple_allocator(&__allocator);
 	return 0;
 }

@@ -48,6 +48,15 @@ void __noreturn master_init(void)
 	kputs("KERN: Simple allocator initialized.\n");
 	page_allocator_move(old);
 	kputs("KERN: Page allocator moved.\n");
+	void *a, *b, *c, *d;
+	a = kmalloc(4000, 0);
+	kprintf("DEBUG: 0x%08x\n", a);
+	b = kmalloc(4000, 0);
+	kprintf("DEBUG: 0x%08x\n", b);
+	c = kmalloc(4000, 0);
+	kprintf("DEBUG: 0x%08x\n", c);
+	d = kmalloc(4000, 0);
+	kprintf("DEBUG: 0x%08x\n", d);
 	while (1);
 }
 
