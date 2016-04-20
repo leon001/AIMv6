@@ -121,7 +121,11 @@ static inline void __free(struct list_head *head, void *obj)
 		list_add_after(&this->node, head);
 
 	/* merge downwards */
-	if (prev != NULL && (void *)prev + prev->size == (void *)this) {
+	if (
+		((size_t)this & (size_t)(PAGE_SIZE - 1)) != 0 &&
+		prev != NULL &&
+		(void *)prev + prev->size == (void *)this
+	) {
 		prev->size += this->size;
 		list_del(&this->node);
 		this = prev;
@@ -130,9 +134,22 @@ static inline void __free(struct list_head *head, void *obj)
 	/* merge upwards */
 	if (!list_is_last(&this->node, head))
 		next = list_next_entry(this, struct block, node);
-	if (next != NULL && (void *)this + this->size == (void *)next) {
+	if (
+		(((size_t)this + this->size) & (PAGE_SIZE - 1)) != 0 &&
+		next != NULL &&
+		(void *)this + this->size == (void *)next
+	) {
 		this->size += next->size;
 		list_del(&next->node);
+	}
+
+	/* return page */
+	if (this->size == PAGE_SIZE) {
+		struct pages *pages = kmalloc(sizeof(struct pages), 0);
+		pages->paddr = (addr_t)early_kva2pa((size_t)this);
+		pages->size = PAGE_SIZE;
+		list_del(&this->node);
+		free_pages(pages);
 	}
 }
 
