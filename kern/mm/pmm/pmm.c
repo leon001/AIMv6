@@ -20,14 +20,35 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-__noreturn
-void abs_jump(void *addr)
+#include <sys/types.h>
+
+#include <pmm.h>
+
+static struct page_allocator *__page_allocator = NULL;
+
+void set_page_allocator(struct page_allocator *allocator)
 {
-	asm volatile (
-		"bx %[addr];"
-		::
-		[addr] "r" (addr)
-	);
-	while (1);
+	__page_allocator = allocator;
+}
+
+struct pages * alloc_pages(addr_t count, gfp_t flags)
+{
+	if (__page_allocator == NULL)
+		while (1);
+	return __page_allocator->alloc(count, flags);
+}
+
+void free_pages(struct pages *pages)
+{
+	if (__page_allocator == NULL)
+		while (1);
+	__page_allocator->free(pages);
+}
+
+addr_t get_free_memory(void)
+{
+	if (__page_allocator == NULL)
+		while (1);
+	return __page_allocator->get_free();
 }
 

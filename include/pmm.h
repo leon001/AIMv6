@@ -16,18 +16,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#ifndef _PMM_H
+#define _PMM_H
 
-__noreturn
-void abs_jump(void *addr)
-{
-	asm volatile (
-		"bx %[addr];"
-		::
-		[addr] "r" (addr)
-	);
-	while (1);
-}
+#include <sys/types.h>
+#include <vmm.h>
+
+/* FIXME change name and create seperate header */
+typedef uint32_t gfp_t;
+/* currently ignored */
+
+struct pages {
+	addr_t paddr;
+	addr_t size;
+	gfp_t flags;
+};
+
+struct page_allocator {
+	struct pages *(*alloc)(addr_t count, gfp_t flags);
+	void (*free)(struct pages *pages);
+	addr_t (*get_free)(void);
+};
+
+int page_allocator_init(void);
+int page_allocator_move(struct simple_allocator *old);
+void set_page_allocator(struct page_allocator *allocator);
+
+struct pages * alloc_pages(addr_t count, gfp_t flags);
+void free_pages(struct pages *pages);
+addr_t get_free_memory(void);
+
+void add_memory_pages(void);
+
+#endif /* _PMM_H */
 

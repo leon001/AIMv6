@@ -25,6 +25,8 @@
 
 #include <mm.h>
 #include <mmu.h>
+#include <pmm.h>
+#include <vmm.h>
 
 addr_t get_mem_physbase()
 {
@@ -105,6 +107,17 @@ int mmu_init(pgindex_t * index)
         [index] "r" (index)
     );
     return 0;
+}
+
+/* add memory chunks to page allocator */
+void add_memory_pages(void)
+{
+	extern uint8_t _kern_end;
+	struct pages *p = kmalloc(sizeof(struct pages), 0);
+	p->paddr = (addr_t)early_kva2pa((size_t)&_kern_end);
+	p->size = get_mem_size() - ((addr_t)(size_t)(&_kern_end) - KERN_BASE);
+	p->flags = 0;
+	free_pages(p);
 }
 
 /* get_addr_space()

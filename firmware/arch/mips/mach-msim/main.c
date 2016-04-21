@@ -28,6 +28,7 @@
 #include <drivers/serial/uart.h>
 #include <drivers/block/hd.h>
 #include <drivers/block/msim-ddisk.h>
+#include <drivers/io/io-mem.h>
 
 #define FWSTACKSIZE	(1 << FWSTACKORDER)
 
@@ -68,6 +69,7 @@ void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 void main(void)
 {
 	char mbr[SECTOR_SIZE];
+	io_mem_init(&early_memory_bus);
 	uart_init();
 	uart_puts("FW: Hello world!\r\n");
 	msim_dd_init(MSIM_DISK_PHYSADDR);

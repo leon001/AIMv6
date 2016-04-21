@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -17,18 +17,13 @@
 
 include $(top_srcdir)/env.am
 
-noinst_PROGRAMS = firmware.elf
-noinst_DATA = firmware.bin firmware.s
+noinst_LTLIBRARIES = libvmm.la
 
-CLEANFILES = firmware.bin firmware.s
+SRCS = vmm.c
 
-firmware_elf_SOURCES = entry.S main.c firmware.ld
-firmware_elf_LDADD = $(top_builddir)/drivers/libdrivers-raw.la \
-		     $(top_builddir)/lib/libc/libc-nopic.la
-firmware_elf_CPPFLAGS = $(AM_CPPFLAGS_NOPIC) -DRAW
-firmware_elf_CFLAGS = $(AM_CFLAGS_NOPIC)
-firmware_elf_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)
-firmware_elf_LDFLAGS = $(AM_LDFLAGS_NOPIC) -T firmware.ld
+if ALGO_FLFF
+SRCS += flff.c
+endif
 
-firmware.bin: firmware.elf
-	$(OBJCOPY) -O binary -j.text -j.rodata -j.data -j.bss $^ $@
+libvmm_la_SOURCES = $(SRCS)
+

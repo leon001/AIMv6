@@ -16,8 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <mmu.h>
 #include <sys/types.h>
+
+size_t get_mem_size(void)
+{
+	return MEM_SIZE;
+}
 
 void page_index_clear(pgindex_t * index)
 {
@@ -42,9 +51,5 @@ int get_addr_space(void)
 	 * the kernel space mapping is hardwired by MIPS architecture.
 	 * We don't have any choice. */
 	return 1;
-}
-
-void early_mm_init(void)
-{
 }
 

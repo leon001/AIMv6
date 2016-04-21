@@ -158,6 +158,8 @@ int uart_putchar(unsigned char c)
 
 #if PRIMARY_CONSOLE == uart_zynq
 
+static size_t __early_mapped_base;
+
 /* Meant to register to kernel, so this interface routine is static */
 static int __early_console_putchar(unsigned char c)
 {
@@ -168,6 +170,15 @@ static int __early_console_putchar(unsigned char c)
 static void __mmu_handler(void)
 {
 	__early_uart_zynq.base = __early_mapped_base;
+}
+
+static void __jump_handler(void)
+{
+	__early_uart_zynq.bus = &early_memory_bus;
+	set_console(
+		__early_console_putchar,
+		DEFAULT_KPUTS
+	);
 }
 
 int early_console_init(void)
@@ -185,6 +196,8 @@ int early_console_init(void)
 		while (1);
 	__early_mapped_base += UART_BASE - UART0_PHYSBASE;
 	if (mmu_handlers_add(__mmu_handler) != 0)
+		while (1);
+	if (jump_handlers_add(early_pa2kva(__jump_handler)) != 0)
 		while (1);
 	return 0;
 }

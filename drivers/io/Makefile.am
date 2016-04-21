@@ -19,7 +19,7 @@ include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libio-raw.la libio.la
 
-SRCS = io-mem.c io-mem.h io_port.c io_port.h
+SRCS = io_mem.c io_mem.h io_port.c io_port.h
 
 libio_raw_la_SOURCES = $(SRCS)
 libio_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC)

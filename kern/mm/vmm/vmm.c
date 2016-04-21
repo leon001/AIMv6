@@ -20,14 +20,40 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-__noreturn
-void abs_jump(void *addr)
+#include <sys/types.h>
+
+#include <vmm.h>
+
+static struct simple_allocator *__simple_allocator = NULL;
+
+void set_simple_allocator(struct simple_allocator *allocator)
 {
-	asm volatile (
-		"bx %[addr];"
-		::
-		[addr] "r" (addr)
-	);
-	while (1);
+	__simple_allocator = allocator;
+}
+
+void *kmalloc(size_t size, gfp_t flags)
+{
+	if (__simple_allocator == NULL)
+		while (1);
+	return __simple_allocator->alloc(size, flags);
+}
+
+void kfree(void *obj)
+{
+	if (__simple_allocator == NULL)
+		while (1);
+	__simple_allocator->free(obj);
+}
+
+size_t ksize(void *obj)
+{
+	if (__simple_allocator == NULL)
+		while (1);
+	return __simple_allocator->size(obj);
+}
+
+struct simple_allocator *get_simple_allocator(void)
+{
+	return __simple_allocator;
 }
 

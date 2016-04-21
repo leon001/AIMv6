@@ -25,6 +25,13 @@
  * will be renamed. No interface should be changed anyway.
  */
 
+<<<<<<< HEAD
+#ifndef _ARCH_MMU_H
+#define _ARCH_MMU_H
+
+/* from kernel */
+#include <sys/types.h>
+=======
 #ifndef _MMU_H
 #define _MMU_H
 
@@ -34,11 +41,14 @@
  */
 #define premap_addr(kva)	((kva) + KERN_START - KERN_BASE)
 #define postmap_addr(pa)	((pa) - KERN_START + KERN_BASE)
+>>>>>>> origin/mips-ls3a
 
 #define ARM_SECT_SHIFT	20
 #define ARM_SECT_SIZE	(1 << ARM_SECT_SHIFT)
 #define ARM_PAGE_SHIFT	12
 #define ARM_PAGE_SIZE	(1 << ARM_PAGE_SHIFT)
+
+#define PAGE_SIZE	ARM_PAGE_SIZE
 
 #define ARM_PT_AP_USER_NONE	0x1
 #define ARM_PT_AP_USER_READ	0x2
@@ -72,6 +82,8 @@
 #define ARM_PT_L1_LENGTH	4096
 #define ARM_PT_L2_LENGTH	256
 
+#ifndef __ASSEMBLER__
+
 /*
  * ARM's page table entries have multiple formats for different usage, thus
  * defining structs are not encouraged.
@@ -91,4 +103,5 @@ int page_index_early_map(pgindex_t * index, addr_t paddr, size_t vaddr,
 
 #endif
 
-#endif
+#endif /* _ARCH_MMU_H */
+
