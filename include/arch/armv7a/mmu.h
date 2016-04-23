@@ -25,15 +25,11 @@
  * will be renamed. No interface should be changed anyway.
  */
 
-<<<<<<< HEAD
 #ifndef _ARCH_MMU_H
 #define _ARCH_MMU_H
 
 /* from kernel */
 #include <sys/types.h>
-=======
-#ifndef _MMU_H
-#define _MMU_H
 
 /*
  * [BarclayII] on MIPS, kernel virtual address is *always* (pa + KERN_BASE).
@@ -41,7 +37,6 @@
  */
 #define premap_addr(kva)	((kva) + KERN_START - KERN_BASE)
 #define postmap_addr(pa)	((pa) - KERN_START + KERN_BASE)
->>>>>>> origin/mips-ls3a
 
 #define ARM_SECT_SHIFT	20
 #define ARM_SECT_SIZE	(1 << ARM_SECT_SHIFT)
@@ -81,8 +76,6 @@
  */
 #define ARM_PT_L1_LENGTH	4096
 #define ARM_PT_L2_LENGTH	256
-
-#ifndef __ASSEMBLER__
 
 /*
  * ARM's page table entries have multiple formats for different usage, thus

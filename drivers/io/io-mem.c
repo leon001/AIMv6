@@ -125,7 +125,7 @@ void io_mem_init(struct bus_device *memory_bus)
 	memory_bus->get_read_fp = __get_read_fp;
 	memory_bus->get_write_fp = __get_write_fp;
 #ifndef RAW
-	if (jump_handlers_add(early_pa2kva(__jump_handler)) != 0)
+	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
 		while (1);
 #endif
 }

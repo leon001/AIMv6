@@ -21,7 +21,7 @@
 #ifndef _LIST_H
 #define _LIST_H
 
-#include <libc/stddef.h>
+#include <util.h>
 
 /*
  * Simple doubly-linked list implementation
