@@ -36,10 +36,8 @@
 
 /* Should only be used before memory management is initialized */
 static struct chr_device __early_uart_zynq;
-static size_t __early_mapped_base;
 
 /* internal routines */
-
 static inline void __uart_zynq_enable(struct chr_device * inst)
 {
 	struct bus_device * bus = inst->bus;
@@ -197,7 +195,7 @@ int early_console_init(void)
 	__early_mapped_base += UART_BASE - UART0_PHYSBASE;
 	if (mmu_handlers_add(__mmu_handler) != 0)
 		while (1);
-	if (jump_handlers_add(early_pa2kva(__jump_handler)) != 0)
+	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
 		while (1);
 	return 0;
 }

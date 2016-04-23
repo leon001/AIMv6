@@ -19,24 +19,11 @@
 #ifndef _MM_H
 #define _MM_H
 
-<<<<<<< HEAD
-#define early_kva2pa(kva)	((kva) + RAM_PHYSBASE - KERN_BASE)
-#define early_pa2kva(pa)	((pa) - RAM_PHYSBASE + KERN_BASE)
-=======
 #include <mmu.h>
->>>>>>> origin/mips-ls3a
 
 #include <sys/types.h>
-<<<<<<< HEAD
-#include <mmu.h>
 
 #ifndef __ASSEMBLER__
-
-/* TODO: pick a place and move these away */
-#define ALIGN_CHECK(addr, align) \
-	((addr) % (align) == 0)
-=======
->>>>>>> origin/mips-ls3a
 
 addr_t get_mem_physbase();
 addr_t get_mem_size();
