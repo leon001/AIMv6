@@ -23,6 +23,10 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
+#include <sys/types.h>
+
+#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+
 /**
  * container_of - cast a member of a structure out to the containing structure
  * @ptr:	the pointer to the member.
