@@ -66,7 +66,7 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 			break;
 	}
 	if (&this->node == head) {
-		this = (struct block *)(size_t)early_pa2kva(__backup->paddr);
+		this = (struct block *)(size_t)postmap_addr(__backup->paddr);
 		this->size = __backup->size;
 		this->free = true;
 		kfree(__backup);
@@ -146,7 +146,7 @@ static inline void __free(struct list_head *head, void *obj)
 	/* return page */
 	if (this->size == PAGE_SIZE) {
 		struct pages *pages = kmalloc(sizeof(struct pages), 0);
-		pages->paddr = (addr_t)early_kva2pa((size_t)this);
+		pages->paddr = (addr_t)premap_addr((size_t)this);
 		pages->size = PAGE_SIZE;
 		list_del(&this->node);
 		free_pages(pages);
@@ -204,7 +204,7 @@ int simple_allocator_init(void)
 		while (1);
 
 	struct block *block =
-		(struct block *)(size_t)early_pa2kva(pages->paddr);
+		(struct block *)(size_t)postmap_addr(pages->paddr);
 	block->size = pages->size;
 	block->free = true;
 	kfree(pages);
