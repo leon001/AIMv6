@@ -46,6 +46,7 @@ struct pages * alloc_pages(addr_t count, gfp_t flags);
 void free_pages(struct pages *pages);
 addr_t get_free_memory(void);
 
+/* initialize the page-block structure for remaining free memory */
 void add_memory_pages(void);
 
 #endif /* _PMM_H */

@@ -23,6 +23,8 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
+#ifndef __ASSEMBLER__
+
 #include <sys/types.h>
 
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
@@ -65,5 +67,13 @@
 #define ROUNDUP(x, d)		(DIV_ROUND_UP(x, d) * (d))
 #define ROUNDDOWN(x, d)		((x) - ((x) % (d)))
 #define ROUND_CLOSEST(x, d)	(((x) + ((d) / 2)) / (d))
+
+#define ADDR_CAST(x)		((size_t)(x))
+
+#else	/* __ASSEMBLER__ */
+
+#define ADDR_CAST(x)		(x)
+
+#endif	/* !__ASSEMBLER__ */
 
 #endif

@@ -69,7 +69,7 @@ void __noreturn master_early_init(void)
 	early_mm_init();
 
 	extern uint32_t master_upper_entry;
-	abs_jump((void *)&master_upper_entry);
+	abs_jump((void *)postmap_addr(&master_upper_entry));
 	/* NOTREACHED */
 	while (1);
 }
