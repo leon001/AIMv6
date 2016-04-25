@@ -58,6 +58,9 @@ SECTIONS
 	.text postmap_addr(_text_low_end) : {
 		_text_begin = .;
 		*(.text)
+		. = ALIGN(PAGE_SIZE);
+		*(.text.vector)
+		. = ALIGN(PAGE_SIZE);
 		_text_end = .;
 	} >VMEM AT>PMEM :text
 

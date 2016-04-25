@@ -26,6 +26,7 @@
 #include <mm.h>
 #include <pmm.h>
 #include <vmm.h>
+#include <trap.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
 
@@ -66,28 +67,8 @@ void __noreturn master_init(void)
 	page_allocator_move(old);
 	kputs("KERN: Page allocator moved.\n");
 
-	/* TODO: add assertations... */
-	void *a, *b, *c, *d;
-	a = kmalloc(4000, 0);
-	kprintf("DEBUG: a = 0x%08x\n", a);
-	b = kmalloc(4000, 0);
-	kprintf("DEBUG: b = 0x%08x\n", b);
-	c = kmalloc(4000, 0);
-	kprintf("DEBUG: c = 0x%08x\n", c);
-	d = kmalloc(4000, 0);
-	kprintf("DEBUG: d = 0x%08x\n", d);
-	kfree(b);
-	kputs("DEBUG: free b\n");
-	kfree(c);
-	kputs("DEBUG: free c\n");
-	kfree(d);
-	kputs("DEBUG: free d\n");
-	b = kmalloc(4000, 0);
-	kprintf("DEBUG: b = 0x%08x\n", b);
-	c = kmalloc(4000, 0);
-	kprintf("DEBUG: c = 0x%08x\n", c);
-	d = kmalloc(4000, 0);
-	kprintf("DEBUG: d = 0x%08x\n", d);
+	trap_init();
+	kputs("KERN: Traps initialized.\n");
 	while (1);
 }
 

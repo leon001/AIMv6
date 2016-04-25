@@ -27,12 +27,15 @@ noinst_DATA = vmaim.lds
 
 CLEANFILES = vmaim.lds
 
-libentry_la_SOURCES = entry.S
+libentry_la_SOURCES = \
+	entry.S
 
 libarmv7a_la_SOURCES = \
 	arch_init.c \
 	mm.c \
-	jump.c
+	jump.c \
+	vector.S \
+	trap.c
 libarmv7a_la_LIBADD = $(PREFIXED_MACH)/lib$(MACH).la
 
 vmaim.lds: vmaim.lds.S

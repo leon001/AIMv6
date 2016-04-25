@@ -44,6 +44,7 @@ struct early_mapping {
 #define	EARLY_MAPPING_MEMORY	0
 #define EARLY_MAPPING_KMMAP	1
 #define EARLY_MAPPING_TEMP	2
+#define EARLY_MAPPING_OTHER	3
 
 void early_mapping_clear(void);
 size_t early_mapping_add_memory(addr_t base, size_t size);
