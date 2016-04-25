@@ -81,7 +81,7 @@ static void __free(struct pages *pages)
 	if (!IS_ALIGNED(pages->paddr, PAGE_SIZE))
 		return;
 
-	if (!IS_ALIGNED(pages->size, PAGE_SIZE) != 0)
+	if (!IS_ALIGNED(pages->size, PAGE_SIZE))
 		return;
 
 	__free_space += pages->size;

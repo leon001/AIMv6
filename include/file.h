@@ -42,7 +42,7 @@ struct file_ops {
 	ssize_t (*write)(struct file *, const char *, size_t, loff_t *);
 	//int (*readdir)(struct file *, void *, filldir_t);
 	//unsigned int (*poll)(struct file *, struct poll_table_struct *);
-	int (*ioctl)(struct file *, unsigned int, unsigned long);
+	int (*ioctl)(struct file *, unsigned int, unsigned int, unsigned long);
 	//int (*mmap)(struct file *, struct vm_area_struct *);
 	int (*open)(struct inode *, struct file *);
 	//int (*flush)(struct file *);
