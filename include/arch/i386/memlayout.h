@@ -39,6 +39,8 @@
 
 #define E820MAX			20
 
+#define HIGHMEM_BASE		0x100000
+
 #ifndef __ASSEMBLER__
 
 #pragma pack(1)

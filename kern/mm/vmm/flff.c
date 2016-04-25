@@ -34,13 +34,16 @@
 
 #define ALLOC_ALIGN 16
 
+/* This header directly leads the payload */
 __attribute__ ((aligned(16)))
-struct block {
+struct blockhdr {
 	size_t size;
 	bool free;
 	struct list_head node;
 };
 
+#define PAYLOAD(bh)		((void *)((struct blockhdr *)(bh) + 1))
+#define HEADER(payload)		((struct blockhdr *)(payload) - 1)
 
 static struct simple_allocator __bootstrap_allocator;
 static struct simple_allocator __allocator;
@@ -49,24 +52,39 @@ static struct list_head __head;
 static struct pages *__backup = NULL;
 //static lock_t lock;
 
+/*
+ * TODO: we probably need to explain the algorithm and data structure here
+ */
+
 static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 {
-	struct block *this, *newblock, *prev = NULL, *tmp;
+	struct blockhdr *this, *newblock, *prev = NULL, *tmp;
 	size_t allocsize, newsize;
 
 	/* Make a good size */
+	/* [Gan] TODO: remove this - reimplemented using util.h macros */
+#if 0
 	if ((size & (ALLOC_ALIGN - 1)) != 0) {
 		size -= size & (ALLOC_ALIGN - 1);
 		size += ALLOC_ALIGN;
 	}
-	allocsize = size + sizeof(struct block);
+#else
+	size = ALIGN_ABOVE(size, ALLOC_ALIGN);
+#endif
+	allocsize = size + sizeof(struct blockhdr);
 
 	for_each_entry(this, head, node) {
 		if (this->size >= allocsize)
 			break;
 	}
+
 	if (&this->node == head) {
-		this = (struct block *)(size_t)postmap_addr(__backup->paddr);
+		/* [Gan] postmap_addr stands for conversion from address before
+		 * early mapping to the one after early mapping only.
+		 * If we mean to from physical address to kernel virtual
+		 * address, use pa2kva(), even if it's identical to
+		 * postmap_addr() */
+		this = (struct blockhdr *)(size_t)postmap_addr(__backup->paddr);
 		this->size = __backup->size;
 		this->free = true;
 		kfree(__backup);
@@ -81,15 +99,15 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 			list_add_after(&this->node, head);
 		__backup = alloc_pages(PAGE_SIZE, 0);
 		if (__backup == NULL)
-			while (1);
+			while (1);	/* panic */
 		for_each_entry(this, head, node) {
-		if (this->size >= allocsize)
-			break;
+			if (this->size >= allocsize)
+				break;
 		}
 	}
 
 	newsize = this->size - allocsize;
-	if (newsize >= sizeof(struct block) + ALLOC_ALIGN) {
+	if (newsize >= sizeof(struct blockhdr) + ALLOC_ALIGN) {
 		newblock = ((void *)this) + allocsize;
 		newblock->size = newsize;
 		newblock->free = true;
@@ -98,15 +116,14 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 	}
 	this->free = false;
 	list_del(&this->node);
-	return (void *)(this + 1);
+	return PAYLOAD(this);
 }
 
 static inline void __free(struct list_head *head, void *obj)
 {
-	struct block *this, *prev = NULL, *tmp, *next = NULL;
+	struct blockhdr *this, *prev = NULL, *tmp, *next = NULL;
 
-	this = (struct block *)obj;
-	this -= 1;
+	this = HEADER(obj);
 
 	for_each_entry(tmp, head, node) {
 		if (tmp >= this)
@@ -133,7 +150,7 @@ static inline void __free(struct list_head *head, void *obj)
 
 	/* merge upwards */
 	if (!list_is_last(&this->node, head))
-		next = list_next_entry(this, struct block, node);
+		next = list_next_entry(this, struct blockhdr, node);
 	if (
 		(((size_t)this + this->size) & (PAGE_SIZE - 1)) != 0 &&
 		next != NULL &&
@@ -155,12 +172,11 @@ static inline void __free(struct list_head *head, void *obj)
 
 static size_t __size(void *obj)
 {
-	struct block *this;
+	struct blockhdr *this;
 
-	this = (struct block *)obj;
-	this -= 1;
+	this = HEADER(obj);
 
-	return this->size - sizeof(struct block);
+	return this->size - sizeof(struct blockhdr);
 }
 
 static void *__bootstrap_alloc(size_t size, gfp_t flags)
@@ -185,7 +201,7 @@ static void __proper_free(void *obj)
 
 int simple_allocator_bootstrap(void *pt, size_t size)
 {
-	struct block *block = pt;
+	struct blockhdr *block = pt;
 	block->size = size;
 	block->free = true;
 	list_init(&__bootstrap_head);
@@ -201,15 +217,16 @@ int simple_allocator_init(void)
 {
 	struct pages *pages = alloc_pages(PAGE_SIZE, 0);
 	if (pages == NULL)
-		while (1);
-
-	struct block *block =
-		(struct block *)(size_t)postmap_addr(pages->paddr);
+		while (1);	/* panic */
+	struct blockhdr *block =
+		/* [Gan] same as mentioned above */
+		(struct blockhdr *)(size_t)postmap_addr(pages->paddr);
 	block->size = pages->size;
 	block->free = true;
 	kfree(pages);
 	list_init(&__head);
 	list_add_after(&block->node, &__head);
+
 	__allocator.alloc = __proper_alloc;
 	__allocator.free = __proper_free;
 	__allocator.size = __size;

@@ -47,7 +47,7 @@ static struct pages *__alloc(addr_t size, gfp_t flags)
 	struct pages *ret;
 	size_t newsize;
 
-	if ((size & (PAGE_SIZE - 1)) != 0)
+	if (!IS_ALIGNED(size, PAGE_SIZE))
 		return NULL;
 	if (size > __free_space)
 		return NULL;
@@ -78,10 +78,10 @@ static void __free(struct pages *pages)
 {
 	struct block *this, *prev = NULL, *tmp, *next = NULL;
 
-	if ((pages->paddr & (PAGE_SIZE - 1)) != 0)
+	if (!IS_ALIGNED(pages->paddr, PAGE_SIZE))
 		return;
 
-	if ((pages->size & (PAGE_SIZE - 1)) != 0)
+	if (!IS_ALIGNED(pages->size, PAGE_SIZE) != 0)
 		return;
 
 	__free_space += pages->size;
@@ -144,7 +144,7 @@ int page_allocator_move(struct simple_allocator *old)
 	for_each_entry(this, &__head, node) {
 		new = kmalloc(sizeof(struct block), 0);
 		if (new == NULL)
-			while (1);
+			while (1);	/* panic */
 		new->paddr = this->paddr;
 		new->size = this->size;
 		list_add_after(&new->node, &this->node);

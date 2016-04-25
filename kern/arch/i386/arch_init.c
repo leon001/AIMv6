@@ -22,7 +22,7 @@
 
 /* from kernel */
 #include <init.h>
-#include <drivers/io/io_port.h>
+#include <drivers/io/io-port.h>
 #include <util.h>
 #include <mm.h>
 #include <memlayout.h>

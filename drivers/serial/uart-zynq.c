@@ -191,12 +191,12 @@ int early_console_init(void)
 	);
 	__early_mapped_base = early_mapping_add_kmmap(UART0_PHYSBASE, 1<<20);
 	if (__early_mapped_base == 0)
-		while (1);
+		while (1);	/* panic */
 	__early_mapped_base += UART_BASE - UART0_PHYSBASE;
 	if (mmu_handlers_add(__mmu_handler) != 0)
-		while (1);
+		while (1);	/* panic */
 	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
-		while (1);
+		while (1);	/* panic */
 	return 0;
 }
 

@@ -24,6 +24,9 @@
 #include <sys/types.h>
 #include <asm.h>
 #include <mm.h>
+#include <pmm.h>
+#include <vmm.h>
+#include <util.h>
 #include <processor-flags.h>
 #include <util.h>
 #include <libc/string.h>
@@ -87,3 +90,50 @@ int mmu_init(pgindex_t *index)
 	);
 	return 0;
 }
+
+/* initialize free page block from at least @start to at most @end */
+static void __init_free_pages(addr_t start, addr_t end)
+{
+	size_t spanned_pages;
+
+	start = ALIGN_ABOVE(start, PAGE_SIZE);
+	end = ALIGN_BELOW(end, PAGE_SIZE);
+
+	spanned_pages = end - start;
+
+	struct pages *p = kmalloc(sizeof(*p), 0);
+	p->paddr = start;
+	p->size = spanned_pages;
+	p->flags = 0;
+
+	free_pages(p);
+}
+
+void add_memory_pages(void)
+{
+	/* Note that we are still using page directories with 4MB large
+	 * pages, however it's fine since we are not going to actually
+	 * refer them. */
+
+	/* _kern_end is already aligned to pages */
+	extern uint8_t _kern_end;
+	size_t kern_end_pa = kva2pa(&_kern_end);
+	addr_t start, end;
+	struct e820map *e820map = (struct e820map *)pa2kva(BOOT_E820MAP);
+
+	for (int i = 0; i < e820map->num; ++i) {
+		/* We only do high memory */
+		start = e820map->map[i].start;
+		if (start >= HIGHMEM_BASE &&
+		    e820map->map[i].type == E820_RAM) {
+			end = start + e820map->map[i].size;
+			if (kern_end_pa >= start && kern_end_pa < end) {
+				/* Reserve pages used by kernel */
+				__init_free_pages(kern_end_pa, end);
+			} else {
+				__init_free_pages(start, end);
+			}
+		}
+	}
+}
+
