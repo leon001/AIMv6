@@ -28,5 +28,6 @@ void abs_jump(void *addr)
 		::
 		[addr] "r" (addr)
 	);
+	while (1);
 }
 

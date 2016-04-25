@@ -22,6 +22,7 @@
 
 /* from kernel */
 #include <sys/types.h>
+#include <util.h>
 /* from libc */
 #include <libc/string.h>
 /* from drivers */
@@ -57,31 +58,11 @@ void usleep(uint32_t us)
 	} while (time1 < time);
 }
 
-void fwpanic(const char *fmt, ...)
+void fwpanic(const char *msg)
 {
-	va_list ap;
-	va_start(ap, fmt);
-	uart_vprintf(fmt, ap);
-	va_end(ap);
-	
+	uart_puts(msg);
 	while (1);
-}
-
-void fwdump(void)
-{
-	uart_puts("FW: Dump routine called.\r\n");
-	/* TODO */
-}
-
-void memdump(uint8_t *buf, size_t len)
-{
-	uart_printf("FW: Memory dump of address %08x:\r\n", buf);
-	size_t i;
-	for (i = 0; i < len; ++i) {
-		uart_printf("%02x ", buf[i]);
-		if ((uint32_t)(&buf[i]) % 16 == 15) uart_puts("\r\n");
-	}
-	if (i % 16 != 1) uart_puts("\r\n");
+		/* nothing */;
 }
 
 void readdisk(size_t sector, size_t offset, void *buf, size_t len)
@@ -89,18 +70,14 @@ void readdisk(size_t sector, size_t offset, void *buf, size_t len)
 	volatile unsigned char sector_buf[SECTOR_SIZE];
 	size_t l = 0;
 
-	uart_printf("FW: readdisk(0x%x, 0x%x, 0x%x, 0x%x)\r\n",
-		sector, offset, buf, len);
-
 	sector += offset / SECTOR_SIZE;
 	offset %= SECTOR_SIZE;
 
 	for (; len > 0; len -= l) {
-		l = MIN2(len, SECTOR_SIZE - offset);
+		l = min2(len, SECTOR_SIZE - offset);
 		if (sd_read((uint32_t)sector_buf, 1, sector) != 0)
 			fwpanic("read disk error\n");
 		memcpy(buf, (void *)&sector_buf[offset], l);
-		memdump(buf, l);
 		offset = 0;
 		buf += l;
 		++sector;
@@ -114,7 +91,7 @@ void fw_main(void)
 	volatile uint8_t *mbr = (void *)0x1FE00000; /* THIS IS NOT A NULL! */
 	void (*mbr_entry)() = (void *)mbr;
 
-	io_mem_init();
+	io_mem_init(&early_memory_bus);
 
 	/* Wait for UART fifo to flush */
 	sleep(1);

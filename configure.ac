@@ -24,7 +24,8 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_CONFIG_MACRO_DIR([./m4])
 
-: ${CFLAGS=""}
+# Disable the default -O2 which overrides the -Os for the bootloader
+: ${CFLAGS="-g"}
 
 AC_PROG_CC
 # TODO: put these into acinclude.m4
@@ -63,7 +64,11 @@ AIM_SUPPORT_MACH([msim loongson3a zynq pc generic unknown])
 # default configurations
 AS_VAR_SET([with_kstacksize], [4096])
 
-AS_CASE([$ARCH], 
+AS_CASE([$ARCH],
+	[arm*], [
+		AS_VAR_SET([enable_io_mem], [yes])
+		AS_VAR_SET([enable_io_port], [no])
+	],
 	[mips32], [
 		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
 	],
@@ -71,9 +76,13 @@ AS_CASE([$ARCH],
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
 	],
 	[mips*], [
+		AS_VAR_SET([enable_io_mem], [yes])
+		AS_VAR_SET([enable_io_port], [no])
 		AS_VAR_SET([with_cpus], [4])
 	],
 	[i386], [
+		AS_VAR_SET([enable_io_mem], [yes])
+		AS_VAR_SET([enable_io_port], [yes])
 		AS_VAR_SET([enable_uart_ns16550], [yes])
 		AS_VAR_SET([with_primary_console], [uart-ns16550])
 	]
@@ -183,6 +192,8 @@ AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 	[order of firmware stack per CPU (size=1<<order)])
 
 # Drivers
+AIM_ARG_ENABLE([io-mem], [IO_MEM], [memory-mapped IO driver])
+AIM_ARG_ENABLE([io-port], [IO_PORT], [port IO driver])
 AIM_ARG_ENABLE([uart-zynq], [UART_ZYNQ], [zynq UART driver])
 AIM_ARG_ENABLE([uart-msim], [UART_MSIM], [MSIM UART driver])
 AIM_ARG_ENABLE([uart-ns16550], [UART_NS16550], [NS16550 UART driver])
@@ -200,6 +211,17 @@ AS_CASE([$with_primary_console],
 		AC_DEFINE_UNQUOTED([CONSOLE_NEED_CR], [], [Primary console needs CR])
 	]
 )
+
+# Algorithms
+# MUST have unique names.
+# First fit is named "ff" as page allocator, "bcff" as simple allocator.
+AS_VAR_SET([with_simple_allocator], [flff])
+AIM_ARG_WITH([simple-allocator], [SIMPLE_ALLOCATOR], [non-caching memory object allocator])
+AM_CONDITIONAL([ALGO_FLFF], [test x$with_simple_allocator = xflff])
+
+AS_VAR_SET([with_page_allocator], [ff])
+AIM_ARG_WITH([page-allocator], [PAGE_ALLOCATOR], [page allocator])
+AM_CONDITIONAL([ALGO_FF], [test x$with_page_allocator = xff])
 
 # per-target configuration
 AS_CASE([$MACH],
@@ -281,6 +303,8 @@ AC_CONFIG_FILES([
 	kern/init/Makefile
 	kern/dev/Makefile
 	kern/mm/Makefile
+	kern/mm/pmm/Makefile
+	kern/mm/vmm/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile

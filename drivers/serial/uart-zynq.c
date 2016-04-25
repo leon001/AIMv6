@@ -36,10 +36,8 @@
 
 /* Should only be used before memory management is initialized */
 static struct chr_device __early_uart_zynq;
-static size_t __early_mapped_base;
 
 /* internal routines */
-
 static inline void __uart_zynq_enable(struct chr_device * inst)
 {
 	struct bus_device * bus = inst->bus;
@@ -158,6 +156,8 @@ int uart_putchar(unsigned char c)
 
 #if PRIMARY_CONSOLE == uart_zynq
 
+static size_t __early_mapped_base;
+
 /* Meant to register to kernel, so this interface routine is static */
 static int __early_console_putchar(unsigned char c)
 {
@@ -168,6 +168,15 @@ static int __early_console_putchar(unsigned char c)
 static void __mmu_handler(void)
 {
 	__early_uart_zynq.base = __early_mapped_base;
+}
+
+static void __jump_handler(void)
+{
+	__early_uart_zynq.bus = &early_memory_bus;
+	set_console(
+		__early_console_putchar,
+		DEFAULT_KPUTS
+	);
 }
 
 int early_console_init(void)
@@ -182,10 +191,12 @@ int early_console_init(void)
 	);
 	__early_mapped_base = early_mapping_add_kmmap(UART0_PHYSBASE, 1<<20);
 	if (__early_mapped_base == 0)
-		while (1);
+		while (1);	/* panic */
 	__early_mapped_base += UART_BASE - UART0_PHYSBASE;
 	if (mmu_handlers_add(__mmu_handler) != 0)
-		while (1);
+		while (1);	/* panic */
+	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
+		while (1);	/* panic */
 	return 0;
 }
 

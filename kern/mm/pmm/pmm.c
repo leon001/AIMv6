@@ -16,38 +16,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-.arm
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-.section .vector
+#include <sys/types.h>
 
-fw_vector:
-	/* Entry */
-	ldr	pc, =fw_asm
-	/* Interface */
-	ldr	pc, =uart_puts
-	ldr	pc, =readdisk
+#include <pmm.h>
 
-.text
+static struct page_allocator *__page_allocator = NULL;
 
-fw_asm:
-	/* Set state and disable interrupts, but do not touch endianness. */
-	msr	cpsr_c, 0xDF
+void set_page_allocator(struct page_allocator *allocator)
+{
+	__page_allocator = allocator;
+}
 
-	/* Clear BSS */
-	ldr	r0, =_bss_begin
-	ldr	r1, =_bss_end
-	mov	r2, #0x00000000
-clbss_l:
-	cmp	r0, r1
-	/* always use unsigned LOWER */
-	strlo	r2, [r0]
-	addlo	r0, r0, #4
-	blo	clbss_l
+struct pages * alloc_pages(addr_t count, gfp_t flags)
+{
+	if (__page_allocator == NULL)
+		while (1);
+	return __page_allocator->alloc(count, flags);
+}
 
-	/* Set up stack for firmware and bootloader use */
-	ldr	sp, =fw_stack+4096
-	movs	fp, sp
+void free_pages(struct pages *pages)
+{
+	if (__page_allocator == NULL)
+		while (1);
+	__page_allocator->free(pages);
+}
 
-	/* And call into firmware code */
-	bl	fw_main
+addr_t get_free_memory(void)
+{
+	if (__page_allocator == NULL)
+		while (1);
+	return __page_allocator->get_free();
+}
 

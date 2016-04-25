@@ -27,7 +27,8 @@
 #include <util.h>
 
 #include <asm.h>	/* inb() and outb() should be declared there */
-#include <io_port.h>
+#include <io-port.h>
+#include <mm.h>
 
 /*
  * To determine whether we should interact with port I/O bus directly or
@@ -164,10 +165,23 @@ void portio_bus_connect(struct bus_device *portio,
 	portio->bus = bus;
 }
 
-void portio_bus_init(struct bus_device *portio)
+static void __portio_bus_init(struct bus_device *portio)
 {
 	portio->get_read_fp = __get_read_fp;
 	portio->get_write_fp = __get_write_fp;
+}
+
+static void __jump_handler(void)
+{
+	__portio_bus_init(&portio_bus);
+}
+
+void portio_bus_init(struct bus_device *portio)
+{
+	__portio_bus_init(portio);
+
+	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
+		for (;;) ;	/* panic */
 }
 
 /*

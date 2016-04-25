@@ -49,7 +49,7 @@ SECTIONS
 
 	RAM_SIZE = LENGTH(PMEM);
 
-	.text.low KERN_START : {
+	.text.low RAM_PHYSBASE : {
 		_text_low_begin = .;
 		*(.text.low)
 		_text_low_end = .;
@@ -90,6 +90,8 @@ SECTIONS
 		. += 4K; /* early stack */
 		PROVIDE(boot_stack = .);
 	} >VMEM AT>PMEM :NONE
+	
+	PROVIDE(_kern_end = ALIGN(PAGE_SIZE));
 }
 
 

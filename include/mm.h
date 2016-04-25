@@ -21,9 +21,9 @@
 
 #include <mmu.h>
 
-#ifndef __ASSEMBLER__
-
 #include <sys/types.h>
+
+#ifndef __ASSEMBLER__
 
 addr_t get_mem_physbase();
 addr_t get_mem_size();
@@ -56,10 +56,14 @@ int mmu_init(pgindex_t *boot_page_index);
 
 void early_mm_init(void);	/* arch-specific */
 
+/* Clear all MMU init callback handlers */
 void mmu_handlers_clear(void);
+/* Add one MMU init callback handler, which will be called *after*
+ * initializing MMU*/
 int mmu_handlers_add(generic_fp entry);
 void mmu_handlers_apply(void);
 
+/* Likewise */
 void jump_handlers_clear(void);
 int jump_handlers_add(generic_fp entry);
 void jump_handlers_apply(void);

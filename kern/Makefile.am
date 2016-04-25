@@ -45,3 +45,4 @@ KERNEL_LIBS = \
 vmaim_elf_LDADD = $(KERNEL_LIBS)
 vmaim_elf_DEPENDENCIES = arch/$(ARCH)/vmaim.lds $(KERNEL_LIBS)
 vmaim_elf_LDFLAGS = $(AM_LDFLAGS) -T arch/$(ARCH)/vmaim.lds
+
