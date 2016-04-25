@@ -31,8 +31,8 @@ ENTRY(master_entry)
 MEMORY
 {
 	PMEM (WX) :
-		ORIGIN = RAM_PHYSBASE,
-		LENGTH = MEM_SIZE - 1M
+		ORIGIN = KERN_START,
+		LENGTH = MEM_SIZE - 1M - KERN_START
 	VMEM (WX) :
 		ORIGIN = KERN_BASE,
 		LENGTH = MEM_SIZE - 1M
@@ -102,7 +102,7 @@ SECTIONS
 		*(.igot*)
 	} >VMEM AT>PMEM :rodata
 
-	.rodata : {
+	.rodata : ALIGN(4) {
 		_rodata_begin = .;
 		*(.rodata*)
 		_rodata_end = .;
@@ -114,7 +114,7 @@ SECTIONS
 		_data_end = .;
 	} >VMEM AT>PMEM :data
 
-	.bss : {
+	.bss : ALIGN(32) {
 		_bss_begin = .;
 		*(.bss)
 		_bss_end = .;

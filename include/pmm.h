@@ -42,7 +42,10 @@ int page_allocator_init(void);
 int page_allocator_move(struct simple_allocator *old);
 void set_page_allocator(struct page_allocator *allocator);
 
-struct pages * alloc_pages(addr_t count, gfp_t flags);
+/* Allocate continuous pages with *byte* count @count and characteristics
+ * @flags (unused).
+ * @count should be *always* aligned to page size */
+struct pages *alloc_pages(addr_t count, gfp_t flags);
 void free_pages(struct pages *pages);
 addr_t get_free_memory(void);
 

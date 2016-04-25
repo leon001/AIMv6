@@ -99,7 +99,7 @@ static void __init_free_pages(addr_t start, addr_t end)
 	start = ALIGN_ABOVE(start, PAGE_SIZE);
 	end = ALIGN_BELOW(end, PAGE_SIZE);
 
-	spanned_pages = (end - start) / PAGE_SIZE;
+	spanned_pages = end - start;
 
 	struct pages *p = kmalloc(sizeof(*p), 0);
 	p->paddr = start;
@@ -117,6 +117,7 @@ void add_memory_pages(void)
 
 	/* _kern_end is already aligned to pages */
 	extern uint8_t _kern_end;
+	size_t kern_end_pa = kva2pa(&_kern_end);
 	addr_t start, end;
 	struct e820map *e820map = (struct e820map *)pa2kva(BOOT_E820MAP);
 
@@ -126,9 +127,9 @@ void add_memory_pages(void)
 		if (start >= HIGHMEM_BASE &&
 		    e820map->map[i].type == E820_RAM) {
 			end = start + e820map->map[i].size;
-			if (_kern_end >= start && _kern_end < end) {
+			if (kern_end_pa >= start && kern_end_pa < end) {
 				/* Reserve pages used by kernel */
-				__init_free_pages(_kern_end, end);
+				__init_free_pages(kern_end_pa, end);
 			} else {
 				__init_free_pages(start, end);
 			}
