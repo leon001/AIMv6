@@ -44,8 +44,11 @@ void set_page_allocator(struct page_allocator *allocator);
 
 /* Allocate continuous pages with *byte* count @count and characteristics
  * @flags (unused).
- * @count should be *always* aligned to page size */
+ * @count should be *always* aligned to page size.
+ * NOTE: the returned structure is 'kmalloc'ed. */
 struct pages *alloc_pages(addr_t count, gfp_t flags);
+/* Return the physical pages indicated by @pages to the allocator.
+ * NOTE: @pages itself is 'kfree'd. */
 void free_pages(struct pages *pages);
 addr_t get_free_memory(void);
 
