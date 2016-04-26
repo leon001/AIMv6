@@ -27,6 +27,7 @@
 #include <pmm.h>
 #include <vmm.h>
 #include <trap.h>
+#include <panic.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
 
@@ -69,11 +70,11 @@ void __noreturn master_init(void)
 
 	trap_init();
 	kputs("KERN: Traps initialized.\n");
-	while (1);
+	panic("Test done, all is well.");
 }
 
 void __noreturn slave_init(void)
 {
-	while (1);
+	panic("Unimplemented routine called.");
 }
 

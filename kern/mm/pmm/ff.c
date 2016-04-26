@@ -30,6 +30,7 @@
 #include <mm.h>
 #include <pmm.h>
 #include <vmm.h>
+#include <panic.h>
 
 struct block {
 	struct pages;
@@ -87,7 +88,7 @@ static void __free(struct pages *pages)
 	__free_space += pages->size;
 	this = kmalloc(sizeof(struct block), 0);
 	if (this == NULL)
-		while (1);
+		panic("Out of memory during free_pages().\n");
 	this->paddr = pages->paddr;
 	this->size = pages->size;
 	this->flags = pages->flags;
@@ -144,7 +145,7 @@ int page_allocator_move(struct simple_allocator *old)
 	for_each_entry(this, &__head, node) {
 		new = kmalloc(sizeof(struct block), 0);
 		if (new == NULL)
-			while (1);	/* panic */
+			panic("Out of memory during page_allocator_move().\n");
 		new->paddr = this->paddr;
 		new->size = this->size;
 		list_add_after(&new->node, &this->node);

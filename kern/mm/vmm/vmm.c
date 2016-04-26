@@ -23,6 +23,7 @@
 #include <sys/types.h>
 
 #include <vmm.h>
+#include <panic.h>
 
 static struct simple_allocator *__simple_allocator = NULL;
 
@@ -34,21 +35,21 @@ void set_simple_allocator(struct simple_allocator *allocator)
 void *kmalloc(size_t size, gfp_t flags)
 {
 	if (__simple_allocator == NULL)
-		while (1);
+		panic("kmalloc() called but no allocator available.\n");
 	return __simple_allocator->alloc(size, flags);
 }
 
 void kfree(void *obj)
 {
 	if (__simple_allocator == NULL)
-		while (1);
+		panic("kfree() called but no allocator available.\n");
 	__simple_allocator->free(obj);
 }
 
 size_t ksize(void *obj)
 {
 	if (__simple_allocator == NULL)
-		while (1);
+		panic("ksize() called but no allocator available.\n");
 	return __simple_allocator->size(obj);
 }
 

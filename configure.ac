@@ -302,6 +302,7 @@ AC_CONFIG_FILES([
 	kern/arch/mips/mach-loongson3a/Makefile
 	kern/init/Makefile
 	kern/dev/Makefile
+	kern/debug/Makefile
 	kern/mm/Makefile
 	kern/mm/pmm/Makefile
 	kern/mm/vmm/Makefile

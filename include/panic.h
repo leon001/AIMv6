@@ -19,7 +19,11 @@
 #ifndef _PANIC_H
 #define _PANIC_H
 
-/* TODO: implement this... here panic() is merely a placeholder */
-#define panic(fmt, ...)	do { for (;;) ; } while (0)
+__noreturn
+void __panic(void);
+
+__noreturn
+void panic(const char *fmt, ...);
 
 #endif
+

@@ -38,6 +38,9 @@ arm_vector:
 
 .text
 
+swi_wrapper:
+	
+
 idle:
 	b	idle
 
