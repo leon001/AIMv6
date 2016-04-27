@@ -20,15 +20,19 @@
 #include <config.h>
 #endif
 
+#include <mmu.h>
+#include <util.h>
 #include <pmm.h>
 #include <vmm.h>
 
 void mips_add_memory_pages(void)
 {
 	/* Low RAM */
+	extern uint8_t _kern_end;
+	uint32_t kern_end = (uint32_t)&_kern_end;
 	struct pages *p = kmalloc(sizeof(*p), 0);
-	p->paddr = 0;
-	p->size = 0x10000000;	/* TODO: no magic number */
+	p->paddr = kva2pa(ALIGN_ABOVE(kern_end, PAGE_SIZE));
+	p->size = 0x10000000 - p->paddr;	/* TODO: no magic number */
 	p->flags = 0;
 
 	free_pages(p);
