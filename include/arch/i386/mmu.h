@@ -25,9 +25,16 @@
 #endif
 
 #include <memlayout.h>
+#include <util.h>
 
-#define premap_addr(kva)	((kva) - KERN_BASE)
-#define postmap_addr(pa)	((pa) + KERN_BASE)
+/* addresses before and after early MMU mapping */
+#define premap_addr(kva)	(ADDR_CAST(kva) - KERN_BASE)
+#define postmap_addr(pa)	(ADDR_CAST(pa) + KERN_BASE)
+
+/* kernel virtual address and physical address conversion */
+#define kva2pa(kva)		(ADDR_CAST(kva) - KERN_BASE)
+#define pa2kva(pa)		(ADDR_CAST(pa) + KERN_BASE)
+
 #define PAGE_SHIFT	12
 #define PTX_SHIFT	PAGE_SHIFT
 #define PDX_SHIFT	(PTX_SHIFT + PAGE_SHIFT - 2)

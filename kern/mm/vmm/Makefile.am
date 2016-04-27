@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -15,36 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# CPUs
-@MSIM_CONF_CPULIST@
+include $(top_srcdir)/env.am
 
-# Low 256MB RAM
-add rwm ram 0x00000000
-ram generic 256M
+noinst_LTLIBRARIES = libvmm.la
 
-# High RAM
-add rwm highram @MSIM_CONF_HIGHRAM_BASE@
-highram generic @MSIM_CONF_HIGHRAM_SIZE@
+SRCS = vmm.c
 
-# 1M BIOS
-add rom bios 0x1fc00000
-bios generic 1024K
-bios load "@MSIM_CONF_FIRMWARE_BIN@"
+if ALGO_FLFF
+SRCS += flff.c
+endif
 
-# Keyboard
-add dkeyboard kbd0 @MSIM_CONF_KBDPA@ 3
-
-# Printer
-add dprinter lp0 @MSIM_CONF_LPPA@
-
-# Disk
-add ddisk hd0 @MSIM_CONF_DISKPA@ 2
-hd0 fmap "@MSIM_CONF_DISK_IMAGE@"
-
-# Inter-processor communication device
-add dorder ord0 @MSIM_CONF_ORDERPA@ 6
-@MSIM_CONF_MBLIST@
-
-# RTC
-add dtime rtc0 @MSIM_CONF_RTCPA@
+libvmm_la_SOURCES = $(SRCS)
 

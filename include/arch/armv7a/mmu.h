@@ -25,20 +25,27 @@
  * will be renamed. No interface should be changed anyway.
  */
 
-#ifndef _MMU_H
-#define _MMU_H
+#ifndef _ARCH_MMU_H
+#define _ARCH_MMU_H
+
+/* from kernel */
+#include <sys/types.h>
 
 /*
  * [BarclayII] on MIPS, kernel virtual address is *always* (pa + KERN_BASE).
  * I guess the following should be put in arch-specific headers.
  */
-#define premap_addr(kva)	((kva) + KERN_START - KERN_BASE)
-#define postmap_addr(pa)	((pa) - KERN_START + KERN_BASE)
+#define premap_addr(kva)	((kva) + RAM_PHYSBASE - KERN_BASE)
+#define postmap_addr(pa)	((pa) - RAM_PHYSBASE + KERN_BASE)
+#define kva2pa(kva)		((kva) + RAM_PHYSBASE - KERN_BASE)
+#define pa2kva(pa)		((pa) - RAM_PHYSBASE + KERN_BASE)
 
 #define ARM_SECT_SHIFT	20
 #define ARM_SECT_SIZE	(1 << ARM_SECT_SHIFT)
 #define ARM_PAGE_SHIFT	12
 #define ARM_PAGE_SIZE	(1 << ARM_PAGE_SHIFT)
+
+#define PAGE_SIZE	ARM_PAGE_SIZE
 
 #define ARM_PT_AP_USER_NONE	0x1
 #define ARM_PT_AP_USER_READ	0x2
@@ -91,4 +98,5 @@ int page_index_early_map(pgindex_t * index, addr_t paddr, size_t vaddr,
 
 #endif
 
-#endif
+#endif /* _ARCH_MMU_H */
+

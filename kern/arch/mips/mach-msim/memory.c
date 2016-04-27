@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,38 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-.arm
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-.section .vector
+#include <pmm.h>
+#include <vmm.h>
 
-fw_vector:
-	/* Entry */
-	ldr	pc, =fw_asm
-	/* Interface */
-	ldr	pc, =uart_puts
-	ldr	pc, =readdisk
+void mips_add_memory_pages(void)
+{
+	/* Low RAM */
+	struct pages *p = kmalloc(sizeof(*p), 0);
+	p->paddr = 0;
+	p->size = 0x10000000;	/* TODO: no magic number */
+	p->flags = 0;
 
-.text
+	free_pages(p);
 
-fw_asm:
-	/* Set state and disable interrupts, but do not touch endianness. */
-	msr	cpsr_c, 0xDF
+	/* High RAM */
+	p = kmalloc(sizeof(*p), 0);
+	p->paddr = HIGHRAM_BASE;
+	p->size = HIGHRAM_SIZE;
+	p->flags = 0;
 
-	/* Clear BSS */
-	ldr	r0, =_bss_begin
-	ldr	r1, =_bss_end
-	mov	r2, #0x00000000
-clbss_l:
-	cmp	r0, r1
-	/* always use unsigned LOWER */
-	strlo	r2, [r0]
-	addlo	r0, r0, #4
-	blo	clbss_l
-
-	/* Set up stack for firmware and bootloader use */
-	ldr	sp, =fw_stack+4096
-	movs	fp, sp
-
-	/* And call into firmware code */
-	bl	fw_main
-
+	free_pages(p);
+}

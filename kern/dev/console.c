@@ -55,12 +55,12 @@ void set_console(putchar_fp putchar, puts_fp puts)
 int kprintf(const char *fmt, ...)
 {
 	int result;
+	char printf_buf[BUFSIZ];
 	va_list ap;
 	va_start(ap, fmt);
-	char printf_buf[BUFSIZ];
 	result = vsnprintf(printf_buf, BUFSIZ, fmt, ap);
-	kputs(printf_buf);
 	va_end(ap);
+	kputs(printf_buf);
 	return result;
 }
 

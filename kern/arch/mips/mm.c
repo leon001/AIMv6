@@ -53,3 +53,17 @@ int get_addr_space(void)
 	return 1;
 }
 
+void add_memory_pages(void)
+{
+	/* Unfortunately, MIPS architecture did not specify how to
+	 * probe physical memory layout, so the job is entirely left
+	 * to machine-dependent code.
+	 *
+	 * MIPS machines do follow a convention of physical memory
+	 * layout, though:
+	 * Physical address 0x00000000 - 0x10000000 are usually RAM,
+	 * 		    0x10000000 - 0x20000000 are usually devices.
+	 * Addresses elsewhere are entirely machine dependent.
+	 */
+	mips_add_memory_pages();
+}

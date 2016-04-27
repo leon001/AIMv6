@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <drivers/io/io_port.h>
-#include <drivers/io/io_mem.h>
+#include <drivers/io/io-port.h>
+#include <drivers/io/io-mem.h>
 
 void early_mach_init(void)
 {

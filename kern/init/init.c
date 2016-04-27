@@ -23,10 +23,71 @@
 /* from kernel */
 #include <sys/types.h>
 #include <console.h>
+#include <mm.h>
+#include <pmm.h>
+#include <vmm.h>
+
+#define BOOTSTRAP_POOL_SIZE	1024
 
 void __noreturn master_init(void)
 {
-	kputs("KERN: We are in high address!\n");
+	__attribute__ ((aligned(16)))
+	uint8_t bootstrap_pool[BOOTSTRAP_POOL_SIZE];
+
+	jump_handlers_apply();
+	kputs("KERN: We are in high address.\n");
+
+	/*
+	 * Page allocator requires arbitrary size allocation to allocate
+	 * struct pages, while arbitrary size allocation depends on
+	 * page allocator to actually give out memory.
+	 *
+	 * We break such circular dependency by
+	 * (1) bootstrap a small virtual memory allocator which works on the
+	 *     stack.
+	 * (2) initialize a page allocator which works on the bootstrap
+	 *     allocator obtained in (1).
+	 * (3) initialize a real virtual memory allocator which depend
+	 *     on (2).
+	 * (4) make the page allocator depend on (3) instead.
+	 *
+	 * TODO: move the following piece of code to kern/mm
+	 */
+	simple_allocator_bootstrap(bootstrap_pool, BOOTSTRAP_POOL_SIZE);
+	kputs("KERN: Simple allocator bootstrapping.\n");
+	page_allocator_init();
+	kputs("KERN: Page allocator initialized.\n");
+	add_memory_pages();
+	kputs("KERN: Pages added.\n");
+	kprintf("KERN: Free memory: 0x%08x\n", (size_t)get_free_memory());
+	struct simple_allocator *old = get_simple_allocator();
+	simple_allocator_init();
+	kputs("KERN: Simple allocator initialized.\n");
+	page_allocator_move(old);
+	kputs("KERN: Page allocator moved.\n");
+
+	/* TODO: add assertations... */
+	void *a, *b, *c, *d;
+	a = kmalloc(4000, 0);
+	kprintf("DEBUG: a = 0x%08x\n", a);
+	b = kmalloc(4000, 0);
+	kprintf("DEBUG: b = 0x%08x\n", b);
+	c = kmalloc(4000, 0);
+	kprintf("DEBUG: c = 0x%08x\n", c);
+	d = kmalloc(4000, 0);
+	kprintf("DEBUG: d = 0x%08x\n", d);
+	kfree(b);
+	kputs("DEBUG: free b\n");
+	kfree(c);
+	kputs("DEBUG: free c\n");
+	kfree(d);
+	kputs("DEBUG: free d\n");
+	b = kmalloc(4000, 0);
+	kprintf("DEBUG: b = 0x%08x\n", b);
+	c = kmalloc(4000, 0);
+	kprintf("DEBUG: c = 0x%08x\n", c);
+	d = kmalloc(4000, 0);
+	kprintf("DEBUG: d = 0x%08x\n", d);
 	while (1);
 }
 

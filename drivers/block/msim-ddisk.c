@@ -27,7 +27,7 @@ unsigned char msim_dd_dma[SECTOR_SIZE];
 
 void msim_dd_init(unsigned long paddr)
 {
-	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kv2p(msim_dd_dma));
+	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
 }
 
 size_t msim_dd_get_sector_count(unsigned long paddr)
@@ -40,7 +40,7 @@ size_t msim_dd_get_sector_count(unsigned long paddr)
  */
 int msim_dd_read_sector(unsigned long paddr, size_t sect, void *buf, bool poll)
 {
-	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kv2p(msim_dd_dma));
+	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
 	write32(MSIM_DD_REG(paddr, MSIM_DD_SECTOR), sect);
 	write32(MSIM_DD_REG(paddr, MSIM_DD_COMMAND), CMD_READ);
 	if (poll) {
@@ -62,7 +62,7 @@ int msim_dd_read_sector(unsigned long paddr, size_t sect, void *buf, bool poll)
 int msim_dd_write_sector(unsigned long paddr, size_t sect, void *buf, bool poll)
 {
 	memcpy(msim_dd_dma, buf, SECTOR_SIZE);
-	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kv2p(msim_dd_dma));
+	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
 	write32(MSIM_DD_REG(paddr, MSIM_DD_SECTOR), sect);
 	write32(MSIM_DD_REG(paddr, MSIM_DD_COMMAND), CMD_WRITE);
 	if (poll) {

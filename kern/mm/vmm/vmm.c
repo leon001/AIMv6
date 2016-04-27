@@ -16,38 +16,44 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-.arm
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-.section .vector
+#include <sys/types.h>
 
-fw_vector:
-	/* Entry */
-	ldr	pc, =fw_asm
-	/* Interface */
-	ldr	pc, =uart_puts
-	ldr	pc, =readdisk
+#include <vmm.h>
 
-.text
+static struct simple_allocator *__simple_allocator = NULL;
 
-fw_asm:
-	/* Set state and disable interrupts, but do not touch endianness. */
-	msr	cpsr_c, 0xDF
+void set_simple_allocator(struct simple_allocator *allocator)
+{
+	__simple_allocator = allocator;
+}
 
-	/* Clear BSS */
-	ldr	r0, =_bss_begin
-	ldr	r1, =_bss_end
-	mov	r2, #0x00000000
-clbss_l:
-	cmp	r0, r1
-	/* always use unsigned LOWER */
-	strlo	r2, [r0]
-	addlo	r0, r0, #4
-	blo	clbss_l
+void *kmalloc(size_t size, gfp_t flags)
+{
+	if (__simple_allocator == NULL)
+		while (1);
+	return __simple_allocator->alloc(size, flags);
+}
 
-	/* Set up stack for firmware and bootloader use */
-	ldr	sp, =fw_stack+4096
-	movs	fp, sp
+void kfree(void *obj)
+{
+	if (__simple_allocator == NULL)
+		while (1);
+	__simple_allocator->free(obj);
+}
 
-	/* And call into firmware code */
-	bl	fw_main
+size_t ksize(void *obj)
+{
+	if (__simple_allocator == NULL)
+		while (1);
+	return __simple_allocator->size(obj);
+}
+
+struct simple_allocator *get_simple_allocator(void)
+{
+	return __simple_allocator;
+}
 

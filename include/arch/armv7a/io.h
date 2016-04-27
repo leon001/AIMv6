@@ -27,33 +27,33 @@
  * MMU if it is turned on. 
  */
 
-inline uint8_t read8(uint32_t addr)
+static inline uint8_t read8(uint32_t addr)
 {
 	return *(volatile uint8_t *)addr;
 }
 
-inline uint16_t read16(uint32_t addr)
+static inline uint16_t read16(uint32_t addr)
 {
 	return *(volatile uint16_t *)addr;
 }
 
-inline uint32_t read32(uint32_t addr)
+static inline uint32_t read32(uint32_t addr)
 {
 	return *(volatile uint32_t *)addr;
 }
 
 
-inline void write8(uint32_t addr, uint8_t data)
+static inline void write8(uint32_t addr, uint8_t data)
 {
 	*(volatile uint8_t *)addr = data;
 }
 
-inline void write16(uint32_t addr, uint16_t data)
+static inline void write16(uint32_t addr, uint16_t data)
 {
 	*(volatile uint16_t *)addr = data;
 }
 
-inline void write32(uint32_t addr, uint32_t data)
+static inline void write32(uint32_t addr, uint32_t data)
 {
 	*(volatile uint32_t *)addr = data;
 }
