@@ -28,6 +28,8 @@
 #define TARGET	"elf64-tradlittlemips"
 #endif
 
+#include <mmu.h>
+
 OUTPUT_FORMAT(TARGET)
 
 #undef TARGET
@@ -82,4 +84,5 @@ SECTIONS {
 		. += KSTACKSIZE;
 		PROVIDE(boot_stack = .);
 	}
+	PROVIDE(_kern_end = ALIGN(PAGE_SIZE));
 }
