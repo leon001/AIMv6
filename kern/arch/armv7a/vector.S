@@ -29,7 +29,7 @@
 arm_vector:
 	ldr	pc, = idle	//Reset
 	ldr	pc, = idle	//Undefined
-	ldr	pc, = idle	//SWI
+	ldr	pc, = svc_handler_asm	//SVC
 	ldr	pc, = idle	//Prefetch Abort
 	ldr	pc, = idle	//Data Abort
 	ldr	pc, = idle	//Reserved
@@ -38,8 +38,24 @@ arm_vector:
 
 .text
 
-swi_wrapper:
-	
+svc_handler_asm:
+	/* push registers */
+	push	{r0-r12, lr}
+	mrs	r0, spsr
+	push	{r0}
+	/* pass a pointer using r0 */
+	mov	r0, sp
+	/* restore stack pointer */
+	add	sp, sp, #0x3C
+	/* go to system mode and save banked registers */
+	msr	cpsr_c, 0xDF
+	stmdb	r0!, {sp, lr}
+	/* initialize or reuse stack */
+	/* TODO */
+
+	/* call the C handler */
+	bl	arm_handle_svc
+	/* arm_handle_svc(struct regs *) */
 
 idle:
 	b	idle

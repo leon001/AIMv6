@@ -63,15 +63,7 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 	size_t allocsize, newsize;
 
 	/* Make a good size */
-	/* [Gan] TODO: remove this - reimplemented using util.h macros */
-#if 0
-	if ((size & (ALLOC_ALIGN - 1)) != 0) {
-		size -= size & (ALLOC_ALIGN - 1);
-		size += ALLOC_ALIGN;
-	}
-#else
 	size = ALIGN_ABOVE(size, ALLOC_ALIGN);
-#endif
 	allocsize = size + sizeof(struct blockhdr);
 
 	for_each_entry(this, head, node) {
@@ -85,7 +77,7 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 		 * If we mean to from physical address to kernel virtual
 		 * address, use pa2kva(), even if it's identical to
 		 * postmap_addr() */
-		this = (struct blockhdr *)(size_t)postmap_addr(__backup->paddr);
+		this = (struct blockhdr *)(size_t)pa2kva(__backup->paddr);
 		this->size = __backup->size;
 		this->free = true;
 		kfree(__backup);

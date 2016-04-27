@@ -69,6 +69,11 @@ void __noreturn master_init(void)
 	kputs("KERN: Page allocator moved.\n");
 
 	trap_init();
+
+	/* temporary test */
+	extern void trap_test(void);
+	trap_test();
+
 	kputs("KERN: Traps initialized.\n");
 	panic("Test done, all is well.");
 }
