@@ -38,6 +38,8 @@ arm_vector:
 
 .text
 
+.globl svc_return_asm
+
 svc_handler_asm:
 	/* push registers */
 	push	{r0-r12, lr}
@@ -56,6 +58,17 @@ svc_handler_asm:
 	/* call the C handler */
 	bl	arm_handle_svc
 	/* arm_handle_svc(struct regs *) */
+
+svc_return_asm: /* (struct regs *) */
+	/* restore banked registers */
+	ldmia	r0!, {sp, lr}
+	/* go to SVC mode */
+	msr	cpsr_c, 0xD3
+	/* restore other registers */
+	ldmia	r0!, {r1}
+	msr	spsr, r1
+	ldmia	r0, {r0-r12, pc}^
+	/* the instruction above performs the exception return */
 
 idle:
 	b	idle

@@ -75,7 +75,9 @@ void arm_handle_svc(struct regs *regs)
 	kprintf("DEBUG: psr = 0x%08x\n", regs->psr);
 	kprintf("DEBUG: sp = 0x%08x\n", regs->sp);
 	kprintf("DEBUG: lr = 0x%08x\n", regs->lr);
-	panic("Good\n");
+
+	extern void svc_return_asm(struct regs *regs);
+	svc_return_asm(regs);
 }
 
 void trap_test(void)

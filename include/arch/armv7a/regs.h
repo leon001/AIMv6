@@ -21,8 +21,8 @@
 
 struct regs {
 	/* possible extra registers here */
-	uint32_t lr;
 	uint32_t sp;
+	uint32_t lr;
 	uint32_t psr;
 	uint32_t r0;
 	uint32_t r1;
