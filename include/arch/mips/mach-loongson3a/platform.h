@@ -20,11 +20,35 @@
 #define _PLATFORM_H
 
 /* inb(x) = *(LOONGSON3A_PORTIO_BASE + x) */
-#define LOONGSON3A_PORTIO_BASE		0x18000000
+#define LOONGSON3A_PORTIO_BASE		0x0efdfc000000
 #define LOONGSON3A_UART_BASE		0x1fe001e0
 
 /* for UART */
 #define UART_BASE	LOONGSON3A_UART_BASE
 #define UART_FREQ	2073600
+
+/*
+ * Loongson 3A address space router 
+ * TODO: shall we make it a device?
+ */
+#define LOONGSON3A_CORE_WIN_BASE	0x3ff02000
+#define LOONGSON3A_COREx_WINy_BASE(x, y) \
+	(LOONGSON3A_CORE_WIN_BASE + (x) * 0x100 + (y) * 0x8)
+#define LOONGSON3A_CORE_WINS		8
+/* Address spaces */
+#define LOONGSON3A_NUMA_MASK		0xf00000000000
+#define LOONGSON3A_HT0_BASE		0x0c0000000000
+#define LOONGSON3A_HT1_BASE		0x0e0000000000
+/* 32-bit compatibility spaces */
+#define LOONGSON3A_HTIO32		0x18000000
+#define LOONGSON3A_HTMEM32		0x1e000000
+/* Address space availability */
+#define LOONGSON3A_MMAP_ENABLE		0x80
+#define LOONGSON3A_MMAP_DATA		0x20
+#define LOONGSON3A_MMAP_IFETCH		0x10
+#define LOONGSON3A_MMAP_AVAILABLE \
+	(LOONGSON3A_MMAP_ENABLE | \
+	 LOONGSON3A_MMAP_DATA | \
+	 LOONGSON3A_MMAP_IFETCH)
 
 #endif
