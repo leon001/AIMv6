@@ -19,6 +19,8 @@
 #ifndef _PLATFORM_H
 #define _PLATFORM_H
 
+#include <io.h>
+
 /* inb(x) = *(LOONGSON3A_PORTIO_BASE + x) */
 #define LOONGSON3A_PORTIO_BASE		0x0efdfc000000
 #define LOONGSON3A_UART_BASE		0x1fe001e0
@@ -29,15 +31,15 @@
 
 /*
  * Loongson 3A address space router 
- * TODO: shall we make it a device?
+ * TODO: shall we make it a device?  We'd better not modify them.
  */
 #define LOONGSON3A_CORE_WIN_BASE	0x3ff02000
 #define LOONGSON3A_COREx_WINy_BASE(x, y) \
-	(LOONGSON3A_CORE_WIN_BASE + (x) * 0x100 + (y) * 0x8)
+	read64(LOONGSON3A_CORE_WIN_BASE + (x) * 0x100 + (y) * 0x8)
 #define LOONGSON3A_COREx_WINy_MASK(x, y) \
-	(LOONGSON3A_COREx_WINy_BASE(x, y) + 0x40)
+	read64(LOONGSON3A_COREx_WINy_BASE(x, y) + 0x40)
 #define LOONGSON3A_COREx_WINy_MMAP(x, y) \
-	(LOONGSON3A_COREx_WINy_BASE(x, y) + 0x80)
+	read64(LOONGSON3A_COREx_WINy_BASE(x, y) + 0x80)
 #define LOONGSON3A_CORE_WINS		8
 /* Address spaces */
 #define LOONGSON3A_NUMA_MASK		0xf00000000000
