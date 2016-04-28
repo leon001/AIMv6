@@ -28,6 +28,7 @@
 #include <console.h>
 #include <device.h>
 #include <drivers/io/io-mem.h>
+#include <mm.h>
 
 /*
  * Design note:
@@ -112,12 +113,28 @@ int early_console_putchar(unsigned char c)
 	return 0;
 }
 
+static void __mmu_handler(void)
+{
+	/* nothing since it's always on MIPS */
+}
+
+static void __jump_handler(void)
+{
+	/* ditto */
+}
+
 int early_console_init(void)
 {
 	__early_uart_msim_lp.bus = &early_memory_bus;
 	__early_uart_msim_kbd.bus = &early_memory_bus;
 	__uart_msim_init(&__early_uart_msim_lp, &__early_uart_msim_kbd);
 	set_console(early_console_putchar, DEFAULT_KPUTS);
+
+	if (mmu_handlers_add(__mmu_handler) != 0)
+		for (;;) ;	/* panic */
+	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
+		for (;;) ;	/* panic */
+
 	return 0;
 }
 

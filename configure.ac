@@ -24,6 +24,9 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_CONFIG_MACRO_DIR([./m4])
 
+# Disable the default -O2 which overrides the -Os for the bootloader
+: ${CFLAGS="-g"}
+
 AC_PROG_CC
 # TODO: put these into acinclude.m4
 AIM_PROG_CC_C11
@@ -40,6 +43,8 @@ AIM_GCC_FUNC_ATTRIBUTE([weak])
 AIM_GCC_FUNC_ATTRIBUTE([noinline])
 AX_GCC_VAR_ATTRIBUTE([visibility])
 AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
+
+AC_SUBST([AIM_CFLAGS], [$aim_cflags])
 
 AM_PROG_AS
 AM_PROG_AR
@@ -59,7 +64,11 @@ AIM_SUPPORT_MACH([msim loongson3a zynq pc generic unknown])
 # default configurations
 AS_VAR_SET([with_kstacksize], [4096])
 
-AS_CASE([$ARCH], 
+AS_CASE([$ARCH],
+	[arm*], [
+		AS_VAR_SET([enable_io_mem], [yes])
+		AS_VAR_SET([enable_io_port], [no])
+	],
 	[mips32], [
 		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
 	],
@@ -67,9 +76,13 @@ AS_CASE([$ARCH],
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
 	],
 	[mips*], [
+		AS_VAR_SET([enable_io_mem], [yes])
+		AS_VAR_SET([enable_io_port], [no])
 		AS_VAR_SET([with_cpus], [4])
 	],
 	[i386], [
+		AS_VAR_SET([enable_io_mem], [yes])
+		AS_VAR_SET([enable_io_port], [yes])
 		AS_VAR_SET([enable_uart_ns16550], [yes])
 		AS_VAR_SET([with_primary_console], [uart-ns16550])
 	]
@@ -106,21 +119,16 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
 		AS_VAR_SET([with_cpus], [4])
+		AS_VAR_SET([with_highram_base], [0x80000000])
+		AS_VAR_SET([with_highram_size], [0x30000000])
 	], 
 	[pc], [
 		AS_VAR_SET([with_fwstack_order], [12])
 	],
 	[loongson3a], [
 		AS_VAR_SET([enable_uart_ns16550], [yes])
-
 		AS_VAR_SET([with_primary_console], [uart-ns16550])
-
-		AC_DEFINE([UART_BASE1], [0x1fe001e0],
-			[Loongson 3A UART base address 1 - Do not change])
-		AC_DEFINE([UART_BASE2], [0x1fe001e8],
-			[Loongson 3A UART base address 2 - Do not change])
 	],
-	[qemu-generic], [],
 	[generic], [],
 	[unknown], [],
 	[AC_MSG_ERROR([No machine specified])]
@@ -145,6 +153,14 @@ AIM_ARG_WITH([msim-firmware-bin], [MSIM_FIRMWARE_BIN],
 	[MSIM firmware binary file name])
 AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
 	[MSIM disk image file name])
+AIM_ARG_WITH([highram-base], [HIGHRAM_BASE],
+	[MIPS high RAM base address])
+AIM_ARG_WITH([highram-size], [HIGHRAM_SIZE],
+	[MIPS high RAM size])
+
+# Loongson 3A
+AIM_ARG_ENABLE([loongson3a-ram-detection], [LOONGSON3A_RAM_DETECTION],
+	[RAM space detection on Loongson 3A port (EXPERIMENTAL)])
 
 # target details
 AIM_ARG_WITH([ram-physbase], [RAM_PHYSBASE], [physical memory start point],
@@ -179,12 +195,17 @@ AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 	[order of firmware stack per CPU (size=1<<order)])
 
 # Drivers
+AIM_ARG_ENABLE([io-mem], [IO_MEM], [memory-mapped IO driver])
+AIM_ARG_ENABLE([io-port], [IO_PORT], [port IO driver])
 AIM_ARG_ENABLE([uart-zynq], [UART_ZYNQ], [zynq UART driver])
 AIM_ARG_ENABLE([uart-msim], [UART_MSIM], [MSIM UART driver])
 AIM_ARG_ENABLE([uart-ns16550], [UART_NS16550], [NS16550 UART driver])
 AIM_ARG_ENABLE([block-msim], [BLOCK_MSIM], [MSIM block device driver])
 AIM_ARG_ENABLE([sd-zynq], [SD_ZYNQ], [zynq SD driver])
 AIM_ARG_ENABLE([timer-a9], [TIMER_A9], [Cortex-A9 MPCore timer driver])
+
+AM_CONDITIONAL([IO_MEM], [test x$enable_io_mem = xyes])
+AM_CONDITIONAL([IO_PORT], [test x$enable_io_port = xyes])
 
 # Primary Driver Selection
 AIM_ARG_WITH([primary-console], [PRIMARY_CONSOLE], [primary console])
@@ -196,6 +217,17 @@ AS_CASE([$with_primary_console],
 		AC_DEFINE_UNQUOTED([CONSOLE_NEED_CR], [], [Primary console needs CR])
 	]
 )
+
+# Algorithms
+# MUST have unique names.
+# First fit is named "ff" as page allocator, "bcff" as simple allocator.
+AS_VAR_SET([with_simple_allocator], [flff])
+AIM_ARG_WITH([simple-allocator], [SIMPLE_ALLOCATOR], [non-caching memory object allocator])
+AM_CONDITIONAL([ALGO_FLFF], [test x$with_simple_allocator = xflff])
+
+AS_VAR_SET([with_page_allocator], [ff])
+AIM_ARG_WITH([page-allocator], [PAGE_ALLOCATOR], [page allocator])
+AM_CONDITIONAL([ALGO_FF], [test x$with_page_allocator = xff])
 
 # per-target configuration
 AS_CASE([$MACH],
@@ -225,6 +257,10 @@ AS_CASE([$MACH],
 			   done`)
 		 AC_SUBST(MSIM_CONF_RTCPA,
 			  `printf 0x%08x $with_msim_rtc_pa`)
+		 AC_SUBST(MSIM_CONF_HIGHRAM_BASE,
+			  `printf 0x%08x $with_highram_base`)
+		 AC_SUBST(MSIM_CONF_HIGHRAM_SIZE,
+			  `printf 0x%08x $with_highram_size`)
 ])
 
 # Skip firmware
@@ -277,6 +313,8 @@ AC_CONFIG_FILES([
 	kern/init/Makefile
 	kern/dev/Makefile
 	kern/mm/Makefile
+	kern/mm/pmm/Makefile
+	kern/mm/vmm/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile

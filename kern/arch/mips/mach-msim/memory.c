@@ -16,14 +16,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <drivers/io/io-port.h>
-#include <drivers/io/io-mem.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-void early_mach_init(void)
+#include <mmu.h>
+#include <util.h>
+#include <pmm.h>
+#include <vmm.h>
+
+addr_t get_mem_size(void)
 {
-	/* XXX: maybe unnecessary... */
-	portio_bus_connect(&portio_bus,
-			   &early_memory_bus,
-			   LOONGSON3A_PORTIO_BASE);
+	/* TODO: handle situations with <256M RAM and make it consistent
+	 * with HIGHRAM_SIZE */
+	return MEM_SIZE;
 }
 
+void mips_add_memory_pages(void)
+{
+	/* Low RAM */
+	extern uint8_t _kern_end;
+	uint32_t kern_end = (uint32_t)&_kern_end;
+	struct pages *p = kmalloc(sizeof(*p), 0);
+	p->paddr = kva2pa(ALIGN_ABOVE(kern_end, PAGE_SIZE));
+	p->size = 0x10000000 - p->paddr;	/* TODO: no magic number */
+	p->flags = 0;
+
+	free_pages(p);
+
+	/* High RAM */
+	p = kmalloc(sizeof(*p), 0);
+	p->paddr = HIGHRAM_BASE;
+	p->size = HIGHRAM_SIZE;
+	p->flags = 0;
+
+	free_pages(p);
+}

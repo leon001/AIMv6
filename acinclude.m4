@@ -126,6 +126,11 @@ AC_DEFUN([AIM_ARG_ENABLE], [
 	AS_VAR_IF([default_var], [], [AS_VAR_SET([default_var], [no])])
 	AC_SUBST([default_var])
 	AM_CONDITIONAL([$2], [test x$default_var = xyes])
+	AS_IF(
+	  [test xyes = [x]AS_VAR_GET([default_var])], [
+	    AC_DEFINE_UNQUOTED([$2], [], [$3])
+	  ]
+	)
 	AS_VAR_POPDEF([default_var])
 ])
 
@@ -145,12 +150,12 @@ AC_DEFUN([AIM_SUPPORT_MACH], [
 	])
 ])
 
-# AIM_REQUIRE_COMPILE_FLAG([cflag])
-# Require compiler to support cflag, or fail immediately.
+# AIM_REQUIRE_COMPILE_FLAG([cflags])
+# Require compiler to support all of cflags, or fail immediately.
 AC_DEFUN([AIM_REQUIRE_COMPILE_FLAG], [
 	AX_CHECK_COMPILE_FLAG(
 		$1,
-		[CFLAGS+=" $1"],
+		[aim_cflags+=$1],
 		[echo "cc does not support $1" && exit 1]
 	)
 ])

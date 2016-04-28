@@ -16,14 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <mmu.h>
 #include <sys/types.h>
 
-void page_index_clear(page_index_head_t * index)
+void page_index_clear(pgindex_t * index)
 {
 }
 
-int page_index_early_map(page_index_head_t * index,
+int page_index_early_map(pgindex_t * index,
 			 addr_t paddr,
 			 size_t vaddr,
 			 size_t length)
@@ -31,7 +35,7 @@ int page_index_early_map(page_index_head_t * index,
 	return 0;
 }
 
-int mmu_init(page_index_head_t *boot_page_index)
+int mmu_init(pgindex_t *boot_page_index)
 {
 	return 0;
 }
@@ -44,7 +48,17 @@ int get_addr_space(void)
 	return 1;
 }
 
-void early_mm_init(void)
+void add_memory_pages(void)
 {
+	/* Unfortunately, MIPS architecture did not specify how to
+	 * probe physical memory layout, so the job is entirely left
+	 * to machine-dependent code.
+	 *
+	 * MIPS machines do follow a convention of physical memory
+	 * layout, though:
+	 * Physical address 0x00000000 - 0x10000000 are usually RAM,
+	 * 		    0x10000000 - 0x20000000 are usually devices.
+	 * Addresses elsewhere are entirely machine dependent.
+	 */
+	mips_add_memory_pages();
 }
-

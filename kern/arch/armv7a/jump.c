@@ -16,38 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-.arm
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-.section .vector
-
-fw_vector:
-	/* Entry */
-	ldr	pc, =fw_asm
-	/* Interface */
-	ldr	pc, =uart_puts
-	ldr	pc, =readdisk
-
-.text
-
-fw_asm:
-	/* Set state and disable interrupts, but do not touch endianness. */
-	msr	cpsr_c, 0xDF
-
-	/* Clear BSS */
-	ldr	r0, =_bss_begin
-	ldr	r1, =_bss_end
-	mov	r2, #0x00000000
-clbss_l:
-	cmp	r0, r1
-	/* always use unsigned LOWER */
-	strlo	r2, [r0]
-	addlo	r0, r0, #4
-	blo	clbss_l
-
-	/* Set up stack for firmware and bootloader use */
-	ldr	sp, =fw_stack+4096
-	movs	fp, sp
-
-	/* And call into firmware code */
-	bl	fw_main
+__noreturn
+void abs_jump(void *addr)
+{
+	asm volatile (
+		"bx %[addr];"
+		::
+		[addr] "r" (addr)
+	);
+	while (1);
+}
 

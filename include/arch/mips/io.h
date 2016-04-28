@@ -43,4 +43,9 @@
 #define write32(addr, data)	\
 	((*(volatile uint32_t *)iomap((unsigned long)(addr))) = (data))
 
+#define read64(addr)		\
+	(*(volatile uint64_t *)iomap((unsigned long)(addr)))
+#define write64(addr, data)	\
+	((*(volatile uint64_t *)iomap((unsigned long)(addr))) = (data))
+
 #endif

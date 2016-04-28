@@ -20,6 +20,16 @@
 #include <console.h>
 #include <drivers/io/io-mem.h>
 
+void abs_jump(void *addr)
+{
+	asm volatile (
+		"move	$25, %0;"
+		"jr	%0"
+		: /* no output */
+		: "r"(addr)
+	);
+}
+
 void early_arch_init(void)
 {
 	io_mem_init(&early_memory_bus);

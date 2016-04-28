@@ -90,6 +90,21 @@ lock_loop:
 	dmb				/* data memory barrier */
 	bx	lr			/* return */
 
+.globl master_upper_entry
+.globl slave_upper_entry
+
+.text
+
+master_upper_entry:
+	ldr	sp, = boot_stack
+	movs	fp, sp
+	bl	master_init
+
+slave_upper_entry:
+	ldr	sp, = boot_stack
+	movs	fp, sp
+	bl	slave_init
+
 .bss
 
 /* Broadcast a pointer the boot data lock, so we can release it later */

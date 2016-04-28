@@ -26,14 +26,15 @@
 #include <sys/types.h>
 #include <util.h>
 #include <io.h>
+#include <mmu.h>
 #include <console.h>
 #include <platform.h>
 #include <device.h>
 #include <console.h>
 #include <drivers/io/io-mem.h>
-#include <drivers/io/io_port.h>
+#include <drivers/io/io-port.h>
 
-#if ARCH == i386
+#ifdef i386
 #define NS16550_PORTIO		/* cases where NS16550 is on a port I/O bus */
 #endif
 
@@ -159,7 +160,14 @@ static int early_console_putchar(unsigned char c)
 	return 0;
 }
 
-int early_console_init(void)
+static void __mmu_handler(void)
+{
+	/* Currently both Loongson 3A and i386 does not need remapping
+	 * since MIPS doesn't require that and i386 is doing port I/O */
+	__early_uart_ns16550.base = UART_BASE;
+}
+
+static void __early_console_init_bus(void)
 {
 	/* select bus for NS16550 */
 #ifdef NS16550_PORTIO
@@ -167,13 +175,31 @@ int early_console_init(void)
 #else
 	__early_uart_ns16550.bus = &early_memory_bus;
 #endif
+}
+
+static void __jump_handler(void)
+{
+	__early_console_init_bus();
+	set_console(early_console_putchar, DEFAULT_KPUTS);
+}
+
+int early_console_init(void)
+{
+	__early_console_init_bus();
 
 	__uart_ns16550_init(&__early_uart_ns16550);
 	__uart_ns16550_enable(&__early_uart_ns16550);
+
 	set_console(early_console_putchar, DEFAULT_KPUTS);
+
+	if (mmu_handlers_add(__mmu_handler) != 0)
+		for (;;) ;	/* panic */
+	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
+		for (;;) ;	/* panic */
 	return 0;
 }
 
 #endif /* PRIMARY_CONSOLE == uart_ns16550 */
 
 #endif /* RAW */
+
