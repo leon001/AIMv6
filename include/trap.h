@@ -16,5 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _TRAP_H
+#define _TRAP_H
+
 void trap_init(void);
+
+__noreturn
+void trap_return(struct regs *regs);
+
+#endif /* _TRAP_H */
 

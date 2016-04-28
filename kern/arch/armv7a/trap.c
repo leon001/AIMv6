@@ -28,6 +28,25 @@
 
 #include <arm-trap.h>
 
+static void arm_init_mode(uint32_t psr_c, char *name)
+{
+	struct regs * regs;
+
+	regs = kmalloc(sizeof(struct regs), 0);
+	if (regs == NULL)
+		panic("Failed to allocate %s context storage.\n", name);
+	kprintf("KERN: %s context at 0x%08x.\n", name, regs);
+	asm volatile (
+		"msr	cpsr_c, %[state1];"
+		"mov	sp, %[top];"
+		"msr	cpsr_c, %[state2];"
+	: /* no output */
+	: [top] "r" (regs + 1),
+	  [state1] "r" (psr_c),
+	  [state2] "r" (0xDF)
+	);
+}
+
 void trap_init(void)
 {
 	/* initialize exception vector */
@@ -37,22 +56,19 @@ void trap_init(void)
 		::[addr] "r" (&arm_vector)
 	);
 
-	struct regs * regs;
+	/* IRQ mode */
+	arm_init_mode(0xD1, "IRQ");
+
+	/* FIQ(0xD2) mode not used */
 
 	/* SVC mode */
-	regs = kmalloc(sizeof(struct regs), 0);
-	if (regs == NULL)
-		panic("Failed to allocate SVC context storage.\n");
-	kprintf("KERN: SVC context at 0x%08x.\n", regs);
-	asm volatile (
-		"msr	cpsr_c, %[state1];"
-		"mov	sp, %[top];"
-		"msr	cpsr_c, %[state2];"
-	: /* no output */
-	: [top] "r" (regs + 1),
-	  [state1] "r" (0xD3),
-	  [state2] "r" (0xDF)
-	);
+	arm_init_mode(0xD3, "SVC");
+
+	/* ABT mode */
+	arm_init_mode(0xD7, "ABT");
+
+	/* UNDEF mode */
+	arm_init_mode(0xDB, "UNDEF");
 
 	return;
 }
