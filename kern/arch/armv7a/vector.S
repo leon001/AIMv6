@@ -20,6 +20,8 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <arm-trap.h>
+
 .arm
 
 .section .text.vector
@@ -27,48 +29,76 @@
 .globl arm_vector
 
 arm_vector:
-	ldr	pc, = idle	//Reset
-	ldr	pc, = idle	//Undefined
-	ldr	pc, = svc_handler_asm	//SVC
-	ldr	pc, = idle	//Prefetch Abort
-	ldr	pc, = idle	//Data Abort
-	ldr	pc, = idle	//Reserved
-	ldr	pc, = idle	//IRQ
-	ldr	pc, = idle	//FIQ
+	ldr	pc, = idle		//Reset
+	ldr	pc, = undef_entry	//Undefined
+	ldr	pc, = svc_entry		//SVC
+	ldr	pc, = pref_abt_entry	//Prefetch Abort
+	ldr	pc, = data_abt_entry	//Data Abort
+	ldr	pc, = idle		//Reserved
+	ldr	pc, = irq_entry		//IRQ
+	ldr	pc, = idle		//FIQ
 
 .text
 
 .globl svc_return_asm
 
-svc_handler_asm:
-	/* push registers */
+undef_entry:
+	/* the instruction causing UNDEF is SKIPPED. */
 	push	{r0-r12, lr}
+	mov	r1, #ARM_UNDEF
+	b	trap_entry
+
+svc_entry:
+	/* the instruction causing SVC is DONE. */
+	push	{r0-r12, lr}
+	mov	r1, #ARM_SVC
+	b	trap_entry
+
+pref_abt_entry:
+	/* the instruction causing ABT is NOT RAN. */
+	sub	lr, lr, #4
+	push	{r0-r12, lr}
+	mov	r1, #ARM_PREF_ABT
+	b	trap_entry
+
+data_abt_entry:
+	/* the instruction causing ABT is NOT RAN. */
+	sub	lr, lr, #8
+	push	{r0-r12, lr}
+	mov	r1, #ARM_DATA_ABT
+	b	trap_entry
+
+irq_entry:
+	/* the instruction is DONE. */
+	push	{r0-r12, lr}
+	mov	r1, #ARM_IRQ
+	b	trap_entry
+
+/*
+ * general routine
+ * sp contains a stack pointer within a struct regs
+ * r1 contains a unsigned integer describing trap type
+ */
+trap_entry:
+	/* push SPSR */
 	mrs	r0, spsr
 	push	{r0}
 	/* pass a pointer using r0 */
 	mov	r0, sp
 	/* restore stack pointer */
 	add	sp, sp, #0x3C
-	/* go to system mode and save banked registers */
+	/*
+	 * go to system mode and save banked registers
+	 * keep IRQ disabled.
+	 */
 	msr	cpsr_c, 0xDF
 	stmdb	r0!, {sp, lr}
 	/* initialize or reuse stack */
 	/* TODO */
 
 	/* call the C handler */
-	bl	arm_handle_svc
-	/* arm_handle_svc(struct regs *) */
-
-svc_return_asm: /* (struct regs *) */
-	/* restore banked registers */
-	ldmia	r0!, {sp, lr}
-	/* go to SVC mode */
-	msr	cpsr_c, 0xD3
-	/* restore other registers */
-	ldmia	r0!, {r1}
-	msr	spsr, r1
-	ldmia	r0, {r0-r12, pc}^
-	/* the instruction above performs the exception return */
+	bl	arm_handle_trap
+	/* arm_handle_svc(struct regs *, uint32_t) */
 
 idle:
 	b	idle

@@ -26,6 +26,8 @@
 #include <console.h>
 #include <regs.h>
 
+#include <arm-trap.h>
+
 void trap_init(void)
 {
 	/* initialize exception vector */
@@ -55,9 +57,49 @@ void trap_init(void)
 	return;
 }
 
-void arm_handle_svc(struct regs *regs)
+__noreturn
+void trap_return(struct regs *regs)
 {
-	kputs("DEBUG: Enter SVC handler!\n");
+	/*
+	 * You MUST be in SYS mode to call this routine.
+	 * regs MUST NOT be on the heap UNLESS it IS exactly the one passed
+	 * in arm_handle_trap and IRQ is never enabled. This routine will not
+	 * free the pointer.
+	 * This routine returns to the execution state in regs and all further
+	 * stack use are discarded.
+	 * If this current exception interrupts a kernel control flow, the
+	 * previous stack state is fully recovered.
+	 */
+	asm volatile (
+		/* disable interrupts */
+		"msr	cpsr_c, 0xDF;"
+		/* restore banked registers */
+		"ldmia	r0!, {sp, lr};"
+		/* go to SVC mode */
+		"msr	cpsr_c, 0xD3;"
+		/* restore other registers */
+		"ldmia	r0!, {r1};"
+		"msr	spsr, r1;"
+		"ldmia	r0, {r0-r12, pc}^;"
+		/* the instruction above performs the exception return */
+	);
+	panic("Control flow went beyond trap_return().");
+}
+
+__noreturn
+void arm_handle_trap(struct regs *regs, uint32_t type)
+{
+	/*
+	 * We're here in SYS mode with IRQ disabled.
+	 * type contains the trap type, see arm-trap.h for details
+	 * regs is stored in per-CPU per-MODE storage.
+	 * you MUST store it somewhere else before you can turn on
+	 * IRQ again - a further exception will reuse that.
+	 * you MUST NOT try to free that memory.
+	 * you are RECOMMENDED to store regs on stack and not on heap.
+	 * see trap_return for details.
+	 */
+	kprintf("DEBUG: Enter vector slot %d handler!\n", type);
 	kprintf("DEBUG: r0 = 0x%08x\n", regs->r0);
 	kprintf("DEBUG: r1 = 0x%08x\n", regs->r1);
 	kprintf("DEBUG: r2 = 0x%08x\n", regs->r2);
@@ -76,8 +118,7 @@ void arm_handle_svc(struct regs *regs)
 	kprintf("DEBUG: sp = 0x%08x\n", regs->sp);
 	kprintf("DEBUG: lr = 0x%08x\n", regs->lr);
 
-	extern void svc_return_asm(struct regs *regs);
-	svc_return_asm(regs);
+	trap_return(regs);
 }
 
 void trap_test(void)
