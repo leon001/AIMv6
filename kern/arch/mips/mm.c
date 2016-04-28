@@ -23,11 +23,6 @@
 #include <mmu.h>
 #include <sys/types.h>
 
-size_t get_mem_size(void)
-{
-	return MEM_SIZE;
-}
-
 void page_index_clear(pgindex_t * index)
 {
 }

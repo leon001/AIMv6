@@ -159,7 +159,7 @@ AIM_ARG_WITH([highram-size], [HIGHRAM_SIZE],
 	[MIPS high RAM size])
 
 # Loongson 3A
-AIM_ARG_WITH([loongson3a-ram-detection], [LOONGSON3A_RAM_DETECTION],
+AIM_ARG_ENABLE([loongson3a-ram-detection], [LOONGSON3A_RAM_DETECTION],
 	[RAM space detection on Loongson 3A port (EXPERIMENTAL)])
 
 # target details

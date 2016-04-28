@@ -25,6 +25,13 @@
 #include <pmm.h>
 #include <vmm.h>
 
+addr_t get_mem_size(void)
+{
+	/* TODO: handle situations with <256M RAM and make it consistent
+	 * with HIGHRAM_SIZE */
+	return MEM_SIZE;
+}
+
 void mips_add_memory_pages(void)
 {
 	/* Low RAM */
