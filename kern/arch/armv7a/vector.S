@@ -93,10 +93,20 @@ trap_entry:
 	 */
 	msr	cpsr_c, 0xDF
 	stmdb	r0!, {sp, lr}
-	/* initialize or reuse stack */
-	/* TODO */
+	/* if we came from kernel mode, trust the stack */
+	ldr	r2, [r0, #8]
+	and	r2, r2, #0x1F
+	cmp	r2, #0x1F
+	beq	trap_entry_j1
+	/* else, grab the kernel stack from the current proc */
+	mrc	p15, 0, r2, c13, c0, 4 /* struct percpu *this */
+	ldr	r2, [r2] /* struct proc *curr */
+	ldmia	r2, {r2, r3} /* kstack and kstack_size */
+	add	sp, r2, r3
 
 	/* call the C handler */
+trap_entry_j1:
+	mov	fp, sp
 	bl	arm_handle_trap
 	/* arm_handle_svc(struct regs *, uint32_t) */
 
