@@ -24,6 +24,7 @@
 
 #include <mm.h>
 #include <mmu.h>
+#include <panic.h>
 
 /*
  * This source file provides upper-level utilities to handle memory mappings.
@@ -64,8 +65,7 @@ int early_mapping_add(struct early_mapping *entry)
 {
 	if (__early_mapping_queue_size > EARLY_MAPPING_QUEUE_LENGTH) {
 		/* Bad data structure. Panic immediately to prevent damage. */
-		/* FIXME: panic is not yet implemented. */
-		while (1);
+		panic("Early mapping data structure invalid.\n");
 	}
 	if (__early_mapping_queue_size == EARLY_MAPPING_QUEUE_LENGTH) {
 		/* Queue full */
@@ -171,8 +171,7 @@ int mmu_handlers_add(generic_fp entry)
 {
 	if (__mmu_handler_queue_size > MMU_HANDLER_QUEUE_LENGTH) {
 		/* Bad data structure. Panic immediately to prevent damage. */
-		/* FIXME: panic is not yet implemented. */
-		while (1);
+		panic("MMU handler data structure invalid.\n");
 	}
 	if (__mmu_handler_queue_size == MMU_HANDLER_QUEUE_LENGTH) {
 		/* Queue full */
@@ -203,8 +202,7 @@ int jump_handlers_add(generic_fp entry)
 {
 	if (__jump_handler_queue_size > JUMP_HANDLER_QUEUE_LENGTH) {
 		/* Bad data structure. Panic immediately to prevent damage. */
-		/* FIXME: panic is not yet implemented. */
-		while (1);
+		panic("JUMP handler data structure invalid.\n");
 	}
 	if (__jump_handler_queue_size == JUMP_HANDLER_QUEUE_LENGTH) {
 		/* Queue full */

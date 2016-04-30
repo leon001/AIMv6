@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,14 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PANIC_H
-#define _PANIC_H
+#ifndef _ARCH_REGS_H
+#define _ARCH_REGS_H
 
-__noreturn
-void __panic(void);
+struct regs {
+	/* possible extra registers here */
+	uint32_t sp;
+	uint32_t lr;
+	uint32_t psr;
+	uint32_t r0;
+	uint32_t r1;
+	uint32_t r2;
+	uint32_t r3;
+	uint32_t r4;
+	uint32_t r5;
+	uint32_t r6;
+	uint32_t r7;
+	uint32_t r8;
+	uint32_t r9;
+	uint32_t r10;
+	uint32_t r11;
+	uint32_t r12;
+	uint32_t pc;
+};
 
-__noreturn
-void panic(const char *fmt, ...);
-
-#endif
+#endif /* _ARCH_REGS_H */
 

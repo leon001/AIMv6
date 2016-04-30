@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,14 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PANIC_H
-#define _PANIC_H
+#ifndef _ARM_TRAP_H
+#define _ARM_TRAP_H
 
-__noreturn
-void __panic(void);
+#define ARM_RST		0
+#define ARM_UNDEF	1
+#define ARM_SVC		2
+#define ARM_PREF_ABT	3
+#define ARM_DATA_ABT	4
+/* reserved vector slot */
+#define	ARM_IRQ		6
+#define ARM_FIQ		7
 
-__noreturn
-void panic(const char *fmt, ...);
-
-#endif
+#endif /* _ARM_TRAP_H */
 

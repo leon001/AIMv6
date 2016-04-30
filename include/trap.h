@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,14 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PANIC_H
-#define _PANIC_H
+#ifndef _TRAP_H
+#define _TRAP_H
+
+#include <regs.h>
+
+void trap_init(void);
 
 __noreturn
-void __panic(void);
+void trap_return(struct regs *regs);
 
-__noreturn
-void panic(const char *fmt, ...);
-
-#endif
+#endif /* _TRAP_H */
 
