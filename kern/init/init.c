@@ -28,6 +28,7 @@
 #include <vmm.h>
 #include <trap.h>
 #include <panic.h>
+#include <init.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
 
@@ -38,6 +39,8 @@ void __noreturn master_init(void)
 
 	jump_handlers_apply();
 	kputs("KERN: We are in high address.\n");
+
+	arch_init();
 
 	/*
 	 * Page allocator requires arbitrary size allocation to allocate

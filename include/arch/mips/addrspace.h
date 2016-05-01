@@ -58,8 +58,8 @@
 #define TO_CAC(x)	(IO_CAC_BASE + (x))
 #define TO_UNCAC(x)	(IO_UNCAC_BASE + (x))
 
-#define premap_addr(x)	(x)
-#define postmap_addr(x)	(x)
+#define __premap_addr(x)	(x)
+#define __postmap_addr(x)	(x)
 
 #ifndef __ASSEMBLER__
 

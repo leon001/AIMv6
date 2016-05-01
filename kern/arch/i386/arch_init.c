@@ -26,6 +26,8 @@
 #include <util.h>
 #include <mm.h>
 #include <memlayout.h>
+#include <segment.h>
+#include <asm.h>
 
 /* FIXME: put in mm.c? */
 static size_t mem_size = 0;
@@ -59,6 +61,7 @@ static void probe_memory(void)
 			desc.size = (size_t)min2(
 			    (int32_t)KMMAP_BASE,
 			    (int32_t)vaddr) - desc.vaddr;
+			desc.type = EARLY_MAPPING_MEMORY;
 
 			early_mapping_add(&desc);
 
@@ -92,5 +95,36 @@ void early_arch_init(void)
 	portio_bus_init(&portio_bus);
 
 	probe_memory();
+}
+
+/* TODO: put into per-CPU structure */
+static struct segdesc gdt[NR_SEGMENTS] = {
+	[SEG_KCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, 0),
+	[SEG_KDATA] = SEG(STA_W, 0, 0xffffffff, 0),
+	[SEG_UCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, 0),
+	[SEG_UDATA] = SEG(STA_W, 0, 0xffffffff, 0)
+};
+
+static void segment_init(void)
+{
+	lgdt(gdt, sizeof(gdt));
+	uint16_t reg;
+	asm volatile (
+		"	movw	%2, %0;"
+		"	movw	%0, %%ds;"
+		"	movw	%0, %%es;"
+		"	movw	%0, %%fs;"
+		"	movw	%0, %%gs;"
+		"	movw	%0, %%ss;"
+		"	ljmp	%1, $1f;"
+		"1:"
+		: "=r"(reg)
+		: "i"(SEG_KCODE), "i"(SEG_KDATA)
+	);
+}
+
+void arch_init(void)
+{
+	segment_init();
 }
 

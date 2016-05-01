@@ -132,9 +132,29 @@ lidt(struct idtentry *idt, uint32_t size)
 	idtdesc.addr = (uint32_t)idt;
 
 	asm volatile (
-		"lidt (%0)"
+		"lidt	(%0)"
 		: /* no output */
 		: "r"(&idtdesc)
+	);
+}
+
+#include <segment.h>
+static inline void
+lgdt(struct segdesc *gdt, uint32_t size)
+{
+#pragma pack(1)
+	volatile struct {
+		uint16_t size;
+		uint32_t addr;
+	} gdtdesc;
+#pragma pack()
+	gdtdesc.size = (uint16_t)(size - 1);
+	gdtdesc.addr = (uint32_t)gdt;
+
+	asm volatile (
+		"	lgdt	(%0);"
+		: /* no output */
+		: "r"(&gdtdesc)
 	);
 }
 

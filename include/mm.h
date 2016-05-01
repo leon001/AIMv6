@@ -23,6 +23,22 @@
 
 #include <sys/types.h>
 
+/* premap_addr: always returns low address.
+ * The function which assumes that the argument is a high address
+ * becomes __premap_addr(). */
+#define premap_addr(a)	({ \
+	size_t i = (size_t)(a); \
+	(i >= KERN_BASE) ? __premap_addr(i) : i; \
+})
+
+/* postmap_addr: always returns high address.
+ * The function which assumes that the argument is a low address
+ * becomes __postmap_addr(). */
+#define postmap_addr(a)	({ \
+	size_t i = (size_t)(a); \
+	(i >= KERN_BASE) ? (i) : __postmap_addr(i); \
+})
+
 #ifndef __ASSEMBLER__
 
 addr_t get_mem_physbase();

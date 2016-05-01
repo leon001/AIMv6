@@ -25,10 +25,12 @@
 #include <trap.h>
 #include <asm.h>
 #include <regs.h>
+#include <console.h>
+#include <panic.h>
 
 #define MAX_IDT_ENTRIES	256
 
-struct idtentry idt[MAX_IDT_ENTRIES];
+static struct idtentry idt[MAX_IDT_ENTRIES];
 extern generic_fp vectors[];
 
 void setup_idt_entry(struct idtentry *item,
@@ -97,11 +99,6 @@ __noreturn void trap_return(struct regs *regs)
 
 void trap_test(void)
 {
-	int a = 2, b = 5;
-	int c = 8;
-
-	for (; b > 0; --b) ;
-
-	c = a / b;
+	asm volatile ("int $121;");
 }
 
