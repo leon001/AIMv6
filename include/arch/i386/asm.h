@@ -118,6 +118,26 @@ stosb(void *addr, int data, size_t cnt)
 	);
 }
 
+#include <arch-trap.h>
+static inline void
+lidt(struct idtentry *idt, uint32_t size)
+{
+#pragma pack(1)
+	volatile struct {
+		uint16_t size;
+		uint32_t addr;
+	} idtdesc;
+#pragma pack()
+	idtdesc.size = (uint16_t)(size - 1);
+	idtdesc.addr = (uint32_t)idt;
+
+	asm volatile (
+		"lidt (%0)"
+		: /* no output */
+		: "r"(&idtdesc)
+	);
+}
+
 __noinline unsigned long get_pc(void);
 
 #endif
