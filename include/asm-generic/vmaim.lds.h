@@ -33,6 +33,9 @@
 #define STRUCT_ALIGNMENT 32
 #define STRUCT_ALIGN() . = ALIGN(STRUCT_ALIGNMENT)
 
+#define HIGH_SECTION(sec) \
+	sec : AT_OFFSET(sec)
+
 #define TEXT								\
 	ALIGN_FUNCTION();						\
 	*(.text)							\

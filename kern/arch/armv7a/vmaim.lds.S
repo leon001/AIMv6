@@ -44,29 +44,29 @@ SECTIONS
 
 	. += LOAD_OFFSET;
 
-	.text : AT_OFFSET(.text) {
+	HIGH_SECTION(.text) {
 		TEXT
 		. = ALIGN(PAGE_SIZE);
 		*(.text.vector)
 		. = ALIGN(PAGE_SIZE);
 	}
 
-	.got : AT_OFFSET(.got) {
+	HIGH_SECTION(.got) {
 		*(.got)
 	}
 
 	STRUCT_ALIGN();
-	.rodata : AT_OFFSET(.rodata) {
+	HIGH_SECTION(.rodata) {
 		RODATA(STRUCT_ALIGNMENT)
 	}
 
 	STRUCT_ALIGN();
-	.data : AT_OFFSET(.data) {
+	HIGH_SECTION(.data) {
 		DATA(STRUCT_ALIGNMENT)
 	}
 
 	STRUCT_ALIGN();
-	.bss : AT_OFFSET(.bss) {
+	HIGH_SECTION(.bss) {
 		_bss_begin = .;
 		BSS(STRUCT_ALIGNMENT)
 		. = ALIGN(16K);
