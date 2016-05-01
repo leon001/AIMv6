@@ -291,6 +291,7 @@ AC_CONFIG_FILES([
 	Makefile
 	include/Makefile
 	include/aim/Makefile
+	include/asm-generic/Makefile
 	boot/Makefile
 	boot/arch/Makefile
 	boot/arch/armv7a/Makefile

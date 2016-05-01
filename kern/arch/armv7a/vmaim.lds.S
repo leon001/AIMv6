@@ -22,79 +22,61 @@
 
 #include <mm.h>
 
+#define KERN_PHYSBASE	RAM_PHYSBASE
+
+#include <asm-generic/vmaim.lds.h>
+
 OUTPUT_ARCH(arm)
 ENTRY(master_entry)
 
-MEMORY
-{
-	PMEM (WX) :
-		ORIGIN = RAM_PHYSBASE,
-		LENGTH = MEM_SIZE - 1M
-	VMEM (WX) :
-		ORIGIN = KERN_BASE,
-		LENGTH = MEM_SIZE - 1M
-}
-
-PHDRS
-{
-	text_low PT_LOAD;
-	text PT_LOAD;
-	rodata PT_LOAD;
-	data PT_LOAD;
-}
-
 SECTIONS
 {
+	. = KERN_PHYSBASE;
+
 	/DISCARD/ : {}
 
-	RAM_SIZE = LENGTH(PMEM);
+	/* FIXME, this thing is dirty */
+	RAM_SIZE = MEM_SIZE - 1M;
 
-	.text.low RAM_PHYSBASE : {
-		_text_low_begin = .;
-		*(.text.low)
-		_text_low_end = .;
-	} >PMEM AT>PMEM :text_low
+	.text.low : {
+		TEXT_LOW
+	}
 
-	.text postmap_addr(_text_low_end) : {
-		_text_begin = .;
-		*(.text)
+	. += LOAD_OFFSET;
+
+	.text : AT_OFFSET(.text) {
+		TEXT
 		. = ALIGN(PAGE_SIZE);
 		*(.text.vector)
 		. = ALIGN(PAGE_SIZE);
-		_text_end = .;
-	} >VMEM AT>PMEM :text
+	}
 
-	.got : {
+	.got : AT_OFFSET(.got) {
 		*(.got)
-		*(.got.plt)
-	} >VMEM AT>PMEM :rodata
+	}
 
-	.rodata : ALIGN(16) {
-		_rodata_begin = .;
-		*(.rodata)
-		_rodata_end = .;
-	} >VMEM AT>PMEM :rodata
+	STRUCT_ALIGN();
+	.rodata : AT_OFFSET(.rodata) {
+		RODATA(STRUCT_ALIGNMENT)
+	}
 
-	.data : ALIGN(16) {
-		_data_begin = .;
-		*(.data*)
-		_data_end = .;
-	} >VMEM AT>PMEM :data
+	STRUCT_ALIGN();
+	.data : AT_OFFSET(.data) {
+		DATA(STRUCT_ALIGNMENT)
+	}
 
-	.bss : ALIGN(16) {
+	STRUCT_ALIGN();
+	.bss : AT_OFFSET(.bss) {
 		_bss_begin = .;
-		*(.bss)
-		_bss_end = .;
-	} >VMEM AT>PMEM :NONE
-
-	.boot ALIGN(16K) : {
-		PROVIDE(boot_page_index = .);
+		BSS(STRUCT_ALIGNMENT)
+		. = ALIGN(16K);
+		SYMBOL(boot_page_index) = .;
 		. += 16K; /* early pgdir */
 		. += 4K; /* early stack */
-		PROVIDE(boot_stack = .);
-	} >VMEM AT>PMEM :NONE
-	
-	PROVIDE(_kern_end = ALIGN(PAGE_SIZE));
-}
+		SYMBOL(boot_stack) = .;
+		_bss_end = .;
+	}
 
+	SYMBOL(kern_end) = ALIGN(PAGE_SIZE);
+}
 
