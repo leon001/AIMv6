@@ -108,6 +108,7 @@ static struct segdesc gdt[NR_SEGMENTS] = {
 static void segment_init(void)
 {
 	lgdt(gdt, sizeof(gdt));
+#if 0
 	uint16_t reg;
 	asm volatile (
 		"	movw	%2, %0;"
@@ -121,6 +122,7 @@ static void segment_init(void)
 		: "=r"(reg)
 		: "i"(SEG_KCODE), "i"(SEG_KDATA)
 	);
+#endif
 }
 
 void arch_init(void)
