@@ -152,9 +152,19 @@ lgdt(struct segdesc *gdt, uint32_t size)
 	gdtdesc.addr = (uint32_t)gdt;
 
 	asm volatile (
-		"	lgdt	(%0);"
+		"lgdt	(%0);"
 		: /* no output */
 		: "r"(&gdtdesc)
+	);
+}
+
+static inline void
+ltr(uint16_t selector)
+{
+	asm volatile (
+		"ltr	%0"
+		: /* no output */
+		: "r"(selector)
 	);
 }
 

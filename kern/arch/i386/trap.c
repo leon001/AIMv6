@@ -44,6 +44,10 @@ void setup_idt_entry(struct idtentry *item,
 	item->args = 0;
 	item->rsv1 = 0;
 	item->type = trap ? STS_TG32 : STS_IG32;
+	item->s = 0;
+	item->dpl = dpl;
+	item->p = 1;
+	item->off_hi = (size_t)(entry) >> 16;
 }
 
 static const char *trapmsg[] = {
@@ -72,9 +76,9 @@ static const char *trapmsg[] = {
 void trap_init(void)
 {
 	for (int i = 0; i < MAX_IDT_ENTRIES; ++i)
-		setup_idt_entry(&idt[i], 0, SEG_KCODE << 3, vectors[i], 0);
+		setup_idt_entry(&idt[i], 0, KERNEL_CS, vectors[i], DPL_KERNEL);
 
-	setup_idt_entry(&idt[T_SYSCALL], 1, SEG_KCODE << 3, vectors[T_SYSCALL],
+	setup_idt_entry(&idt[T_SYSCALL], 1, KERNEL_CS, vectors[T_SYSCALL],
 	    DPL_USER);
 
 	lidt(idt, sizeof(idt));

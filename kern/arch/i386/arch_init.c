@@ -99,16 +99,17 @@ void early_arch_init(void)
 
 /* TODO: put into per-CPU structure */
 static struct segdesc gdt[NR_SEGMENTS] = {
-	[SEG_KCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, 0),
-	[SEG_KDATA] = SEG(STA_W, 0, 0xffffffff, 0),
-	[SEG_UCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, 0),
-	[SEG_UDATA] = SEG(STA_W, 0, 0xffffffff, 0)
+	[SEG_KCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, DPL_KERNEL),
+	[SEG_KDATA] = SEG(STA_W, 0, 0xffffffff, DPL_KERNEL),
+	[SEG_UCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, DPL_USER),
+	[SEG_UDATA] = SEG(STA_W, 0, 0xffffffff, DPL_USER)
 };
+static struct taskstate ts = {0};
+static unsigned char tempkstack[2048] = {0};
 
 static void segment_init(void)
 {
 	lgdt(gdt, sizeof(gdt));
-#if 0
 	uint16_t reg;
 	asm volatile (
 		"	movw	%2, %0;"
@@ -120,13 +121,28 @@ static void segment_init(void)
 		"	ljmp	%1, $1f;"
 		"1:"
 		: "=r"(reg)
-		: "i"(SEG_KCODE), "i"(SEG_KDATA)
+		: "i"(KERNEL_CS), "i"(KERNEL_DS)
 	);
-#endif
+}
+
+static void taskstate_init(void)
+{
+	ts.ts_esp0 = tempkstack;
+	ts.ts_ss0 = KERNEL_DS;
+
+	gdt[SEG_TSS] = SEG16(STS_T32A, (uint32_t)&ts, sizeof(ts), DPL_KERNEL);
+	gdt[SEG_TSS].s = 0;
+}
+
+static void taskstate_load(void)
+{
+	ltr(SEG_TSS << 3);
 }
 
 void arch_init(void)
 {
+	taskstate_init();
 	segment_init();
+	taskstate_load();
 }
 
