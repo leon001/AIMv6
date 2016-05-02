@@ -41,7 +41,7 @@ AC_C_TYPEOF
 AIM_GCC_FUNC_ATTRIBUTE([noreturn])
 AIM_GCC_FUNC_ATTRIBUTE([weak])
 AIM_GCC_FUNC_ATTRIBUTE([noinline])
-AX_GCC_VAR_ATTRIBUTE([visibility])
+AIM_GCC_FUNC_ATTRIBUTE([visibility])
 AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
 
 AC_SUBST([AIM_CFLAGS], [$aim_cflags])
