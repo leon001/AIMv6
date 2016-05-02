@@ -27,7 +27,7 @@
  * Implementation of cpuid() macro and cpuid assembly macro to get the
  * current core ID#.
  */
-#if defined(_MIPS_ARCH_MIPS32) || defined(_MIPS_ARCH_MIPS64)	/* Rev. 1 */
+#if __mips_isa_rev == 1	/* Rev. 1 */
 /*
  * Since MIPS32/64 Revision 1 don't provide EBASE register, how to retrieve
  * the core ID# is machine-dependent.
