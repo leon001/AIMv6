@@ -19,9 +19,7 @@
 #ifndef _ASM_TRAP_H
 #define _ASM_TRAP_H
 
-struct trapframe {
-	struct regs;
-};
+#define GENERIC_EXCEPT_ENTRY	0xffffffff80000180
 
 #endif
 
