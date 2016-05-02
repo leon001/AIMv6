@@ -9,9 +9,10 @@ thus should work across platforms.
 * ARMv7A
   - Xilinx Zynq-7000 SoC (2x Cortex A9)
 * IA32
-  - (TO BE FILLED)
+  - QEMU
 * MIPS
-  - (TO BE FILLED)
+  - [MSIM](http://d3s.mff.cuni.cz/~holub/sw/msim/)
+  - Loongson 3A
 
 ## Building AIMv6
 
@@ -34,12 +35,11 @@ AIMv6 builds in UNIX-like environments, and have the following requirements:
 * A full set of GNU autotools if building in maintainer mode (when this source
   tree comes from a source repository instead of a tarball).
 
-  - autoconf **MUST** provide the macro `AC_PROG_CC_C11`, thus must come from
-    the repository directly, later than the commit `db36f6d`. Grabbing the
-    latest source from the master branch is recommended.
-
   - autoconf-archive must be present. It can be installed from your
     distribution's software repository.
+
+    + Ubuntu/Debian: `sudo apt-get install autoconf-archive`
+    + Fedora: `dnf install autoconf-archive` as root.
 
 ### Normal mode
 
@@ -62,7 +62,17 @@ finished yet.
 
 If AIMv6 cannot be built in normal mode, a lot of generated scripts are not
 present yet. To keep the reporsitory clean, generated files **SHOULD NOT** be
-included in commits. Before you can build the source, prepare the source tree:
+included in commits.
+
+Before you can build the source, run `autoreconf --install --force` to generate
+the `configure` scripts as well as other helper files.  Then, follow the normal
+mode steps above.
+
+#### Ultimate Maintainer mode
+
+Usually maintainer mode would suffice for all development in this project,
+However, if you are willing to try the latest autotools features such as
+`AC_PROG_CC_C11`, you can build a set from source as follows:
 
 1. Grab `autoconf` source from [git://git.sv.gnu.org/autoconf.git].
 
@@ -73,7 +83,7 @@ included in commits. Before you can build the source, prepare the source tree:
 
 3. Configure and install `autoconf`. Installation under `$HOME` is highly
    recommended. Do not overwrite the installed version unless you are on LFS
-   **AND YOU ABSOLUTELY KNOW WHAT YOU ARE DOING**. AIMv6 team is not
+   or **YOU ABSOLUTELY KNOW WHAT YOU ARE DOING**. AIMv6 team is **not**
    responsible for any possible damage to your system. If you are building
    a custom toolchain, you **SHOULD** choose a different prefix for `autoconf`.
 
@@ -84,12 +94,9 @@ included in commits. Before you can build the source, prepare the source tree:
    other programs (not included in the `autoconf` install) under the same
    directory, unless you clearly know what you are doing and really mean it.
 
+## Running AIMv6
+
 ### MIPS
-
-Currently two platforms are supported on MIPS architecture:
-
-1. [MSIM](http://d3s.mff.cuni.cz/~holub/sw/msim/)
-2. Loongson 3A
 
 #### MSIM configuration
 
@@ -99,13 +106,19 @@ A suggested configuration is
 ./configure --host=mips64el-n64-linux-uclibc \
             --without-pic \
             --enable-static \
-            --disable-shared
+            --disable-shared \
+            --with-kern-start=0x80300000 \
+            --with-mem-size=0x20000000 \
+            --enable-io-mem
 ```
 
 Replace `mips64el-n64-linux-uclibc` to the prefix of any available toolchain.
 For example, if you have a MIPS GCC compiler named
 `mips64-unknown-linux-gnu-gcc`, the host argument should be
 `mips64-unknown-linux-gnu`.
+
+You can also define smaller or larger memory sizes by replacing
+`--with-mem-size` argument with what you need.
 
 ##### Preparing disk image
 
@@ -166,8 +179,6 @@ your kernel image into the hard disk inside Loongson 3A box.
 Replace the `boot/vmlinux` file with the kernel image you compiled, and you're
 done.
 
-## Running AIMv6
-
 ### ARM on qemu
 
 Below is an example on how to test AIMv6: (A lot of work needed here)
@@ -180,6 +191,123 @@ qemu-system-arm -M xilinx-zynq-a9 -m 512 -serial null -serial stdio \
 The `-s -S` option will enable gdb support on port 1234. You can then run
 `gdb firmware/arch/armv7a/firmware.elf` with needed options and connect to the
 emulator via `target remote:1234` in its command line.
+
+### i386 on qemu
+
+#### Creating a blank disk image
+
+```
+$ dd if=/dev/zero of=disk.img bs=1M count=500
+```
+
+creates a 500M disk image.
+
+#### Making partitions
+
+```
+$ fdisk disk.img
+```
+
+to interactively make partitions.
+
+You can also use `sfdisk(8)` to manipulate disk partitions in a
+script-oriented manner.
+
+#### Mounting disk image partitions
+
+You would probably have to run as root.
+
+```
+# kpartx -av disk.img
+```
+
+The partitions are mounted as `/dev/mapper/loop0pX` in Fedora, where
+`X` corresponds to partition ID.
+
+**TODO:** add running cases in Ubuntu etc.
+
+#### Installing bootloader
+
+```
+$ dd if=boot/arch/i386/boot.bin of=disk.img conv=notrunc
+```
+
+Take extra care to ensure that `boot.bin` never exceeds 446 bytes, or
+partition entries may be overwritten.
+
+#### Installing kernel onto 2nd partition
+
+On Fedora:
+
+```
+# dd if=kern/vmaim.elf of=/dev/mapper/loop0p2
+```
+
+**TODO:** add running cases in Ubuntu etc.
+
+#### Running QEMU
+
+```
+$ qemu-system-i386 -serial mon:stdio -hda i386.img -smp 4 -m 512
+```
+
+#### Running QEMU and debug with GDB
+
+```
+$ qemu-system-i386 -serial mon:stdio -hda i386.img -smp 4 -m 512 \
+> -S -gdb tcp::1234
+```
+
+Then run GDB and enter the following:
+
+```
+(gdb) target remote :1234
+```
+
+#### Debugging with GDB
+
+If you are going to debug your kernel, you probably want to disable
+optimization so that your C code matches the disassembly exactly.
+To do so, you will have to reconfigure and rebuild the project with
+a new `CFLAGS`:
+
+```
+$ env ARCH=i386 MACH=generic CFLAGS='-g -O0' ./configure \
+> --enable-static --disable-shared --without-pic \
+> --with-kern-start=0x100000 --with-mem-size=0x20000000
+$ make clean
+$ make
+```
+
+Step to next instruction:
+
+```
+(gdb) si
+```
+
+Switching layout:
+
+```
+(gdb) help layout
+```
+
+to see usage of `layout` command.  You can view disassembly/sources there.
+
+Set breakpoint at address:
+
+```
+(gdb) b *0x7c00
+```
+
+to add a breakpoint at bootloader entry.
+
+Loading debugging symbols:
+
+```
+(gdb) symbol kern/vmaim.elf
+```
+
+to enable C code debugging after QEMU stepped into kernel.
 
 ## Contributing to AIMv6
 
