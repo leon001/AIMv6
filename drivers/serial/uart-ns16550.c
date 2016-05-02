@@ -34,7 +34,7 @@
 #include <drivers/io/io-mem.h>
 #include <drivers/io/io-port.h>
 
-#if ARCH == i386
+#ifdef i386
 #define NS16550_PORTIO		/* cases where NS16550 is on a port I/O bus */
 #endif
 
@@ -202,3 +202,4 @@ int early_console_init(void)
 #endif /* PRIMARY_CONSOLE == uart_ns16550 */
 
 #endif /* RAW */
+

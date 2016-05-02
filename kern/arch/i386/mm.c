@@ -94,16 +94,16 @@ int mmu_init(pgindex_t *index)
 /* initialize free page block from at least @start to at most @end */
 static void __init_free_pages(addr_t start, addr_t end)
 {
-	size_t spanned_pages;
+	size_t span;
 
 	start = ALIGN_ABOVE(start, PAGE_SIZE);
 	end = ALIGN_BELOW(end, PAGE_SIZE);
 
-	spanned_pages = end - start;
+	span = end - start;
 
 	struct pages *p = kmalloc(sizeof(*p), 0);
 	p->paddr = start;
-	p->size = spanned_pages;
+	p->size = span;
 	p->flags = 0;
 
 	free_pages(p);

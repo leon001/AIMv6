@@ -119,21 +119,16 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
 		AS_VAR_SET([with_cpus], [4])
+		AS_VAR_SET([with_highram_base], [0x80000000])
+		AS_VAR_SET([with_highram_size], [0x30000000])
 	], 
 	[pc], [
 		AS_VAR_SET([with_fwstack_order], [12])
 	],
 	[loongson3a], [
 		AS_VAR_SET([enable_uart_ns16550], [yes])
-
 		AS_VAR_SET([with_primary_console], [uart-ns16550])
-
-		AC_DEFINE([UART_BASE1], [0x1fe001e0],
-			[Loongson 3A UART base address 1 - Do not change])
-		AC_DEFINE([UART_BASE2], [0x1fe001e8],
-			[Loongson 3A UART base address 2 - Do not change])
 	],
-	[qemu-generic], [],
 	[generic], [],
 	[unknown], [],
 	[AC_MSG_ERROR([No machine specified])]
@@ -158,6 +153,14 @@ AIM_ARG_WITH([msim-firmware-bin], [MSIM_FIRMWARE_BIN],
 	[MSIM firmware binary file name])
 AIM_ARG_WITH([msim-disk-img], [MSIM_DISK_IMG],
 	[MSIM disk image file name])
+AIM_ARG_WITH([highram-base], [HIGHRAM_BASE],
+	[MIPS high RAM base address])
+AIM_ARG_WITH([highram-size], [HIGHRAM_SIZE],
+	[MIPS high RAM size])
+
+# Loongson 3A
+AIM_ARG_ENABLE([loongson3a-ram-detection], [LOONGSON3A_RAM_DETECTION],
+	[RAM space detection on Loongson 3A port (EXPERIMENTAL)])
 
 # target details
 AIM_ARG_WITH([ram-physbase], [RAM_PHYSBASE], [physical memory start point],
@@ -200,6 +203,9 @@ AIM_ARG_ENABLE([uart-ns16550], [UART_NS16550], [NS16550 UART driver])
 AIM_ARG_ENABLE([block-msim], [BLOCK_MSIM], [MSIM block device driver])
 AIM_ARG_ENABLE([sd-zynq], [SD_ZYNQ], [zynq SD driver])
 AIM_ARG_ENABLE([timer-a9], [TIMER_A9], [Cortex-A9 MPCore timer driver])
+
+AM_CONDITIONAL([IO_MEM], [test x$enable_io_mem = xyes])
+AM_CONDITIONAL([IO_PORT], [test x$enable_io_port = xyes])
 
 # Primary Driver Selection
 AIM_ARG_WITH([primary-console], [PRIMARY_CONSOLE], [primary console])
@@ -251,6 +257,10 @@ AS_CASE([$MACH],
 			   done`)
 		 AC_SUBST(MSIM_CONF_RTCPA,
 			  `printf 0x%08x $with_msim_rtc_pa`)
+		 AC_SUBST(MSIM_CONF_HIGHRAM_BASE,
+			  `printf 0x%08x $with_highram_base`)
+		 AC_SUBST(MSIM_CONF_HIGHRAM_SIZE,
+			  `printf 0x%08x $with_highram_size`)
 ])
 
 # Skip firmware

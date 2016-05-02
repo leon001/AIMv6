@@ -126,6 +126,11 @@ AC_DEFUN([AIM_ARG_ENABLE], [
 	AS_VAR_IF([default_var], [], [AS_VAR_SET([default_var], [no])])
 	AC_SUBST([default_var])
 	AM_CONDITIONAL([$2], [test x$default_var = xyes])
+	AS_IF(
+	  [test xyes = [x]AS_VAR_GET([default_var])], [
+	    AC_DEFINE_UNQUOTED([$2], [], [$3])
+	  ]
+	)
 	AS_VAR_POPDEF([default_var])
 ])
 

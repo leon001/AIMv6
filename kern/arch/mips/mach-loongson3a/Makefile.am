@@ -19,6 +19,6 @@ include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libloongson3a.la
 
-libloongson3a_la_SOURCES =
+libloongson3a_la_SOURCES = memory.c
 libloongson3a_la_LIBADD = $(builddir)/../mach-generic/libmips-generic.la
 

@@ -63,7 +63,7 @@
 
 #ifndef __ASSEMBLER__
 
-static inline unsigned long kv2p(void *x)
+static inline unsigned long kva2pa(void *x)
 {
 	unsigned long a = (unsigned long)x;
 	if (a > KSEG1)
@@ -80,7 +80,7 @@ static inline unsigned long kv2p(void *x)
 		return -1;	/* should be something like panic() */
 }
 
-static inline void *p2kv(unsigned long x)
+static inline void *pa2kva(unsigned long x)
 {
 	return (void *)(TO_CAC(x));
 }
