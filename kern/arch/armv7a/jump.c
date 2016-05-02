@@ -20,6 +20,8 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <panic.h>
+
 __noreturn
 void abs_jump(void *addr)
 {
@@ -28,6 +30,6 @@ void abs_jump(void *addr)
 		::
 		[addr] "r" (addr)
 	);
-	while (1);
+	panic("Control flow went beyond abs_jump().");
 }
 

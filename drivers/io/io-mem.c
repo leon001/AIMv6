@@ -32,6 +32,7 @@
 #include <io.h>
 #include <mm.h>
 #include <device.h>
+#include <panic.h>
 
 #include <io-mem.h>
 
@@ -125,8 +126,8 @@ void io_mem_init(struct bus_device *memory_bus)
 	memory_bus->get_read_fp = __get_read_fp;
 	memory_bus->get_write_fp = __get_write_fp;
 #ifndef RAW
-	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
-		while (1);
+	if (jump_handlers_add((generic_fp)postmap_addr(__jump_handler)) != 0)
+		panic("Memory IO driver cannot register JUMP handler.\n");
 #endif
 }
 

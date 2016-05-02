@@ -16,6 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _INIT_H
+#define _INIT_H
+
 void early_arch_init(void);
 void early_mach_init(void);
 
+void arch_init(void);
+
+#endif

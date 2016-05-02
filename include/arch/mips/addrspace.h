@@ -27,7 +27,7 @@
 #include <config.h>
 #endif
 
-#if defined(USE_MIPS32)
+#ifndef __LP64__	/* 32 bit */
 
 #define USEG		0x00000000
 #define KSEG0		0x80000000
@@ -38,7 +38,7 @@
 #define IO_CAC_BASE	KSEG0
 #define IO_UNCAC_BASE	KSEG1
 
-#elif defined(USE_MIPS64)
+#else	/* 64 bit */
 
 #define USEG		0x0000000000000000
 #define KSEG0		0xffffffff80000000
@@ -53,13 +53,13 @@
 #define IO_CAC_BASE	(XKPHY + 0x1800000000000000)
 #define IO_UNCAC_BASE	(XKPHY + 0x1000000000000000)
 
-#endif	/* USE_MIPS32 || USE_MIPS64 */
+#endif	/* __LP64__ */
 
 #define TO_CAC(x)	(IO_CAC_BASE + (x))
 #define TO_UNCAC(x)	(IO_UNCAC_BASE + (x))
 
-#define premap_addr(x)	(x)
-#define postmap_addr(x)	(x)
+#define __premap_addr(x)	(x)
+#define __postmap_addr(x)	(x)
 
 #ifndef __ASSEMBLER__
 
@@ -70,7 +70,7 @@ static inline unsigned long kva2pa(void *x)
 		return a - KSEG1;
 	else if (a > KSEG0)
 		return a - KSEG0;
-#ifdef USE_MIPS64
+#ifdef __LP64__
 	else if (a > IO_CAC_BASE)
 		return a - IO_CAC_BASE;
 	else if (a > IO_UNCAC_BASE)

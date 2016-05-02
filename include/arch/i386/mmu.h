@@ -28,8 +28,8 @@
 #include <util.h>
 
 /* addresses before and after early MMU mapping */
-#define premap_addr(kva)	(ADDR_CAST(kva) - KERN_BASE)
-#define postmap_addr(pa)	(ADDR_CAST(pa) + KERN_BASE)
+#define __premap_addr(kva)	(ADDR_CAST(kva) - KERN_BASE)
+#define __postmap_addr(pa)	(ADDR_CAST(pa) + KERN_BASE)
 
 /* kernel virtual address and physical address conversion */
 #define kva2pa(kva)		(ADDR_CAST(kva) - KERN_BASE)

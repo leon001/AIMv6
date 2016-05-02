@@ -48,3 +48,7 @@ void early_arch_init(void)
 		(size_t)get_mem_size());
 }
 
+void arch_init(void)
+{
+}
+

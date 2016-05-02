@@ -16,40 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _TRAP_H
+#define _TRAP_H
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
+#endif
 
-#include <sys/types.h>
+struct regs;
 
-#include <pmm.h>
-#include <panic.h>
+void trap_init(void);
 
-static struct page_allocator *__page_allocator = NULL;
+__noreturn
+void trap_return(struct regs *regs);
 
-void set_page_allocator(struct page_allocator *allocator)
-{
-	__page_allocator = allocator;
-}
-
-struct pages * alloc_pages(addr_t count, gfp_t flags)
-{
-	if (__page_allocator == NULL)
-		panic("alloc_page() called but no allocator available.\n");
-	return __page_allocator->alloc(count, flags);
-}
-
-void free_pages(struct pages *pages)
-{
-	if (__page_allocator == NULL)
-		panic("free_page() called but no allocator available.\n");
-	__page_allocator->free(pages);
-}
-
-addr_t get_free_memory(void)
-{
-	if (__page_allocator == NULL)
-		panic("get_free_memory() called but no allocator available.\n");
-	return __page_allocator->get_free();
-}
+#endif /* _TRAP_H */
 

@@ -16,14 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PANIC_H
-#define _PANIC_H
+#ifndef _ASM_TRAP_H
+#define _ASM_TRAP_H
 
-__noreturn
-void __panic(void);
-
-__noreturn
-void panic(const char *fmt, ...);
+struct trapframe {
+	struct regs;
+};
 
 #endif
 

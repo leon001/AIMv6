@@ -180,7 +180,7 @@ void portio_bus_init(struct bus_device *portio)
 {
 	__portio_bus_init(portio);
 
-	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
+	if (jump_handlers_add((generic_fp)postmap_addr(__jump_handler)) != 0)
 		for (;;) ;	/* panic */
 }
 

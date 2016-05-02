@@ -20,11 +20,9 @@
 #include <config.h>
 #endif
 
-#ifdef USE_MIPS32
+#ifndef __LP64__	/* 32 bit */
 #define TARGET	"elf32-tradlittlemips"
-#endif
-
-#ifdef USE_MIPS64
+#else
 #define TARGET	"elf64-tradlittlemips"
 #endif
 
