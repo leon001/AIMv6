@@ -25,6 +25,7 @@
 #include <init.h>
 #include <console.h>
 #include <mm.h>
+#include <panic.h>
 
 /*
  * NOTE: early mappings should be registered prior to calling this function.
@@ -32,17 +33,6 @@
  */
 void early_mm_init(void)
 {
-	__attribute__ ((visibility ("hidden")))
-	extern pgindex_t boot_page_index;
-
-	/* add default mapping last */
-	/* [Gan] I don't think we should put this in generic code */
-#if 0
-	early_mapping_add_memory(
-		get_mem_physbase(),
-		(size_t)get_mem_size());
-#endif
-
 	/* dump some debug info */
 	kprintf("KERN: Total memory: 0x%08x\n", (size_t)get_mem_size());
 	struct early_mapping *mapping = early_mapping_next(NULL);
@@ -53,8 +43,11 @@ void early_mm_init(void)
 	}
 
 	/* initialize and apply page index */
-	page_index_init(&boot_page_index);
-	mmu_init(&boot_page_index);
+	/* [Gan] i386 is retrieving relative address here */
+	extern pgindex_t boot_page_index;
+
+	page_index_init((pgindex_t *)premap_addr((void *)&boot_page_index));
+	mmu_init((pgindex_t *)kva2pa(postmap_addr((void *)&boot_page_index)));
 	mmu_handlers_apply();
 	kputs("KERN: MMU is now on!\n");
 }
@@ -68,15 +61,14 @@ void __noreturn master_early_init(void)
 	kputs("KERN: Hello, world!\n");
 	early_mm_init();
 
+	/* [Gan] i386 is retrieving relative address here */
 	extern uint32_t master_upper_entry;
 	abs_jump((void *)postmap_addr(&master_upper_entry));
-	/* NOTREACHED */
-	while (1);
 }
 
 void __noreturn slave_early_init(void)
 {
-	while (1);
+	panic("Unimplemented routine called.");
 }
 
 

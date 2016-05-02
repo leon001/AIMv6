@@ -21,7 +21,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <mmu.h>
+#include <mm.h>
 
 .section .text.low
 
@@ -76,8 +76,8 @@ master_entry:
 	 */
 
 	/* Clear BSS */
-	movl	$premap_addr(_bss_begin), %edi
-	movl	$premap_addr(_bss_end), %ecx
+	movl	$__premap_addr(_bss_begin), %edi
+	movl	$__premap_addr(_bss_end), %ecx
 	subl	%edi, %ecx		/* ECX = _bss_end - _bss_begin */
 	xor	%eax, %eax
 	/*
@@ -95,12 +95,12 @@ master_t1:
 
 master_t2:
 	/* Set up stack */
-	movl	$premap_addr(boot_stack), %esp
+	movl	$__premap_addr(boot_stack), %esp
 	#subl	%esp, %esi
 	movl	%esp, %ebp
 
 	/* Call into early_init */
-	movl	$premap_addr(master_early_init), %eax
+	movl	$__premap_addr(master_early_init), %eax
 	#subl	%eax, %esi
 	call 	*%eax
 
@@ -119,12 +119,12 @@ slave_entry:
 
 slave_t1:
 	/* Set up a real stack */
-	movl	$premap_addr(boot_stack), %esp
+	movl	$__premap_addr(boot_stack), %esp
 	#subl	%esp, %esi
 	movl	%esp, %ebp
 
 	/* Call into early_init */
-	movl	$premap_addr(slave_early_init), %eax
+	movl	$__premap_addr(slave_early_init), %eax
 	#subl	%eax, %esi
 	call 	*%eax
 
@@ -132,7 +132,7 @@ lock:
 	/* a spin lock */
 	xorl	%edx, %edx
 	incl	%edx
-	movl	$premap_addr(early_spinlock), %ebx
+	movl	$__premap_addr(early_spinlock), %ebx
 	#subl	%ebx, %esi
 spin_lock_retry:
 	xorl	%eax, %eax

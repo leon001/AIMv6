@@ -27,8 +27,10 @@ noinst_HEADERS = \
 	init.h \
 	list.h \
 	mm.h \
+	panic.h \
 	pmm.h \
 	sleep.h \
+	trap.h \
 	vmm.h \
 	arch/armv7a/io.h \
 	arch/armv7a/mach-zynq/mach.h \

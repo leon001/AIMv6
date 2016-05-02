@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,14 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PANIC_H
-#define _PANIC_H
+#ifndef _PERCPU_H
+#define _PERCPU_H
 
-__noreturn
-void __panic(void);
+#include <sys/types.h>
 
-__noreturn
-void panic(const char *fmt, ...);
+#include <proc.h>
 
-#endif
+struct percpu {
+	/*
+	 * to retrieve the kernel stack, this pointer need to be accessed from
+	 * within the assembly code. Keep it here as the first element.
+	 */
+	struct proc *curr;
+
+	/* other stuff go here */
+};
+
+#endif /* _PERCPU_H */
 

@@ -127,15 +127,8 @@ AS_CASE([$MACH],
 	],
 	[loongson3a], [
 		AS_VAR_SET([enable_uart_ns16550], [yes])
-
 		AS_VAR_SET([with_primary_console], [uart-ns16550])
-
-		AC_DEFINE([UART_BASE1], [0x1fe001e0],
-			[Loongson 3A UART base address 1 - Do not change])
-		AC_DEFINE([UART_BASE2], [0x1fe001e8],
-			[Loongson 3A UART base address 2 - Do not change])
 	],
-	[qemu-generic], [],
 	[generic], [],
 	[unknown], [],
 	[AC_MSG_ERROR([No machine specified])]
@@ -164,6 +157,10 @@ AIM_ARG_WITH([highram-base], [HIGHRAM_BASE],
 	[MIPS high RAM base address])
 AIM_ARG_WITH([highram-size], [HIGHRAM_SIZE],
 	[MIPS high RAM size])
+
+# Loongson 3A
+AIM_ARG_ENABLE([loongson3a-ram-detection], [LOONGSON3A_RAM_DETECTION],
+	[RAM space detection on Loongson 3A port (EXPERIMENTAL)])
 
 # target details
 AIM_ARG_WITH([ram-physbase], [RAM_PHYSBASE], [physical memory start point],
@@ -223,7 +220,7 @@ AS_CASE([$with_primary_console],
 
 # Algorithms
 # MUST have unique names.
-# First fit is named "ff" as page allocator, "bcff" as simple allocator.
+# First fit is named "ff" as page allocator, "flff" as simple allocator.
 AS_VAR_SET([with_simple_allocator], [flff])
 AIM_ARG_WITH([simple-allocator], [SIMPLE_ALLOCATOR], [non-caching memory object allocator])
 AM_CONDITIONAL([ALGO_FLFF], [test x$with_simple_allocator = xflff])
@@ -315,6 +312,7 @@ AC_CONFIG_FILES([
 	kern/arch/mips/mach-loongson3a/Makefile
 	kern/init/Makefile
 	kern/dev/Makefile
+	kern/debug/Makefile
 	kern/mm/Makefile
 	kern/mm/pmm/Makefile
 	kern/mm/vmm/Makefile
@@ -359,6 +357,8 @@ Kernel
 
 Drivers
 --------
+  io-mem:	${enable_io_mem}
+  io-port:	${enable_io_port}
   uart-zynq:	${enable_uart_zynq}
   uart-msim:	${enable_uart_msim}
   sd-zynq:	${enable_sd_zynq}

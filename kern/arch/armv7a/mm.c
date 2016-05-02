@@ -22,6 +22,7 @@
 
 /* from kernel */
 #include <sys/types.h>
+#include <list.h>
 #include <util.h>
 #include <mm.h>
 #include <mmu.h>
@@ -46,7 +47,7 @@ addr_t get_mem_size()
  */
 void page_index_clear(pgindex_t * index)
 {
-	arm_pte_l1_t * page_table = index;
+	arm_pte_l1_t *page_table = index;
 	int i;
 	for (i = 0; i < ARM_PT_L1_LENGTH; ++i) {
 		page_table[i] = 0;
@@ -54,7 +55,7 @@ void page_index_clear(pgindex_t * index)
 }
 
 /* This internal routine does not check for bad parameters */
-static inline void __arm_map_sect(arm_pte_l1_t * page_table, addr_t paddr,
+static inline void __arm_map_sect(arm_pte_l1_t *page_table, addr_t paddr,
 	size_t vaddr, uint32_t ap, uint32_t dom)
 {
 	arm_pte_l1_t entry = ARM_PT_L1_SECT;
@@ -67,13 +68,13 @@ static inline void __arm_map_sect(arm_pte_l1_t * page_table, addr_t paddr,
 /*
  * Early map routine does not try to allocate memory.
  */
-int page_index_early_map(pgindex_t * index, addr_t paddr, size_t vaddr,
+int page_index_early_map(pgindex_t *index, addr_t paddr, size_t vaddr,
 	size_t length)
 {
 	/* alignment check */
 	if (IS_ALIGNED(paddr, ARM_SECT_SIZE) &&
 	    IS_ALIGNED(vaddr, ARM_SECT_SIZE) &&
-	    IS_ALIGNED(vaddr, ARM_SECT_SIZE) != 1) {
+	    IS_ALIGNED(length, ARM_SECT_SIZE) != 1) {
 		return EOF;
 	}
 	/* map each ARM SECT */
@@ -90,7 +91,7 @@ int page_index_early_map(pgindex_t * index, addr_t paddr, size_t vaddr,
  * mmu_init()
  * initialize the MMU with given page index
  */
-int mmu_init(pgindex_t * index)
+int mmu_init(pgindex_t *index)
 {
     asm volatile (
         /* Address */

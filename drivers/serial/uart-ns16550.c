@@ -26,7 +26,7 @@
 #include <sys/types.h>
 #include <util.h>
 #include <io.h>
-#include <mmu.h>
+#include <mm.h>
 #include <console.h>
 #include <platform.h>
 #include <device.h>
@@ -34,7 +34,7 @@
 #include <drivers/io/io-mem.h>
 #include <drivers/io/io-port.h>
 
-#if ARCH == i386
+#ifdef i386
 #define NS16550_PORTIO		/* cases where NS16550 is on a port I/O bus */
 #endif
 
@@ -194,7 +194,7 @@ int early_console_init(void)
 
 	if (mmu_handlers_add(__mmu_handler) != 0)
 		for (;;) ;	/* panic */
-	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
+	if (jump_handlers_add((generic_fp)postmap_addr(__jump_handler)) != 0)
 		for (;;) ;	/* panic */
 	return 0;
 }
@@ -202,3 +202,4 @@ int early_console_init(void)
 #endif /* PRIMARY_CONSOLE == uart_ns16550 */
 
 #endif /* RAW */
+

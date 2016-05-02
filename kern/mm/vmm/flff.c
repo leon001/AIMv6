@@ -31,6 +31,7 @@
 #include <mm.h>
 #include <pmm.h>
 #include <vmm.h>
+#include <panic.h>
 
 #define ALLOC_ALIGN 16
 
@@ -62,15 +63,7 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 	size_t allocsize, newsize;
 
 	/* Make a good size */
-	/* [Gan] TODO: remove this - reimplemented using util.h macros */
-#if 0
-	if ((size & (ALLOC_ALIGN - 1)) != 0) {
-		size -= size & (ALLOC_ALIGN - 1);
-		size += ALLOC_ALIGN;
-	}
-#else
 	size = ALIGN_ABOVE(size, ALLOC_ALIGN);
-#endif
 	allocsize = size + sizeof(struct blockhdr);
 
 	for_each_entry(this, head, node) {
@@ -94,7 +87,7 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 			list_add_after(&this->node, head);
 		__backup = alloc_pages(PAGE_SIZE, 0);
 		if (__backup == NULL)
-			while (1);	/* panic */
+			panic("Out of memory during kmalloc().\n");
 		for_each_entry(this, head, node) {
 			if (this->size >= allocsize)
 				break;
@@ -212,7 +205,7 @@ int simple_allocator_init(void)
 {
 	struct pages *pages = alloc_pages(PAGE_SIZE, 0);
 	if (pages == NULL)
-		while (1);	/* panic */
+		panic("Out of memory during simple_allocator_init().\n");
 	struct blockhdr *block =
 		(struct blockhdr *)(size_t)pa2kva(pages->paddr);
 	block->size = pages->size;

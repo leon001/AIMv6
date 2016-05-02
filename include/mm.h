@@ -23,6 +23,22 @@
 
 #include <sys/types.h>
 
+/* premap_addr: always returns low address.
+ * The function which assumes that the argument is a high address
+ * becomes __premap_addr(). */
+#define premap_addr(a)	({ \
+	size_t i = (size_t)(a); \
+	(i >= KERN_BASE) ? __premap_addr(i) : i; \
+})
+
+/* postmap_addr: always returns high address.
+ * The function which assumes that the argument is a low address
+ * becomes __postmap_addr(). */
+#define postmap_addr(a)	({ \
+	size_t i = (size_t)(a); \
+	(i >= KERN_BASE) ? (i) : __postmap_addr(i); \
+})
+
 #ifndef __ASSEMBLER__
 
 addr_t get_mem_physbase();
@@ -44,6 +60,7 @@ struct early_mapping {
 #define	EARLY_MAPPING_MEMORY	0
 #define EARLY_MAPPING_KMMAP	1
 #define EARLY_MAPPING_TEMP	2
+#define EARLY_MAPPING_OTHER	3
 
 void early_mapping_clear(void);
 size_t early_mapping_add_memory(addr_t base, size_t size);
@@ -74,6 +91,7 @@ void jump_handlers_apply(void);
  * by jumping to some address, callers acknowledge that C runtime components
  * like stack are not preserved, and no return-like operation will be performed.
  */
+__noreturn
 void abs_jump(void *addr);
 
 /* get_addr_space()

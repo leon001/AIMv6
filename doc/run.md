@@ -84,7 +84,8 @@ a new `CFLAGS`:
 
 ```
 $ env ARCH=i386 MACH=generic CFLAGS='-g -O0' ./configure \
-> --enable-static --disable-shared --without-pic
+> --enable-static --disable-shared --without-pic \
+> --with-kern-start=0x100000 --with-mem-size=0x20000000
 $ make clean
 $ make
 ```
