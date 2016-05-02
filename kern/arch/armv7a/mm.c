@@ -115,11 +115,13 @@ int mmu_init(pgindex_t *index)
 void add_memory_pages(void)
 {
 	extern uint8_t SYMBOL(kern_end);
-	struct pages *p = kmalloc(sizeof(struct pages), 0);
-	p->paddr = (addr_t)premap_addr((size_t)&SYMBOL(kern_end));
-	p->size = get_mem_size() - ((addr_t)(size_t)(&SYMBOL(kern_end)) - KERN_BASE);
-	p->flags = 0;
-	free_pages(p);
+	struct pages pages = {
+		.paddr = (addr_t)premap_addr((size_t)&SYMBOL(kern_end)),
+		.size = get_mem_size() -
+			((addr_t)(size_t)(&SYMBOL(kern_end)) - KERN_BASE),
+		.flags = 0
+	};
+	free_pages(&pages);
 }
 
 /* get_addr_space()

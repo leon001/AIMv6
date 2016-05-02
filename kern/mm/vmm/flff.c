@@ -36,10 +36,11 @@
 #define ALLOC_ALIGN 16
 
 /* This header directly leads the payload */
-__attribute__ ((aligned(16)))
+__attribute__ ((aligned(ALLOC_ALIGN)))
 struct blockhdr {
 	size_t size;
 	bool free;
+	gfp_t flags;
 	struct list_head node;
 };
 
@@ -50,7 +51,6 @@ static struct simple_allocator __bootstrap_allocator;
 static struct simple_allocator __allocator;
 static struct list_head __bootstrap_head;
 static struct list_head __head;
-static struct pages *__backup = NULL;
 //static lock_t lock;
 
 /*
@@ -59,51 +59,51 @@ static struct pages *__backup = NULL;
 
 static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 {
-	struct blockhdr *this, *newblock, *prev = NULL, *tmp;
+	struct blockhdr *this;
 	size_t allocsize, newsize;
 
 	/* Make a good size */
 	size = ALIGN_ABOVE(size, ALLOC_ALIGN);
 	allocsize = size + sizeof(struct blockhdr);
 
+	/* Search for a first fit */
 	for_each_entry(this, head, node) {
-		if (this->size >= allocsize)
-			break;
+		if (this->size >= allocsize) { break; }
 	}
 
+	/* No fit found, ask for pages */
 	if (&this->node == head) {
-		/* [Gan] postmap_addr stands for conversion from address before
-		 * early mapping to the one after early mapping only.
-		 * If we mean to from physical address to kernel virtual
-		 * address, use pa2kva(), even if it's identical to
-		 * postmap_addr() */
-		this = (struct blockhdr *)(size_t)pa2kva(__backup->paddr);
-		this->size = __backup->size;
+		struct pages pages = {
+			.paddr = 0,
+			.size = ALIGN_ABOVE(size, PAGE_SIZE),
+			.flags = flags
+		};
+		struct blockhdr *tmp;
+		if (alloc_pages(&pages) == EOF) {
+			/* really out of memory now */
+			return NULL;
+		}
+
+		/* make a block out of the new page */
+		this = (struct blockhdr *)pa2kva((size_t)pages.paddr);
+		this->size = pages.size;
 		this->free = true;
-		kfree(__backup);
+		this->flags = flags;
+
+		/* add to free block list */
 		for_each_entry(tmp, head, node) {
-			if (tmp >= this)
-				break;
-			prev = tmp;
+			if (tmp >= this) { break; }
 		}
-		if (prev != NULL)
-			list_add_after(&this->node, &prev->node);
-		else
-			list_add_after(&this->node, head);
-		__backup = alloc_pages(PAGE_SIZE, 0);
-		if (__backup == NULL)
-			panic("Out of memory during kmalloc().\n");
-		for_each_entry(this, head, node) {
-			if (this->size >= allocsize)
-				break;
-		}
+		list_add_before(&this->node, &tmp->node);
 	}
 
+	/* found a fit, so we cut it down */
 	newsize = this->size - allocsize;
 	if (newsize >= sizeof(struct blockhdr) + ALLOC_ALIGN) {
-		newblock = ((void *)this) + allocsize;
+		struct blockhdr *newblock = ((void *)this) + allocsize;
 		newblock->size = newsize;
 		newblock->free = true;
+		newblock->flags = this->flags;
 		this->size = allocsize;
 		list_add_after(&newblock->node, &this->node);
 	}
@@ -114,52 +114,69 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 
 static inline void __free(struct list_head *head, void *obj)
 {
-	struct blockhdr *this, *prev = NULL, *tmp, *next = NULL;
+	struct blockhdr *this, *tmp;
 
 	this = HEADER(obj);
-
-	for_each_entry(tmp, head, node) {
-		if (tmp >= this)
-			break;
-		prev = tmp;
-	}
-
 	this->free = true;
-	if (prev != NULL)
-		list_add_after(&this->node, &prev->node);
-	else
-		list_add_after(&this->node, head);
+
+	/* insert to list */
+	for_each_entry(tmp, head, node) {
+		if (tmp >= this) { break; }
+	}
+	list_add_before(&this->node, &tmp->node);
 
 	/* merge downwards */
+	tmp = list_entry(this->node.prev, struct blockhdr, node);
 	if (
-		((size_t)this & (size_t)(PAGE_SIZE - 1)) != 0 &&
-		prev != NULL &&
-		(void *)prev + prev->size == (void *)this
+		&tmp->node != head && /* prev exist */
+		(void *)tmp + tmp->size == (void *)this /* direct neighbor */
 	) {
-		prev->size += this->size;
+		tmp->size += this->size;
 		list_del(&this->node);
-		this = prev;
+		this = tmp;
 	}
 
 	/* merge upwards */
-	if (!list_is_last(&this->node, head))
-		next = list_next_entry(this, struct blockhdr, node);
+	tmp = list_entry(this->node.next, struct blockhdr, node);
 	if (
-		(((size_t)this + this->size) & (PAGE_SIZE - 1)) != 0 &&
-		next != NULL &&
-		(void *)this + this->size == (void *)next
+		&tmp->node != head && /* next exist */
+		(void *)this + this->size == (void *)tmp /* direct neighbor */
 	) {
-		this->size += next->size;
-		list_del(&next->node);
+		this->size += tmp->size;
+		list_del(&tmp->node);
 	}
 
-	/* return page */
-	if (this->size == PAGE_SIZE) {
-		struct pages *pages = kmalloc(sizeof(struct pages), 0);
-		pages->paddr = (addr_t)premap_addr((size_t)this);
-		pages->size = PAGE_SIZE;
-		list_del(&this->node);
-		free_pages(pages);
+	/*
+	 * return pages:
+	 * all blocks across page border are larger than a page, thus remaining
+	 * slices after we return pages (if there are any) are capable for
+	 * allocation (PAYLOAD >= ALLOC_ALIGN).
+	 */
+	size_t end = (size_t)this + this->size;
+	size_t first_border = ALIGN_ABOVE((size_t)this, PAGE_SIZE);
+	size_t last_border = ALIGN_BELOW(end, PAGE_SIZE);
+	if (first_border < last_border) {
+		struct pages pages = {
+			.paddr = (addr_t)first_border,
+			.size = (addr_t)(last_border - first_border),
+			.flags = this->flags
+		};
+		/* upper slice */
+		if (last_border < end) {
+			tmp = (struct blockhdr *)last_border;
+			tmp->size = end - last_border;
+			tmp->free = true;
+			tmp->flags = this->flags;
+			list_add_after(&tmp->node, &this->node);
+		}
+		/* lower slice */
+		if (first_border > (size_t)this) {
+			this->size = first_border - (size_t)this;
+		} else {
+			list_del(&this->node);
+		}
+		/* really free pages */
+		free_pages(&pages);
 	}
 }
 
@@ -208,22 +225,24 @@ int simple_allocator_bootstrap(void *pt, size_t size)
 
 int simple_allocator_init(void)
 {
-	struct pages *pages = alloc_pages(PAGE_SIZE, 0);
-	if (pages == NULL)
+	struct pages pages = {
+		.paddr = 0,
+		.size = PAGE_SIZE,
+		.flags = 0
+	};
+	if (alloc_pages(&pages) == EOF)
 		panic("Out of memory during simple_allocator_init().\n");
 	struct blockhdr *block =
 		/* [Gan] same as mentioned above */
-		(struct blockhdr *)(size_t)postmap_addr(pages->paddr);
-	block->size = pages->size;
+		(struct blockhdr *)postmap_addr((size_t)pages.paddr);
+	block->size = (size_t)pages.size;
 	block->free = true;
-	kfree(pages);
 	list_init(&__head);
 	list_add_after(&block->node, &__head);
 
 	__allocator.alloc = __proper_alloc;
 	__allocator.free = __proper_free;
 	__allocator.size = __size;
-	__backup = alloc_pages(PAGE_SIZE, 0);
 	set_simple_allocator(&__allocator);
 	return 0;
 }

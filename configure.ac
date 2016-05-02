@@ -326,6 +326,7 @@ AC_CONFIG_FILES([
 	kern/mm/Makefile
 	kern/mm/pmm/Makefile
 	kern/mm/vmm/Makefile
+	kern/proc/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile
