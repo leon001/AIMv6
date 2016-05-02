@@ -34,7 +34,7 @@ trapentry:
 	pushal
 
 	/* Make sure the data segments are under kernel segments */
-	movw	$(SEG_KDATA << 3), %ax
+	movw	$KERNEL_DS, %ax
 	movw	%ax, %ds
 	movw	%ax, %es
 	movw	%ax, %fs	/* KCPU? */

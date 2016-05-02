@@ -125,7 +125,7 @@ sym:		.long	long
  * can be used as is.
  */
 
-#if defined(USE_MIPS32)
+#ifndef __LP64__	/* 32 bit */
 /* Load constant, See MIPS Run 8.7.3 */
 # define LA		la
 # define LI		li
@@ -175,7 +175,7 @@ sym:		.long	long
 # define MTC0		mtc0
 
 # define WORD_SHIFT	2
-#elif defined(USE_MIPS64)
+#else	/* 64 bit */
 /* Load constant, See MIPS Run 8.7.3 */
 # define LA		dla
 # define LI		dli
@@ -217,7 +217,9 @@ sym:		.long	long
 # define MTC0		dmtc0
 
 # define WORD_SHIFT	3
-#endif
+#endif	/* __LP64__ */
+
+#define WORD_SIZE	(1 << WORD_SHIFT)
 
 #define MFC032		mfc0
 #define MTC032		mtc0
