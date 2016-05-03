@@ -26,7 +26,7 @@
 #include <sys/types.h>
 #include <util.h>
 #include <io.h>
-#include <mmu.h>
+#include <mm.h>
 #include <console.h>
 #include <platform.h>
 #include <device.h>
@@ -194,7 +194,7 @@ int early_console_init(void)
 
 	if (mmu_handlers_add(__mmu_handler) != 0)
 		for (;;) ;	/* panic */
-	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
+	if (jump_handlers_add((generic_fp)postmap_addr(__jump_handler)) != 0)
 		for (;;) ;	/* panic */
 	return 0;
 }

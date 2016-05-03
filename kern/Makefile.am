@@ -21,6 +21,7 @@ SUBDIRS = \
 	arch \
 	init \
 	dev \
+	debug \
 	mm
 
 CLEANFILES = vmaim.s
@@ -41,7 +42,8 @@ KERNEL_LIBS = \
 	mm/libmm.la \
 	arch/$(ARCH)/lib$(ARCH).la \
 	$(top_builddir)/drivers/libdrivers.la \
-	$(top_builddir)/lib/libc/libc.la
+	$(top_builddir)/lib/libc/libc.la \
+	debug/libdebug.la
 vmaim_elf_LDADD = $(KERNEL_LIBS)
 vmaim_elf_DEPENDENCIES = arch/$(ARCH)/vmaim.lds $(KERNEL_LIBS)
 vmaim_elf_LDFLAGS = $(AM_LDFLAGS) -T arch/$(ARCH)/vmaim.lds

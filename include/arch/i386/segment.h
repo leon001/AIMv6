@@ -15,7 +15,14 @@
 #define SEG_UDATA 5  // user data+stack
 #define SEG_TSS   6  // this process's task state
 
+#define KERNEL_DS	(SEG_KDATA << 3)
+#define KERNEL_CS	(SEG_KCODE << 3)
+
+#define NR_SEGMENTS	7
+
 #ifndef __ASSEMBLER__
+
+#include <sys/types.h>
 /*
  * Segment descriptor structure
  */
@@ -33,7 +40,50 @@ struct segdesc {
 	unsigned int	db:1;	/* 1 if 32-bit */
 	unsigned int	g:1;	/* Limit is page or byte granularity */
 	unsigned int	base_31_24:8;	/* Base: Bits 31-24 */
-}
+};
+
+/*
+ * Task state segment structure
+ */
+struct taskstate {
+	uint32_t ts_link;
+	uintptr_t ts_esp0;
+	uint16_t ts_ss0;
+	uint16_t ts_padding1;
+	uintptr_t ts_esp1;
+	uint16_t ts_ss1;
+	uint16_t ts_padding2;
+	uintptr_t ts_esp2;
+	uint16_t ts_ss2;
+	uint16_t ts_padding3;
+	uintptr_t ts_cr3;
+	uintptr_t ts_eip;
+	uint32_t ts_eflags;
+	uint32_t ts_eax;
+	uint32_t ts_ecx;
+	uint32_t ts_edx;
+	uint32_t ts_ebx;
+	uintptr_t ts_esp;
+	uintptr_t ts_ebp;
+	uint32_t ts_esi;
+	uint32_t ts_edi;
+	uint16_t ts_es;
+	uint16_t ts_padding4;
+	uint16_t ts_cs;
+	uint16_t ts_padding5;
+	uint16_t ts_ss;
+	uint16_t ts_padding6;
+	uint16_t ts_ds;
+	uint16_t ts_padding7;
+	uint16_t ts_fs;
+	uint16_t ts_padding8;
+	uint16_t ts_gs;
+	uint16_t ts_padding9;
+	uint16_t ts_ldt;
+	uint16_t ts_padding10;
+	uint16_t ts_t;
+	uint16_t ts_iomb;
+};
 
 /*
  * For present segments, we usually only care the following properties:
@@ -63,7 +113,7 @@ struct segdesc {
 	1,					\
 	1,					\
 	(unsigned int)(base) >> 24		\
-} \
+}
 #define SEG16(type, base, size, dpl)	(struct segdesc) {	\
 	(size) & 0xffff,			\
 	(unsigned int)(base) & 0xffff,		\
@@ -104,6 +154,19 @@ struct segdesc {
 #define STA_W		0x2	/* Data: writable */
 #define STA_R		0x2	/* Code: readable */
 #define STA_A		0x1;	/* Access, always set to 0, CPU internal use */
+
+#define STS_T16A	0x1	// Available 16-bit TSS
+#define STS_LDT		0x2	// Local Descriptor Table
+#define STS_T16B	0x3	// Busy 16-bit TSS
+#define STS_CG16	0x4	// 16-bit Call Gate
+#define STS_TG		0x5	// Task Gate / Coum Transmitions
+#define STS_IG16	0x6	// 16-bit Interrupt Gate
+#define STS_TG16	0x7	// 16-bit Trap Gate
+#define STS_T32A	0x9	// Available 32-bit TSS
+#define STS_T32B	0xB	// Busy 32-bit TSS
+#define STS_CG32	0xC	// 32-bit Call Gate
+#define STS_IG32	0xE	// 32-bit Interrupt Gate
+#define STS_TG32	0xF	// 32-bit Trap Gate
 
 #define SEGMENT_DPL_MASK 0x3	/* DPL mask */
 #define SEGMENT_TI_MASK	 0x4	/* Table Indicator mask */

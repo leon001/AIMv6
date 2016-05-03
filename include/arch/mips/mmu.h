@@ -16,14 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PANIC_H
-#define _PANIC_H
+#ifndef _MMU_H
+#define _MMU_H
 
-__noreturn
-void __panic(void);
+/* premap_addr() and postmap_addr() in addrspace.h */
+#include <addrspace.h>
 
-__noreturn
-void panic(const char *fmt, ...);
+#define PAGE_SHIFT	12
+#define PAGE_SIZE	(1 << PAGE_SHIFT)
+
+#ifndef __ASSEMBLER__
+
+#include <sys/types.h>
+
+typedef uint32_t pte_t, pde_t;
+
+/* TODO: I wonder if something like pgtable_t is better */
+typedef pde_t pgindex_t;
+
+void page_index_clear(pgindex_t *index);
+int page_index_early_map(pgindex_t *index, addr_t paddr, size_t vaddr,
+    size_t length);
 
 #endif
 
+#endif

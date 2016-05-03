@@ -26,6 +26,8 @@
 #include <util.h>
 #include <mm.h>
 #include <memlayout.h>
+#include <segment.h>
+#include <asm.h>
 
 /* FIXME: put in mm.c? */
 static size_t mem_size = 0;
@@ -59,6 +61,7 @@ static void probe_memory(void)
 			desc.size = (size_t)min2(
 			    (int32_t)KMMAP_BASE,
 			    (int32_t)vaddr) - desc.vaddr;
+			desc.type = EARLY_MAPPING_MEMORY;
 
 			early_mapping_add(&desc);
 
@@ -92,5 +95,54 @@ void early_arch_init(void)
 	portio_bus_init(&portio_bus);
 
 	probe_memory();
+}
+
+/* TODO: put into per-CPU structure */
+static struct segdesc gdt[NR_SEGMENTS] = {
+	[SEG_KCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, DPL_KERNEL),
+	[SEG_KDATA] = SEG(STA_W, 0, 0xffffffff, DPL_KERNEL),
+	[SEG_UCODE] = SEG(STA_X|STA_R, 0, 0xffffffff, DPL_USER),
+	[SEG_UDATA] = SEG(STA_W, 0, 0xffffffff, DPL_USER)
+};
+static struct taskstate ts = {0};
+static unsigned char tempkstack[2048] = {0};
+
+static void segment_init(void)
+{
+	lgdt(gdt, sizeof(gdt));
+	uint16_t reg;
+	asm volatile (
+		"	movw	%2, %0;"
+		"	movw	%0, %%ds;"
+		"	movw	%0, %%es;"
+		"	movw	%0, %%fs;"
+		"	movw	%0, %%gs;"
+		"	movw	%0, %%ss;"
+		"	ljmp	%1, $1f;"
+		"1:"
+		: "=r"(reg)
+		: "i"(KERNEL_CS), "i"(KERNEL_DS)
+	);
+}
+
+static void taskstate_init(void)
+{
+	ts.ts_esp0 = tempkstack;
+	ts.ts_ss0 = KERNEL_DS;
+
+	gdt[SEG_TSS] = SEG16(STS_T32A, (uint32_t)&ts, sizeof(ts), DPL_KERNEL);
+	gdt[SEG_TSS].s = 0;
+}
+
+static void taskstate_load(void)
+{
+	ltr(SEG_TSS << 3);
+}
+
+void arch_init(void)
+{
+	taskstate_init();
+	segment_init();
+	taskstate_load();
 }
 
