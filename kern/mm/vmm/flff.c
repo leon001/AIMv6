@@ -36,12 +36,12 @@
 #define ALLOC_ALIGN 16
 
 /* This header directly leads the payload */
-__attribute__ ((aligned(ALLOC_ALIGN)))
 struct blockhdr {
 	size_t size;
 	bool free;
 	gfp_t flags;
 	struct list_head node;
+	char __padding[12];/* pad to 16-byte alignment */
 };
 
 #define PAYLOAD(bh)		((void *)((struct blockhdr *)(bh) + 1))

@@ -28,8 +28,14 @@
 #include <vmm.h>
 #include <trap.h>
 #include <panic.h>
+#include <aim/init.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
+
+void do_init_calls(void)
+{
+	
+}
 
 void __noreturn master_init(void)
 {

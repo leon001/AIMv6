@@ -17,7 +17,8 @@
 
 include $(top_srcdir)/env.am
 
-noinst_HEADERS = \
-	export.h \
-	init.h
+noinst_LTLIBRARIES = libproc.la
+
+libproc_la_SOURCES = \
+	proc.c
 

@@ -48,6 +48,24 @@
 	. = ALIGN((align));						\
 	*(.data)
 
+#define __INIT(sec, align)						\
+	. = ALIGN((align));						\
+	SYMBOL(sec##_init_start) = .;					\
+	*(.init.##sec##0)						\
+	*(.init.##sec##1)						\
+	*(.init.##sec##2)						\
+	*(.init.##sec##3)						\
+	*(.init.##sec##4)						\
+	*(.init.##sec##5)						\
+	*(.init.##sec##6)						\
+	*(.init.##sec##7)						\
+	SYMBOL(sec##_init_end) = .;
+
+#define EARLY_INIT(align)	__INIT(early, align)
+/* NORM is added as indication */
+#define NORM_INIT(align)	__INIT(norm, align)
+#define LATE_INIT(align)	__INIT(late, align)
+
 #define RODATA(align)							\
 	. = ALIGN((align));						\
 	*(.rodata)
