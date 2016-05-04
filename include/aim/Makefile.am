@@ -19,5 +19,5 @@ include $(top_srcdir)/env.am
 
 noinst_HEADERS = \
 	export.h \
-	init.h
+	initcalls.h
 

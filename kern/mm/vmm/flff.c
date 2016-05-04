@@ -225,20 +225,7 @@ int simple_allocator_bootstrap(void *pt, size_t size)
 
 int simple_allocator_init(void)
 {
-	struct pages pages = {
-		.paddr = 0,
-		.size = PAGE_SIZE,
-		.flags = 0
-	};
-	if (alloc_pages(&pages) == EOF)
-		panic("Out of memory during simple_allocator_init().\n");
-	struct blockhdr *block =
-		/* [Gan] same as mentioned above */
-		(struct blockhdr *)postmap_addr((size_t)pages.paddr);
-	block->size = (size_t)pages.size;
-	block->free = true;
 	list_init(&__head);
-	list_add_after(&block->node, &__head);
 
 	__allocator.alloc = __proper_alloc;
 	__allocator.free = __proper_free;

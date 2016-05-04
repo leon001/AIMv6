@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -18,37 +18,37 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
+#endif
 
-/* from kernel */
-#include <sys/types.h>
-#include <init.h>
-#include <mm.h>
-#include <drivers/io/io-mem.h>
+#include <mmu.h>
+#include <util.h>
+#include <pmm.h>
+#include <vmm.h>
 
-void early_arch_init(void)
+addr_t get_mem_size(void)
 {
-	io_mem_init(&early_memory_bus);
-	early_mach_init();
-
-	/* extra low address mapping */
-	addr_t mem_base = get_mem_physbase();
-	addr_t mem_size = get_mem_size();
-	struct early_mapping desc = {
-		.paddr = mem_base,
-		.vaddr = (size_t)mem_base,
-		.size = (size_t)mem_size,
-		.type = EARLY_MAPPING_TEMP
-	};
-	early_mapping_add(&desc);
-
-	/* [Gan] moved from kern/init/early_init.c */
-	early_mapping_add_memory(
-		get_mem_physbase(),
-		(size_t)get_mem_size());
+	/* TODO: handle situations with <256M RAM and make it consistent
+	 * with HIGHRAM_SIZE */
+	return MEM_SIZE;
 }
 
-void arch_init(void)
+void mips_add_memory_pages(void)
 {
-}
+	/* Low RAM */
+	extern uint8_t _kern_end;
+	uint32_t kern_end = (uint32_t)&_kern_end;
+	struct pages *p = kmalloc(sizeof(*p), 0);
+	p->paddr = kva2pa(ALIGN_ABOVE(kern_end, PAGE_SIZE));
+	p->size = 0x10000000 - p->paddr;	/* TODO: no magic number */
+	p->flags = 0;
 
+	free_pages(p);
+
+	/* High RAM */
+	p = kmalloc(sizeof(*p), 0);
+	p->paddr = HIGHRAM_BASE;
+	p->size = HIGHRAM_SIZE;
+	p->flags = 0;
+
+	free_pages(p);
+}

@@ -16,33 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+#ifndef _MMU_H
+#define _MMU_H
+
+/* premap_addr() and postmap_addr() in addrspace.h */
+#include <addrspace.h>
+
+#define PAGE_SHIFT	12
+#define PAGE_SIZE	(1 << PAGE_SHIFT)
+
+#ifndef __ASSEMBLER__
+
+#include <sys/types.h>
+
+typedef uint32_t pte_t, pde_t;
+
+/* TODO: I wonder if something like pgtable_t is better */
+typedef pde_t pgindex_t;
+
+void page_index_clear(pgindex_t *index);
+int page_index_early_map(pgindex_t *index, addr_t paddr, size_t vaddr,
+    size_t length);
+
 #endif
 
-#include <init.h>
-#include <console.h>
-#include <drivers/io/io-mem.h>
-
-unsigned long kernelsp[NR_CPUS];
-
-void abs_jump(void *addr)
-{
-	asm volatile (
-		"move	$25, %0;"
-		"jr	%0"
-		: /* no output */
-		: "r"(addr)
-	);
-}
-
-void early_arch_init(void)
-{
-	io_mem_init(&early_memory_bus);
-	early_mach_init();
-}
-
-void arch_init(void)
-{
-}
-
+#endif

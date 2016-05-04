@@ -19,7 +19,11 @@
 #ifndef _TRAP_H
 #define _TRAP_H
 
-#include <regs.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+struct regs;
 
 void trap_init(void);
 

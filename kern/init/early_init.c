@@ -43,10 +43,11 @@ void early_mm_init(void)
 	}
 
 	/* initialize and apply page index */
+	/* [Gan] i386 is retrieving relative address here */
 	extern pgindex_t boot_page_index;
 
-	page_index_init(premap_addr((void *)&boot_page_index));
-	mmu_init(kva2pa((void *)&boot_page_index));
+	page_index_init((pgindex_t *)premap_addr((void *)&boot_page_index));
+	mmu_init((pgindex_t *)kva2pa(postmap_addr((void *)&boot_page_index)));
 	mmu_handlers_apply();
 	kputs("KERN: MMU is now on!\n");
 }
@@ -60,8 +61,9 @@ void __noreturn master_early_init(void)
 	kputs("KERN: Hello, world!\n");
 	early_mm_init();
 
+	/* [Gan] i386 is retrieving relative address here */
 	extern uint32_t master_upper_entry;
-	abs_jump((void *)&master_upper_entry);
+	abs_jump((void *)postmap_addr(&master_upper_entry));
 }
 
 void __noreturn slave_early_init(void)

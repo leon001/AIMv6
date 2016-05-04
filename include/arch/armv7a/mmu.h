@@ -31,12 +31,8 @@
 /* from kernel */
 #include <sys/types.h>
 
-/*
- * [BarclayII] on MIPS, kernel virtual address is *always* (pa + KERN_BASE).
- * I guess the following should be put in arch-specific headers.
- */
-#define premap_addr(kva)	((kva) + RAM_PHYSBASE - KERN_BASE)
-#define postmap_addr(pa)	((pa) - RAM_PHYSBASE + KERN_BASE)
+#define __premap_addr(kva)	((kva) + RAM_PHYSBASE - KERN_BASE)
+#define __postmap_addr(pa)	((pa) - RAM_PHYSBASE + KERN_BASE)
 
 #define kva2pa(kva)	((kva) + RAM_PHYSBASE - KERN_BASE)
 #define pa2kva(pa)	((pa) - RAM_PHYSBASE + KERN_BASE)
