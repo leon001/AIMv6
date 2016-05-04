@@ -108,7 +108,28 @@ void abs_jump(void *addr);
  */
 int get_addr_space(void);
 
-#endif /* __ASSEMBLY__ */
+struct mm;
+
+struct vma {
+	addr_t		start;
+	addr_t		end;
+	unsigned long	flags;
+	/* These flags match ELF segment flags */
+#define VMA_EXEC	0x01
+#define VMA_WRITE	0x02
+#define VMA_READ	0x04
+	struct mm	*mm;
+	struct list_head node;
+};
+
+struct mm {
+	struct list_head node;
+	size_t		mmap_count;
+	size_t		ref_count;
+	pgindex_t	pgindex;
+};
+
+#endif /* !__ASSEMBLER__ */
 
 #endif /* _MM_H */
 
