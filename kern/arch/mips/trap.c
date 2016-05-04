@@ -27,11 +27,12 @@
 #include <cp0regdef.h>
 #include <trap.h>
 #include <console.h>
+#include <arch-trap.h>
 
 void trap_init(void)
 {
 	extern uint32_t generic_exception_entry;
-	memcpy((void *)0x80000180, &generic_exception_entry, 0x80);
+	memcpy((void *)GENERIC_EXCEPT_ENTRY, &generic_exception_entry, 0x80);
 
 	uint32_t status = read_c0_status();
 	write_c0_status(status & ~ST_BEV);

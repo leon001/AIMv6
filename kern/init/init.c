@@ -29,8 +29,14 @@
 #include <trap.h>
 #include <panic.h>
 #include <init.h>
+#include <aim/initcalls.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
+
+void do_init_calls(void)
+{
+	
+}
 
 void __noreturn master_init(void)
 {
@@ -77,6 +83,9 @@ void __noreturn master_init(void)
 	/* temporary test */
 	extern void trap_test(void);
 	trap_test();
+
+	/* allocate per-cpu context and kworker */
+//	proc_init();
 
 	kputs("KERN: Traps test passed.\n");
 	panic("Test done, all is well.");

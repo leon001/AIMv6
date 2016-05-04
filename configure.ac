@@ -41,7 +41,8 @@ AC_C_TYPEOF
 AIM_GCC_FUNC_ATTRIBUTE([noreturn])
 AIM_GCC_FUNC_ATTRIBUTE([weak])
 AIM_GCC_FUNC_ATTRIBUTE([noinline])
-AX_GCC_VAR_ATTRIBUTE([visibility])
+AIM_GCC_FUNC_ATTRIBUTE([visibility])
+AX_GCC_VAR_ATTRIBUTE([used])
 AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
 
 AC_SUBST([AIM_CFLAGS], [$aim_cflags])
@@ -61,7 +62,25 @@ AIM_ARG_VAR([MACH], [target machine])
 AC_SUBST([PREFIXED_MACH], [mach-$MACH])
 AIM_SUPPORT_MACH([msim loongson3a zynq pc generic unknown])
 
-# default configurations
+# Default configurations
+#
+# When specifying whether and how a module is to be built, three values are
+# possible:
+# - no		The module will not be built. Headers will not be removed.
+# - module	The module will be built into a seperate loadable object, and
+#         	will not be accessible during early booting stages. Executables
+#		outside the kernel, like the firmware and bootloader, will not
+#		build nor access the module.
+# - yes		The module will be built into the kernel, and initialized
+#		according to defined entry(s). It cannot be unloaded from the
+#		running kernel.
+# If a module is compiled into the kernel and contains some functionality that
+# exactly one instance is accessed during early booting stages, a "primary"
+# variable can be set to its name. When this is done, the firmware and the
+# bootloader will also access it.
+# It is usually meaningless to compile a secondary implementation into the
+# firmware or the bootloader, so implementations should check corresponding
+# macros.
 AS_VAR_SET([with_kstacksize], [4096])
 
 AS_CASE([$ARCH],
@@ -282,6 +301,8 @@ AC_CONFIG_FILES([
 	msim.conf
 	Makefile
 	include/Makefile
+	include/aim/Makefile
+	include/asm-generic/Makefile
 	boot/Makefile
 	boot/arch/Makefile
 	boot/arch/armv7a/Makefile
@@ -316,6 +337,7 @@ AC_CONFIG_FILES([
 	kern/mm/Makefile
 	kern/mm/pmm/Makefile
 	kern/mm/vmm/Makefile
+	kern/proc/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile

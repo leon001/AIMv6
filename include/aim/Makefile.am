@@ -15,36 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-SUBDIRS = \
-	aim \
-	asm-generic
-
-nobase_noinst_HEADERS = \
-	sys/types.h
+include $(top_srcdir)/env.am
 
 noinst_HEADERS = \
-	bootsect.h \
-	console.h \
-	device.h \
-	elf.h \
-	file.h \
-	init.h \
-	list.h \
-	mm.h \
-	panic.h \
-	pmm.h \
-	sleep.h \
-	trap.h \
-	vmm.h \
-	arch/armv7a/io.h \
-	arch/armv7a/mach-zynq/mach.h \
-	arch/mips/addrspace.h \
-	arch/mips/asm.h \
-	arch/mips/cp0regdef.h \
-	arch/mips/io.h \
-	arch/mips/irq.h \
-	arch/mips/mipsregs.h \
-	arch/mips/regdef.h \
-	arch/mips/smp.h \
-	arch/mips/mach-msim/mach-smp.h \
-	arch/mips/mach-loongson3a/platform.h
+	export.h \
+	initcalls.h
+

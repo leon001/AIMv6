@@ -21,37 +21,18 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
-
+#include <mm.h>
 #include <pmm.h>
-#include <panic.h>
 
-static struct page_allocator *__page_allocator = NULL;
-
-void set_page_allocator(struct page_allocator *allocator)
+/*
+ * This should be a seperate function, don't directly use kernel memory
+ * interfaces. There are different sets of interfaces we can allocate memory
+ * from, and we can't say any one of them is best.
+ */
+void *alloc_kstack(size_t *size)
 {
-	__page_allocator = allocator;
-}
-
-int alloc_pages(struct pages *pages)
-{
-	if (__page_allocator == NULL)
-		panic("alloc_pages() called but no allocator available.\n");
-	if (pages == NULL)
-		return EOF;
-	return __page_allocator->alloc(pages);
-}
-
-void free_pages(struct pages *pages)
-{
-	if (__page_allocator == NULL)
-		panic("free_page() called but no allocator available.\n");
-	__page_allocator->free(pages);
-}
-
-addr_t get_free_memory(void)
-{
-	if (__page_allocator == NULL)
-		panic("get_free_memory() called but no allocator available.\n");
-	return __page_allocator->get_free();
+	/* calculate the actual size we allocate */
+	/* currently we use alloc_pages */
+	return NULL;
 }
 
