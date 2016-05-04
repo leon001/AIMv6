@@ -16,30 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SCHED_H
-#define _SCHED_H
+#ifndef _NAMESPACE_H
+#define _NAMESPACE_H
 
-#include <proc.h>
-#include <namespace.h>
-
-/* struct proclist is implemented in scheduler source. */
-struct proclist;
-
-struct scheduler {
-	/* The actual data structure storing the set of proc */
-	struct proclist	*proclist;
-	/* Remove and return an arbitrary proc from proc list */
-	struct proc *	(*pick)(void);
-	int		(*add)(struct proc *);
-	/* Remove a specific proc from proc list */
-	int		(*remove)(struct proc *);
-	/* Retrieve next proc of @proc, NULL for first proc */
-	struct proc *	(*next)(struct proc *);
-	/*
-	 * Locate the proc with PID @id and namespace @ns.
-	 * Currently @ns should be always NULL.
-	 */
-	struct proc *	(*find)(pid_t pid, struct namespace *ns);
-};
+/* We are providing an empty struct namespace definition here. */
+struct namespace;
 
 #endif

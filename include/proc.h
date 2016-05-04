@@ -20,6 +20,9 @@
 #define _PROC_H
 
 #include <sys/types.h>
+#include <namespace.h>
+
+#define PROC_NAME_LEN_MAX	256
 
 struct proc {
 	/*
@@ -30,6 +33,48 @@ struct proc {
 	size_t kstack_size;
 
 	/* other stuff go here */
+	int		tid;	/* Thread ID (unused - for multithreading) */
+	int		pid;	/* Process ID */
+	int		ppid;	/* Parent process ID */
+	unsigned int	state;	/* Process state (runnability) */
+	/* The state values come from OpenBSD */
+	/* TODO: may have more...? */
+#define PS_EMBRYO	1	/* Just created */
+#define PS_RUNNABLE	2	/* Runnable */
+#define PS_SLEEPING	3	/* Currently sleeping */
+#define PS_ZOMBIE	4
+#define	PS_ONPROC	5
+	unsigned int	exit_code;	/* Exit code */
+	unsigned int	exit_signal;	/* Signal code */
+	uint32_t	flags;	/* Flags */
+	/* TODO: may have more...? */
+#define PF_EXITING	0x00000004	/* getting shut down */
+#define PF_SIGNALED	0x00000400	/* killed by a signal */
+	int		oncpu;		/* CPU ID being running on */
+	uintptr_t	bed;		/* address we are sleeping on */
+	struct namespace *namespace;	/* Namespace */
+	struct mm 	*mm; /* Memory mapping structure including pgindex */
+	/*
+	 * Expandable heap is placed directly above user stack.
+	 * User stack is placed above all loaded program segments.
+	 * We put program arguments above user stack.
+	 */
+	struct regs	*context;	/* Context before switch */
+	struct trapframe *tf;		/* Current trap frame */
+	size_t		heapsize;	/* Expandable heap size */
+
+	/* TODO: do we need these? */
+	uintptr_t	ustacktop;	/* User stack top */
+	uintptr_t	progtop; /* Top of all segments (page-aligned) */
+
+	char		name[PROC_NAME_LEN_MAX];
+
+	/* Process tree related */
+	struct proc	*parent;
+	struct proc	*first_child;
+	struct proc	*next_sibling;
+	struct proc	*prev_sibling;
+	struct list_head proc_node;
 };
 
 #endif /* _PROC_H */
