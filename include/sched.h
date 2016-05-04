@@ -28,7 +28,7 @@ struct scheduler {
 	/* The actual data structure storing the set of proc */
 	struct proclist	*proclist;
 	/* Remove and return an arbitrary proc from proc list */
-	struct proc	(*pick)(void);
+	struct proc	*(*pick)(void);
 	int		(*add)(struct proc *);
 	/* Remove a specific proc from proc list */
 	int		(*remove)(struct proc *);
