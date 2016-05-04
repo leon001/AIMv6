@@ -20,7 +20,7 @@
 #define _MM_H
 
 #include <mmu.h>
-
+#include <pmm.h>
 #include <sys/types.h>
 
 /* premap_addr: always returns low address.
@@ -128,6 +128,19 @@ struct mm {
 	size_t		ref_count;
 	pgindex_t	pgindex;
 };
+
+/* Map virtual address starting at @vaddr to page block @p */
+int map_pages(struct mm *mm, void *vaddr, struct pages *p, uint32_t flags);
+/* Unmap @nr_pages pages starting from virtual address @vaddr */
+int unmap_pages(struct mm *mm, void *vaddr, size_t nr_pages);
+/* Copy from kernel address @kvaddr to user space at @uvaddr */
+int copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
+/* Does the reverse */
+int copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
+/* Create a size @len user space mapping starting at virtual address @addr */
+int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags);
+/* Destroy an entire user space mapping starting at @addr */
+int destroy_uvm(struct mm *mm, void *addr);
 
 #endif /* !__ASSEMBLER__ */
 
