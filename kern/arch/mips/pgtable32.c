@@ -64,10 +64,15 @@ int init_pgindex(pgindex_t *pgindex)
 	return 0;
 }
 
-/* Map a single page with size @size from virtual address @vaddr to physical
- * address @paddr */
-int map_page(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
-    uint32_t flags);
+void destroy_pgindex(pgindex_t *pgindex)
+{
+	struct pages p;
+	p.size = PAGE_SIZE;
+	p.flags = 0;
+	p.paddr = kva2pa(pgindex);
+	free_pages(&p);
+	*pgindex = NULL;
+}
 
 static void __unmap_page(pgindex_t *pgindex, void *vaddr)
 {
@@ -75,6 +80,7 @@ static void __unmap_page(pgindex_t *pgindex, void *vaddr)
 	pte_t *pte = (pte_t *)pde[PDX(vaddr)];
 	addr_t paddr = PTE_PADDR(pte[PTX(vaddr)]);
 	pgfree(paddr);
+	pte[PTX(vaddr)] = 0;
 }
 
 int unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size)

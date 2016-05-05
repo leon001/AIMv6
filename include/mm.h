@@ -110,14 +110,26 @@ int get_addr_space(void);
 
 struct mm;
 
+/*
+ * Virtual memory area structure
+ *
+ * The list of virtual memory areas must satisfy:
+ * 1. that the virtual memory areas should be sorted in ascending order, AND
+ * 2. that adjacent virtual memory areas should NOT be adjacent OR overlap in
+ *    virtual memory address, AND
+ * 3. that the starting address and the size should be aligned to pages.
+ */
 struct vma {
+	/* Must be page-aligned */
 	void		*start;
 	size_t		size;
+
 	uint32_t	flags;
 	/* These flags match ELF segment flags */
 #define VMA_EXEC	0x01
 #define VMA_WRITE	0x02
 #define VMA_READ	0x04
+
 	struct mm	*mm;
 	struct list_head node;
 };
@@ -137,22 +149,32 @@ extern struct mm kern_mm;	/* kernel fixed mapping */
  */
 /* Initialize a page index table and fill in the structure @pgindex */
 int init_pgindex(pgindex_t *pgindex);
+/* Destroy the page index table itself assuming that everything underlying is
+ * already done with */
+void destroy_pgindex(pgindex_t *pgindex);
 /* Map virtual address starting at @vaddr to page block @p */
-int map_pages(pgindex_t *mm, void *vaddr, struct pages *p, uint32_t flags);
+int map_pages(pgindex_t *pgindex, void *vaddr, struct pages *p, uint32_t flags);
 /* Unmap @size bytes starting from virtual address @vaddr */
-int unmap_pages(pgindex_t *mm, void *vaddr, size_t size);
+int unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size);
 
 /*
  * Architecture-independent interfaces
+ * Address must be page-aligned.
+ */
+/* Create a size @len user space mapping starting at virtual address @addr */
+int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags);
+/* Destroy a size @len user space mapping starting at @addr */
+int destroy_uvm(struct mm *mm, void *addr, size_t len);
+
+/*
+ * Architecture-independent interfaces
+ * Address need not be page-aligned
  */
 /* Copy from kernel address @kvaddr to user space at @uvaddr */
 int copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
 /* Does the reverse */
 int copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
-/* Create a size @len user space mapping starting at virtual address @addr */
-int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags);
-/* Destroy an entire user space mapping starting at @addr */
-int destroy_uvm(struct mm *mm, void *addr);
+
 /* Create a struct mm with a new page index */
 struct mm *mm_new(void);
 /* Destroy a struct mm and all the underlying memory mappings */
