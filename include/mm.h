@@ -123,10 +123,10 @@ struct vma {
 };
 
 struct mm {
-	struct list_head node;
-	size_t		mmap_count;
-	size_t		ref_count;
-	pgindex_t	pgindex;
+	struct list_head vma_node;	/* virtual memory area list sentry */
+	size_t		vma_count;	/* number of virtual memory areas */
+	size_t		ref_count;	/* reference count (may be unused) */
+	pgindex_t	pgindex;	/* page index */
 };
 
 /* Map virtual address starting at @vaddr to page block @p */
@@ -141,6 +141,10 @@ int copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
 int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags);
 /* Destroy an entire user space mapping starting at @addr */
 int destroy_uvm(struct mm *mm, void *addr);
+/* Create a struct mm with a new page index */
+struct mm *mm_new(void);
+/* Destroy a struct mm and all the underlying memory mappings */
+void mm_destroy(struct mm *mm);
 
 #endif /* !__ASSEMBLER__ */
 
