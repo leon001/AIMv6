@@ -21,8 +21,9 @@
 
 /* low level syncronization implementation, always as macros */
 
-#define ARM_STREX_SUCC	0
-#define ARM_STREX_FAIL	1
+#define ARM_STREX_SUCCESS	0
+#define ARM_STREX_FAIL		1
+#define ARM_STREX_CORRUPT	-1
 
 #ifndef __ASSEMBLER__
 

@@ -47,7 +47,7 @@ void spin_lock(lock_t *lock)
 	register int val;
 	int ret = ARM_STREX_FAIL;
 
-	while (ret != ARM_STREX_SUCC) {
+	while (ret != ARM_STREX_SUCCESS) {
 		asm volatile (
 			"ldrex		%[val], [%[addr]];"
 			"cmp		%[val], %[unlocked];"
@@ -94,7 +94,7 @@ void semaphore_dec(semaphore_t *sem)
 	register int val;
 	int ret = ARM_STREX_FAIL;
 
-	while (ret != ARM_STREX_SUCC) {
+	while (ret != ARM_STREX_SUCCESS) {
 		asm volatile (
 			"ldrex		%[val], [%[addr]];"
 			"subs		%[val], %[val], %[amount];"
@@ -119,26 +119,26 @@ void semaphore_inc(semaphore_t *sem)
 	 * Things are put inside the loop because LDREX gets a different
 	 * value per try. ONE SINGLE OVERFLOW MEANS DATA CORRUPTION.
 	 */
-	while (ret != ARM_STREX_SUCC) {
+	while (ret == ARM_STREX_FAIL) {
 		SMP_DMB();
 		asm volatile (
 			"ldrex		%[val], [%[addr]];"
 			"add		%[val], %[val], %[amount];"
 			"cmp		%[val], %[limit];"
+			"movgt		%[ret], %[corrupt];"
 			"strexle	%[ret], %[val], [%[addr]];"
-			/*
-			 * STREX happens only at signed less or equal.
-			 */
+			/* STREX happens only at signed less or equal. */
 			: [val] "=r" (val),
 			  [ret] "=r" (ret)
 			: [amount] "i" (1),
+			  [corrupt] "i" (ARM_STREX_CORRUPT),
 			  [limit] "ir" (sem->limit),
 			  [addr] "r" (&sem->val)
 		);
-		if (val > sem->limit)
-			panic("Increasing semaphore at 0x%08x to %d/%d\n", \
-				sem, val, sem->limit);
 	}
+	if (ret == ARM_STREX_CORRUPT)
+		panic("Increasing semaphore at 0x%08x to %d/%d\n", \
+			sem, val, sem->limit);
 	SMP_DSB();
 }
 
