@@ -160,13 +160,20 @@ int map_pages(pgindex_t *pgindex, void *vaddr, struct pages *p, uint32_t flags);
 /* Unmap @size bytes starting from virtual address @vaddr and _frees_ the
  * underlying physical frames. */
 int unmap_and_free_pages(pgindex_t *pgindex, void *vaddr, size_t size);
-/* Unmap but do not free the physical frames */
 /*
- * FIXME: we probably have to return a list of struct pages as the underlying
- * physical frames are not guaranteed to be contiguous.
- * Any better solutions?
+ * Unmap but do not free the physical frames
+ * Return code:
+ * Negative for error
+ * 0        for the underlying physical pages are contiguous and successfully
+ *          unmapped
+ * 1        for unmapped only the first few contiguous pages as the underlying
+ *          pages are incontiguous.
+ * The size and address of unmapped pages are stored in @p.
+ * FIXME: need review
  */
 int unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, struct pages *p);
+#define UNMAP_FULL	0
+#define UNMAP_PARTIAL	1
 
 /*
  * Architecture-independent interfaces
