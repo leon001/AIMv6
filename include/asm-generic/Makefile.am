@@ -18,5 +18,6 @@
 include $(top_srcdir)/env.am
 
 noinst_HEADERS = \
+	sync.h \
 	vmaim.lds.h
 

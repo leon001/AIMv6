@@ -37,6 +37,7 @@ noinst_HEADERS = \
 	trap.h \
 	vmm.h \
 	arch/armv7a/io.h \
+	arch/armv7a/sync.h \
 	arch/armv7a/mach-zynq/mach.h \
 	arch/mips/addrspace.h \
 	arch/mips/asm.h \
@@ -48,3 +49,4 @@ noinst_HEADERS = \
 	arch/mips/smp.h \
 	arch/mips/mach-msim/mach-smp.h \
 	arch/mips/mach-loongson3a/platform.h
+
