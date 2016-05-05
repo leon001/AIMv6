@@ -106,6 +106,7 @@ BEGIN(__generic_exception_entry)
 	 */
 	PUSHCOPR k0
 	PUSH	ra
+	PUSH	s8
 	PUSH	k1	/* k1 holds old SP */
 	cpuid	k0, k1
 	li	k1, TEMP_SLOT_BASE
@@ -113,6 +114,10 @@ BEGIN(__generic_exception_entry)
 	ADDU	k0, k1
 	LOAD	k0, (k0)	/* old GP there */
 	PUSH	k0
+	PUSH	k1
+	PUSH	k0
+	PUSH	t9
+	PUSH	t8
 	PUSHAL
 
 	/* Switch to kernel mode with no EXL on to allow nested exception */
@@ -139,8 +144,13 @@ BEGIN(trap_exit)
 	.set	noat
 	move	sp, a0
 	POPAL
+	POP	t8
+	POP	t9
+	POP	k0
+	POP	k1
 	POP	gp
 	POP	k0	/* temporarily hold SP */
+	POP	s8
 	POP	ra
 	POPCOPR k1
 	move	sp, k0	/* restore SP */

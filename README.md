@@ -10,8 +10,10 @@ thus should work across platforms.
   - Xilinx Zynq-7000 SoC (2x Cortex A9)
 * IA32
   - QEMU
-* MIPS
+* MIPS32
   - [MSIM](http://d3s.mff.cuni.cz/~holub/sw/msim/)
+  - Note that we are only supporting 256MB RAM for all MIPS32 machines.
+* MIPS64
   - Loongson 3A
 
 ## Building AIMv6

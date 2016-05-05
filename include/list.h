@@ -134,7 +134,7 @@ static inline int list_is_singular(const struct list_head *head)
 	for (pos = (head)->next; pos != (head); pos = pos->next)
 #define for_each_reverse(pos, head) \
 	for (pos = (head)->prev; pos != (head); pos = pos->prev)
-/* The two variants are designed for safety against concurrent removal */
+/* The two variants are designed for safety against removal */
 #define for_each_safe(pos, n, head) \
 	for (pos = (head)->next, n = pos->next; pos != (head); \
 	    pos = n, n = pos->next)
@@ -150,4 +150,19 @@ static inline int list_is_singular(const struct list_head *head)
 	for (pos = list_entry((head)->prev, typeof(*pos), member); \
 	     &pos->member != (head); \
 	     pos = list_entry(pos->member.prev, typeof(*pos), member))
+/*
+ * Again, for removal, so you can do something like:
+ * for_each_entry_safe(pos, n, head, member)
+ *     delete(pos);
+ */
+#define for_each_entry_safe(pos, n, head, member)			\
+	for (pos = list_entry((head)->next, typeof(*pos), member),	\
+		n = list_entry(pos->member.next, typeof(*pos), member);	\
+	     &pos->member != (head); 					\
+	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
+#define for_each_entry_safe_reverse(pos, n, head, member)		\
+	for (pos = list_entry((head)->prev, typeof(*pos), member),	\
+		n = list_entry(pos->member.prev, typeof(*pos), member);	\
+	     &pos->member != (head); 					\
+	     pos = n, n = list_entry(n->member.prev, typeof(*n), member))
 #endif

@@ -77,5 +77,8 @@ struct proc {
 	struct list_head proc_node;
 };
 
+/* Create a struct proc and */
+struct proc *newproc(void);
+
 #endif /* _PROC_H */
 

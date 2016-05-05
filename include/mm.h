@@ -111,9 +111,9 @@ int get_addr_space(void);
 struct mm;
 
 struct vma {
-	addr_t		start;
-	addr_t		end;
-	unsigned long	flags;
+	void		*start;
+	size_t		size;
+	uint32_t	flags;
 	/* These flags match ELF segment flags */
 #define VMA_EXEC	0x01
 #define VMA_WRITE	0x02
@@ -123,7 +123,7 @@ struct vma {
 };
 
 struct mm {
-	struct list_head vma_node;	/* virtual memory area list sentry */
+	struct list_head vma_head;	/* virtual memory area list sentry */
 	size_t		vma_count;	/* number of virtual memory areas */
 	size_t		ref_count;	/* reference count (may be unused) */
 	pgindex_t	pgindex;	/* page index */
@@ -133,21 +133,18 @@ extern struct mm kern_mm;	/* kernel fixed mapping */
 
 /*
  * Architecture-specific interfaces
+ * All addresses should be page-aligned.
  */
-/* Map a single page with size @size from virtual address @vaddr to physical
- * address @paddr */
-int map_page(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
-    uint32_t flags);
-/* Unmap a single page with size @size from virtual address @vaddr */
-int unmap_page(pgindex_t *pgindex, void *vaddr, size_t size);
+/* Initialize a page index table and fill in the structure @pgindex */
+int init_pgindex(pgindex_t *pgindex);
+/* Map virtual address starting at @vaddr to page block @p */
+int map_pages(pgindex_t *mm, void *vaddr, struct pages *p, uint32_t flags);
+/* Unmap @size bytes starting from virtual address @vaddr */
+int unmap_pages(pgindex_t *mm, void *vaddr, size_t size);
 
 /*
  * Architecture-independent interfaces
  */
-/* Map virtual address starting at @vaddr to page block @p */
-int map_pages(struct mm *mm, void *vaddr, struct pages *p, uint32_t flags);
-/* Unmap @nr_pages pages starting from virtual address @vaddr */
-int unmap_pages(struct mm *mm, void *vaddr, size_t nr_pages);
 /* Copy from kernel address @kvaddr to user space at @uvaddr */
 int copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
 /* Does the reverse */
