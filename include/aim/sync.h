@@ -32,3 +32,18 @@ void spin_lock(lock_t *lock);
 /* spin_unlock may contain instructions to send event */
 void spin_unlock(lock_t *lock);
 
+/* Semaphore, implemented by architectures. */
+typedef struct {
+	int val;
+	int limit;
+} semaphore_t;
+
+void semaphore_init(semaphore_t *sem, int val);
+void semaphore_dec(semaphore_t *sem);
+/* semaphore_inc may contain instructions to send event */
+void semaphore_inc(semaphore_t *sem);
+#define semaphore_pass(sem) ({ \
+	semaphore_t *_sem = sem; \
+	semaphore_dec(_sem); \
+	semaphore_inc(_sem); })
+

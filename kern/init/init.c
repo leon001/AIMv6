@@ -88,7 +88,7 @@ void __noreturn master_init(void)
 //	proc_init();
 
 	kputs("KERN: Traps test passed.\n");
-	panic("Test done, all is well.");
+	panic("Test done, all is well.\n");
 }
 
 void __noreturn slave_init(void)

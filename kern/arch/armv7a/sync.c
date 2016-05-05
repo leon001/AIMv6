@@ -26,8 +26,7 @@
  */
 
 #include <aim/sync.h>
-
-
+#include <panic.h>
 
 /*
  * spinlock
@@ -46,9 +45,9 @@ void spinlock_init(lock_t *lock)
 void spin_lock(lock_t *lock)
 {
 	register int val;
-	int ret = 1;
-	/* hard */
-	while (ret != 0) {
+	int ret = ARM_STREX_FAIL;
+
+	while (ret != ARM_STREX_SUCC) {
 		asm volatile (
 			"ldrex		%[val], [%[addr]];"
 			"cmp		%[val], %[unlocked];"
@@ -66,9 +65,80 @@ void spin_lock(lock_t *lock)
 
 void spin_unlock(lock_t *lock)
 {
+	/*
+	 * if caller trys to unlock a lock that is not locked (by him),
+	 * some data structure must be broken.
+	 */
+	if (*lock == UNLOCKED)
+		panic("Unlocking not-owned lock at 0x%08x\n", lock);
+
 	SMP_DMB();
 	*lock = UNLOCKED;
 	SMP_DSB();
 	asm volatile ("sev");
+}
+
+/* Semaphore */
+
+void semaphore_init(semaphore_t *sem, int val)
+{
+	/* we write it out directly */
+	sem->val = val;
+	sem->limit = val;
+	/* make it visible */
+	SMP_DMB();
+}
+
+void semaphore_dec(semaphore_t *sem)
+{
+	register int val;
+	int ret = ARM_STREX_FAIL;
+
+	while (ret != ARM_STREX_SUCC) {
+		asm volatile (
+			"ldrex		%[val], [%[addr]];"
+			"subs		%[val], %[val], %[amount];"
+			"wfemi;"/* minus */
+			"strexpl	%[ret], %[val], [%[addr]];"
+			/* pl means positive or zero */
+			: [val] "=r" (val),
+			  [ret] "=r" (ret)
+			: [amount] "i" (1),
+			  [addr] "r" (&sem->val)
+		);
+	}
+	SMP_DMB();
+}
+
+void semaphore_inc(semaphore_t *sem)
+{
+	register int val;
+	int ret = ARM_STREX_FAIL;
+
+	/*
+	 * Things are put inside the loop because LDREX gets a different
+	 * value per try. ONE SINGLE OVERFLOW MEANS DATA CORRUPTION.
+	 */
+	while (ret != ARM_STREX_SUCC) {
+		SMP_DMB();
+		asm volatile (
+			"ldrex		%[val], [%[addr]];"
+			"add		%[val], %[val], %[amount];"
+			"cmp		%[val], %[limit];"
+			"strexle	%[ret], %[val], [%[addr]];"
+			/*
+			 * STREX happens only at signed less or equal.
+			 */
+			: [val] "=r" (val),
+			  [ret] "=r" (ret)
+			: [amount] "i" (1),
+			  [limit] "ir" (sem->limit),
+			  [addr] "r" (&sem->val)
+		);
+		if (val > sem->limit)
+			panic("Increasing semaphore at 0x%08x to %d/%d\n", \
+				sem, val, sem->limit);
+	}
+	SMP_DSB();
 }
 
