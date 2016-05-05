@@ -34,7 +34,6 @@
 #define PTE_NOEXEC		0x008
 /* Extra page table entry flags not needed by hardware */
 #define PTE_SOFT_SHIFT		6
-#define PTE_PHYS		0x001	/* physical address marker */
 
 #define PTE_PADDR(pte)		((pte) & ~PTE_LOWMASK)
 #define PTE_FLAGS(pte)		((pte) & PTE_LOWMASK)

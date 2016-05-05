@@ -115,9 +115,10 @@ struct mm;
  *
  * The list of virtual memory areas must satisfy:
  * 1. that the virtual memory areas should be sorted in ascending order, AND
- * 2. that adjacent virtual memory areas should NOT be adjacent OR overlap in
- *    virtual memory address, AND
- * 3. that the starting address and the size should be aligned to pages.
+ * 2. that adjacent virtual memory areas should NOT overlap, AND
+ * 3. that adjacent virtual memory area structures with the same flags should
+ *    NOT be adjacent in virtual address.
+ * 4. that the starting address and the size should be aligned to pages.
  */
 struct vma {
 	/* Must be page-aligned */
@@ -129,6 +130,8 @@ struct vma {
 #define VMA_EXEC	0x01
 #define VMA_WRITE	0x02
 #define VMA_READ	0x04
+	/* More flags */
+#define VMA_FILE	0x100		/* For mmap(2) */
 
 	struct mm	*mm;
 	struct list_head node;
@@ -154,8 +157,16 @@ int init_pgindex(pgindex_t *pgindex);
 void destroy_pgindex(pgindex_t *pgindex);
 /* Map virtual address starting at @vaddr to page block @p */
 int map_pages(pgindex_t *pgindex, void *vaddr, struct pages *p, uint32_t flags);
-/* Unmap @size bytes starting from virtual address @vaddr */
-int unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size);
+/* Unmap @size bytes starting from virtual address @vaddr and _frees_ the
+ * underlying physical frames. */
+int unmap_and_free_pages(pgindex_t *pgindex, void *vaddr, size_t size);
+/* Unmap but do not free the physical frames */
+/*
+ * FIXME: we probably have to return a list of struct pages as the underlying
+ * physical frames are not guaranteed to be contiguous.
+ * Any better solutions?
+ */
+int unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, struct pages *p);
 
 /*
  * Architecture-independent interfaces

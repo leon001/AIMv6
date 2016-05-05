@@ -37,7 +37,9 @@ void mm_destroy(struct mm *mm)
 
 	/* Unmap each virtual memory area */
 	for_each_entry (vma, &(mm->vma_head), node) {
-		if (unmap_pages(&(mm->pgindex), vma->start, vma->size) < 0)
+		if (unmap_and_free_pages(&(mm->pgindex),
+					 vma->start,
+					 vma->size) < 0)
 			/* temporary */
 			panic("destroy_uvm: %p %p\n", mm->pgindex, vma->start);
 	}
@@ -66,7 +68,7 @@ static struct vma *vma_find(struct mm *mm, void *addr)
 int destroy_uvm(struct mm *mm, void *addr, size_t len)
 {
 	/* This function mainly maintains the vma list, and leaves the
-	 * actual unmapping job to unmap_pages(). */
+	 * actual unmapping job to unmap_and_free_pages(). */
 	struct vma *vma = vma_find(mm, addr);
 	int retcode;
 
@@ -80,8 +82,9 @@ int destroy_uvm(struct mm *mm, void *addr, size_t len)
 	void *vma_end = vma->start + vma->size;
 
 	if (addr == vma->start && len == vma->size) {
-		if ((retcode =
-		    unmap_pages(&(mm->pgindex), vma->start, vma->size)) < 0)
+		if ((retcode = unmap_and_free_pages(&(mm->pgindex),
+						    vma->start,
+						    vma->size)) < 0)
 			return retcode;
 
 		list_del(&(vma->node));
@@ -102,7 +105,7 @@ int destroy_uvm(struct mm *mm, void *addr, size_t len)
 		newvma->mm = mm;
 	}
 
-	if ((retcode = unmap_pages(&(mm->pgindex), addr, len)) < 0)
+	if ((retcode = unmap_and_free_pages(&(mm->pgindex), addr, len)) < 0)
 		goto rollback_vma;
 
 	vma->size = addr - vma->start;
@@ -112,5 +115,9 @@ int destroy_uvm(struct mm *mm, void *addr, size_t len)
 rollback_vma:
 	kfree(newvma);
 	return retcode;
+}
+
+int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
+{
 }
 
