@@ -23,9 +23,12 @@
 /* Spinlocks. Implemented by architectures. */
 
 typedef int lock_t;
+#define UNLOCKED	0
+#define LOCKED		1
 
 /* By initializing a lock, caller assumes no code is holding it. */
 void spinlock_init(lock_t *lock);
 void spin_lock(lock_t *lock);
+/* spin_unlock may contain instructions to send event */
 void spin_unlock(lock_t *lock);
 

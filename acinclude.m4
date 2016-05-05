@@ -146,7 +146,7 @@ AC_DEFUN([AIM_SUPPORT_ARCH], [
 # E.g. if MACH=zynq, define an automake conditional MACH_ZYNQ
 AC_DEFUN([AIM_SUPPORT_MACH], [
 	m4_foreach_w([var], [$1], [
-		AM_CONDITIONAL([MACH_]m4_toupper(var), [test x$ARCH = x]var)
+		AM_CONDITIONAL([MACH_]m4_toupper(var), [test x$MACH = x]var)
 	])
 ])
 

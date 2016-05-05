@@ -27,6 +27,8 @@
 
 #include <aim/sync.h>
 
+
+
 /*
  * spinlock
  * Note that the lock option is written out explicitly in entry.S
@@ -36,17 +38,37 @@
 void spinlock_init(lock_t *lock)
 {
 	/* since no one is holding this lock, we write it out directly */
+	*lock = UNLOCKED;
+	/* make it visible */
+	SMP_DMB();
 }
 
 void spin_lock(lock_t *lock)
 {
-
+	register int val;
+	int ret = 1;
+	/* hard */
+	while (ret != 0) {
+		asm volatile (
+			"ldrex		%[val], [%[addr]];"
+			"cmp		%[val], %[unlocked];"
+			"wfene;"
+			"strexeq	%[ret], %[locked], [%[addr]];"
+			: [val] "=r" (val),
+			  [ret] "=r" (ret)
+			: [locked] "r" (LOCKED),
+			  [unlocked] "i" (UNLOCKED),
+			  [addr] "r" (lock)
+		);
+	}
+	SMP_DMB();
 }
 
 void spin_unlock(lock_t *lock)
 {
-
+	SMP_DMB();
+	*lock = UNLOCKED;
+	SMP_DSB();
+	asm volatile ("sev");
 }
-
-
 
