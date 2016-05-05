@@ -50,6 +50,9 @@ typedef signed int	int32_t;
 typedef unsigned long long	uint64_t;
 typedef signed long long	int64_t;
 
+typedef uint32_t atomic_t;
+typedef int32_t satomic_t;
+
 typedef unsigned long ulong;
 
 typedef unsigned int bool;

@@ -157,8 +157,11 @@ int init_pgindex(pgindex_t *pgindex);
 void destroy_pgindex(pgindex_t *pgindex);
 /* Map virtual address starting at @vaddr to page block @p */
 int map_pages(pgindex_t *pgindex, void *vaddr, struct pages *p, uint32_t flags);
-/* Unmap @size bytes starting from virtual address @vaddr and _frees_ the
- * underlying physical frames. */
+/*
+ * Unmap @size bytes starting from virtual address @vaddr and _frees_ the
+ * underlying physical frames.
+ * TODO: remove this - page freeing should be left to free_pages()
+ */
 int unmap_and_free_pages(pgindex_t *pgindex, void *vaddr, size_t size);
 /*
  * Unmap but do not free the physical frames
