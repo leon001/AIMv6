@@ -129,6 +129,21 @@ struct mm {
 	pgindex_t	pgindex;	/* page index */
 };
 
+extern struct mm kern_mm;	/* kernel fixed mapping */
+
+/*
+ * Architecture-specific interfaces
+ */
+/* Map a single page with size @size from virtual address @vaddr to physical
+ * address @paddr */
+int map_page(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
+    uint32_t flags);
+/* Unmap a single page with size @size from virtual address @vaddr */
+int unmap_page(pgindex_t *pgindex, void *vaddr, size_t size);
+
+/*
+ * Architecture-independent interfaces
+ */
 /* Map virtual address starting at @vaddr to page block @p */
 int map_pages(struct mm *mm, void *vaddr, struct pages *p, uint32_t flags);
 /* Unmap @nr_pages pages starting from virtual address @vaddr */
