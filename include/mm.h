@@ -114,11 +114,10 @@ struct mm;
  * Virtual memory area structure
  *
  * The list of virtual memory areas must satisfy:
- * 1. that the virtual memory areas should be sorted in ascending order, AND
- * 2. that adjacent virtual memory areas should NOT overlap, AND
- * 3. that adjacent virtual memory area structures with the same flags should
- *    NOT be adjacent in virtual address.
- * 4. that the starting address and the size should be aligned to pages.
+ * 1. that the virtual memory areas should be sorted in ascending order of
+ *    virtual address, AND
+ * 2. that each virtual memory area should be correspond to exactly one
+ *    struct pages.
  */
 struct vma {
 	/* Must be page-aligned */
@@ -133,6 +132,7 @@ struct vma {
 	/* More flags */
 #define VMA_FILE	0x100		/* For mmap(2) */
 
+	struct pages	*pages;
 	struct mm	*mm;
 	struct list_head node;
 };
