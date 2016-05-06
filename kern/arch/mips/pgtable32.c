@@ -28,11 +28,13 @@
  * 10987654321098765432109876543210
  * +-4K-aligned physical address--+
  *
- * While the leaf page tables stores PFN and additional information in the
+ * The leaf page tables stores PFN and additional information in the
  * following format:
  * 33222222222211111111 110 0 0 0 000000
  * 10987654321098765432 109 8 7 6 543210
  * +-------PFN--------+ CCF D V G 00X000
+ *
+ * pgindex_t is the type of *physical* address to the page table structure.
  */
 
 #include <pmm.h>
@@ -45,10 +47,10 @@
 #include <util.h>
 
 struct pagedesc {
-	pde_t	*pde;
-	pte_t	*pte;
-	int	pdx;
-	int	ptx;
+	uint32_t	pdep;	/* page directory physical address */
+	uint32_t	ptep;	/* leaf page table physical address */
+	int		pdx;
+	int		ptx;
 };
 
 /*
@@ -56,25 +58,26 @@ struct pagedesc {
  * possibly creating leaf page tables if needed.
  */
 static int 
-__pgindex_getdesc(pgindex_t *pgindex,
-			     void *addr,
-			     bool create,
-			     struct pagedesc *pd)
+__getpagedesc(pgindex_t *pgindex,
+	      void *addr,
+	      bool create,
+	      struct pagedesc *pd)
 {
-	pd->pde = (pde_t *)*pgindex;
+	pde_t *pde = (pde_t *)pa2kva(*pgindex);
+	pd->pdep = *pgindex;
 	pd->pdx = PDX(addr);
-	if (pd->pde[pd->pdx] != 0) {
+	if (pde[pd->pdx] != 0) {
 		/* We already have the intermediate directory */
-		pd->pte = (pte_t *)pd->pde[pd->pdx];
+		pd->ptep = pde[pd->pdx];
 	} else {
 		/* We don't have it, fail or create one */
 		if (!create) {
 			return -ENOENT;
 		}
-		pd->pte = (pte_t *)pgalloc();
-		if (pd->pte == -1)
+		pd->ptep = (uint32_t)pgalloc();
+		if (pd->ptep == -1)
 			return -ENOMEM;
-		pd->pde[pd->pdx] = pd->pte;
+		pde[pd->pdx] = pd->ptep;
 	}
 	pd->ptx = PTX(addr);
 	return 0;
@@ -83,15 +86,13 @@ __pgindex_getdesc(pgindex_t *pgindex,
 int
 init_pgindex(pgindex_t *pgindex)
 {
-	int retcode = 0;
 	addr_t paddr = pgalloc();
-
-	if (addr_t == -1)
+	if (paddr == -1)
 		return -ENOMEM;
 
-	memset((void *)pa2kva(paddr), 0, PAGE_SIZE);
+	*pgindex = paddr;
+	memset(pa2kva(*pgindex), 0, PAGE_SIZE);
 
-	*pgindex = (pgindex_t)pa2kva(paddr);
 	return 0;
 }
 
@@ -99,88 +100,74 @@ void
 destroy_pgindex(pgindex_t *pgindex)
 {
 	pgfree(*pgindex);
-	*pgindex = NULL;
 }
 
-static void
-__unmap_and_free_page(pgindex_t *pgindex, void *vaddr)
-{
-	struct pagedesc pd;
-	if (__pgindex_getdesc(pgindex, vaddr, false, &pd) < 0)
-		panic("__unmap_page fail: %p %p\n", *pgindex, vaddr);
-	addr_t paddr = PTE_PADDR(pd->pte[pd->ptx]);
-	pgfree(paddr);
-	pd->pte[pd->ptx] = 0;
-}
-
-/* This function cleans intermediate page tables by itself, leaving actual
- * page unmapping to __unmap_page() */
-int
-unmap_and_free_pages(pgindex_t *pgindex, void *vaddr, size_t size)
-{
-	pte_t *pte;
-	pde_t *pde = (pde_t *)*pgindex;
-
-	if (!PTR_IS_ALIGNED(vaddr, PAGE_SIZE) ||
-	    !IS_ALIGNED(size, PAGE_SIZE) ||
-	    (size == 0))	/* TODO: size == 0 */
-		return -EINVAL;
-
-	void *vend = (void *)((size_t)vaddr + size - PAGE_SIZE);
-	int pdx_start = PDX(vaddr);
-	int pdx_end = PDX(vend);
-
-	/* Unmap the pages */
-	for (; vaddr <= vend; vaddr += PAGE_SIZE)
-		__unmap_and_free_page(pgindex, vaddr);
-
-	/* Clean up the page sub-tables */
-	/* Check if we need to clear the starting leaf page table first */
-check_start:
-	pte = pa2kva(pde[pdx_start]);
-	for (int ptx = 0; ptx < NR_PTENTRIES; ++ptx) {
-		if (pte[ptx] != 0)
-			goto clean_middle;
-	}
-	pgfree(kva2pa(pte));
-	pde[pdx_start] = 0;
-
-clean_middle:
-	/* leaf page tables between pde[pdx_start] and pde[pdx_end] should
-	 * be always empty. */
-	for (int pdx = pdx_start + 1; pdx <= pdx_end - 1; ++pdx) {
-		pgfree((pte_t *)pde[pdx]);
-		pde[pdx] = 0;
-	}
-
-check_end:
-	pte = pa2kva(pde[pdx_end]);
-	for (int ptx = 0; ptx < NR_PTENTRIES; ++ptx) {
-		if (pte[ptx] & PTE_VALID)
-			goto finish;
-	}
-	pgfree(kva2pa(pte));
-	pde[pdx_end] = 0;
-
-finish:
-	return 0;
-}
+/* TODO: put this into a header */
+extern uint32_t __mach_pgtable_perm(uint32_t vma_flags);
 
 static uint32_t
-page_perm(uint32_t vma_flags)
+__pgtable_perm(uint32_t vma_flags)
 {
-	uint32_t perm = PTE_VALID | PTE_CACHEABLE;
-	if (!(vma_flags & VMA_EXEC))
-		perm |= PTE_NOEXEC;
-	if (vma_flags & VMA_WRITE)
-		perm |= PTE_DIRTY;
+	/*
+	 * Some machines (e.g. Loongson 2F) may specify additional flags
+	 * (e.g. NOEXEC) to supplement the flags defined by MIPS
+	 * standard.
+	 *
+	 * We will have to rely on machine-specific internal function, so
+	 * I prepended the function with double underscores to indicate
+	 * that this function should not be called elsewhere.
+	 */
+	uint32_t flags = PTE_VALID | PTE_GLOBAL | PTE_CACHEABLE |
+		((vma_flags & VMA_WRITE) ? PTE_DIRTY : 0) |
+		__mach_pgtable_perm(vma_flags);
 }
 
-static int
-__map_page(pgindex_t *pgindex, void *vaddr, addr_t paddr, uint32_t perm)
+int
+map_pages(pgindex_t *pgindex,
+	  void *vaddr,
+	  addr_t paddr,
+	  size_t size,
+	  uint32_t flags)
 {
 	struct pagedesc pd;
-	if (__pgindex_getdesc(pgindex, vaddr, true, &pd) < 0)
-		panic("__map_page fail: %p %p\n", *pgindex, vaddr);
+	int retcode;
+	pte_t *pte;
+	pde_t *pde;
+	addr_t pend = paddr + size;
+	addr_t pcur = paddr;
+	void *vcur = vaddr;
+
+	if (!IS_ALIGNED(paddr, PAGE_SIZE) ||
+	    !IS_ALIGNED(size, PAGE_SIZE) ||
+	    !PTR_IS_ALIGNED(vaddr, PAGE_SIZE))
+		return -EINVAL;
+
+	for (; pcur < pend; pcur += PAGE_SIZE, vcur += PAGE_SIZE) {
+		retcode = __getpagedesc(pgindex, vcur, true, &pd);
+		if (retcode == -ENOMEM)
+			goto rollback;
+
+		pte = (pte_t *)pa2kva(pd.ptep);
+		if (pte[pd.ptx] != 0) {
+			/* we are mapping on the exact same virtual
+			 * page which is either valid or invalid (paged
+			 * out), fail */
+			retcode = -EEXIST;
+			goto rollback;
+		}
+		pte[pd.ptx] = pcur | __pgtable_perm(flags);
+	}
+
+	return 0;
+
+rollback:
+	/* Clean the mapped entries first */
+	for (; paddr < pcur; paddr += PAGE_SIZE, vaddr += PAGE_SIZE) {
+		__getpagedesc(pgindex, vaddr, false, &pd);
+		pte = (pte_t *)pa2kva(pd.ptep);
+		pte[pd.ptx] = 0;
+	}
+	/* TODO: free up the leaf page table pages we've just created */
+	return retcode;
 }
 

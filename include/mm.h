@@ -155,8 +155,10 @@ int init_pgindex(pgindex_t *pgindex);
 /* Destroy the page index table itself assuming that everything underlying is
  * already done with */
 void destroy_pgindex(pgindex_t *pgindex);
-/* Map virtual address starting at @vaddr to physical pages at @paddr */
-int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, uint32_t flags);
+/* Map virtual address starting at @vaddr to physical pages at @paddr, with
+ * VMA flags @flags (VMA_READ, etc.)  */
+int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
+    uint32_t flags);
 /*
  * Unmap @size bytes starting from virtual address @vaddr and _frees_ the
  * underlying physical frames.

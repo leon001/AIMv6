@@ -40,6 +40,11 @@ void page_index_clear(pgindex_t *index);
 int page_index_early_map(pgindex_t *index, addr_t paddr, size_t vaddr,
     size_t length);
 
+/*
+ * Fixed-size single page allocation is not applicable on all platforms.
+ */
+
+/* Returns -1 on error */
 static inline addr_t pgalloc(void)
 {
 	struct pages p = {0, PAGE_SIZE, 0};

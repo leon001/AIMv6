@@ -42,7 +42,7 @@
 
 typedef uint32_t pte_t, pde_t;
 
-typedef pde_t pgindex_t;
+typedef uint32_t pgindex_t;
 
 #define PTXSHIFT	PAGE_SHIFT
 #define PDXSHIFT	(PTXSHIFT + PAGE_SHIFT - WORD_SHIFT)
@@ -59,7 +59,7 @@ typedef pde_t pgindex_t;
 
 typedef uint64_t pte_t, pmd_t, pud_t, pgd_t;
 
-typedef pgd_t pgindex_t;
+typedef uint64_t pgindex_t;
 
 #define PTXSHIFT	PAGE_SHIFT
 #define PMXSHIFT	(PTXSHIFT + PAGE_SHIFT - WORD_SHIFT)
