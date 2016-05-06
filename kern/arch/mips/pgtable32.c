@@ -75,6 +75,7 @@ __getpagedesc(pgindex_t *pgindex,
 			return -ENOENT;
 		}
 		pd->ptep = (uint32_t)pgalloc();
+		memset((void *)pa2kva(pd->ptep), 0, PAGE_SIZE);
 		if (pd->ptep == -1)
 			return -ENOMEM;
 		pde[pd->pdx] = pd->ptep;
@@ -122,6 +123,27 @@ __pgtable_perm(uint32_t vma_flags)
 		__mach_pgtable_perm(vma_flags);
 }
 
+static void
+__rollback_intermediate_pgdir(pgindex_t *pgindex, void *vaddr, void *verror)
+{
+	/* Free up the leaf page table pages we've just created.  The
+	 * leaf page tables created by __getpagedesc() must be all zero now
+	 * because rollbacks happen only at the 1st pass, where no entries
+	 * are filled. */
+	pde_t *pde = (pde_t *)pa2kva(*pgindex);
+	int pdx = PDX(vaddr), pdx_end = PDX(verror - PAGE_SIZE);
+	for (; pdx <= pdx_end; ++pdx) {
+		pte_t *pte = (pte_t *)pa2kva(pde[pdx]);
+		for (int i = 0; i < NR_PTENTRIES; ++i) {
+			if (pte[i] != 0)
+				goto rollback_next_pde;
+		}
+		pgfree(pde[pdx]);
+		pde[pdx] = 0;
+rollback_next_pde:
+	}
+}
+
 int
 map_pages(pgindex_t *pgindex,
 	  void *vaddr,
@@ -132,7 +154,6 @@ map_pages(pgindex_t *pgindex,
 	struct pagedesc pd;
 	int retcode;
 	pte_t *pte;
-	pde_t *pde;
 	addr_t pend = paddr + size;
 	addr_t pcur = paddr;
 	void *vcur = vaddr;
@@ -142,6 +163,11 @@ map_pages(pgindex_t *pgindex,
 	    !PTR_IS_ALIGNED(vaddr, PAGE_SIZE))
 		return -EINVAL;
 
+	/*
+	 * 1st pass: allocate leaf page tables if needed, and validate
+	 * if there are any conflicts or memory shortage, in either case
+	 * we need to rollback.
+	 */
 	for (; pcur < pend; pcur += PAGE_SIZE, vcur += PAGE_SIZE) {
 		retcode = __getpagedesc(pgindex, vcur, true, &pd);
 		if (retcode == -ENOMEM)
@@ -155,19 +181,21 @@ map_pages(pgindex_t *pgindex,
 			retcode = -EEXIST;
 			goto rollback;
 		}
+	}
+
+	/* 2nd pass: fill the entries as there shouldn't be any failure */
+	pcur = paddr;
+	vcur = vaddr;
+	for (; pcur < pend; pcur += PAGE_SIZE, vcur += PAGE_SIZE) {
+		__getpagedesc(pgindex, vcur, false, &pd);
+		pte = (pte_t *)pa2kva(pd.ptep);
 		pte[pd.ptx] = pcur | __pgtable_perm(flags);
 	}
 
 	return 0;
 
 rollback:
-	/* Clean the mapped entries first */
-	for (; paddr < pcur; paddr += PAGE_SIZE, vaddr += PAGE_SIZE) {
-		__getpagedesc(pgindex, vaddr, false, &pd);
-		pte = (pte_t *)pa2kva(pd.ptep);
-		pte[pd.ptx] = 0;
-	}
-	/* TODO: free up the leaf page table pages we've just created */
+	__rollback_intermediate_pgdir(pgindex, vaddr, vcur);
 	return retcode;
 }
 
