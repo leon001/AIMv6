@@ -155,8 +155,8 @@ int init_pgindex(pgindex_t *pgindex);
 /* Destroy the page index table itself assuming that everything underlying is
  * already done with */
 void destroy_pgindex(pgindex_t *pgindex);
-/* Map virtual address starting at @vaddr to page block @p */
-int map_pages(pgindex_t *pgindex, void *vaddr, struct pages *p, uint32_t flags);
+/* Map virtual address starting at @vaddr to physical pages at @paddr */
+int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, uint32_t flags);
 /*
  * Unmap @size bytes starting from virtual address @vaddr and _frees_ the
  * underlying physical frames.
@@ -165,18 +165,10 @@ int map_pages(pgindex_t *pgindex, void *vaddr, struct pages *p, uint32_t flags);
 int unmap_and_free_pages(pgindex_t *pgindex, void *vaddr, size_t size);
 /*
  * Unmap but do not free the physical frames
- * Return code:
- * Negative for error
- * 0        for the underlying physical pages are contiguous and successfully
- *          unmapped
- * 1        for unmapped only the first few contiguous pages as the underlying
- *          pages are incontiguous.
+ * Returns the size of unmapped physical memory, or negative for error.
  * The size and address of unmapped pages are stored in @p.
- * FIXME: need review
  */
-int unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, struct pages *p);
-#define UNMAP_FULL	0
-#define UNMAP_PARTIAL	1
+ssize_t unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, addr_t *paddr);
 
 /*
  * Architecture-independent interfaces
