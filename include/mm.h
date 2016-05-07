@@ -116,8 +116,10 @@ struct mm;
  * The list of virtual memory areas must satisfy:
  * 1. that the virtual memory areas should be sorted in ascending order of
  *    virtual address, AND
- * 2. that each virtual memory area should be correspond to exactly one
- *    struct pages.
+ * 2. that each virtual memory area should be mapped to exactly one
+ *    contiguous page block (stored in struct pages) in a one-to-one manner,
+ *    AND
+ * 3. that the virtual memory areas should never overlap.
  */
 struct vma {
 	/* Must be page-aligned */
@@ -149,6 +151,7 @@ extern struct mm kern_mm;	/* kernel fixed mapping */
 /*
  * Architecture-specific interfaces
  * All addresses should be page-aligned.
+ * Note that these interfaces are independent of struct mm and struct vma,
  */
 /* Initialize a page index table and fill in the structure @pgindex */
 int init_pgindex(pgindex_t *pgindex);
@@ -160,15 +163,10 @@ void destroy_pgindex(pgindex_t *pgindex);
 int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
     uint32_t flags);
 /*
- * Unmap @size bytes starting from virtual address @vaddr and _frees_ the
- * underlying physical frames.
- * TODO: remove this - page freeing should be left to free_pages()
- */
-int unmap_and_free_pages(pgindex_t *pgindex, void *vaddr, size_t size);
-/*
  * Unmap but do not free the physical frames
- * Returns the size of unmapped physical memory, or negative for error.
- * The size and address of unmapped pages are stored in @p.
+ * Returns the size of unmapped physical memory (may not equal to @size), or
+ * negative for error.
+ * The physical address of unmapped pages are stored in @paddr.
  */
 ssize_t unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, addr_t *paddr);
 
@@ -180,6 +178,14 @@ ssize_t unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, addr_t *paddr)
 int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags);
 /* Destroy a size @len user space mapping starting at @addr */
 int destroy_uvm(struct mm *mm, void *addr, size_t len);
+/* Share user space mapping between two memory mapping structures for
+ * copy-on-write or shared memory.  Not implemented. */
+int share_uvm(struct mm *mm_src, void *addr_src, struct mm *mm_dst,
+    void *addr_dst, size_t len, uint32_t flags);
+/* Duplicate user space mapping and copy contents inside.
+ * FIXME: shall we include VMA flags? */
+int dup_uvm(struct mm *mm_src, void *addr_src, struct mm *mm_dst,
+    void *addr_dst, size_t len);
 
 /*
  * Architecture-independent interfaces

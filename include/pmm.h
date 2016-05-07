@@ -30,8 +30,6 @@ struct pages {
 	addr_t paddr;
 	addr_t size;
 	gfp_t flags;
-	/* FIXME: per-page reference counter? will certainly increase
-	 * code complexity */
 	atomic_t refs;	/* for shared memory */
 };
 

@@ -25,5 +25,11 @@ void __panic(void);
 __noreturn
 void panic(const char *fmt, ...);
 
+#define assert(condition) \
+	do { \
+		if (!(condition)) \
+			panic("Assertation failed: %s\n", #condition); \
+	} while (0)
+
 #endif
 
