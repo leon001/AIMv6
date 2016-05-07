@@ -33,11 +33,6 @@
 
 #define BOOTSTRAP_POOL_SIZE	1024
 
-void do_init_calls(void)
-{
-	
-}
-
 void __noreturn master_init(void)
 {
 	__attribute__ ((aligned(16)))
@@ -86,6 +81,19 @@ void __noreturn master_init(void)
 
 	/* allocate per-cpu context and kworker */
 //	proc_init();
+
+	/* do early initcalls, one by one */
+	do_early_initcalls();
+
+	/* startup smp */
+
+	/*
+	 * do initcalls, one by one.
+	 * They may fork or sleep or reschedule.
+	 */
+
+	/* initialize or cleanup namespace */
+
 
 	kputs("KERN: Traps test passed.\n");
 	panic("Test done, all is well.\n");

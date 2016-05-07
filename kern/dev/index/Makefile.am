@@ -18,12 +18,11 @@
 include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libindex.la
-
-SRC =
+noinst_DATA =
 
 if ALGO_DEVLIST
-SRCS += devlist.c
+noinst_DATA += devlist.o
 endif
 
-libindex_la_SOURCES = SRCS
+libindex_la_SOURCES = index.c
 

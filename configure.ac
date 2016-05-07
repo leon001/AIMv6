@@ -42,7 +42,7 @@ AIM_GCC_FUNC_ATTRIBUTE([noreturn])
 AIM_GCC_FUNC_ATTRIBUTE([weak])
 AIM_GCC_FUNC_ATTRIBUTE([noinline])
 AIM_GCC_FUNC_ATTRIBUTE([visibility])
-AX_GCC_VAR_ATTRIBUTE([used])
+AIM_GCC_VAR_ATTRIBUTE([used])
 AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
 
 AC_SUBST([AIM_CFLAGS], [$aim_cflags])
@@ -250,7 +250,7 @@ AM_CONDITIONAL([ALGO_FF], [test x$with_page_allocator = xff])
 
 AS_VAR_SET([with_dev_index], [devlist])
 AIM_ARG_WITH([dev-index], [DEVICE_INDEX], [device index])
-AM_CONDITIONAL([ALGO_DEVLIST], [test x$with_page_allocator = xdevlist])
+AM_CONDITIONAL([ALGO_DEVLIST], [test x$with_dev_index = xdevlist])
 
 # per-target configuration
 AS_CASE([$MACH],
