@@ -84,10 +84,14 @@ void __noreturn master_init(void)
 	extern void trap_test(void);
 	trap_test();
 
+	kputs("KERN: Traps test passed.\n");
+
+	extern void mm_test(void);
+	mm_test();
+
 	/* allocate per-cpu context and kworker */
 //	proc_init();
 
-	kputs("KERN: Traps test passed.\n");
 	panic("Test done, all is well.");
 }
 

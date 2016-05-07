@@ -48,7 +48,9 @@ int page_index_early_map(pgindex_t *index, addr_t paddr, size_t vaddr,
 /* Returns -1 on error */
 static inline addr_t pgalloc(void)
 {
-	struct pages p = {0, PAGE_SIZE, 0};
+	struct pages p;
+	p.size = PAGE_SIZE;
+	p.flags = 0;
 	if (alloc_pages(&p) != 0)
 		return -1;
 	return p.paddr;
@@ -56,7 +58,10 @@ static inline addr_t pgalloc(void)
 
 static inline void pgfree(addr_t paddr)
 {
-	struct pages p = {paddr, PAGE_SIZE, 0};
+	struct pages p;
+	p.paddr = paddr;
+	p.size = PAGE_SIZE;
+	p.flags = 0;
 	free_pages(&p);
 }
 

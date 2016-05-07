@@ -37,6 +37,7 @@
  * pgindex_t is the type of *physical* address to the page table structure.
  */
 
+#include <mm.h>
 #include <pmm.h>
 #include <vmm.h>
 #include <mmu.h>
@@ -126,6 +127,7 @@ __pgtable_perm(uint32_t vma_flags)
 	uint32_t flags = PTE_VALID | PTE_GLOBAL | PTE_CACHEABLE |
 		((vma_flags & VMA_WRITE) ? PTE_DIRTY : 0) |
 		__mach_pgtable_perm(vma_flags);
+	return flags;
 }
 
 /*
@@ -147,6 +149,7 @@ __free_intermediate_pgtable(pgindex_t *pgindex, void *vaddr, size_t size)
 		pgfree(pde[pdx]);
 		pde[pdx] = 0;
 rollback_next_pde:
+		/* nothing */;
 	}
 }
 

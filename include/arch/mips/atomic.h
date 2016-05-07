@@ -44,7 +44,6 @@ static inline void atomic_inc(atomic_t *counter)
 		"	beqz	%[reg], 1b;"
 		"	.set	pop;"
 		: [reg] "=&r"(reg), [mem] "=m"(*counter)
-		: [mem] "m"(*counter)
 	);
 }
 
@@ -61,7 +60,6 @@ static inline void atomic_dec(atomic_t *counter)
 		"	beqz	%[reg], 1b;"
 		"	.set	pop;"
 		: [reg] "=&r"(reg), [mem] "=m"(*counter)
-		: [mem] "m"(*counter)
 	);
 }
 

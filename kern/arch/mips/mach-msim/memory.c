@@ -45,10 +45,12 @@ void mips_add_memory_pages(void)
 	free_pages(p);
 
 	/* High RAM */
+#if HIGHRAM_SIZE != 0
 	p = kmalloc(sizeof(*p), 0);
 	p->paddr = HIGHRAM_BASE;
 	p->size = HIGHRAM_SIZE;
 	p->flags = 0;
+#endif
 
 	free_pages(p);
 }

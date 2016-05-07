@@ -16,9 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <console.h>	/* to be removed */
 #include <mm.h>
 #include <mmu.h>
 #include <atomic.h>
+#include <errno.h>
 
 struct mm *
 mm_new(void)
@@ -231,5 +233,40 @@ destroy_uvm(struct mm *mm, void *addr, size_t len)
 
 	__unmap_and_free_vma(mm, vma_start, len);
 	return 0;
+}
+
+void
+mm_test(void)
+{
+	struct mm *mm;
+	struct pages p;
+	p.size = PAGE_SIZE;
+	p.flags = 0;
+	kprintf("==========mm_test()  started==========\n");
+	mm = kmalloc(sizeof(*mm), 0);
+	kprintf("mm %p\n", mm);
+	alloc_pages(&p);
+	kprintf("p  %p\n", (uint32_t)p.paddr);
+	free_pages(&p);
+	kfree(mm);
+	mm = kmalloc(sizeof(*mm), 0);
+	kprintf("mm %p\n", mm);
+	alloc_pages(&p);
+	kprintf("p  %p\n", (uint32_t)p.paddr);
+	free_pages(&p);
+	kfree(mm);
+	kprintf("==========mm_test() finished==========\n");
+	/*
+	 * FIXME: my output:
+	 * 
+	 * ==========mm_test()  started==========
+	 * mm 8030a0a0
+	 * p  0030b000
+	 * mm 8030a020
+	 * p  0030b000
+	 * ==========mm_test() finished==========
+	 * 
+	 * The two "mm"s have different addresses.  Is it plausible?
+	 */
 }
 
