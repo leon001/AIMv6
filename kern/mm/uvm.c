@@ -20,7 +20,8 @@
 #include <mmu.h>
 #include <atomic.h>
 
-struct mm *mm_new(void)
+struct mm *
+mm_new(void)
 {
 	struct mm *mm = (struct mm *)kmalloc(sizeof(*mm), 0);
 
@@ -71,7 +72,8 @@ __unref_and_free_pages(struct pages *p)
 	
 }
 
-void mm_destroy(struct mm *mm)
+void
+mm_destroy(struct mm *mm)
 {
 	struct vma *vma, *vma_next;
 
@@ -114,7 +116,8 @@ __insert_vma(struct mm *mm, struct vma *new_vma)
 	return 0;
 }
 
-int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
+int
+create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 {
 	int retcode = 0;
 	struct vma *vma = NULL;
@@ -156,5 +159,20 @@ rollback_kmalloc:
 	kfree(p);
 
 	return retcode;
+}
+
+int
+destroy_uvm(struct mm *mm, void *addr, size_t len)
+{
+	/*
+	 * TODO: how should we deal with the following scenario:
+	 * 1. Process A create a virtual memory mapping VA..VA+200P
+	 *    and maps it to PA..PA+200P via a sbrk(2) call.
+	 * 2. Process A shrinks the heap to 5 pages via another sbrk(2).
+	 * Ideally, we want to free the 195 pages shrunk out.
+	 * Things may get more complicated if copy-on-write is involved
+	 * (e.g. Process B inherits the virtual mapping via fork(2)), in
+	 * which case the page references are different between parts.
+	 */
 }
 
