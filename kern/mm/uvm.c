@@ -92,87 +92,110 @@ mm_destroy(struct mm *mm)
 	kfree(mm);
 }
 
-static int
-__insert_vma(struct mm *mm, struct vma *new_vma)
+static struct vma *
+__is_valid_vma(struct mm *mm, void *addr, size_t size)
 {
 	struct vma *vma, *vma_prev;
 
-	if (list_empty(&(mm->vma_head))) {
-		list_add_before(&(new_vma->node), &(mm->vma_head));
-		return 0;
-	}
+	if (list_empty(&(mm->vma_head)))
+		return list_entry(&(mm->vma_head), struct vma, node);
+
 	/* otherwise */
 	for_each_entry (vma, &(mm->vma_head), node) {
-		if (vma->start >= new_vma->start + new_vma->size)
+		if (vma->start >= addr + size)
 			break;
 	}
 
 	vma_prev = prev_entry(vma, node);
-	if (vma->start < vma_prev->start + vma->size)
+	if (addr < vma_prev->start + vma->size)
 		/* overlap detected */
-		return -EFAULT;
+		return NULL;
 
-	list_add_before(&(new_vma->node), &(vma->node));
-	return 0;
+	return vma_prev;
 }
 
 int
 create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 {
 	int retcode = 0;
-	struct vma *vma = NULL;
-	struct pages *p = NULL;
+	struct vma *vma_start, *vma, *vma_cur;
+	struct pages *p;
+	void *vcur = addr;
+	size_t mapped = 0;
 
-	vma = (struct vma *)kmalloc(sizeof(*vma), 0);
-	p = (struct pages *)kmalloc(sizeof(*p), 0);
-	if ((vma == NULL) || (p == NULL)) {
-		retcode = -ENOMEM;
-		goto rollback_kmalloc;
+	if (!IS_ALIGNED(len, PAGE_SIZE) ||
+	    mm == NULL ||
+	    !PTR_IS_ALIGNED(addr, PAGE_SIZE))
+		return -EINVAL;
+
+	if (!(vma_start = __is_valid_vma(mm, addr, len)))
+		return -EFAULT;
+
+	vma_cur = vma_start;
+	for (; mapped < len; mapped += PAGE_SIZE, vcur += PAGE_SIZE) {
+		vma = (struct vma *)kmalloc(sizeof(*vma), 0);
+		if (vma == NULL) {
+			retcode = -ENOMEM;
+			goto rollback;
+		}
+		vma->start = vcur;
+		vma->size = PAGE_SIZE;
+		vma->flags = flags;
+
+		p = (struct pages *)kmalloc(sizeof(*p), 0);
+		if (p == NULL) {
+			retcode = -ENOMEM;
+			goto rollback_vma;
+		}
+		p->paddr = 0;
+		p->flags = 0;
+		p->size = PAGE_SIZE;
+		p->refs = 0;
+		if (alloc_pages(p) < 0) {
+			retcode = -ENOMEM;
+			goto rollback_pages;
+		}
+
+		if ((retcode = map_pages(&(mm->pgindex), vcur, p->paddr,
+		    PAGE_SIZE, flags)) < 0) {
+			goto rollback_pgalloc;
+		}
+
+		vma->pages = p;
+		list_add_after(&(vma->node), &(vma_cur->node));
+		vma_cur = vma;
+		continue;
+
+rollback_pgalloc:
+		free_pages(p);
+rollback_pages:
+		kfree(p);
+rollback_vma:
+		kfree(vma);
+		goto rollback;
 	}
-
-	if ((retcode = __insert_vma(mm, vma)) < 0)
-		goto rollback_kmalloc;
-
-	p->paddr = 0;
-	p->size = len;
-	p->flags = 0;
-	p->refs = 0;
-	if (alloc_pages(p) < 0) {
-		retcode = -ENOMEM;
-		goto rollback_insert;
-	}
-
-	retcode = map_pages(&(mm->pgindex), addr, p->paddr, len, flags);
-	if (retcode < 0)
-		goto rollback_pgalloc;
-
-	__ref_pages(p);
 
 	return 0;
 
-rollback_pgalloc:
-	free_pages(p);
-rollback_insert:
-	list_del(&(vma->node));
-rollback_kmalloc:
-	kfree(vma);
-	kfree(p);
+rollback:
+	vma_cur = vma_start;
+	for (size_t i = 0; i < mapped; i += PAGE_SIZE) {
+		vma = vma_cur;
+		vma_cur = next_entry(vma_cur, node);
 
+		list_del(&(vma->node));
+		/* temporary - assertation will be removed */
+		assert(unmap_pages(&(mm->pgindex), vma->start, vma->size,
+		    NULL) == PAGE_SIZE);
+		free_pages(vma->pages);
+		kfree(vma->pages);
+		kfree(vma);
+	}
 	return retcode;
 }
 
 int
 destroy_uvm(struct mm *mm, void *addr, size_t len)
 {
-	/*
-	 * TODO: how should we deal with the following scenario:
-	 * 1. Process A create a virtual memory mapping VA..VA+200P
-	 *    and maps it to PA..PA+200P via a sbrk(2) call.
-	 * 2. Process A shrinks the heap to 5 pages via another sbrk(2).
-	 * Ideally, we want to free the 195 pages shrunk out.
-	 * Things may get more complicated if copy-on-write is involved
-	 * (e.g. Process B inherits the virtual mapping via fork(2)), in
-	 * which case the page references are different between parts.
-	 */
 }
 

@@ -135,7 +135,6 @@ struct vma {
 #define VMA_FILE	0x100		/* For mmap(2) */
 
 	struct pages	*pages;
-	struct mm	*mm;
 	struct list_head node;
 };
 
@@ -145,8 +144,6 @@ struct mm {
 	size_t		ref_count;	/* reference count (may be unused) */
 	pgindex_t	pgindex;	/* page index */
 };
-
-extern struct mm kern_mm;	/* kernel fixed mapping */
 
 /*
  * Architecture-specific interfaces
