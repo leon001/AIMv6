@@ -93,7 +93,7 @@ mm_destroy(struct mm *mm)
 }
 
 static struct vma *
-__is_valid_vma(struct mm *mm, void *addr, size_t size)
+__find_vma_before(struct mm *mm, void *addr, size_t size)
 {
 	struct vma *vma, *vma_prev;
 
@@ -114,6 +114,24 @@ __is_valid_vma(struct mm *mm, void *addr, size_t size)
 	return vma_prev;
 }
 
+static void
+__unmap_and_free_vma(struct mm *mm, struct vma *vma_start, size_t size)
+{
+	struct vma *vma_cur = vma_start;
+	for (size_t i = 0; i < size; i += PAGE_SIZE) {
+		struct vma *vma = vma_cur;
+		vma_cur = next_entry(vma_cur, node);
+
+		list_del(&(vma->node));
+		/* temporary in case of typo - assertation will be removed */
+		assert(unmap_pages(&(mm->pgindex), vma->start, vma->size,
+		    NULL) == PAGE_SIZE);
+		if (__unref_and_free_pages(vma->pages) == __PAGES_FREED)
+			kfree(vma->pages);
+		kfree(vma);
+	}
+}
+
 int
 create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 {
@@ -128,7 +146,7 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 	    !PTR_IS_ALIGNED(addr, PAGE_SIZE))
 		return -EINVAL;
 
-	if (!(vma_start = __is_valid_vma(mm, addr, len)))
+	if (!(vma_start = __find_vma_before(mm, addr, len)))
 		return -EFAULT;
 
 	vma_cur = vma_start;
@@ -162,6 +180,7 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 		}
 
 		vma->pages = p;
+		__ref_pages(p);
 		list_add_after(&(vma->node), &(vma_cur->node));
 		vma_cur = vma;
 		continue;
@@ -178,24 +197,39 @@ rollback_vma:
 	return 0;
 
 rollback:
-	vma_cur = vma_start;
-	for (size_t i = 0; i < mapped; i += PAGE_SIZE) {
-		vma = vma_cur;
-		vma_cur = next_entry(vma_cur, node);
-
-		list_del(&(vma->node));
-		/* temporary - assertation will be removed */
-		assert(unmap_pages(&(mm->pgindex), vma->start, vma->size,
-		    NULL) == PAGE_SIZE);
-		free_pages(vma->pages);
-		kfree(vma->pages);
-		kfree(vma);
-	}
+	__unmap_and_free_vma(mm, vma_start, mapped);
 	return retcode;
 }
 
 int
 destroy_uvm(struct mm *mm, void *addr, size_t len)
 {
+	struct vma *vma, *vma_start;
+	size_t i = 0;
+
+	if (!IS_ALIGNED(len, PAGE_SIZE) ||
+	    mm == NULL ||
+	    !PTR_IS_ALIGNED(addr, PAGE_SIZE))
+		return -EINVAL;
+
+	/* find the vma */
+	for_each_entry (vma, &(mm->vma_head), node) {
+		if (vma->start == addr)
+			break;
+	}
+	/* not found? */
+	if (&(vma->node) == &(mm->vma_head))
+		return -EFAULT;
+	vma_start = vma;
+	i += PAGE_SIZE;
+	for (; i < len; i += PAGE_SIZE) {
+		vma = next_entry(vma, node);
+		if (vma->start != addr + i)
+			/* requested region contain unmapped virtual page */
+			return -EFAULT;
+	}
+
+	__unmap_and_free_vma(mm, vma_start, len);
+	return 0;
 }
 
