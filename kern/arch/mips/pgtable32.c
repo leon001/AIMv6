@@ -54,6 +54,11 @@ struct pagedesc {
 };
 
 /*
+ * This page table implementation is rather inefficient, hence not for
+ * production purposes.
+ */
+
+/*
  * Get a page index descriptor (PDE, PTE in our case) for the page table,
  * possibly creating leaf page tables if needed.
  */
@@ -123,15 +128,16 @@ __pgtable_perm(uint32_t vma_flags)
 		__mach_pgtable_perm(vma_flags);
 }
 
+/*
+ * This function assumes that:
+ * 1. (Leaf) page table entries for vaddr..vaddr+size are already zero.
+ * 2. @vaddr and @size are page-aligned.
+ */
 static void
-__rollback_intermediate_pgdir(pgindex_t *pgindex, void *vaddr, void *verror)
+__free_intermediate_pgtable(pgindex_t *pgindex, void *vaddr, size_t size)
 {
-	/* Free up the leaf page table pages we've just created.  The
-	 * leaf page tables created by __getpagedesc() must be all zero now
-	 * because rollbacks happen only at the 1st pass, where no entries
-	 * are filled. */
 	pde_t *pde = (pde_t *)pa2kva(*pgindex);
-	int pdx = PDX(vaddr), pdx_end = PDX(verror - PAGE_SIZE);
+	int pdx = PDX(vaddr), pdx_end = PDX(vaddr + size - PAGE_SIZE);
 	for (; pdx <= pdx_end; ++pdx) {
 		pte_t *pte = (pte_t *)pa2kva(pde[pdx]);
 		for (int i = 0; i < NR_PTENTRIES; ++i) {
@@ -195,7 +201,44 @@ map_pages(pgindex_t *pgindex,
 	return 0;
 
 rollback:
-	__rollback_intermediate_pgdir(pgindex, vaddr, vcur);
+	__free_intermediate_pgtable(pgindex, vaddr, vcur - vaddr);
 	return retcode;
+}
+
+ssize_t
+unmap_pages(pgindex_t *pgindex,
+	    void *vaddr,
+	    size_t size,
+	    addr_t *paddr)
+{
+	void *vcur = vaddr, *vend = vaddr + size;
+	ssize_t unmapped_bytes = 0;
+	struct pagedesc pd;
+	pte_t *pte;
+	addr_t pcur = 0;
+
+	for (; vcur < vend; vcur += PAGE_SIZE,
+			    unmapped_bytes += PAGE_SIZE,
+			    pcur += PAGE_SIZE) {
+		if (__getpagedesc(pgindex, vcur, false, &pd) < 0)
+			/* may return -ENOENT? */
+			panic("unmap_pages non-existent: %p %p\n",
+			    *pgindex, vcur);
+		pte = (pte_t *)pa2kva(pd.ptep);
+		if (unmapped_bytes == 0) {
+			/* unmapping the first page: store the physical
+			 * address */
+			pcur = PTE_PADDR(pte[pd.ptx]);
+			if (paddr != NULL)
+				*paddr = pcur;
+		} else if (pte[pd.ptx] != pcur) {
+			break;
+		}
+		pte[pd.ptx] = 0;
+	}
+
+	__free_intermediate_pgtable(pgindex, vaddr, unmapped_bytes);
+
+	return unmapped_bytes;
 }
 
