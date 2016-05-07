@@ -16,18 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_IO_MEM_H
-#define _DRIVERS_IO_MEM_H
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
+#include <sys/types.h>
 #include <aim/device.h>
+#include <vmm.h>
 
-//#pragma GCC visibility push(protected)
 
-__attribute__ ((visibility ("hidden")))
-extern struct bus_device early_memory_bus;
-//#pragma GCC visibility pop
-
-void io_mem_init(struct bus_device *memory_bus);
-
-#endif /* _DRIVERS_IO_MEM_H */
 

@@ -248,6 +248,10 @@ AS_VAR_SET([with_page_allocator], [ff])
 AIM_ARG_WITH([page-allocator], [PAGE_ALLOCATOR], [page allocator])
 AM_CONDITIONAL([ALGO_FF], [test x$with_page_allocator = xff])
 
+AS_VAR_SET([with_dev_index], [devlist])
+AIM_ARG_WITH([dev-index], [DEVICE_INDEX], [device index])
+AM_CONDITIONAL([ALGO_DEVLIST], [test x$with_page_allocator = xdevlist])
+
 # per-target configuration
 AS_CASE([$MACH],
 	[msim], [
@@ -333,6 +337,7 @@ AC_CONFIG_FILES([
 	kern/arch/mips/mach-loongson3a/Makefile
 	kern/init/Makefile
 	kern/dev/Makefile
+	kern/dev/index/Makefile
 	kern/debug/Makefile
 	kern/mm/Makefile
 	kern/mm/pmm/Makefile

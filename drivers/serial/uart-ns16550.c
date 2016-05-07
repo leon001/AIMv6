@@ -29,7 +29,7 @@
 #include <mm.h>
 #include <console.h>
 #include <platform.h>
-#include <device.h>
+#include <aim/device.h>
 #include <console.h>
 #include <drivers/io/io-mem.h>
 #include <drivers/io/io-port.h>

@@ -23,7 +23,7 @@
 #include <sys/types.h>
 
 #include <io.h>
-#include <device.h>
+#include <aim/device.h>
 #include <util.h>
 
 #include <asm.h>	/* inb() and outb() should be declared there */

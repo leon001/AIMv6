@@ -25,7 +25,7 @@
 #include <uart-zynq.h>
 #include <uart-zynq-hw.h>
 
-#include <device.h>
+#include <aim/device.h>
 #include <console.h>
 #include <mm.h>
 #include <panic.h>
