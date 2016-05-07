@@ -19,6 +19,7 @@
 #ifndef _MM_H
 #define _MM_H
 
+#include <list.h>
 #include <mmu.h>
 #include <pmm.h>
 #include <sys/types.h>

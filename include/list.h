@@ -126,7 +126,7 @@ static inline int list_is_singular(const struct list_head *head)
 
 #define list_next_entry(ptr, type, member) \
 	list_entry((ptr)->member.next, type, member)
-#define list_next_entry(ptr, type, member) \
+#define list_prev_entry(ptr, type, member) \
 	list_entry((ptr)->member.prev, type, member)
 /* A more convenient wrapper for list_next_entry() for lists with same type */
 #define next_entry(ptr, member) \

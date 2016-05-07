@@ -139,7 +139,7 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
 		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([with_highram_base], [0x80000000])
-		AS_VAR_SET([with_highram_size], [0x30000000])
+		AS_VAR_SET([with_highram_size], [0x00000000])
 	], 
 	[pc], [
 		AS_VAR_SET([with_fwstack_order], [12])
@@ -277,9 +277,17 @@ AS_CASE([$MACH],
 		 AC_SUBST(MSIM_CONF_RTCPA,
 			  `printf 0x%08x $with_msim_rtc_pa`)
 		 AC_SUBST(MSIM_CONF_HIGHRAM_BASE,
-			  `printf 0x%08x $with_highram_base`)
+			  `if (( $with_highram_size != 0 )); then \
+				  printf "add rwm highram 0x%08x" \
+				  $with_highram_base; else \
+				  echo "";\
+			  fi`)
 		 AC_SUBST(MSIM_CONF_HIGHRAM_SIZE,
-			  `printf 0x%08x $with_highram_size`)
+			  `if (( $with_highram_size != 0 )); then \
+				  printf "highram generic 0x%08x" \
+				  $with_highram_size; else \
+				  echo "";\
+			  fi`)
 ])
 
 # Skip firmware

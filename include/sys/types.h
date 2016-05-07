@@ -27,9 +27,9 @@
  * warns about shift count if a "UL" suffix is not appended while GAS
  * refuses to recognize the "UL" suffix).
  */
-#define ULCAST(i)	(i##UL)
+#define __ULCAST(i)	(i##UL)
 #else	/* __ASSEMBLER__ */
-#define ULCAST(i)	i
+#define __ULCAST(i)	i
 #endif	/* !__ASSEMBLER__ */
 
 #ifndef __ASSEMBLER__

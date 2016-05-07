@@ -81,8 +81,7 @@ static void dump_regs(struct regs *regs)
 void trap_handler(struct regs *regs)
 {
 	dump_regs(regs);
-	/* NOTE: this is temporary */
-	regs->epc += 4;
+	panic("Unexpected trap\n");
 	trap_return(regs);
 }
 
@@ -102,5 +101,5 @@ __noreturn void trap_return(struct regs *regs)
 
 void trap_test(void)
 {
-	asm volatile ("break");
 }
+

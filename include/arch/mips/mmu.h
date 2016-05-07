@@ -35,6 +35,7 @@
 
 #include <sys/types.h>
 #include <pgtable.h>
+#include <pmm.h>
 
 void page_index_clear(pgindex_t *index);
 int page_index_early_map(pgindex_t *index, addr_t paddr, size_t vaddr,
