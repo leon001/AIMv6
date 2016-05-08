@@ -373,6 +373,9 @@ General
   CFLAGS:	${CFLAGS}
   LDFLAGS:	${LDFLAGS}
 
+* Flags are overridden by per-target flags,
+* and further overridden by flags passed to `make`.
+
 Target
 --------
   architecture:	${ARCH}
@@ -385,6 +388,13 @@ Kernel
   KERN_BASE:	${with_kern_base}
   KMMAP_BASE:	${with_kmmap_base}
   RESERVED:	${with_reserved_base}
+
+Algorithms
+--------
+  simple allocator:	${with_simple_allocator}
+  page allocator:	${with_page_allocator}
+  caching allocator:	${with_caching_allocator}
+  device index:		${with_dev_index}
 
 Drivers
 --------
