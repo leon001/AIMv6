@@ -15,6 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+SUBDIRS = \
+	aim \
+	asm-generic
+
 nobase_noinst_HEADERS = \
 	sys/types.h
 

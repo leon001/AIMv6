@@ -43,6 +43,8 @@ void kfree(void *obj)
 {
 	if (__simple_allocator == NULL)
 		panic("kfree() called but no allocator available.\n");
+	if (obj == NULL)
+		return;
 	__simple_allocator->free(obj);
 }
 

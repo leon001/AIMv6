@@ -20,6 +20,7 @@
 #define _VMM_H
 
 #include <sys/types.h>
+#include <libc/string.h>
 
 /*
  * Two kinds of memory object allocators (may) exist inside a running kernel.

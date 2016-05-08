@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,22 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_REGS_H
-#define _ASM_REGS_H
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-#include <mipsregs.h>
+#include <sys/types.h>
+#include <mm.h>
+#include <pmm.h>
 
-struct regs {
-	/* general purpose registers */
-	unsigned long	gpr[32];
+/*
+ * This should be a seperate function, don't directly use kernel memory
+ * interfaces. There are different sets of interfaces we can allocate memory
+ * from, and we can't say any one of them is best.
+ */
+void *alloc_kstack(size_t *size)
+{
+	/* calculate the actual size we allocate */
+	/* currently we use alloc_pages */
+	return NULL;
+}
 
-	/* coprocessor registers */
-	unsigned long	lo;
-	unsigned long	hi;
-	unsigned long	status;
-	unsigned long	cause;
-	unsigned long	epc;
-	unsigned long	badvaddr;
-};
-
-#endif

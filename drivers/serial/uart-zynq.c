@@ -198,7 +198,7 @@ int early_console_init(void)
 	__early_mapped_base += UART_BASE - UART0_PHYSBASE;
 	if (mmu_handlers_add(__mmu_handler) != 0)
 		panic("Zynq UART driver cannot register MMU handler.\n");
-	if (jump_handlers_add(postmap_addr(__jump_handler)) != 0)
+	if (jump_handlers_add((generic_fp)postmap_addr(__jump_handler)) != 0)
 		panic("Zynq UART driver cannot register JUMP handler.\n");
 	return 0;
 }

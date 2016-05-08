@@ -22,7 +22,8 @@ SUBDIRS = \
 	init \
 	dev \
 	debug \
-	mm
+	mm \
+	proc
 
 CLEANFILES = vmaim.s
 

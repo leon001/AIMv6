@@ -32,11 +32,13 @@ void set_page_allocator(struct page_allocator *allocator)
 	__page_allocator = allocator;
 }
 
-struct pages * alloc_pages(addr_t count, gfp_t flags)
+int alloc_pages(struct pages *pages)
 {
 	if (__page_allocator == NULL)
-		panic("alloc_page() called but no allocator available.\n");
-	return __page_allocator->alloc(count, flags);
+		panic("alloc_pages() called but no allocator available.\n");
+	if (pages == NULL)
+		return EOF;
+	return __page_allocator->alloc(pages);
 }
 
 void free_pages(struct pages *pages)

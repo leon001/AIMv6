@@ -17,12 +17,7 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = vmm pmm
-
-noinst_LTLIBRARIES = libmm.la
-
-libmm_la_SOURCES = mmu.c uvm.c
-libmm_la_LIBADD = \
-	vmm/libvmm.la \
-	pmm/libpmm.la
+noinst_HEADERS = \
+	export.h \
+	initcalls.h
 

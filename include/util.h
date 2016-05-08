@@ -63,16 +63,18 @@
 	((typeof(p))ALIGN_ABOVE((unsigned long)(p), (a)))
 #define PTR_ALIGN_BELOW(p, a)	\
 	((typeof(p))ALIGN_BELOW((unsigned long)(p), (a)))
+#define PTR_IS_ALIGNED(p, a)	\
+	IS_ALIGNED((unsigned long)(p), (a))
 
 #define ROUNDUP(x, d)		(DIV_ROUND_UP(x, d) * (d))
 #define ROUNDDOWN(x, d)		((x) - ((x) % (d)))
 #define ROUND_CLOSEST(x, d)	(((x) + ((d) / 2)) / (d))
 
-#define ADDR_CAST(x)		((size_t)(x))
+#define ULCAST(x)		((size_t)(x))
 
 #else	/* __ASSEMBLER__ */
 
-#define ADDR_CAST(x)		(x)
+#define ULCAST(x)		(x)
 
 #endif	/* !__ASSEMBLER__ */
 

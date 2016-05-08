@@ -16,22 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_REGS_H
-#define _ASM_REGS_H
+#ifndef _SCHED_H
+#define _SCHED_H
 
-#include <mipsregs.h>
+#include <proc.h>
+#include <namespace.h>
 
-struct regs {
-	/* general purpose registers */
-	unsigned long	gpr[32];
+/* struct proclist is implemented in scheduler source. */
+struct proclist;
 
-	/* coprocessor registers */
-	unsigned long	lo;
-	unsigned long	hi;
-	unsigned long	status;
-	unsigned long	cause;
-	unsigned long	epc;
-	unsigned long	badvaddr;
+struct scheduler {
+	/* The actual data structure storing the set of proc */
+	struct proclist	*proclist;
+	/* Remove and return an arbitrary proc from proc list */
+	struct proc *	(*pick)(void);
+	int		(*add)(struct proc *);
+	/* Remove a specific proc from proc list */
+	int		(*remove)(struct proc *);
+	/* Retrieve next proc of @proc, NULL for first proc */
+	struct proc *	(*next)(struct proc *);
+	/*
+	 * Locate the proc with PID @id and namespace @ns.
+	 * Currently @ns should be always NULL.
+	 */
+	struct proc *	(*find)(pid_t pid, struct namespace *ns);
 };
 
 #endif
