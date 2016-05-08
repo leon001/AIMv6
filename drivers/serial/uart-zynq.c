@@ -160,7 +160,7 @@ int uart_putchar(unsigned char c)
 
 static int __init(void)
 {
-	kprintf("KERN: <uart-zynq> Initializing.\n");
+	kputs("KERN: <uart-zynq> Initializing.\n");
 	return 0;
 }
 

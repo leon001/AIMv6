@@ -153,7 +153,7 @@ static struct device *__from_name(char *name)
 
 static int __init(void)
 {
-	kprintf("KERN: <devlist> initializing.\n");
+	kputs("KERN: <devlist> initializing.\n");
 
 	struct device_index this = {
 		.add		= __add,
@@ -163,7 +163,7 @@ static int __init(void)
 	};
 	set_device_index(&this);
 
-	kprintf("KERN: <devlist> Done.\n");
+	kputs("KERN: <devlist> Done.\n");
 	return 0;
 }
 

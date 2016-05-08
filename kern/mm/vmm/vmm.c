@@ -23,38 +23,42 @@
 #include <sys/types.h>
 
 #include <vmm.h>
-#include <panic.h>
 
-static struct simple_allocator *__simple_allocator = NULL;
+#include <libc/string.h>
+
+/* dummy implementations */
+static void *__alloc(size_t size, gfp_t flags) { return NULL; }
+static void __free(void *obj) {}
+static size_t __size(void *obj) { return 0; }
+
+static struct simple_allocator __allocator = {
+	.alloc	= __alloc,
+	.free	= __free,
+	.size	= __size
+};
 
 void set_simple_allocator(struct simple_allocator *allocator)
 {
-	__simple_allocator = allocator;
+	memcpy(&__allocator, allocator, sizeof(*allocator));
 }
 
 void *kmalloc(size_t size, gfp_t flags)
 {
-	if (__simple_allocator == NULL)
-		panic("kmalloc() called but no allocator available.\n");
-	return __simple_allocator->alloc(size, flags);
+	return __allocator.alloc(size, flags);
 }
 
 void kfree(void *obj)
 {
-	if (__simple_allocator == NULL)
-		panic("kfree() called but no allocator available.\n");
-	__simple_allocator->free(obj);
+	__allocator.free(obj);
 }
 
 size_t ksize(void *obj)
 {
-	if (__simple_allocator == NULL)
-		panic("ksize() called but no allocator available.\n");
-	return __simple_allocator->size(obj);
+	return __allocator.size(obj);
 }
 
-struct simple_allocator *get_simple_allocator(void)
+void get_simple_allocator(struct simple_allocator *allocator)
 {
-	return __simple_allocator;
+	memcpy(allocator, &__allocator, sizeof(*allocator));
 }
 

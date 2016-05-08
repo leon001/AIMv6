@@ -20,6 +20,7 @@
 #define _VMM_H
 
 #include <sys/types.h>
+#include <aim/sync.h>
 
 /*
  * Two kinds of memory object allocators (may) exist inside a running kernel.
@@ -49,12 +50,29 @@ struct simple_allocator {
 int simple_allocator_bootstrap(void *pt, size_t size);
 int simple_allocator_init(void);
 void set_simple_allocator(struct simple_allocator *allocator);
+void get_simple_allocator(struct simple_allocator *allocator);
+/* The above get* and set* functions COPIES structs */
+
+struct allocator_cache {
+	lock_t lock;
+	void *head; /* recognized by the allocator */
+	size_t size;
+	size_t align;
+	int (*create_obj)(void *obj);
+	void (*destroy_obj)(void *obj);
+};
+
+struct caching_allocator {
+	int (*create)(struct allocator_cache *cache);
+	int (*destroy)(struct allocator_cache *cache);
+	void *(*alloc)(struct allocator_cache *cache);
+	void (*free)(struct allocator_cache *cache, void *obj);
+	void (*trim)(struct allocator_cache *cache);
+};
 
 void *kmalloc(size_t size, gfp_t flags);
 void kfree(void *obj);
 size_t ksize(void *obj);
-
-struct simple_allocator *get_simple_allocator(void);
 
 #endif /* _VMM_H */
 

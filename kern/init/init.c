@@ -66,10 +66,11 @@ void __noreturn master_init(void)
 	add_memory_pages();
 	kputs("KERN: Pages added.\n");
 	kprintf("KERN: Free memory: 0x%08x\n", (size_t)get_free_memory());
-	struct simple_allocator *old = get_simple_allocator();
+	struct simple_allocator old;
+	get_simple_allocator(&old);
 	simple_allocator_init();
 	kputs("KERN: Simple allocator initialized.\n");
-	page_allocator_move(old);
+	page_allocator_move(&old);
 	kputs("KERN: Page allocator moved.\n");
 
 	trap_init();

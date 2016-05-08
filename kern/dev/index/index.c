@@ -65,7 +65,7 @@ static struct device_index __index = {
 
 void set_device_index(struct device_index *index)
 {
-	memcpy(&__index, index, sizeof(struct device_index));
+	memcpy(&__index, index, sizeof(*index));
 }
 
 int dev_add(struct device *dev)
