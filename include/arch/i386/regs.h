@@ -22,7 +22,21 @@
 #include <sys/types.h>
 
 struct regs {
-	uint32_t reserved;	/* currently not used */
+	/*
+	 * We are not required to save all of them because some of them
+	 * are caller-saved.  However we save all of them regardless just
+	 * for convenience.
+	 */
+	uint32_t eax;
+	uint32_t edx;
+	uint32_t ecx;
+	uint32_t ebx;
+	uint32_t esi;
+	uint32_t edi;
+	uint32_t esp;
+	uint32_t ebp;
+	uint32_t eflags;
+	uint32_t eip;
 };
 
 struct trapframe {

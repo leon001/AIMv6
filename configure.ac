@@ -41,7 +41,8 @@ AC_C_TYPEOF
 AIM_GCC_FUNC_ATTRIBUTE([noreturn])
 AIM_GCC_FUNC_ATTRIBUTE([weak])
 AIM_GCC_FUNC_ATTRIBUTE([noinline])
-AX_GCC_VAR_ATTRIBUTE([visibility])
+AIM_GCC_FUNC_ATTRIBUTE([visibility])
+AIM_GCC_VAR_ATTRIBUTE([used])
 AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
 
 AC_SUBST([AIM_CFLAGS], [$aim_cflags])
@@ -61,7 +62,25 @@ AIM_ARG_VAR([MACH], [target machine])
 AC_SUBST([PREFIXED_MACH], [mach-$MACH])
 AIM_SUPPORT_MACH([msim loongson3a zynq pc generic unknown])
 
-# default configurations
+# Default configurations
+#
+# When specifying whether and how a module is to be built, three values are
+# possible:
+# - no		The module will not be built. Headers will not be removed.
+# - module	The module will be built into a seperate loadable object, and
+#         	will not be accessible during early booting stages. Executables
+#		outside the kernel, like the firmware and bootloader, will not
+#		build nor access the module.
+# - yes		The module will be built into the kernel, and initialized
+#		according to defined entry(s). It cannot be unloaded from the
+#		running kernel.
+# If a module is compiled into the kernel and contains some functionality that
+# exactly one instance is accessed during early booting stages, a "primary"
+# variable can be set to its name. When this is done, the firmware and the
+# bootloader will also access it.
+# It is usually meaningless to compile a secondary implementation into the
+# firmware or the bootloader, so implementations should check corresponding
+# macros.
 AS_VAR_SET([with_kstacksize], [4096])
 
 AS_CASE([$ARCH],
@@ -120,7 +139,7 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
 		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([with_highram_base], [0x80000000])
-		AS_VAR_SET([with_highram_size], [0x30000000])
+		AS_VAR_SET([with_highram_size], [0x00000000])
 	], 
 	[pc], [
 		AS_VAR_SET([with_fwstack_order], [12])
@@ -229,6 +248,10 @@ AS_VAR_SET([with_page_allocator], [ff])
 AIM_ARG_WITH([page-allocator], [PAGE_ALLOCATOR], [page allocator])
 AM_CONDITIONAL([ALGO_FF], [test x$with_page_allocator = xff])
 
+AS_VAR_SET([with_dev_index], [devlist])
+AIM_ARG_WITH([dev-index], [DEVICE_INDEX], [device index])
+AM_CONDITIONAL([ALGO_DEVLIST], [test x$with_dev_index = xdevlist])
+
 # per-target configuration
 AS_CASE([$MACH],
 	[msim], [
@@ -258,9 +281,17 @@ AS_CASE([$MACH],
 		 AC_SUBST(MSIM_CONF_RTCPA,
 			  `printf 0x%08x $with_msim_rtc_pa`)
 		 AC_SUBST(MSIM_CONF_HIGHRAM_BASE,
-			  `printf 0x%08x $with_highram_base`)
+			  `if (( $with_highram_size != 0 )); then \
+				  printf "add rwm highram 0x%08x" \
+				  $with_highram_base; else \
+				  echo "";\
+			  fi`)
 		 AC_SUBST(MSIM_CONF_HIGHRAM_SIZE,
-			  `printf 0x%08x $with_highram_size`)
+			  `if (( $with_highram_size != 0 )); then \
+				  printf "highram generic 0x%08x" \
+				  $with_highram_size; else \
+				  echo "";\
+			  fi`)
 ])
 
 # Skip firmware
@@ -282,6 +313,8 @@ AC_CONFIG_FILES([
 	msim.conf
 	Makefile
 	include/Makefile
+	include/aim/Makefile
+	include/asm-generic/Makefile
 	boot/Makefile
 	boot/arch/Makefile
 	boot/arch/armv7a/Makefile
@@ -312,10 +345,12 @@ AC_CONFIG_FILES([
 	kern/arch/mips/mach-loongson3a/Makefile
 	kern/init/Makefile
 	kern/dev/Makefile
+	kern/dev/index/Makefile
 	kern/debug/Makefile
 	kern/mm/Makefile
 	kern/mm/pmm/Makefile
 	kern/mm/vmm/Makefile
+	kern/proc/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile

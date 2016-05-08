@@ -62,3 +62,4 @@ void add_memory_pages(void)
 	 */
 	mips_add_memory_pages();
 }
+

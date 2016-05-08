@@ -19,5 +19,8 @@ include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libinit.la
 
-libinit_la_SOURCES = early_init.c init.c
+libinit_la_SOURCES = \
+	early_init.c \
+	init.c \
+	initcalls.c
 

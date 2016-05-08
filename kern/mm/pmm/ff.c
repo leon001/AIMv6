@@ -42,37 +42,41 @@ static struct list_head __head;
 static addr_t __free_space;
 //static lock_t lock;
 
-static struct pages *__alloc(addr_t size, gfp_t flags)
+static int __alloc(struct pages *pages)
 {
-	struct block *this, *newblock;
-	struct pages *ret;
-	size_t newsize;
+	struct block *this;
 
-	if (!IS_ALIGNED(size, PAGE_SIZE))
+	/* check size alignment */
+	if (!IS_ALIGNED(pages->size, PAGE_SIZE))
 		return NULL;
-	if (size > __free_space)
+	if (pages->size > __free_space)
 		return NULL;
 
+	/* search for a first-fit */
 	for_each_entry(this, &__head, node) {
-		if (this->size >= size)
+		if (this->size >= pages->size)
 			break;
 	}
-	if (this == NULL) return NULL;
+	/* upon failure, @pages remains untouched. */
+	if (&this->node == &__head) return EOF;
 
-	newsize = this->size - size;
-	if (newsize > 0) {
-		newblock = kmalloc(sizeof(struct block), 0);
-		newblock->paddr = this->paddr + size;
-		newblock->size = newsize;
-		list_add_after(&newblock->node, &this->node);
+	/* copy the @pages onto the stack for modification */
+
+	/* cut down the block */
+	pages->paddr = this->paddr;
+	this->paddr += pages->size;
+	this->size -= pages->size;
+
+	/* free the block if empty */
+	if (this->size == 0) {
+		list_del(&this->node);
+		kfree(this);
 	}
-	list_del(&this->node);
-	ret = kmalloc(sizeof(struct pages), 0);
-	ret->paddr = this->paddr;
-	ret->size = size;
-	__free_space -= size;
-	kfree(this);
-	return ret;
+
+	/* decrease available memory amount */
+	__free_space -= pages->size;
+
+	return 0;
 }
 
 static void __free(struct pages *pages)
@@ -85,14 +89,12 @@ static void __free(struct pages *pages)
 	if (!IS_ALIGNED(pages->size, PAGE_SIZE))
 		return;
 
-	__free_space += pages->size;
 	this = kmalloc(sizeof(struct block), 0);
 	if (this == NULL)
 		panic("Out of memory during free_pages().\n");
 	this->paddr = pages->paddr;
 	this->size = pages->size;
 	this->flags = pages->flags;
-	kfree(pages);
 
 	for_each_entry(tmp, &__head, node) {
 		if (tmp->paddr >= this->paddr)
@@ -121,6 +123,7 @@ static void __free(struct pages *pages)
 		list_del(&next->node);
 		kfree(next);
 	}
+	__free_space += pages->size;
 }
 
 static addr_t __get_free(void)

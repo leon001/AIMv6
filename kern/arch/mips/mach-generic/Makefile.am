@@ -19,4 +19,5 @@ include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libmips-generic.la
 
-libmips_generic_la_SOURCES = mach-init.c
+libmips_generic_la_SOURCES = mach-init.c pgtable.c
+
