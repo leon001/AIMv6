@@ -28,9 +28,6 @@
 #define PAGE_SIZE	(1 << PAGE_SHIFT)
 #define PAGE_MASK	(PAGE_SIZE - 1)
 
-#define PTXMASK		((1 << (PAGE_SHIFT - WORD_SHIFT)) - 1)
-#define NR_PTENTRIES	(1 << (PAGE_SHIFT - WORD_SHIFT))
-
 #ifndef __ASSEMBLER__
 
 #include <sys/types.h>

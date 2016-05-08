@@ -26,7 +26,7 @@
  * addresses pointing to next-level directories:
  * 33222222222211111111110000000000
  * 10987654321098765432109876543210
- * +-4K-aligned physical address--+
+ * +--4K-aligned virtual address--+
  *
  * The leaf page tables stores PFN and additional information in the
  * following format:
@@ -34,7 +34,7 @@
  * 10987654321098765432 109 8 7 6 543210
  * +-------PFN--------+ CCF D V G 00X000
  *
- * pgindex_t is the type of *physical* address to the page table structure.
+ * pgindex_t is the type of *virtual* address to the page table structure.
  */
 
 #include <mm.h>
@@ -48,8 +48,8 @@
 #include <util.h>
 
 struct pagedesc {
-	uint32_t	pdep;	/* page directory physical address */
-	uint32_t	ptep;	/* leaf page table physical address */
+	uint32_t	pdev;	/* page directory physical address */
+	uint32_t	ptev;	/* leaf page table physical address */
 	int		pdx;
 	int		ptx;
 };
@@ -69,22 +69,23 @@ __getpagedesc(pgindex_t *pgindex,
 	      bool create,
 	      struct pagedesc *pd)
 {
-	pde_t *pde = (pde_t *)pa2kva(*pgindex);
-	pd->pdep = *pgindex;
+	addr_t paddr;
+	pde_t *pde = (pde_t *)*pgindex;
+	pd->pdev = *pgindex;
 	pd->pdx = PDX(addr);
 	if (pde[pd->pdx] != 0) {
 		/* We already have the intermediate directory */
-		pd->ptep = pde[pd->pdx];
+		pd->ptev = pde[pd->pdx];
 	} else {
 		/* We don't have it, fail or create one */
 		if (!create) {
 			return -ENOENT;
 		}
-		pd->ptep = (uint32_t)pgalloc();
-		memset((void *)pa2kva(pd->ptep), 0, PAGE_SIZE);
-		if (pd->ptep == -1)
+		if ((paddr = pgalloc()) == -1)
 			return -ENOMEM;
-		pde[pd->pdx] = pd->ptep;
+		pd->ptev = (uint32_t)pa2kva(paddr);
+		memset((void *)pd->ptev, 0, PAGE_SIZE);
+		pde[pd->pdx] = pd->ptev;
 	}
 	pd->ptx = PTX(addr);
 	return 0;
@@ -97,8 +98,8 @@ init_pgindex(pgindex_t *pgindex)
 	if (paddr == -1)
 		return -ENOMEM;
 
-	*pgindex = paddr;
-	memset(pa2kva(*pgindex), 0, PAGE_SIZE);
+	*pgindex = (pgindex_t)pa2kva(paddr);
+	memset((void *)*pgindex, 0, PAGE_SIZE);
 
 	return 0;
 }
@@ -106,7 +107,7 @@ init_pgindex(pgindex_t *pgindex)
 void
 destroy_pgindex(pgindex_t *pgindex)
 {
-	pgfree(*pgindex);
+	pgfree(kva2pa((void *)*pgindex));
 }
 
 /* TODO: put this into a header */
@@ -138,15 +139,15 @@ __pgtable_perm(uint32_t vma_flags)
 static void
 __free_intermediate_pgtable(pgindex_t *pgindex, void *vaddr, size_t size)
 {
-	pde_t *pde = (pde_t *)pa2kva(*pgindex);
+	pde_t *pde = (pde_t *)*pgindex;
 	int pdx = PDX(vaddr), pdx_end = PDX(vaddr + size - PAGE_SIZE);
 	for (; pdx <= pdx_end; ++pdx) {
-		pte_t *pte = (pte_t *)pa2kva(pde[pdx]);
+		pte_t *pte = (pte_t *)pde[pdx];
 		for (int i = 0; i < NR_PTENTRIES; ++i) {
 			if (pte[i] != 0)
 				goto rollback_next_pde;
 		}
-		pgfree(pde[pdx]);
+		pgfree(kva2pa((void *)pde[pdx]));
 		pde[pdx] = 0;
 rollback_next_pde:
 		/* nothing */;
@@ -182,7 +183,7 @@ map_pages(pgindex_t *pgindex,
 		if (retcode == -ENOMEM)
 			goto rollback;
 
-		pte = (pte_t *)pa2kva(pd.ptep);
+		pte = (pte_t *)pd.ptev;
 		if (pte[pd.ptx] != 0) {
 			/* we are mapping on the exact same virtual
 			 * page which is either valid or invalid (paged
@@ -197,7 +198,7 @@ map_pages(pgindex_t *pgindex,
 	vcur = vaddr;
 	for (; pcur < pend; pcur += PAGE_SIZE, vcur += PAGE_SIZE) {
 		__getpagedesc(pgindex, vcur, false, &pd);
-		pte = (pte_t *)pa2kva(pd.ptep);
+		pte = (pte_t *)pd.ptev;
 		pte[pd.ptx] = pcur | __pgtable_perm(flags);
 	}
 
@@ -227,7 +228,7 @@ unmap_pages(pgindex_t *pgindex,
 			/* may return -ENOENT? */
 			panic("unmap_pages non-existent: %p %p\n",
 			    *pgindex, vcur);
-		pte = (pte_t *)pa2kva(pd.ptep);
+		pte = (pte_t *)pd.ptev;
 		if (unmapped_bytes == 0) {
 			/* unmapping the first page: store the physical
 			 * address */

@@ -19,7 +19,7 @@
 #ifndef _PGTABLE_H
 #define _PGTABLE_H
 
-#include <sys/types.h>
+#include <mmu.h>
 
 #define PTE_LOWMASK		0xfff
 /* These bits match the mode bits in TLB entries */
@@ -38,11 +38,20 @@
 #define PTE_PADDR(pte)		((pte) & ~PTE_LOWMASK)
 #define PTE_FLAGS(pte)		((pte) & PTE_LOWMASK)
 
+#define PTXMASK		((1 << (PAGE_SHIFT - WORD_SHIFT)) - 1)
+#define NR_PTENTRIES	(1 << (PAGE_SHIFT - WORD_SHIFT))
+
+#ifndef __ASSEMBLER__
+#include <sys/types.h>
+#endif	/* !__ASSEMBLER__ */
+
 #ifndef __LP64__	/* 32 bit */
 
+#ifndef __ASSEMBLER__
 typedef uint32_t pte_t, pde_t;
 
 typedef uint32_t pgindex_t;
+#endif	/* !__ASSEMBLER__ */
 
 #define PTXSHIFT	PAGE_SHIFT
 #define PDXSHIFT	(PTXSHIFT + PAGE_SHIFT - WORD_SHIFT)
@@ -57,9 +66,11 @@ typedef uint32_t pgindex_t;
  * (e.g. Loongson, AMD64)
  */
 
+#ifndef __ASSEMBLER__
 typedef uint64_t pte_t, pmd_t, pud_t, pgd_t;
 
 typedef uint64_t pgindex_t;
+#endif	/* !__ASSEMBLER__ */
 
 #define PTXSHIFT	PAGE_SHIFT
 #define PMXSHIFT	(PTXSHIFT + PAGE_SHIFT - WORD_SHIFT)

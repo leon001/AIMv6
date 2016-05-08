@@ -90,14 +90,19 @@ AS_CASE([$ARCH],
 	],
 	[mips32], [
 		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
+		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
+		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
+		AS_VAR_SET([with_cpus], [4])
+		AS_VAR_SET([enable_io_mem], [yes])
+		AS_VAR_SET([enable_io_port], [no])
 	],
 	[mips64], [
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
-	],
-	[mips*], [
+		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
+		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
+		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([enable_io_mem], [yes])
 		AS_VAR_SET([enable_io_port], [no])
-		AS_VAR_SET([with_cpus], [4])
 	],
 	[i386], [
 		AS_VAR_SET([enable_io_mem], [yes])
@@ -212,6 +217,11 @@ AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 
 AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 	[order of firmware stack per CPU (size=1<<order)])
+
+AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
+	[base virtual address for array storing GP register during trap entry])
+AIM_ARG_WITH([mips-pgdir-slot-base], [PGDIR_SLOT_BASE],
+	[base virtual address for array storing per CPU page directories])
 
 # Drivers
 AIM_ARG_ENABLE([io-mem], [IO_MEM], [memory-mapped IO driver])

@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_TRAP_H
-#define _ASM_TRAP_H
-
-#define TLB_REFILL_ENTRY	0xffffffff80000000
-#define GENERIC_EXCEPT_ENTRY	0xffffffff80000180
+#ifndef _ARCH_SYNC_H
+#define _ARCH_SYNC_H
 
 #endif
 

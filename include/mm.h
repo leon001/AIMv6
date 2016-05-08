@@ -74,6 +74,9 @@ int mmu_init(pgindex_t *boot_page_index);
 
 void early_mm_init(void);	/* arch-specific */
 
+void mm_init(void);
+void arch_mm_init(void);	/* arch-specific */
+
 /* Clear all MMU init callback handlers */
 void mmu_handlers_clear(void);
 /* Add one MMU init callback handler, which will be called *after*

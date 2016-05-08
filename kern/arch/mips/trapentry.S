@@ -26,8 +26,6 @@
 #include <smp.h>
 #include <stack.h>
 
-#define TEMP_SLOT_BASE		0x80000200
-
 /*
  * General exception handler entry
  *
@@ -44,7 +42,7 @@ BEGIN(generic_exception_entry)
 	 * dependency.
 	 *
 	 * Address for temporary gp slot:
-	 * 0x80000200 + CPUID * WORD_SIZE
+	 * GP_SLOT_BASE + CPUID * WORD_SIZE
 	 *
 	 * This hack requires the kernel not to load at places immediately
 	 * above exception handler entries (i.e. 0x80000180).
@@ -52,9 +50,9 @@ BEGIN(generic_exception_entry)
 	 * Also, this hack requires the kernel not to use interrupt vectors
 	 * (i.e. IV bit in CAUSE register is 0), which is not used by
 	 * most OS kernels anyway.  If someone wants to try interrupt vectors,
-	 * change TEMP_SLOT_BASE above to a suitable address.
+	 * change GP_SLOT_BASE in configure to a suitable address.
 	 */
-	li	k1, TEMP_SLOT_BASE
+	li	k1, GP_SLOT_BASE
 	SLL	k0, WORD_SHIFT
 	ADDU	k0, k1
 	STORE	gp, 0(k0)
@@ -109,7 +107,7 @@ BEGIN(__generic_exception_entry)
 	PUSH	s8
 	PUSH	k1	/* k1 holds old SP */
 	cpuid	k0, k1
-	li	k1, TEMP_SLOT_BASE
+	li	k1, GP_SLOT_BASE
 	SLL	k0, WORD_SHIFT
 	ADDU	k0, k1
 	LOAD	k0, (k0)	/* old GP there */
