@@ -16,18 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_IO_MEM_H
-#define _DRIVERS_IO_MEM_H
+#ifndef _ARCH_SYNC_H
+#define _ARCH_SYNC_H
 
-#include <aim/device.h>
+/* low level syncronization implementation, always as macros */
 
-//#pragma GCC visibility push(protected)
+#define ARM_STREX_SUCCESS	0
+#define ARM_STREX_FAIL		1
+#define ARM_STREX_CORRUPT	-1
 
-__attribute__ ((visibility ("hidden")))
-extern struct bus_device early_memory_bus;
-//#pragma GCC visibility pop
+#ifndef __ASSEMBLER__
 
-void io_mem_init(struct bus_device *memory_bus);
+#define SMP_DMB() \
+	asm volatile ("dmb")
 
-#endif /* _DRIVERS_IO_MEM_H */
+#define SMP_DSB() \
+	asm volatile ("dsb")
+
+#define SMP_ISB() \
+	asm volatile ("isb")
+
+#endif /* __ASSEMBLER__ */
+
+/* provide some default implementations */
+#include <asm-generic/sync.h>
+
+#endif /* _ARCH_SYNC_H */
 

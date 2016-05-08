@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 include $(top_srcdir)/env.am
+include $(top_srcdir)/modules.am
 
 SUBDIRS = \
 	arch \
@@ -43,6 +44,7 @@ KERNEL_LIBS = \
 	mm/libmm.la \
 	arch/$(ARCH)/lib$(ARCH).la \
 	$(top_builddir)/drivers/libdrivers.la \
+	$(MODULES) \
 	$(top_builddir)/lib/libc/libc.la \
 	debug/libdebug.la
 vmaim_elf_LDADD = $(KERNEL_LIBS)

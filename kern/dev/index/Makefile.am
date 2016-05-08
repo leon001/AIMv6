@@ -17,10 +17,12 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libinit.la
+noinst_LTLIBRARIES = libindex.la
+noinst_DATA =
 
-libinit_la_SOURCES = \
-	early_init.c \
-	init.c \
-	initcalls.c
+if ALGO_DEVLIST
+noinst_DATA += devlist.o
+endif
+
+libindex_la_SOURCES = index.c
 

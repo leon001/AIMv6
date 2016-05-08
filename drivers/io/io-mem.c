@@ -31,7 +31,7 @@
 
 #include <io.h>
 #include <mm.h>
-#include <device.h>
+#include <aim/device.h>
 #include <panic.h>
 
 #include <io-mem.h>
