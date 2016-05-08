@@ -27,9 +27,9 @@
  * warns about shift count if a "UL" suffix is not appended while GAS
  * refuses to recognize the "UL" suffix).
  */
-#define ULCAST(i)	(i##UL)
+#define __ULCAST(i)	(i##UL)
 #else	/* __ASSEMBLER__ */
-#define ULCAST(i)	i
+#define __ULCAST(i)	i
 #endif	/* !__ASSEMBLER__ */
 
 #ifndef __ASSEMBLER__
@@ -49,6 +49,9 @@ typedef unsigned int	uint32_t;
 typedef signed int	int32_t;
 typedef unsigned long long	uint64_t;
 typedef signed long long	int64_t;
+
+typedef uint32_t atomic_t;
+typedef int32_t satomic_t;
 
 typedef unsigned long ulong;
 

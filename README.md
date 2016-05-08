@@ -10,8 +10,10 @@ thus should work across platforms.
   - Xilinx Zynq-7000 SoC (2x Cortex A9)
 * IA32
   - QEMU
-* MIPS
+* MIPS32
   - [MSIM](http://d3s.mff.cuni.cz/~holub/sw/msim/)
+  - Note that we are only supporting 256MB RAM for all MIPS32 machines.
+* MIPS64
   - Loongson 3A
 
 ## Building AIMv6
@@ -108,7 +110,7 @@ A suggested configuration is
             --enable-static \
             --disable-shared \
             --with-kern-start=0x80300000 \
-            --with-mem-size=0x20000000 \
+            --with-mem-size=0x10000000 \
             --enable-io-mem
 ```
 
@@ -313,6 +315,52 @@ to enable C code debugging after QEMU stepped into kernel.
 
 Read `doc/patterns.md` for code styles and design patterns adopted in our
 project.  It is highly recommended to follow the guidelines there.
+
+## Roadmap
+
+Feel free to add features here
+
+### Finished
+
+* Device driver subsystem
+* Page allocator
+* Arbitrary size allocator
+* Trap handler
+
+### Work in progress
+
+* User memory mapping
+* Scheduler
+* File system
+* SMP
+
+### Currently skipping
+
+These features may be moved to "work in progress" section as soon as we
+begin to work on them.
+
+* `kmmap` subsystem
+  - As a consequence, we are assuming that the physical memory can be
+    covered by fixed kernel linear mapping.
+
+### Planned
+
+These features may be put into the "work in progress" section, or "currently
+skipping" section.
+
+* User-side exceptions as signals
+* I/O scheduler
+* Multiple-user
+* Access control
+
+### Not considering
+
+These features have a fairly low chance to be moved to "planned" section as
+they are often quite complicated.
+
+* Implicit dynamic linking
+* Explicit dynamic loading
+* Signal handler registration
 
 ## BUGS
 

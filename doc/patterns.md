@@ -53,9 +53,12 @@ Add whatever reasonable code style & programming practices here as reminders.
 
       void foo(...);
 
-2. Internal functions **MAY** be prepended with double underscores `__`.
-  * Code outside the source file **MUST NOT** call the internal functions,
+2. Internal functions **MUST** be prepended with double underscores `__`.
+  * Code outside the source file **SHOULD NOT** call the internal functions,
     which are, functions whose names are prepended with double underscores `__`.
+    - Some extreme cases include: architecture function `foo()` having to call
+      machine function `bar()`, but the developer does not want to make `bar()`
+      look like a regular function available everywhere.
   * The internal functions is **RECOMMENDED** to be declared as `static`.
 
 #### Pointers
