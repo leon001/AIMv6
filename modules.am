@@ -25,8 +25,8 @@ if ALGO_DEVLIST
 MODULES += $(top_builddir)/kern/dev/index/devlist.o
 endif
 
-if ALGO_LAB
-MODULES += $(top_builddir)/kern/mm/vmm/lab.o
+if ALGO_SLAB
+MODULES += $(top_builddir)/kern/mm/vmm/slab.o
 endif
 
 if UART_ZYNQ

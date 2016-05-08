@@ -248,9 +248,9 @@ AS_VAR_SET([with_page_allocator], [ff])
 AIM_ARG_WITH([page-allocator], [PAGE_ALLOCATOR], [page allocator])
 AM_CONDITIONAL([ALGO_FF], [test x$with_page_allocator = xff])
 
-AS_VAR_SET([with_caching_allocator], [lab])
+AS_VAR_SET([with_caching_allocator], [slab])
 AIM_ARG_WITH([caching-allocator], [CACHING_ALLOCATOR], [caching allocator])
-AM_CONDITIONAL([ALGO_LAB], [test x$with_caching_allocator = xlab])
+AM_CONDITIONAL([ALGO_SLAB], [test x$with_caching_allocator = xslab])
 
 AS_VAR_SET([with_dev_index], [devlist])
 AIM_ARG_WITH([dev-index], [DEVICE_INDEX], [device index])

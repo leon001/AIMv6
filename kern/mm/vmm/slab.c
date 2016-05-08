@@ -34,35 +34,35 @@
  * Not sure if it fully implements SLAB, so named accordingly.
  */
 
-#define LAB_MASK_CHARS	4
-#define LAB_ENTRIES	(LAB_MASK_CHARS * 8) /* per slab */
-#define LAB_MIN_SIZE	(PAGE_SIZE / LAB_ENTRIES)
+#define SLAB_MASK_CHARS	4
+#define SLAB_ENTRIES	(SLAB_MASK_CHARS * 8) /* per slab */
+#define SLAB_MIN_SIZE	(PAGE_SIZE / SLAB_ENTRIES)
 
-struct lab_head {
+struct slab_head {
 	size_t slab_size;
 	struct list_head empty;
 	struct list_head partial;
 	struct list_head full;
 };
 
-struct lab_slab {
+struct slab {
 	struct list_head node;
 	void *vaddr;
-	uint8_t used[LAB_MASK_CHARS];
+	uint8_t used[SLAB_MASK_CHARS];
 };
 
-static inline bool __is_full(struct lab_slab *slab)
+static inline bool __is_full(struct slab *slab)
 {
-	for (int i = 0; i < LAB_MASK_CHARS; i += 1) {
+	for (int i = 0; i < SLAB_MASK_CHARS; i += 1) {
 		if (slab->used[i] != 0xFF)
 			return false;
 	}
 	return true;
 }
 
-static inline bool __is_empty(struct lab_slab *slab)
+static inline bool __is_empty(struct slab *slab)
 {
-	for (int i = 0; i < LAB_MASK_CHARS; i += 1) {
+	for (int i = 0; i < SLAB_MASK_CHARS; i += 1) {
 		if (slab->used[i] != 0)
 			return false;
 	}
@@ -73,8 +73,8 @@ static inline bool __is_empty(struct lab_slab *slab)
 static int __extend(struct allocator_cache *cache)
 {
 	void * vaddr;
-	struct lab_head *head = cache->head;
-	struct lab_slab *slab = kmalloc(sizeof(*slab), 0);
+	struct slab_head *head = cache->head;
+	struct slab *slab = kmalloc(sizeof(*slab), 0);
 	if (slab == NULL) return EOF;
 
 	/* allocate pages. We can recover the struct so discard after use. */
@@ -92,7 +92,7 @@ static int __extend(struct allocator_cache *cache)
 	slab->vaddr = vaddr;
 
 	/* initialize the entries */
-	for (int i = 0; i < LAB_MASK_CHARS; i += 1)
+	for (int i = 0; i < SLAB_MASK_CHARS; i += 1)
 		slab->used[i] = 0;
 	if (cache->create_obj != NULL) {
 		for (size_t off = 0; off < head->slab_size; off += cache->size)
@@ -107,8 +107,8 @@ static int __extend(struct allocator_cache *cache)
 
 static void __trim(struct allocator_cache *cache)
 {
-	struct lab_head *head = cache->head;
-	struct lab_slab *slab, *tmp;
+	struct slab_head *head = cache->head;
+	struct slab *slab, *tmp;
 
 	/* delete through the "empty" list */
 	for_each_entry_safe(slab, tmp, &head->empty, node) {
@@ -129,17 +129,17 @@ static int __create(struct allocator_cache *cache)
 	size_t align = cache->align;
 
 	/* allocate head */
-	struct lab_head *head= kmalloc(sizeof(*head), 0);
+	struct slab_head *head= kmalloc(sizeof(*head), 0);
 	if (head == NULL) return EOF;
 
 	/* bitfield has length limit */
-	if (size < LAB_MIN_SIZE) size = LAB_MIN_SIZE;
+	if (size < SLAB_MIN_SIZE) size = SLAB_MIN_SIZE;
 	/* apply alignment */
 	size = ALIGN_ABOVE(size, align);
 	/* if larger than half a page, use whole pages */
 	if (size > (PAGE_SIZE / 2)) size = ALIGN_ABOVE(size, PAGE_SIZE);
 	/* fill in struct head */
-	head->slab_size = ALIGN_ABOVE(size * LAB_ENTRIES, PAGE_SIZE);
+	head->slab_size = ALIGN_ABOVE(size * SLAB_ENTRIES, PAGE_SIZE);
 	list_init(&head->empty);
 	list_init(&head->partial);
 	list_init(&head->full);
@@ -150,7 +150,7 @@ static int __create(struct allocator_cache *cache)
 
 static int __destroy(struct allocator_cache *cache)
 {
-	struct lab_head *head = cache->head;
+	struct slab_head *head = cache->head;
 	if (list_empty(&head->partial) == false)
 		return EOF;
 	if (list_empty(&head->full) == false)
@@ -165,8 +165,8 @@ static int __destroy(struct allocator_cache *cache)
 
 static void *__alloc(struct allocator_cache *cache)
 {
-	struct lab_head *head = cache->head;
-	struct lab_slab *slab;
+	struct slab_head *head = cache->head;
+	struct slab *slab;
 	int i, j;
 	void *obj;
 
@@ -207,8 +207,8 @@ static void *__alloc(struct allocator_cache *cache)
 
 static int __free(struct allocator_cache *cache, void *obj)
 {
-	struct lab_head *head = cache->head;
-	struct lab_slab *slab = NULL, *tmp;
+	struct slab_head *head = cache->head;
+	struct slab *slab = NULL, *tmp;
 
 	/* find his slab */
 	for_each_entry(tmp, &head->full, node) {
@@ -257,7 +257,7 @@ static int __free(struct allocator_cache *cache, void *obj)
 
 static int __init(void)
 {
-	kputs("KERN: <lab> Initializing.\n");
+	kputs("KERN: <slab> Initializing.\n");
 
 	struct caching_allocator allocator = {
 		.create		= __create,
@@ -268,7 +268,7 @@ static int __init(void)
 	};
 	set_caching_allocator(&allocator);
 
-	kputs("KERN: <lab> Done.\n");
+	kputs("KERN: <slab> Done.\n");
 	return 0;
 }
 

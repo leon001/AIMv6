@@ -26,9 +26,9 @@ if ALGO_FLFF
 SRCS += flff.c
 endif
 
-if ALGO_LAB
-noinst_DATA += lab.o
-lab.o: lab.c
+if ALGO_SLAB
+noinst_DATA += slab.o
+slab.o: slab.c
 endif
 
 libvmm_la_SOURCES = $(SRCS)
