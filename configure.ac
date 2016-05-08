@@ -373,7 +373,8 @@ General
   CFLAGS:	${CFLAGS}
   LDFLAGS:	${LDFLAGS}
 
-* Flags are overridden by per-target flags,
+* Flags are overridden by architecture and machine-specific flags,
+* further overridden by per-target flags,
 * and further overridden by flags passed to `make`.
 
 Target
