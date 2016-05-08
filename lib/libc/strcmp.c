@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,14 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _STRING_H
-#define _STRING_H
-
-#include <sys/types.h>
-
-void *memset(void *dst, int c, size_t n);
-void *memcpy(void *dst, const void *src, size_t n);
-int strcmp(const char *s1, const char *s2);
-
-#endif
+int strcmp(const char *s1, const char *s2)
+{
+	int i;
+	for (i = 0; s1[i] != 0 && s2[i] != 0; i += 1) {
+		if (s1[i] > s2[i]) return 1;
+		if (s1[i] < s2[i]) return -1;
+	}
+	if (s1[i] != 0) return 1;
+	if (s2[i] != 0) return -1;
+	return 0;
+}
 

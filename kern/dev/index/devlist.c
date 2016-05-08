@@ -27,6 +27,7 @@
 #include <vmm.h>
 #include <console.h>
 
+#include <libc/string.h>
 #include <list.h>
 
 struct device_entry {
@@ -106,12 +107,48 @@ ret:
 
 static struct device *__from_id(devid_t major, devid_t minor)
 {
-	return NULL;
+	struct device_entry *tmp;
+	struct device *retval;
+
+	/* lock up the list */
+	spin_lock(&__lock);
+
+	/* loop and check */
+	for_each_entry(tmp, &__head, node) {
+		if (tmp->dev->id_major == major && tmp->dev->id_minor == minor)
+			break;
+	}
+	if (&tmp->node != &__head)
+		retval = tmp->dev;
+	else
+		retval = NULL;
+
+	/* unlock the list */
+	spin_unlock(&__lock);
+	return retval;
 }
 
 static struct device *__from_name(char *name)
 {
-	return NULL;
+	struct device_entry *tmp;
+	struct device *retval;
+
+	/* lock up the list */
+	spin_lock(&__lock);
+
+	/* loop and check */
+	for_each_entry(tmp, &__head, node) {
+		if (strcmp(tmp->dev->name, name) == 0)
+			break;
+	}
+	if (&tmp->node != &__head)
+		retval = tmp->dev;
+	else
+		retval = NULL;
+
+	/* unlock the list */
+	spin_unlock(&__lock);
+	return retval;
 }
 
 static int __init(void)
