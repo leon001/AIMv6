@@ -96,8 +96,10 @@ int cache_destroy(struct allocator_cache *cache)
 {
 	if (cache == NULL)
 		return EOF;
-	//destroy spinlock
-	return __caching_allocator.destroy(cache);
+	spin_lock(&cache->lock);
+	int retval = __caching_allocator.destroy(cache);
+	spin_unlock(&cache->lock);
+	return retval;
 }
 
 void *cache_alloc(struct allocator_cache *cache)
@@ -108,5 +110,24 @@ void *cache_alloc(struct allocator_cache *cache)
 	void *retval = __caching_allocator.alloc(cache);
 	spin_unlock(&cache->lock);
 	return retval;
+}
+
+int cache_free(struct allocator_cache *cache, void *obj)
+{
+	if (cache == NULL)
+		return NULL;
+	spin_lock(&cache->lock);
+	int retval = __caching_allocator.free(cache, obj);
+	spin_unlock(&cache->lock);
+	return retval;
+}
+
+void cache_trim(struct allocator_cache *cache)
+{
+	if (cache == NULL)
+		return;
+	spin_lock(&cache->lock);
+	__caching_allocator.trim(cache);
+	spin_unlock(&cache->lock);
 }
 

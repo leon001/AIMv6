@@ -34,8 +34,8 @@
  * Not sure if it fully implements SLAB, so named accordingly.
  */
 
-#define LAB_MASK_WORDS	2
-#define LAB_ENTRIES	(widthof(LAB_MASK_WORDS)) /* per slab */
+#define LAB_MASK_CHARS	4
+#define LAB_ENTRIES	(LAB_MASK_CHARS * 8) /* per slab */
 #define LAB_MIN_SIZE	(PAGE_SIZE / LAB_ENTRIES)
 
 struct lab_head {
@@ -48,13 +48,13 @@ struct lab_head {
 struct lab_slab {
 	struct list_head node;
 	void *vaddr;
-	uint32_t used[LAB_MASK_WORDS];
+	uint8_t used[LAB_MASK_CHARS];
 };
 
 static inline bool __is_full(struct lab_slab *slab)
 {
-	for (int i = 0; i < LAB_MASK_WORDS; i += 1) {
-		if (slab->used[i] != 0xFFFFFFFF)
+	for (int i = 0; i < LAB_MASK_CHARS; i += 1) {
+		if (slab->used[i] != 0xFF)
 			return false;
 	}
 	return true;
@@ -62,7 +62,7 @@ static inline bool __is_full(struct lab_slab *slab)
 
 static inline bool __is_empty(struct lab_slab *slab)
 {
-	for (int i = 0; i < LAB_MASK_WORDS; i += 1) {
+	for (int i = 0; i < LAB_MASK_CHARS; i += 1) {
 		if (slab->used[i] != 0)
 			return false;
 	}
@@ -92,7 +92,7 @@ static int __extend(struct allocator_cache *cache)
 	slab->vaddr = vaddr;
 
 	/* initialize the entries */
-	for (int i = 0; i < LAB_MASK_WORDS; i += 1)
+	for (int i = 0; i < LAB_MASK_CHARS; i += 1)
 		slab->used[i] = 0;
 	if (cache->create_obj != NULL) {
 		for (size_t off = 0; off < head->slab_size; off += cache->size)
@@ -107,7 +107,20 @@ static int __extend(struct allocator_cache *cache)
 
 static void __trim(struct allocator_cache *cache)
 {
+	struct lab_head *head = cache->head;
+	struct lab_slab *slab, *tmp;
 
+	/* delete through the "empty" list */
+	for_each_entry_safe(slab, tmp, &head->empty, node) {
+		struct pages pages = {
+			.paddr	= (addr_t)kva2pa((size_t)slab->vaddr),
+			.size	= (addr_t)head->slab_size,
+			.flags	= cache->flags
+		};
+		free_pages(&pages);
+		list_del(&slab->node);
+		kfree(slab);
+	}
 }
 
 static int __create(struct allocator_cache *cache)
@@ -176,9 +189,8 @@ static void *__alloc(struct allocator_cache *cache)
 	} while (j == -1);
 	/* won't go out of bounds */
 	slab->used[i] |= (1 << j);
-	i = i * sizeof(slab->used[i]) + j;
+	i = i * 8 + j;
 	obj = slab->vaddr + i * cache->size;
-	
 
 	if (__is_full(slab)) {
 		/* full after this allocation */
@@ -195,7 +207,52 @@ static void *__alloc(struct allocator_cache *cache)
 
 static int __free(struct allocator_cache *cache, void *obj)
 {
-	return EOF;
+	struct lab_head *head = cache->head;
+	struct lab_slab *slab = NULL, *tmp;
+
+	/* find his slab */
+	for_each_entry(tmp, &head->full, node) {
+		void *start = tmp->vaddr;
+		void *end = start + head->slab_size;
+		if (obj >= start && obj < end) {
+			slab = tmp;
+			break;
+		}
+	}
+	if (slab == NULL) {
+		for_each_entry(tmp, &head->partial, node) {
+			void *start = tmp->vaddr;
+			void *end = start + head->slab_size;
+			if (obj >= start && obj < end) {
+				slab = tmp;
+				break;
+			}
+		}
+	}
+
+	/* bad free */
+	if (slab == NULL)
+		return EOF;
+
+	/* apply the free */
+	if (cache->destroy_obj != NULL)
+		cache->destroy_obj(obj);
+	int i = (obj - slab->vaddr) / cache->size;
+	int j = i % 8;
+	i /= 8;
+	slab->used[i] &= ~(1 << j);
+
+	if (__is_empty(slab)) {
+		/* empty after this allocation */
+		list_del(&slab->node);
+		list_add_after(&slab->node, &head->empty);
+	} else if (slab->node.prev == &head->full) {
+		/* full previously */
+		list_del(&slab->node);
+		list_add_after(&slab->node, &head->partial);
+	}
+
+	return 0;
 }
 
 static int __init(void)
