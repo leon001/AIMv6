@@ -63,3 +63,11 @@ void add_memory_pages(void)
 	mips_add_memory_pages();
 }
 
+void tlb_flush(void)
+{
+}
+
+void arch_mm_init(void)
+{
+}
+

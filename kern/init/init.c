@@ -81,6 +81,9 @@ void __noreturn master_init(void)
 
 	kputs("KERN: Traps test passed.\n");
 
+	mm_init();
+	kputs("KERN: Memory management component initialized.\n");
+
 	extern void mm_test(void);
 	mm_test();
 
