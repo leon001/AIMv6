@@ -35,25 +35,10 @@
  * pointer dereferences.
  */
 
-static int __add(struct device *dev)
-{
-	return EOF;
-}
-
-static int __remove(struct device *dev)
-{
-	return EOF;
-}
-
-static struct device *__from_id(devid_t major, devid_t minor)
-{
-	return NULL;
-}
-
-static struct device *__from_name(char *name)
-{
-	return NULL;
-}
+static int __add(struct device *dev) { return EOF; }
+static int __remove(struct device *dev) { return EOF; }
+static struct device *__from_id(devid_t major, devid_t minor) { return NULL; }
+static struct device *__from_name(char *name) { return NULL; }
 
 /* This should not be accessed in low address, safe for a compile-time init */
 static struct device_index __index = {
