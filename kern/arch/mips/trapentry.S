@@ -26,7 +26,7 @@
 #include <smp.h>
 #include <stack.h>
 
-#define TEMP_SLOT_BASE		0x80000200
+#define TEMP_SLOT_BASE		0x80000400
 
 /*
  * General exception handler entry
