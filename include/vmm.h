@@ -58,7 +58,8 @@ struct allocator_cache {
 	void *head; /* recognized by the allocator */
 	size_t size;
 	size_t align;
-	int (*create_obj)(void *obj);
+	gfp_t flags;
+	void (*create_obj)(void *obj);
 	void (*destroy_obj)(void *obj);
 };
 
@@ -66,7 +67,7 @@ struct caching_allocator {
 	int (*create)(struct allocator_cache *cache);
 	int (*destroy)(struct allocator_cache *cache);
 	void *(*alloc)(struct allocator_cache *cache);
-	void (*free)(struct allocator_cache *cache, void *obj);
+	int (*free)(struct allocator_cache *cache, void *obj);
 	void (*trim)(struct allocator_cache *cache);
 };
 
@@ -75,6 +76,12 @@ void set_caching_allocator(struct caching_allocator *allocator);
 void *kmalloc(size_t size, gfp_t flags);
 void kfree(void *obj);
 size_t ksize(void *obj);
+
+int cache_create(struct allocator_cache *cache);
+int cache_destroy(struct allocator_cache *cache);
+void *cache_alloc(struct allocator_cache *cache);
+int cache_free(struct allocator_cache *cache, void *obj);
+void cache_trim(struct allocator_cache *cache);
 
 #endif /* _VMM_H */
 

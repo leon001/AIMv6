@@ -21,6 +21,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
+#include <aim/sync.h>
 
 #include <vmm.h>
 
@@ -66,7 +67,8 @@ void get_simple_allocator(struct simple_allocator *allocator)
 static int __caching_create(struct allocator_cache *cache) { return EOF; }
 static int __caching_destroy(struct allocator_cache *cache) { return EOF; }
 static void *__caching_alloc(struct allocator_cache *cache) { return NULL; }
-static void __caching_free(struct allocator_cache *cache, void *obj) {}
+static int __caching_free(struct allocator_cache *cache, void *obj)
+{ return EOF; }
 static void __caching_trim(struct allocator_cache *cache) {}
 
 struct caching_allocator __caching_allocator = {
@@ -80,5 +82,31 @@ struct caching_allocator __caching_allocator = {
 void set_caching_allocator(struct caching_allocator *allocator)
 {
 	memcpy(&__caching_allocator, allocator, sizeof(*allocator));
+}
+
+int cache_create(struct allocator_cache *cache)
+{
+	if (cache == NULL)
+		return EOF;
+	spinlock_init(&cache->lock);
+	return __caching_allocator.create(cache);
+}
+
+int cache_destroy(struct allocator_cache *cache)
+{
+	if (cache == NULL)
+		return EOF;
+	//destroy spinlock
+	return __caching_allocator.destroy(cache);
+}
+
+void *cache_alloc(struct allocator_cache *cache)
+{
+	if (cache == NULL)
+		return NULL;
+	spin_lock(&cache->lock);
+	void *retval = __caching_allocator.alloc(cache);
+	spin_unlock(&cache->lock);
+	return retval;
 }
 

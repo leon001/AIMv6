@@ -86,6 +86,23 @@ void __noreturn master_init(void)
 	/* do early initcalls, one by one */
 	do_early_initcalls();
 
+	/* temporary tests */
+	struct allocator_cache cache = {
+		.size = 1024,
+		.align = 1024,
+		.flags = 0,
+		.create_obj = NULL,
+		.destroy_obj = NULL
+	};
+	cache_create(&cache);
+	void *a, *b, *c;
+	a = cache_alloc(&cache);
+	kprintf("DEBUG: a = 0x%08x\n", a);
+	b = cache_alloc(&cache);
+	kprintf("DEBUG: b = 0x%08x\n", b);
+	c = cache_alloc(&cache);
+	kprintf("DEBUG: c = 0x%08x\n", c);
+
 	/* startup smp */
 
 	/*
