@@ -35,7 +35,7 @@ BEGIN(tlb_entry)
 	 * Again I'm assuming that _gp indeed points to kernel GOT.  These
 	 * should be changed in case of ASLR.
 	 */
-	li	k1, %hi(_gp)
+	lui	k1, %hi(_gp)
 	ADDIU	k1, %lo(_gp)
 	LOAD	k1, %got(__tlb_entry)(k1)
 	jr	k1
@@ -66,7 +66,7 @@ BEGIN(__tlb_entry)
 	SLL	k0, WORD_SHIFT
 	ADDU	k1, k0
 	LOAD	k0, (k1)		/* k0 = PTE[EVEN(PTX(va))] */
-	LOAD	k1, WORD_SHIFT(k1)	/* k1 = PTE[ODD(PTX(va))] */
+	LOAD	k1, WORD_SIZE(k1)	/* k1 = PTE[ODD(PTX(va))] */
 #if __mips_isa_rev == 1
 	SRL	k0, PTE_SOFT_SHIFT
 	SRL	k1, PTE_SOFT_SHIFT

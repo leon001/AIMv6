@@ -238,22 +238,7 @@ destroy_uvm(struct mm *mm, void *addr, size_t len)
 void
 mm_test(void)
 {
-	struct mm *mm;
-	uint32_t *arr;
 	kprintf("==========mm_test()  started==========\n");
-	mm = mm_new();
-	kprintf("MM: %p\n", mm);
-	kprintf("PGINDEX: %p\n", mm->pgindex);
-	assert(create_uvm(mm, (void *)0x100000, 5 * PAGE_SIZE,
-	    VMA_READ | VMA_WRITE) == 0);
-	assert(destroy_uvm(mm, (void *)0x100000, 5 * PAGE_SIZE) == 0);
-	*(unsigned long *)PGDIR_SLOT_BASE = mm->pgindex;
-	*(unsigned long *)0x100000 = 50;
-	kprintf("MM: %p\n", mm);
-	mm_destroy(mm);
-	mm = mm_new();
-	kprintf("PGINDEX: %p\n", mm->pgindex);
-	mm_destroy(mm);
 	kprintf("==========mm_test() finished==========\n");
 }
 

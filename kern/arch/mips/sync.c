@@ -20,42 +20,42 @@
 #include <config.h>
 #endif
 
-#include <mmu.h>
-#include <util.h>
-#include <pmm.h>
-#include <vmm.h>
+#include <aim/sync.h>
+#include <panic.h>
+#include <sys/types.h>
 
-addr_t get_mem_size(void)
+void spinlock_init(lock_t *lock)
 {
-	/* TODO: handle situations with <256M RAM and make it consistent
-	 * with HIGHRAM_SIZE */
-	return MEM_SIZE;
+	*lock = UNLOCKED;
+	/* Currently as Loongson 3A automatically handles hazards and
+	 * consistency, and MSIM is deterministic, we don't care about
+	 * barriers here. */
 }
 
-void mips_add_memory_pages(void)
+void spin_lock(lock_t *lock)
 {
-	/* Low RAM */
-	extern uint8_t _kern_end;
-	uint32_t kern_end = (uint32_t)&_kern_end;
-	struct pages *p = kmalloc(sizeof(*p), 0);
-	p->paddr = kva2pa(ALIGN_ABOVE(kern_end, PAGE_SIZE));
-	p->size = LOWRAM_TOP - p->paddr;	/* TODO: no magic number */
-	p->flags = 0;
-
-	free_pages(p);
-
-	/* High RAM */
-#if HIGHRAM_SIZE != 0
-	p = kmalloc(sizeof(*p), 0);
-	p->paddr = HIGHRAM_BASE;
-	p->size = HIGHRAM_SIZE;
-	p->flags = 0;
-
-	free_pages(p);
-#endif
+	uint32_t reg;
+	asm volatile (
+		"1:	ll	%[reg], %[mem];"
+		"	beqz	%[reg], 2f;"
+		"	sc	%[reg], %[mem];"
+		"	b	1b;"
+		"2:	or	%[reg], 1;"
+		"	sc	%[reg], %[mem];"
+		"	beqz	%[reg], 1b;"
+		: [reg]"=&r"(reg), [mem]"+m"(*lock)
+	);
 }
 
-int get_tlb_entries(void)
+void spin_unlock(lock_t *lock)
 {
-	return 48;	/* MSIM preset */
+	uint32_t reg;
+	asm volatile (
+		"1:	ll	%[reg], %[mem];"
+		"	and	%[reg], ~1;"
+		"	sc	%[reg], %[mem];"
+		"	beqz	%[reg], 1b;"
+		: [reg]"=&r"(reg), [mem]"+m"(*lock)
+	);
 }
+
