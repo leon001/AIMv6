@@ -22,6 +22,7 @@
 
 #include <sys/types.h>
 #include <aim/initcalls.h>
+#include <vmm.h>
 #include <console.h>
 #include <list.h>
 

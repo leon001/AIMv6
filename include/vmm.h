@@ -70,6 +70,8 @@ struct caching_allocator {
 	void (*trim)(struct allocator_cache *cache);
 };
 
+void set_caching_allocator(struct caching_allocator *allocator);
+
 void *kmalloc(size_t size, gfp_t flags);
 void kfree(void *obj);
 size_t ksize(void *obj);
