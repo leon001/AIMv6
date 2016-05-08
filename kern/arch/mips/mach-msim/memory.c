@@ -50,7 +50,7 @@ void mips_add_memory_pages(void)
 	p->paddr = HIGHRAM_BASE;
 	p->size = HIGHRAM_SIZE;
 	p->flags = 0;
-#endif
 
 	free_pages(p);
+#endif
 }
