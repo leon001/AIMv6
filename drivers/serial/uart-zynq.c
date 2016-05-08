@@ -26,6 +26,7 @@
 #include <uart-zynq-hw.h>
 
 #include <aim/device.h>
+#include <aim/initcalls.h>
 #include <console.h>
 #include <mm.h>
 #include <panic.h>
@@ -156,6 +157,14 @@ int uart_putchar(unsigned char c)
 #else /* not RAW, or kernel driver */
 
 #include <panic.h>
+
+static int __init(void)
+{
+	kprintf("KERN: <uart-zynq> Initializing.\n");
+	return 0;
+}
+
+INITCALL_DEV(__init)
 
 #if PRIMARY_CONSOLE == uart_zynq
 
