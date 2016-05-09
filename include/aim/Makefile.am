@@ -18,6 +18,8 @@
 include $(top_srcdir)/env.am
 
 noinst_HEADERS = \
+	device.h \
 	export.h \
-	initcalls.h
+	initcalls.h \
+	sync.h
 

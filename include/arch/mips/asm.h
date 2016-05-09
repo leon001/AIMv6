@@ -139,6 +139,8 @@ sym:		.long	long
 /* Register shifts & rotates */
 # define ROL		rol
 # define ROR		ror
+# define ROTR		rotr
+# define ROTRV		rotrv
 # define SLL		sll
 # define SRA		sra
 # define SRL		srl
@@ -189,6 +191,8 @@ sym:		.long	long
 /* Register shifts & rotates */
 # define ROL		drol
 # define ROR		dror
+# define ROTR		drotr
+# define ROTRV		drotrv
 # define SLL		dsll
 # define SRA		dsra
 # define SRL		dsrl

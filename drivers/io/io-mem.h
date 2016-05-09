@@ -19,7 +19,7 @@
 #ifndef _DRIVERS_IO_MEM_H
 #define _DRIVERS_IO_MEM_H
 
-#include <device.h>
+#include <aim/device.h>
 
 //#pragma GCC visibility push(protected)
 

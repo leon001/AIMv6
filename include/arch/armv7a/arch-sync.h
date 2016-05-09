@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,11 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_TRAP_H
-#define _ASM_TRAP_H
+#ifndef _ARCH_SYNC_H
+#define _ARCH_SYNC_H
 
-#define TLB_REFILL_ENTRY	0xffffffff80000000
-#define GENERIC_EXCEPT_ENTRY	0xffffffff80000180
+/* low level syncronization implementation, always as macros */
 
-#endif
+#define ARM_STREX_SUCCESS	0
+#define ARM_STREX_FAIL		1
+#define ARM_STREX_CORRUPT	-1
+
+#ifndef __ASSEMBLER__
+
+#define SMP_DMB() \
+	asm volatile ("dmb")
+
+#define SMP_DSB() \
+	asm volatile ("dsb")
+
+#define SMP_ISB() \
+	asm volatile ("isb")
+
+#endif /* __ASSEMBLER__ */
+
+/* provide some default implementations */
+#include <asm-generic/sync.h>
+
+#endif /* _ARCH_SYNC_H */
 

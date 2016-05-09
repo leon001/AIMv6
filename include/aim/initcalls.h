@@ -24,8 +24,8 @@ typedef int (*initcall_t)(void);
 #ifndef __ASSEMBLER__
 
 #define __initcall(fn, sec) \
-	static initcall_t __##sec##_##fn __used \
-	__attribute__((__section__(".init" #sec))) = fn;
+	static initcall_t __##sec##_initcall_##fn __used \
+	__attribute__((__section__(".init." #sec))) = fn;
 
 /*
  * In AIM, early, normal, and late initcalls ALL have stages, so we
@@ -33,14 +33,14 @@ typedef int (*initcall_t)(void);
  * For a bootable kernel, not all of them need to be configured.
  */
 #define EARLY_INITCALL(fn, id) \
-	__initcall(fn, .early##id)
+	__initcall(fn, early##id)
 
 /* don't add NORM here as it should be the default pace to go */
 #define INITCALL(fn, id) \
-	__initcall(fn, .norm##id)
+	__initcall(fn, norm##id)
 
 #define LATE_INITCALL(fn, id) \
-	__initcall(fn, .late##id)
+	__initcall(fn, late##id)
 
 /* This is slightly different to linux. We assign a stage for rootfs. */
 #define INITCALL_PURE(fn)	EARLY_INITCALL(fn, 0)
@@ -51,6 +51,8 @@ typedef int (*initcall_t)(void);
 #define INITCALL_FS(fn)		EARLY_INITCALL(fn, 5)
 #define INITCALL_ROOTFS(fn)	EARLY_INITCALL(fn, 6)
 #define INITCALL_DEV(fn)	EARLY_INITCALL(fn, 7)
+
+int do_early_initcalls();
 
 #endif /* __ASSEMBLER__ */
 

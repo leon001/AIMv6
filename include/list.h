@@ -45,7 +45,7 @@ static inline void INIT_LIST_HEAD(struct list_head *list)
 
 /*
  * A shortcut for list initialization:
- * struct list_head *list = EMPTY_LIST(list);
+ * struct list_head list = EMPTY_LIST(list);
  */
 #define LIST_HEAD_INIT(list)	{ &(list), &(list) }
 #define EMPTY_LIST(list)	LIST_HEAD_INIT(list)
