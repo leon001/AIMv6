@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,22 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_REGS_H
-#define _ASM_REGS_H
-
-#include <mipsregs.h>
-
-struct regs {
-	/* general purpose registers */
-	unsigned long	gpr[32];
-
-	/* coprocessor registers */
-	unsigned long	lo;
-	unsigned long	hi;
-	unsigned long	status;
-	unsigned long	cause;
-	unsigned long	epc;
-	unsigned long	badvaddr;
-};
+#ifndef _ARCH_SYNC_H
+#define _ARCH_SYNC_H
 
 #endif
+

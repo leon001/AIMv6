@@ -80,6 +80,14 @@ void __noreturn master_init(void)
 	extern void trap_test(void);
 	trap_test();
 
+	kputs("KERN: Traps test passed.\n");
+
+	mm_init();
+	kputs("KERN: Memory management component initialized.\n");
+
+	extern void mm_test(void);
+	mm_test();
+
 	/* allocate per-cpu context and kworker */
 //	proc_init();
 
@@ -119,12 +127,13 @@ void __noreturn master_init(void)
 	/*
 	 * do initcalls, one by one.
 	 * They may fork or sleep or reschedule.
+	 * In case any initcalls issue a fork, there MUST be EXACTLY one return
+	 * from each initcall.
 	 */
 
 	/* initialize or cleanup namespace */
 
 
-	kputs("KERN: Traps test passed.\n");
 	panic("Test done, all is well.\n");
 }
 

@@ -55,6 +55,8 @@
 
 #endif	/* __LP64__ */
 
+#define LOWRAM_TOP	0x10000000
+
 #define TO_CAC(x)	(IO_CAC_BASE + (x))
 #define TO_UNCAC(x)	(IO_UNCAC_BASE + (x))
 
@@ -62,6 +64,28 @@
 #define __postmap_addr(x)	(x)
 
 #ifndef __ASSEMBLER__
+
+/*
+ * FIXME:
+ * Usually, if a physical address exceeds the fixed kernel linear
+ * mapping range, we should seek help from the kmmap subsystem which
+ * dynamically establish mappings between physical addresses and
+ * virtual addresses.
+ *
+ * For MIPS32, since we have hardwired linear mapping KSEG0 and a
+ * custom kernel address space KSSEG and KSEG3, we can establish another
+ * mapping above KSSEG which corresponds to a higher RAM (e.g. 256MB..
+ * 1GB to 0xc0000000..0xf0000000).  There is no easy way to retrieve
+ * kernel virtual address if the physical address exceeds the higher
+ * RAM, and we will have to resort to the `kmmap` subsystem.
+ *
+ * For now, I am simply assuming that all MIPS32 machines have RAM
+ * no larger than 256MB.  I did add a logic for second kernel mapping
+ * though.
+ *
+ * MIPS64 is not restricted because we can "cheat" by a huge
+ * hardwired kernel linear mapping called XKPHY.
+ */
 
 static inline unsigned long kva2pa(void *x)
 {
@@ -75,6 +99,9 @@ static inline unsigned long kva2pa(void *x)
 		return a - IO_CAC_BASE;
 	else if (a > IO_UNCAC_BASE)
 		return a - IO_UNCAC_BASE;
+#else	/* 32 bit */
+	else if (a > KSSEG)
+		return a - KSSEG + LOWRAM_TOP;
 #endif
 	else
 		return -1;	/* should be something like panic() */
@@ -82,7 +109,14 @@ static inline unsigned long kva2pa(void *x)
 
 static inline void *pa2kva(unsigned long x)
 {
+#ifdef __LP64__	/* 64 bit */
 	return (void *)(TO_CAC(x));
+#else	/* 32 bit */
+	if (x > LOWRAM_TOP)
+		return (void *)(x - LOWRAM_TOP + KSSEG);
+	else
+		return (void *)TO_CAC(x);
+#endif
 }
 
 #endif	/* !__ASSEMBLER__ */

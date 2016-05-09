@@ -27,6 +27,7 @@
 #endif
 
 #include <mmu.h>
+#include <asm-generic/vmaim.lds.h>
 
 OUTPUT_FORMAT(TARGET)
 
@@ -39,8 +40,13 @@ SECTIONS {
 	.text : {
 		*(.text*);
 	}
+
+	STRUCT_ALIGN();
 	.rodata : {
 		*(.rodata*);
+		EARLY_INIT(STRUCT_ALIGNMENT)
+		NORM_INIT(STRUCT_ALIGNMENT)
+		LATE_INIT(STRUCT_ALIGNMENT)
 	}
 	/* Global Offset Table (GOT) for position independent code.
 	 * Since we are using our own linker script, we must provide

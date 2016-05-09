@@ -45,21 +45,29 @@ void *kmalloc(size_t size, gfp_t flags)
 
 void kfree(void *obj)
 {
-	__simple_allocator.free(obj);
+	if (obj != NULL)
+		__simple_allocator.free(obj);
 }
 
 size_t ksize(void *obj)
 {
-	return __simple_allocator.size(obj);
+	if (obj != NULL)
+		return __simple_allocator.size(obj);
+	else
+		return 0;
 }
 
 void set_simple_allocator(struct simple_allocator *allocator)
 {
+	if (allocator == NULL)
+		return;
 	memcpy(&__simple_allocator, allocator, sizeof(*allocator));
 }
 
 void get_simple_allocator(struct simple_allocator *allocator)
 {
+	if (allocator == NULL)
+		return;
 	memcpy(allocator, &__simple_allocator, sizeof(*allocator));
 }
 
@@ -81,6 +89,8 @@ struct caching_allocator __caching_allocator = {
 
 void set_caching_allocator(struct caching_allocator *allocator)
 {
+	if (allocator == NULL)
+		return;
 	memcpy(&__caching_allocator, allocator, sizeof(*allocator));
 }
 

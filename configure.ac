@@ -90,14 +90,19 @@ AS_CASE([$ARCH],
 	],
 	[mips32], [
 		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
+		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
+		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
+		AS_VAR_SET([with_cpus], [4])
+		AS_VAR_SET([enable_io_mem], [yes])
+		AS_VAR_SET([enable_io_port], [no])
 	],
 	[mips64], [
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
-	],
-	[mips*], [
+		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
+		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
+		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([enable_io_mem], [yes])
 		AS_VAR_SET([enable_io_port], [no])
-		AS_VAR_SET([with_cpus], [4])
 	],
 	[i386], [
 		AS_VAR_SET([enable_io_mem], [yes])
@@ -139,7 +144,7 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
 		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([with_highram_base], [0x80000000])
-		AS_VAR_SET([with_highram_size], [0x30000000])
+		AS_VAR_SET([with_highram_size], [0x00000000])
 	], 
 	[pc], [
 		AS_VAR_SET([with_fwstack_order], [12])
@@ -213,6 +218,11 @@ AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 	[order of firmware stack per CPU (size=1<<order)])
 
+AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
+	[base virtual address for array storing GP register during trap entry])
+AIM_ARG_WITH([mips-pgdir-slot-base], [PGDIR_SLOT_BASE],
+	[base virtual address for array storing per CPU page directories])
+
 # Drivers
 AIM_ARG_ENABLE([io-mem], [IO_MEM], [memory-mapped IO driver])
 AIM_ARG_ENABLE([io-port], [IO_PORT], [port IO driver])
@@ -285,9 +295,17 @@ AS_CASE([$MACH],
 		 AC_SUBST(MSIM_CONF_RTCPA,
 			  `printf 0x%08x $with_msim_rtc_pa`)
 		 AC_SUBST(MSIM_CONF_HIGHRAM_BASE,
-			  `printf 0x%08x $with_highram_base`)
+			  `if (( $with_highram_size != 0 )); then \
+				  printf "add rwm highram 0x%08x" \
+				  $with_highram_base; else \
+				  echo "";\
+			  fi`)
 		 AC_SUBST(MSIM_CONF_HIGHRAM_SIZE,
-			  `printf 0x%08x $with_highram_size`)
+			  `if (( $with_highram_size != 0 )); then \
+				  printf "highram generic 0x%08x" \
+				  $with_highram_size; else \
+				  echo "";\
+			  fi`)
 ])
 
 # Skip firmware

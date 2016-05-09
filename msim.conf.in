@@ -23,8 +23,8 @@ add rwm ram 0x00000000
 ram generic 256M
 
 # High RAM
-add rwm highram @MSIM_CONF_HIGHRAM_BASE@
-highram generic @MSIM_CONF_HIGHRAM_SIZE@
+@MSIM_CONF_HIGHRAM_BASE@
+@MSIM_CONF_HIGHRAM_SIZE@
 
 # 1M BIOS
 add rom bios 0x1fc00000

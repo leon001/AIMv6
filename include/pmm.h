@@ -30,6 +30,7 @@ struct pages {
 	addr_t paddr;
 	addr_t size;
 	gfp_t flags;
+	atomic_t refs;	/* for shared memory */
 };
 
 struct page_allocator {

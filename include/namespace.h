@@ -16,22 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_REGS_H
-#define _ASM_REGS_H
+#ifndef _NAMESPACE_H
+#define _NAMESPACE_H
 
-#include <mipsregs.h>
-
-struct regs {
-	/* general purpose registers */
-	unsigned long	gpr[32];
-
-	/* coprocessor registers */
-	unsigned long	lo;
-	unsigned long	hi;
-	unsigned long	status;
-	unsigned long	cause;
-	unsigned long	epc;
-	unsigned long	badvaddr;
-};
+/* We are providing an empty struct namespace definition here. */
+struct namespace;
 
 #endif

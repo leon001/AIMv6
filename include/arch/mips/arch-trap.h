@@ -19,6 +19,7 @@
 #ifndef _ASM_TRAP_H
 #define _ASM_TRAP_H
 
+#define TLB_REFILL_ENTRY	0xffffffff80000000
 #define GENERIC_EXCEPT_ENTRY	0xffffffff80000180
 
 #endif
