@@ -16,11 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #include <console.h>	/* to be removed */
 #include <mm.h>
 #include <mmu.h>
 #include <atomic.h>
 #include <errno.h>
+#include <panic.h>
 
 struct mm *
 mm_new(void)

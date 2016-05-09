@@ -16,6 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #ifndef _MM_H
 #define _MM_H
 
@@ -23,6 +27,8 @@
 #include <mmu.h>
 #include <pmm.h>
 #include <sys/types.h>
+
+#ifndef __ASSEMBLER__
 
 /* premap_addr: always returns low address.
  * The function which assumes that the argument is a high address
@@ -39,8 +45,6 @@
 	size_t i = (size_t)(a); \
 	(i >= KERN_BASE) ? (i) : __postmap_addr(i); \
 })
-
-#ifndef __ASSEMBLER__
 
 addr_t get_mem_physbase();
 addr_t get_mem_size();

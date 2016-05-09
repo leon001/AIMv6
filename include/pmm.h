@@ -22,6 +22,8 @@
 #include <sys/types.h>
 #include <vmm.h>
 
+#ifndef __ASSEMBLER__
+
 /* FIXME change name and create seperate header */
 typedef uint32_t gfp_t;
 /* currently ignored */
@@ -56,6 +58,8 @@ addr_t get_free_memory(void);
 
 /* initialize the page-block structure for remaining free memory */
 void add_memory_pages(void);
+
+#endif /* !__ASSEMBLER__ */
 
 #endif /* _PMM_H */
 

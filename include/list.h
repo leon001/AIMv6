@@ -23,6 +23,8 @@
 
 #include <util.h>
 
+#ifndef __ASSEMBLER__
+
 /*
  * Simple doubly-linked list implementation
  *
@@ -172,4 +174,7 @@ static inline int list_is_singular(const struct list_head *head)
 		n = list_entry(pos->member.prev, typeof(*pos), member);	\
 	     &pos->member != (head); 					\
 	     pos = n, n = list_entry(n->member.prev, typeof(*n), member))
-#endif
+
+#endif /* !__ASSEMBLER__ */
+
+#endif /* _LIST_H */

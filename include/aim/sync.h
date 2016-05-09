@@ -23,11 +23,14 @@
 
 #include <arch-sync.h>
 
+#ifndef __ASSEMBLER__
+
+#define UNLOCKED	0
+#define LOCKED		1
+
 /* Spinlocks. Implemented by architectures. */
 
 typedef int lock_t;
-#define UNLOCKED	0
-#define LOCKED		1
 
 /* By initializing a lock, caller assumes no code is holding it. */
 void spinlock_init(lock_t *lock);
@@ -49,6 +52,8 @@ void semaphore_inc(semaphore_t *sem);
 	semaphore_t *_sem = sem; \
 	semaphore_dec(_sem); \
 	semaphore_inc(_sem); })
+
+#endif /* !__ASSEMBLER__ */
 
 #endif /* _AIM_SYNC_H */
 

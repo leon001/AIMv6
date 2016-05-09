@@ -37,6 +37,8 @@
  *   SLAB algorithm is popular for this use.
  */
 
+#ifndef __ASSEMBLER__
+
 /* FIXME change name and create seperate header */
 typedef uint32_t gfp_t;
 /* currently ignored */
@@ -82,6 +84,8 @@ int cache_destroy(struct allocator_cache *cache);
 void *cache_alloc(struct allocator_cache *cache);
 int cache_free(struct allocator_cache *cache, void *obj);
 void cache_trim(struct allocator_cache *cache);
+
+#endif /* !__ASSEMBLER__ */
 
 #endif /* _VMM_H */
 
