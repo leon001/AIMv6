@@ -154,7 +154,7 @@ map_pages(pgindex_t *pgindex,
 		if (retcode == -ENOMEM)
 			goto rollback;
 
-		if (pd.ptep[pd.ptx] != 0) {
+		if (pd.ptep[pd.ptx] & PTE_P) {
 			/* we are mapping on the exact same virtual
 			 * page which is either valid or invalid (paged
 			 * out), fail */
