@@ -148,7 +148,7 @@ struct mm {
 	struct list_head vma_head;	/* virtual memory area list sentry */
 	size_t		vma_count;	/* number of virtual memory areas */
 	size_t		ref_count;	/* reference count (may be unused) */
-	pgindex_t	pgindex;	/* page index */
+	pgindex_t	*pgindex;	/* pointer to page index */
 };
 
 /*
@@ -157,7 +157,7 @@ struct mm {
  * Note that these interfaces are independent of struct mm and struct vma,
  */
 /* Initialize a page index table and fill in the structure @pgindex */
-int init_pgindex(pgindex_t *pgindex);
+pgindex_t *init_pgindex(void);
 /* Destroy the page index table itself assuming that everything underlying is
  * already done with */
 void destroy_pgindex(pgindex_t *pgindex);
