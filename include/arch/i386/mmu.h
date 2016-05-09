@@ -77,13 +77,19 @@
 #define PDX(vaddr)	((vaddr) >> PDX_SHIFT)
 #define XPTX(vaddr)	((vaddr) >> XPTX_SHIFT)
 
+#define PTE_LOWMASK		0xfff
+
+#define PTE_PADDR(pte)		((pte) & ~PTE_LOWMASK)
+#define PTE_FLAGS(pte)		((pte) & PTE_LOWMASK)
+
 #ifndef __ASSEMBLER__
 
 #include <sys/types.h>
 
 typedef uint32_t pte_t, pde_t, xpte_t;
 
-typedef pde_t pgindex_t;
+/* physical address of page table */
+typedef uint32_t pgindex_t;
 
 void page_index_clear(pgindex_t * index);
 /*

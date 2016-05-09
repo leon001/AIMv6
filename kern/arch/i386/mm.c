@@ -45,7 +45,7 @@ int get_addr_space(void)
 
 void page_index_clear(pgindex_t *index)
 {
-	memset(index, 0, PAGE_SIZE);
+	memset(pa2kva(*index), 0, PAGE_SIZE);
 }
 
 /*
@@ -55,7 +55,7 @@ int page_index_early_map(pgindex_t *index,
 			 size_t vaddr,
 			 size_t length)
 {
-	xpte_t *xpte = (xpte_t *)index;
+	xpte_t *xpte = (xpte_t *)pa2kva(*index);
 	if (!(IS_ALIGNED(paddr, XPAGE_SIZE) &&
 	      IS_ALIGNED(vaddr, XPAGE_SIZE) &&
 	      IS_ALIGNED(length, XPAGE_SIZE)))
