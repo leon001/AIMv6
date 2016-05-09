@@ -51,7 +51,7 @@ BEGIN(__tlb_entry)
 	ADDU	k1, k0
 	LOAD	k1, (k1)	/* k1 = PGINDEX */
 	beqz	k1, 9f
-
+#ifndef __LP64__	/* 32 bit */
 	MFC0	k0, CP0_BADVADDR
 	SRL	k0, PDXSHIFT
 	AND	k0, PTXMASK
@@ -59,6 +59,31 @@ BEGIN(__tlb_entry)
 	ADDU	k1, k0
 	LOAD	k1, (k1)	/* k1 = PTE = PDE[PDX(va)] */
 	beqz	k1, 9f
+#else	/* 64 bit */
+	MFC0	k0, CP0_BADVADDR
+	SRL	k0, PGXSHIFT
+	AND	k0, PTXMASK
+	SLL	k0, WORD_SHIFT
+	ADDU	k1, k0
+	LOAD	k1, (k1)	/* k1 = PUD = PGD[PGX(va)] */
+	beqz	k1, 9f
+
+	MFC0	k0, CP0_BADVADDR
+	SRL	k0, PUXSHIFT
+	AND	k0, PTXMASK
+	SLL	k0, WORD_SHIFT
+	ADDU	k1, k0
+	LOAD	k1, (k1)	/* k1 = PMD = PUD[PUX(va)] */
+	beqz	k1, 9f
+
+	MFC0	k0, CP0_BADVADDR
+	SRL	k0, PMXSHIFT
+	AND	k0, PTXMASK
+	SLL	k0, WORD_SHIFT
+	ADDU	k1, k0
+	LOAD	k1, (k1)	/* k1 = PTE = PMD[PMX(va)] */
+	beqz	k1, 9f
+#endif
 
 	MFC0	k0, CP0_BADVADDR
 	SRL	k0, PTXSHIFT
@@ -90,5 +115,5 @@ BEGIN(__tlb_entry)
 9:	LI	k0, GENERIC_EXCEPT_ENTRY
 	jalr	k0
 	.set	pop
-END(tlb_entry)
+END(__tlb_entry)
 
