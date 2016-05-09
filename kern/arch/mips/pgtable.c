@@ -77,8 +77,8 @@ __getpagedesc(pgindex_t *pgindex,
 	      struct pagedesc *pd)
 {
 	addr_t paddr;
-	pde_t *pde = (pde_t *)*pgindex;
-	pd->pdev = *pgindex;
+	pde_t *pde = (pde_t *)pgindex;
+	pd->pdev = (uint32_t)pgindex;
 	pd->pdx = PDX(addr);
 	if (pde[pd->pdx] != 0) {
 		/* We already have the intermediate directory */
@@ -106,7 +106,7 @@ __getpagedesc(pgindex_t *pgindex,
 static void
 __free_intermediate_pgtable(pgindex_t *pgindex, void *vaddr, size_t size)
 {
-	pde_t *pde = (pde_t *)*pgindex;
+	pde_t *pde = (pde_t *)pgindex;
 	int pdx = PDX(vaddr), pdx_end = PDX(vaddr + size - PAGE_SIZE);
 	for (; pdx <= pdx_end; ++pdx) {
 		pte_t *pte = (pte_t *)pde[pdx];
@@ -176,7 +176,7 @@ __getpagedesc(pgindex_t *pgindex,
 	      bool create,
 	      struct pagedesc *pd)
 {
-	pgd_t *pgd = (pgd_t *)*pgindex;
+	pgd_t *pgd = (pgd_t *)pgindex;
 	pud_t *pud;
 	pmd_t *pmd;
 	pte_t *pte;
@@ -218,7 +218,7 @@ static void
 __free_intermediate_pgtable(pgindex_t *pgindex, void *vaddr, size_t size)
 {
 	/* A very inefficient implementation */
-	pgd_t *pgd = (pgd_t *)*pgindex;
+	pgd_t *pgd = (pgd_t *)pgindex;
 	pud_t *pud;
 	pmd_t *pmd;
 	pte_t *pte;
@@ -238,23 +238,22 @@ __free_intermediate_pgtable(pgindex_t *pgindex, void *vaddr, size_t size)
 
 #endif	/* !__LP64__ */
 
-int
-init_pgindex(pgindex_t *pgindex)
+pgindex_t *
+init_pgindex(void)
 {
 	addr_t paddr = pgalloc();
 	if (paddr == -1)
-		return -ENOMEM;
+		return NULL;
 
-	*pgindex = (pgindex_t)pa2kva(paddr);
-	memset((void *)*pgindex, 0, PAGE_SIZE);
+	memset(pa2kva(paddr), 0, PAGE_SIZE);
 
-	return 0;
+	return pa2kva(paddr);
 }
 
 void
 destroy_pgindex(pgindex_t *pgindex)
 {
-	pgfree(kva2pa((void *)*pgindex));
+	pgfree(kva2pa(pgindex));
 }
 
 /* TODO: put this into a header */
@@ -351,7 +350,7 @@ unmap_pages(pgindex_t *pgindex,
 		if (__getpagedesc(pgindex, vcur, false, &pd) < 0)
 			/* may return -ENOENT? */
 			panic("unmap_pages non-existent: %p %p\n",
-			    *pgindex, vcur);
+			    pgindex, vcur);
 		pte = (pte_t *)pd.ptev;
 		if (unmapped_bytes == 0) {
 			/* unmapping the first page: store the physical
