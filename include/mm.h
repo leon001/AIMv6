@@ -168,7 +168,12 @@ void destroy_pgindex(pgindex_t *pgindex);
 /* Map virtual address starting at @vaddr to physical pages at @paddr, with
  * VMA flags @flags (VMA_READ, etc.) Additional flags apply as following:
  */
-
+#define MAP_TYPE_MASK	0x30000
+#define MAP_USER_MEM	0x00000
+#define	MAP_KERN_MEM	0x10000
+#define MAP_PRIV_DEV	0x20000	/* eg. device on private bus */
+#define MAP_SHARED_DEV	0x30000	/* normal devices */
+#define MAP_LARGE	0x40000
 int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
     uint32_t flags);
 /*

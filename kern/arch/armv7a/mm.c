@@ -49,20 +49,58 @@ addr_t get_mem_size()
 /*
  * by CLEARing a page index, caller assumes it contains no allocated space.
  * Often used to initialize a page index.
+ * Two functions for clearing two different levels of the page table.
+ * First one used by early boot stages, and both are used as allocator
+ * callbacks, so they are named differently and have different signature.
  */
 void page_index_clear(pgindex_t * index)
 {
 	memset(index, 0, ARM_PT_L1_SIZE);
 }
 
-/* This internal routine does not check for bad parameters */
-static inline void __arm_map_sect(arm_pte_l1_t *page_table, addr_t paddr,
-	size_t vaddr, uint32_t ap, uint32_t dom)
+static void __pt_l2_clear(void *pt)
 {
+	memset(pt, 0, ARM_PT_L2_SIZE);
+}
+
+/* process general flags into ARM-specific flags */
+#define mkflags(flags, ap, dom, tex, c, b, s, xn) \
+	do { \
+	uint32_t f = (flags); \
+	if (f & VMA_WRITE) (ap) = ARM_PT_AP_USER_BOTH; \
+	else if (f & VMA_READ) (ap) = ARM_PT_AP_USER_READ; \
+	else (ap) = ARM_PT_AP_USER_NONE; \
+	(dom) = 0; \
+	if (f & VMA_EXEC) (xn) = 0; \
+	else (xn) = 1; \
+	f &= MAP_TYPE_MASK; \
+	switch(f) { \
+		case MAP_USER_MEM: (tex)=1; (c)=1; (b)=1; (s)=1; break; \
+		case MAP_KERN_MEM: (tex)=1; (c)=1; (b)=1; (s)=1; break; \
+		case MAP_PRIV_DEV: (tex)=2; (c)=0; (b)=0; (s)=0; break; \
+		case MAP_SHARED_DEV: (tex)=0; (c)=0; (b)=1; (s)=0; break; \
+		default: (tex)=1; (c)=1; (b)=1; (s)=1; \
+	} \
+	} while (0)
+
+/* internal routines does not check for bad parameters */
+static inline void __arm_map_sect(arm_pte_l1_t *page_table, addr_t paddr,
+	size_t vaddr, uint32_t flags)
+{
+	uint32_t ap, dom, tex, c, b, s, xn;
+	/* process flags */
+	mkflags(flags, ap, dom, tex, c, b, s, xn);
+
+	/* apply map */
 	arm_pte_l1_t entry = ARM_PT_L1_SECT;
-	entry |= paddr >> ARM_SECT_SHIFT << 20;
+	entry |= paddr;
+	entry |= s << 16;
+	entry |= tex << 12;
 	entry |= ap << 10;
 	entry |= dom << 5;
+	entry |= xn << 4;
+	entry |= c << 3;
+	entry |= b << 2;
 	page_table[vaddr >> ARM_SECT_SHIFT] = entry;
 }
 
@@ -81,7 +119,7 @@ int page_index_early_map(pgindex_t *index, addr_t paddr, size_t vaddr,
 	/* map each ARM SECT */
 	size_t vend = vaddr + length;
 	while (vaddr < vend) {
-		__arm_map_sect(index, paddr, vaddr, ARM_PT_AP_USER_NONE, 0);
+		__arm_map_sect(index, paddr, vaddr, MAP_SHARED_DEV | VMA_EXEC);
 		paddr += ARM_SECT_SIZE;
 		vaddr += ARM_SECT_SIZE;
 	}
@@ -142,16 +180,6 @@ int get_addr_space()
 	return (pc > KERN_BASE);
 }
 
-static void __reset_pt_l1(void *pt)
-{
-	memset(pt, 0, ARM_PT_L1_SIZE);
-}
-
-static void __reset_pt_l2(void *pt)
-{
-	memset(pt, 0, ARM_PT_L2_SIZE);
-}
-
 void arch_mm_init(void)
 {
 	/* initialize allocator cache for L1 page tables */
@@ -160,8 +188,8 @@ void arch_mm_init(void)
 	pt_l1_cache->size = ARM_PT_L1_SIZE;
 	pt_l1_cache->align = ARM_PT_L1_SIZE;
 	pt_l1_cache->flags = 0;
-	pt_l1_cache->create_obj = __reset_pt_l1;
-	pt_l1_cache->destroy_obj = __reset_pt_l1;
+	pt_l1_cache->create_obj = (void *)page_index_clear;
+	pt_l1_cache->destroy_obj = (void *)page_index_clear;
 	assert(cache_create(pt_l1_cache) == 0);
 
 	/* initialize allocator cache for L2 page tables */
@@ -170,8 +198,8 @@ void arch_mm_init(void)
 	pt_l2_cache->size = ARM_PT_L2_SIZE;
 	pt_l2_cache->align = ARM_PT_L2_SIZE;
 	pt_l2_cache->flags = 0;
-	pt_l2_cache->create_obj = __reset_pt_l2;
-	pt_l2_cache->destroy_obj = __reset_pt_l2;
+	pt_l2_cache->create_obj = __pt_l2_clear;
+	pt_l2_cache->destroy_obj = __pt_l2_clear;
 	assert(cache_create(pt_l2_cache) == 0);
 
 	/* SCU, cache and branch predict goes here */
