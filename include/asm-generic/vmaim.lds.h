@@ -48,7 +48,7 @@
 	. = ALIGN((align));						\
 	*(.data)
 
-#define __INIT(sec, align)						\
+#define __INIT_SECTIONS(sec, align)					\
 	. = ALIGN((align));						\
 	SYMBOL(sec##_init_start) = .;					\
 	*(.init.##sec##0)						\
@@ -61,10 +61,16 @@
 	*(.init.##sec##7)						\
 	SYMBOL(sec##_init_end) = .;
 
-#define EARLY_INIT(align)	__INIT(early, align)
+#define __INIT_SECTION(sec, align)					\
+	. = ALIGN((align));						\
+	SYMBOL(sec##_init_start) = .;					\
+	*(.init.##sec)							\
+	SYMBOL(sec##_init_end) = .;
+
+#define EARLY_INIT(align)	__INIT_SECTION(early, align)
 /* NORM is added as indication */
-#define NORM_INIT(align)	__INIT(norm, align)
-#define LATE_INIT(align)	__INIT(late, align)
+#define NORM_INIT(align)	__INIT_SECTIONS(norm, align)
+#define LATE_INIT(align)	__INIT_SECTION(late, align)
 
 #define RODATA(align)							\
 	. = ALIGN((align));						\

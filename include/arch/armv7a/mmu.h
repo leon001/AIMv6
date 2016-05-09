@@ -48,9 +48,12 @@
 #define ARM_PT_AP_USER_READ	0x2
 #define ARM_PT_AP_USER_BOTH	0x3
 
+#define ARM_PT_L1_TABLE_BASE_MASK	0xFFFFFC00
+
+#define ARM_PT_L1_TYPE_MASK	0x3
 #define ARM_PT_L1_RES		0x3
 #define ARM_PT_L1_SECT		0x2
-#define ARM_PT_L1_PAGE		0x1
+#define ARM_PT_L1_TABLE		0x1
 #define ARM_PT_L1_FREE		0x0
 
 #ifndef __ASSEMBLER__
@@ -82,6 +85,9 @@
  */
 typedef uint32_t arm_pte_l1_t;
 typedef uint32_t arm_pte_l2_t;
+
+#define ARM_PT_L1_SIZE	(ARM_PT_L1_LENGTH * sizeof(arm_pte_l1_t))
+#define ARM_PT_L2_SIZE	(ARM_PT_L2_LENGTH * sizeof(arm_pte_l2_t))
 
 /*
  * Define pgindex_t so interface routines can pass its pointer.

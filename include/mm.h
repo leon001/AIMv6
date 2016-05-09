@@ -166,7 +166,9 @@ pgindex_t *init_pgindex(void);
  * already done with */
 void destroy_pgindex(pgindex_t *pgindex);
 /* Map virtual address starting at @vaddr to physical pages at @paddr, with
- * VMA flags @flags (VMA_READ, etc.)  */
+ * VMA flags @flags (VMA_READ, etc.) Additional flags apply as following:
+ */
+
 int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
     uint32_t flags);
 /*

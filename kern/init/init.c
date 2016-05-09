@@ -82,6 +82,9 @@ void __noreturn master_init(void)
 
 	kputs("KERN: Traps test passed.\n");
 
+	/* do early initcalls, one by one */
+	do_early_initcalls();
+
 	mm_init();
 	kputs("KERN: Memory management component initialized.\n");
 
@@ -91,8 +94,8 @@ void __noreturn master_init(void)
 	/* allocate per-cpu context and kworker */
 //	proc_init();
 
-	/* do early initcalls, one by one */
-	do_early_initcalls();
+	/* do initcalls, one by one */
+	do_initcalls();
 
 	/* temporary tests */
 	struct allocator_cache cache = {

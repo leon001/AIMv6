@@ -29,6 +29,10 @@
 #include <mmu.h>
 #include <pmm.h>
 #include <vmm.h>
+#include <panic.h>
+#include <libc/string.h>
+
+static struct allocator_cache *pt_l1_cache = NULL, *pt_l2_cache = NULL;
 
 addr_t get_mem_physbase()
 {
@@ -48,11 +52,7 @@ addr_t get_mem_size()
  */
 void page_index_clear(pgindex_t * index)
 {
-	arm_pte_l1_t *page_table = index;
-	int i;
-	for (i = 0; i < ARM_PT_L1_LENGTH; ++i) {
-		page_table[i] = 0;
-	}
+	memset(index, 0, ARM_PT_L1_SIZE);
 }
 
 /* This internal routine does not check for bad parameters */
@@ -140,5 +140,81 @@ int get_addr_space()
 		:[pc] "=r" (pc)
 	);
 	return (pc > KERN_BASE);
+}
+
+static void __reset_pt_l1(void *pt)
+{
+	memset(pt, 0, ARM_PT_L1_SIZE);
+}
+
+static void __reset_pt_l2(void *pt)
+{
+	memset(pt, 0, ARM_PT_L2_SIZE);
+}
+
+void arch_mm_init(void)
+{
+	/* initialize allocator cache for L1 page tables */
+	pt_l1_cache = kmalloc(sizeof(*pt_l1_cache), 0);
+	assert(pt_l1_cache != NULL);
+	pt_l1_cache->size = ARM_PT_L1_SIZE;
+	pt_l1_cache->align = ARM_PT_L1_SIZE;
+	pt_l1_cache->flags = 0;
+	pt_l1_cache->create_obj = __reset_pt_l1;
+	pt_l1_cache->destroy_obj = __reset_pt_l1;
+	assert(cache_create(pt_l1_cache) == 0);
+
+	/* initialize allocator cache for L2 page tables */
+	pt_l2_cache = kmalloc(sizeof(*pt_l2_cache), 0);
+	assert(pt_l2_cache != NULL);
+	pt_l2_cache->size = ARM_PT_L2_SIZE;
+	pt_l2_cache->align = ARM_PT_L2_SIZE;
+	pt_l2_cache->flags = 0;
+	pt_l2_cache->create_obj = __reset_pt_l2;
+	pt_l2_cache->destroy_obj = __reset_pt_l2;
+	assert(cache_create(pt_l2_cache) == 0);
+
+	/* SCU, cache and branch predict goes here */
+}
+
+pgindex_t *init_pgindex(void)
+{
+	return (pgindex_t *)cache_alloc(pt_l1_cache);
+}
+
+void destroy_pgindex(pgindex_t *pgindex)
+{
+	arm_pte_l1_t *table = pgindex;
+	int i;
+
+	/* free L2 tables (if any) */
+	for (i = 0; i < ARM_PT_L1_LENGTH; i += 1) {
+		uint32_t type = table[i] & ARM_PT_L1_TYPE_MASK;
+		if (type == ARM_PT_L1_TABLE) {
+			uint32_t l2table =
+				table[i] & ARM_PT_L1_TABLE_BASE_MASK;
+			cache_free(pt_l2_cache, (void *)l2table);
+		}
+	}
+
+	/* free the L1 table itself */
+	cache_free(pt_l1_cache, pgindex);
+}
+
+int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
+    uint32_t flags)
+{
+	uint32_t ap, dom, tex, c, b;
+	/* access flags */
+	dom = 0;
+
+	/* try to map some sections */
+	
+	return 0;
+}
+
+ssize_t unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, addr_t *paddr)
+{
+	return 0;
 }
 
