@@ -21,6 +21,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <mmu.h>
+#include <asm-generic/vmaim.lds.h>
 
 /* A hack for disabling the preprocessor to replace $ARCH automatically */
 #undef i386
@@ -105,6 +106,9 @@ SECTIONS
 	.rodata : ALIGN(4) {
 		_rodata_begin = .;
 		*(.rodata*)
+		EARLY_INIT(STRUCT_ALIGNMENT)
+		NORM_INIT(STRUCT_ALIGNMENT)
+		LATE_INIT(STRUCT_ALIGNMENT)
 		_rodata_end = .;
 	} >VMEM AT>PMEM :rodata
 

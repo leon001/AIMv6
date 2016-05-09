@@ -176,7 +176,6 @@ sym:		.long	long
 # define MFC0		mfc0
 # define MTC0		mtc0
 
-# define WORD_SHIFT	2
 #else	/* 64 bit */
 /* Load constant, See MIPS Run 8.7.3 */
 # define LA		dla
@@ -220,10 +219,7 @@ sym:		.long	long
 # define MFC0		dmfc0
 # define MTC0		dmtc0
 
-# define WORD_SHIFT	3
 #endif	/* __LP64__ */
-
-#define WORD_SIZE	(1 << WORD_SHIFT)
 
 #define MFC032		mfc0
 #define MTC032		mtc0

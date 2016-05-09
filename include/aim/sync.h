@@ -22,7 +22,7 @@
 
 /* Spinlocks. Implemented by architectures. */
 
-typedef int lock_t;
+typedef unsigned int lock_t;
 #define UNLOCKED	0
 #define LOCKED		1
 

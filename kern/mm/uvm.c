@@ -21,6 +21,7 @@
 #include <mmu.h>
 #include <atomic.h>
 #include <errno.h>
+#include <panic.h>
 
 struct mm *
 mm_new(void)

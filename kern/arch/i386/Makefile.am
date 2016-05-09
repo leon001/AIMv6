@@ -27,7 +27,8 @@ CLEANFILES = vmaim.lds
 
 libentry_la_SOURCES = entry.S
 
-libi386_la_SOURCES = arch_init.c mm.c util.c trap.c trapentry.S vectors.S
+libi386_la_SOURCES = arch_init.c mm.c util.c trap.c trapentry.S vectors.S \
+		     pgtable.c sync.c
 
 vectors.S: $(top_srcdir)/tools/arch/i386/vectors.pl
 	perl -w $^ >$@

@@ -16,24 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PANIC_H
-#define _PANIC_H
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-__noreturn
-void __panic(void);
+#include <aim/sync.h>
+#include <asm.h>
 
-__noreturn
-void panic(const char *fmt, ...);
+void spinlock_init(lock_t *lock)
+{
+	*lock = UNLOCKED;
+}
 
-#define assert(condition) \
-	do { \
-		if (!(condition)) \
-			panic("Assertation failed: %s\n", #condition); \
-	} while (0)
+void spin_lock(lock_t *lock)
+{
+	while (xchg(lock, LOCKED) != 0)
+		/* nothing */;
+}
 
-#endif
+void spin_unlock(lock_t *lock)
+{
+	xchg(lock, UNLOCKED);
+}
 

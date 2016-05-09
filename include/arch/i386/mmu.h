@@ -28,12 +28,12 @@
 #include <util.h>
 
 /* addresses before and after early MMU mapping */
-#define __premap_addr(kva)	(ADDR_CAST(kva) - KERN_BASE)
-#define __postmap_addr(pa)	(ADDR_CAST(pa) + KERN_BASE)
+#define __premap_addr(kva)	(ULCAST(kva) - KERN_BASE)
+#define __postmap_addr(pa)	(ULCAST(pa) + KERN_BASE)
 
 /* kernel virtual address and physical address conversion */
-#define kva2pa(kva)		(ADDR_CAST(kva) - KERN_BASE)
-#define pa2kva(pa)		(ADDR_CAST(pa) + KERN_BASE)
+#define kva2pa(kva)		(ULCAST(kva) - KERN_BASE)
+#define pa2kva(pa)		(PTRCAST(pa) + KERN_BASE)
 
 #define PAGE_SHIFT	12
 #define PTX_SHIFT	PAGE_SHIFT
@@ -42,6 +42,8 @@
 #define XPAGE_SHIFT	22
 #define XPTX_SHIFT	XPAGE_SHIFT
 #define XPAGE_SIZE	(1 << XPAGE_SHIFT)	/* 4MB */
+
+#define NR_PTENTRIES	(1 << (PAGE_SHIFT - WORD_SHIFT))
 
 /* Page table flags */
 #define PTE_P		0x1		/* Present */
@@ -73,9 +75,9 @@
 #define mkpte(paddr, flags) \
 	(ALIGN_BELOW(paddr, PAGE_SIZE) | (flags))
 
-#define PTX(vaddr)	((vaddr) >> PTX_SHIFT)
-#define PDX(vaddr)	((vaddr) >> PDX_SHIFT)
-#define XPTX(vaddr)	((vaddr) >> XPTX_SHIFT)
+#define PTX(vaddr)	(ULCAST(vaddr) >> PTX_SHIFT)
+#define PDX(vaddr)	(ULCAST(vaddr) >> PDX_SHIFT)
+#define XPTX(vaddr)	(ULCAST(vaddr) >> XPTX_SHIFT)
 
 #define PTE_LOWMASK		0xfff
 
@@ -85,6 +87,7 @@
 #ifndef __ASSEMBLER__
 
 #include <sys/types.h>
+#include <pmm.h>
 
 typedef uint32_t pte_t, pde_t, xpte_t;
 
@@ -97,6 +100,26 @@ void page_index_clear(pgindex_t * index);
  */
 int page_index_early_map(pgindex_t * index, addr_t paddr, size_t vaddr,
 	size_t length);
+
+/* Returns -1 on error */
+static inline addr_t pgalloc(void)
+{
+	struct pages p;
+	p.size = PAGE_SIZE;
+	p.flags = 0;
+	if (alloc_pages(&p) != 0)
+		return -1;
+	return p.paddr;
+}
+
+static inline void pgfree(addr_t paddr)
+{
+	struct pages p;
+	p.paddr = paddr;
+	p.size = PAGE_SIZE;
+	p.flags = 0;
+	free_pages(&p);
+}
 #endif
 
 #endif
