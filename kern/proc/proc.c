@@ -60,5 +60,13 @@ struct proc *proc_new(struct namespace *ns)
 	proc->kpid = kpid_new();
 	proc->pid = (ns == NULL) ? proc->kpid : pid_new(ns);
 	proc->state = PS_EMBRYO;
+	proc->exit_code = 0;
+	proc->exit_signal = 0;
+	proc->flags = 0;
+	proc->oncpu = CPU_NONE;
+	proc->bed = NULL;
+	proc->namespace = ns;
+	proc->mm = mm_new();
+	proc->regs = (struct regs *)kmalloc(sizeof(*(proc->regs), 0));
 }
 

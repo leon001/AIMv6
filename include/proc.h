@@ -51,6 +51,7 @@ struct proc {
 #define PF_EXITING	0x00000004	/* getting shut down */
 #define PF_SIGNALED	0x00000400	/* killed by a signal */
 	int		oncpu;		/* CPU ID being running on */
+#define CPU_NONE	-1
 	uintptr_t	bed;		/* address we are sleeping on */
 	struct namespace *namespace;	/* Namespace */
 	struct mm 	*mm; /* Memory mapping structure including pgindex */
