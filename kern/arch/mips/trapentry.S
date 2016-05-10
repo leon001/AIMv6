@@ -25,6 +25,7 @@
 #include <cp0regdef.h>
 #include <smp.h>
 #include <stack.h>
+#include <util.h>
 
 /*
  * General exception handler entry

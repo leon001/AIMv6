@@ -28,6 +28,7 @@
 #include <console.h>
 #include <list.h>
 #include <util.h>
+#include <bitops.h>
 
 /*
  * Large Aligned Object allocator, serving as caching allocator.
@@ -185,7 +186,7 @@ static void *__alloc(struct allocator_cache *cache)
 	/* perform a single allocation */
 	i = -1;
 	do {
-		j = get_lowest_0(slab->used[++i]);
+		j = ffz(slab->used[++i]) - 1;
 	} while (j == -1);
 	/* won't go out of bounds */
 	slab->used[i] |= (1 << j);

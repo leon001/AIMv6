@@ -16,24 +16,50 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PANIC_H
-#define _PANIC_H
+#ifndef _ARCH_BITOPS_H
+#define _ARCH_BITOPS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+#define ffs(x)	__ffs(x)
+#define fls(x)	__fls(x)
+#define ffz(x)	__ffz(x)
+#define flz(x)	__flz(x)
+
+static inline int __ffs(unsigned long x)
+{
+	int r;
+	asm (
+		"	bsfl	%1, %0;"
+		"	jnz	1f;"
+		"	movl	$-1, %0;"
+		"1:"
+		: "=r"(r)
+		: "rm"(x)
+	);
+	return r + 1;
+}
+
+static inline int __fls(unsigned long x)
+{
+	int r;
+	asm (
+		"	bsrl	%1, %0;"
+		"	jnz	1f;"
+		"	movl	$-1, %0;"
+		"1:"
+		: "=r"(r)
+		: "rm"(x)
+	);
+	return r + 1;
+}
+
+static inline int __ffz(unsigned long x)
+{
+	return __ffs(~x);
+}
+
+static inline int __flz(unsigned long x)
+{
+	return __fls(~x);
+}
+
 #endif
-
-__noreturn
-void __panic(void);
-
-__noreturn
-void panic(const char *fmt, ...);
-
-#define assert(condition) \
-	do { \
-		if (!(condition)) \
-			panic("Assertation failed: %s\n", #condition); \
-	} while (0)
-
-#endif
-

@@ -23,6 +23,16 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
+#ifdef __LP64__
+#define WORD_SHIFT	3
+#define WORD_SIZE	8
+#define BITS_PER_LONG	64
+#else
+#define WORD_SHIFT	2
+#define WORD_SIZE	4
+#define BITS_PER_LONG	32
+#endif
+
 #ifndef __ASSEMBLER__
 
 #include <sys/types.h>
@@ -88,10 +98,12 @@
 
 #define ADDR_CAST(x)		((size_t)(x))
 #define ULCAST(x)		((size_t)(x))
+#define PTRCAST(x)		((void *)ULCAST(x))
 
 #else	/* __ASSEMBLER__ */
 
 #define ULCAST(x)		(x)
+#define PTRCAST(x)		(x)
 
 #endif	/* !__ASSEMBLER__ */
 

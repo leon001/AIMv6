@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,24 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PANIC_H
-#define _PANIC_H
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-__noreturn
-void __panic(void);
-
-__noreturn
-void panic(const char *fmt, ...);
-
-#define assert(condition) \
-	do { \
-		if (!(condition)) \
-			panic("Assertation failed: %s\n", #condition); \
-	} while (0)
+#ifndef _ARCH_SYNC_H
+#define _ARCH_SYNC_H
 
 #endif
 

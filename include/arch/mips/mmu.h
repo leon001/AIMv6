@@ -21,7 +21,6 @@
 
 /* premap_addr() and postmap_addr() in addrspace.h */
 #include <addrspace.h>
-#include <asm.h>	/* WORD_SHIFT */
 #include <util.h>
 
 #define PAGE_SHIFT	12

@@ -25,6 +25,7 @@
 
 #include <asm.h>
 #include <smp.h>
+#include <util.h>
 
 #ifdef __ASSEMBLER__
 	/* Assumes a correct kernel gp */

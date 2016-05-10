@@ -36,14 +36,8 @@ static inline void atomic_inc(atomic_t *counter)
 {
 	uint32_t reg;
 	asm volatile (
-		"	.set	push;"
-		"	.set	reorder;"
-		"1:	ll	%[reg], %[mem];"
-		"	addu	%[reg], 1;"
-		"	sc	%[reg], %[mem];"
-		"	beqz	%[reg], 1b;"
-		"	.set	pop;"
-		: [reg] "=&r"(reg), [mem] "+m"(*counter)
+		"lock incl	%0"
+		: "+m" (*counter)
 	);
 }
 
@@ -52,15 +46,10 @@ static inline void atomic_dec(atomic_t *counter)
 {
 	uint32_t reg;
 	asm volatile (
-		"	.set	push;"
-		"	.set	reorder;"
-		"1:	ll	%[reg], %[mem];"
-		"	addu	%[reg], -1;"
-		"	sc	%[reg], %[mem];"
-		"	beqz	%[reg], 1b;"
-		"	.set	pop;"
-		: [reg] "=&r"(reg), [mem] "+m"(*counter)
+		"lock decl	%0"
+		: "+m" (*counter)
 	);
 }
 
 #endif
+
