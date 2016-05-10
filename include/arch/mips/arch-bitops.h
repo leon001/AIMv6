@@ -69,7 +69,7 @@ static inline int __flz(unsigned long x)
 
 static inline int __ffz(unsigned long x)
 {
-	return __flz(x & (-x));
+	return __flz(~(~x & (-~x)));
 }
 
 #ifdef __LP64__
@@ -80,4 +80,3 @@ static inline int __ffz(unsigned long x)
 #endif
 
 #endif
-
