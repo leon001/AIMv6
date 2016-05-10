@@ -38,8 +38,5 @@
 
 #endif /* __ASSEMBLER__ */
 
-/* provide some default implementations */
-#include <asm-generic/sync.h>
-
 #endif /* _ARCH_SYNC_H */
 

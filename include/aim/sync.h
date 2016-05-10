@@ -22,6 +22,7 @@
 #include <sys/types.h>
 
 #include <arch-sync.h>
+#include <asm-generic/sync.h>
 
 #ifndef __ASSEMBLER__
 
