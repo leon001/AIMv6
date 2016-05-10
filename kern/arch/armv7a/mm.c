@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <aim/early_kmmap.h>
 #include <aim/export.h>
+#include <aim/kmmap.h>
 #include <list.h>
 #include <util.h>
 #include <console.h>
@@ -369,6 +370,8 @@ ssize_t unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, addr_t *paddr)
 	if (this_size == 0) return 0;
 	head_paddr = this_paddr;
 	block_size = this_size;
+	if (paddr != NULL)
+		*paddr = head_paddr;
 	while (block_size < size) {
 		/* unmap */
 		/* increment address */

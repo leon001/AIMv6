@@ -71,8 +71,10 @@ int early_mapping_add(struct early_mapping *entry)
 	}
 	/* Commit change */
 	queue[queue_size++] = *entry;
-	debug_kprintf("Added early mapping: va=0x%08x, pa=%08x, size=0x%08x.\n",
-		entry->vaddr, entry->paddr, entry->size);
+	debug_kprintf(
+		"Added early mapping: va=0x%08x, pa=0x%08x, size=0x%08x.\n",
+		entry->vaddr, (size_t)entry->paddr, entry->size
+	);
 	return 0;
 }
 

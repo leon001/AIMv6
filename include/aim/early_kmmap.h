@@ -19,9 +19,9 @@
 #ifndef _AIM_EARLY_KMMAP_H
 #define _AIM_EARLY_KMMAP_H
 
-#ifndef __ASSEMBLER__
-
 #include <sys/types.h>
+
+#ifndef __ASSEMBLER__
 
 struct early_mapping {
 	addr_t	paddr;
@@ -37,6 +37,7 @@ struct early_mapping {
 /* Architecture-specific */
 bool early_mapping_valid(struct early_mapping *entry);
 
+/* Architecture-independent */
 void early_mapping_clear(void);
 size_t early_mapping_add_memory(addr_t base, size_t size);
 void *early_mapping_add_kmmap(addr_t base, size_t size);
