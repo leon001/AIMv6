@@ -26,7 +26,7 @@
 
 #include <io.h>
 #include <console.h>
-#include <device.h>
+#include <aim/device.h>
 #include <drivers/io/io-mem.h>
 #include <mm.h>
 

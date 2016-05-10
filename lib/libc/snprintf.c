@@ -82,8 +82,18 @@ fmt_loop:		switch (*fmt) {
 				base = 8;
 				goto get_uint;
 			case 'x':
-			case 'p':
 				base = 16;
+				goto get_uint;
+			case 'p':
+				/* %p equals %08x on 32 bit and %016x on
+				 * 64 bit */
+				base = 16;
+				flag |= FLAG_ZEROPAD;
+#ifdef __LP64__	/* 64 bit */
+				width = 16;
+#else	/* 32 bit */
+				width = 8;
+#endif	/* __LP64__ */
 				goto get_uint;
 			case 'u':
 				base = 10;

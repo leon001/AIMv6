@@ -21,23 +21,47 @@
 
 /* premap_addr() and postmap_addr() in addrspace.h */
 #include <addrspace.h>
+#include <util.h>
 
 #define PAGE_SHIFT	12
 #define PAGE_SIZE	(1 << PAGE_SHIFT)
+#define PAGE_MASK	(PAGE_SIZE - 1)
 
 #ifndef __ASSEMBLER__
 
 #include <sys/types.h>
-
-typedef uint32_t pte_t, pde_t;
-
-/* TODO: I wonder if something like pgtable_t is better */
-typedef pde_t pgindex_t;
+#include <pgtable.h>
+#include <pmm.h>
 
 void page_index_clear(pgindex_t *index);
 int page_index_early_map(pgindex_t *index, addr_t paddr, size_t vaddr,
     size_t length);
 
-#endif
+/*
+ * Fixed-size single page allocation is not applicable on all platforms.
+ */
+
+/* Returns -1 on error */
+static inline addr_t pgalloc(void)
+{
+	struct pages p;
+	p.size = PAGE_SIZE;
+	p.flags = 0;
+	if (alloc_pages(&p) != 0)
+		return -1;
+	return p.paddr;
+}
+
+static inline void pgfree(addr_t paddr)
+{
+	struct pages p;
+	p.paddr = paddr;
+	p.size = PAGE_SIZE;
+	p.flags = 0;
+	free_pages(&p);
+}
+
+#endif	/* !__ASSEMBLER__ */
 
 #endif
+

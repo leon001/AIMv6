@@ -25,6 +25,7 @@
 
 #include <asm.h>
 #include <smp.h>
+#include <util.h>
 
 #ifdef __ASSEMBLER__
 	/* Assumes a correct kernel gp */
@@ -58,7 +59,6 @@
 	.endm
 
 	.macro	PUSHSTATIC
-	PUSH	s8
 	PUSH	s7
 	PUSH	s6
 	PUSH	s5
@@ -78,12 +78,9 @@
 	POP	s5
 	POP	s6
 	POP	s7
-	POP	s8
 	.endm
 
 	.macro	PUSHTEMP
-	PUSH	t9
-	PUSH	t8
 	PUSH	t7
 	PUSH	t6
 	PUSH	t5
@@ -103,8 +100,6 @@
 	POP	t5
 	POP	t6
 	POP	t7
-	POP	t8
-	POP	t9
 	.endm
 
 	.macro	PUSHARGS
@@ -115,9 +110,11 @@
 	PUSH	v1
 	PUSH	v0
 	PUSH	AT
+	PUSH	zero	/* Theoretically we don't need it */
 	.endm
 
 	.macro	POPARGS
+	POP	AT	/* Discard the stored zero */
 	POP	AT
 	POP	v0
 	POP	v1

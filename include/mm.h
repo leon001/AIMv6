@@ -16,12 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #ifndef _MM_H
 #define _MM_H
 
+#include <list.h>
 #include <mmu.h>
-
+#include <pmm.h>
 #include <sys/types.h>
+
+#ifndef __ASSEMBLER__
 
 /* premap_addr: always returns low address.
  * The function which assumes that the argument is a high address
@@ -38,8 +45,6 @@
 	size_t i = (size_t)(a); \
 	(i >= KERN_BASE) ? (i) : __postmap_addr(i); \
 })
-
-#ifndef __ASSEMBLER__
 
 addr_t get_mem_physbase();
 addr_t get_mem_size();
@@ -72,6 +77,9 @@ int page_index_init(pgindex_t *boot_page_index);
 int mmu_init(pgindex_t *boot_page_index);
 
 void early_mm_init(void);	/* arch-specific */
+
+void mm_init(void);
+void arch_mm_init(void);	/* arch-specific */
 
 /* Clear all MMU init callback handlers */
 void mmu_handlers_clear(void);
@@ -108,7 +116,106 @@ void abs_jump(void *addr);
  */
 int get_addr_space(void);
 
-#endif /* __ASSEMBLY__ */
+struct mm;
+
+/*
+ * Virtual memory area structure
+ *
+ * The list of virtual memory areas must satisfy:
+ * 1. that the virtual memory areas should be sorted in ascending order of
+ *    virtual address, AND
+ * 2. that each virtual memory area should be mapped to exactly one
+ *    contiguous page block (stored in struct pages) in a one-to-one manner,
+ *    AND
+ * 3. that the virtual memory areas should never overlap.
+ */
+struct vma {
+	/* Must be page-aligned */
+	void		*start;
+	size_t		size;
+
+	uint32_t	flags;
+	/* These flags match ELF segment flags */
+#define VMA_EXEC	0x01
+#define VMA_WRITE	0x02
+#define VMA_READ	0x04
+	/* More flags */
+#define VMA_FILE	0x100		/* For mmap(2) */
+	/* Since we are not maintaining a list for all physical pages, we
+	 * have to keep a struct pages pointer with struct vma in case of
+	 * shared memory. */
+	struct pages	*pages;
+	struct list_head node;
+};
+
+struct mm {
+	struct list_head vma_head;	/* virtual memory area list sentry */
+	size_t		vma_count;	/* number of virtual memory areas */
+	size_t		ref_count;	/* reference count (may be unused) */
+	pgindex_t	*pgindex;	/* pointer to page index */
+};
+
+/*
+ * Architecture-specific interfaces
+ * All addresses should be page-aligned.
+ * Note that these interfaces are independent of struct mm and struct vma,
+ */
+/* Initialize a page index table and fill in the structure @pgindex */
+pgindex_t *init_pgindex(void);
+/* Destroy the page index table itself assuming that everything underlying is
+ * already done with */
+void destroy_pgindex(pgindex_t *pgindex);
+/* Map virtual address starting at @vaddr to physical pages at @paddr, with
+ * VMA flags @flags (VMA_READ, etc.) Additional flags apply as following:
+ */
+#define MAP_TYPE_MASK	0x30000
+#define MAP_USER_MEM	0x00000
+#define	MAP_KERN_MEM	0x10000
+#define MAP_PRIV_DEV	0x20000	/* eg. device on private bus */
+#define MAP_SHARED_DEV	0x30000	/* normal devices */
+#define MAP_LARGE	0x40000
+int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
+    uint32_t flags);
+/*
+ * Unmap but do not free the physical frames
+ * Returns the size of unmapped physical memory (may not equal to @size), or
+ * negative for error.
+ * The physical address of unmapped pages are stored in @paddr.
+ */
+ssize_t unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, addr_t *paddr);
+
+/*
+ * Architecture-independent interfaces
+ * Address must be page-aligned.
+ */
+/* Create a size @len user space mapping starting at virtual address @addr */
+int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags);
+/* Destroy a size @len user space mapping starting at @addr */
+int destroy_uvm(struct mm *mm, void *addr, size_t len);
+/* Share user space mapping between two memory mapping structures for
+ * copy-on-write or shared memory.  Not implemented. */
+int share_uvm(struct mm *mm_src, void *addr_src, struct mm *mm_dst,
+    void *addr_dst, size_t len, uint32_t flags);
+/* Duplicate user space mapping and copy contents inside.
+ * FIXME: shall we include VMA flags? */
+int dup_uvm(struct mm *mm_src, void *addr_src, struct mm *mm_dst,
+    void *addr_dst, size_t len);
+
+/*
+ * Architecture-independent interfaces
+ * Address need not be page-aligned
+ */
+/* Copy from kernel address @kvaddr to user space at @uvaddr */
+int copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
+/* Does the reverse */
+int copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
+
+/* Create a struct mm with a new page index */
+struct mm *mm_new(void);
+/* Destroy a struct mm and all the underlying memory mappings */
+void mm_destroy(struct mm *mm);
+
+#endif /* !__ASSEMBLER__ */
 
 #endif /* _MM_H */
 

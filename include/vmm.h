@@ -20,6 +20,7 @@
 #define _VMM_H
 
 #include <sys/types.h>
+#include <aim/sync.h>
 
 /*
  * Two kinds of memory object allocators (may) exist inside a running kernel.
@@ -36,6 +37,8 @@
  *   SLAB algorithm is popular for this use.
  */
 
+#ifndef __ASSEMBLER__
+
 /* FIXME change name and create seperate header */
 typedef uint32_t gfp_t;
 /* currently ignored */
@@ -49,12 +52,40 @@ struct simple_allocator {
 int simple_allocator_bootstrap(void *pt, size_t size);
 int simple_allocator_init(void);
 void set_simple_allocator(struct simple_allocator *allocator);
+void get_simple_allocator(struct simple_allocator *allocator);
+/* The above get* and set* functions COPIES structs */
+
+struct allocator_cache {
+	lock_t lock;
+	void *head; /* recognized by the allocator */
+	size_t size;
+	size_t align;
+	gfp_t flags;
+	void (*create_obj)(void *obj);
+	void (*destroy_obj)(void *obj);
+};
+
+struct caching_allocator {
+	int (*create)(struct allocator_cache *cache);
+	int (*destroy)(struct allocator_cache *cache);
+	void *(*alloc)(struct allocator_cache *cache);
+	int (*free)(struct allocator_cache *cache, void *obj);
+	void (*trim)(struct allocator_cache *cache);
+};
+
+void set_caching_allocator(struct caching_allocator *allocator);
 
 void *kmalloc(size_t size, gfp_t flags);
 void kfree(void *obj);
 size_t ksize(void *obj);
 
-struct simple_allocator *get_simple_allocator(void);
+int cache_create(struct allocator_cache *cache);
+int cache_destroy(struct allocator_cache *cache);
+void *cache_alloc(struct allocator_cache *cache);
+int cache_free(struct allocator_cache *cache, void *obj);
+void cache_trim(struct allocator_cache *cache);
+
+#endif /* !__ASSEMBLER__ */
 
 #endif /* _VMM_H */
 

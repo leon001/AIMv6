@@ -39,16 +39,23 @@ void mips_add_memory_pages(void)
 	uint32_t kern_end = (uint32_t)&_kern_end;
 	struct pages *p = kmalloc(sizeof(*p), 0);
 	p->paddr = kva2pa(ALIGN_ABOVE(kern_end, PAGE_SIZE));
-	p->size = 0x10000000 - p->paddr;	/* TODO: no magic number */
+	p->size = LOWRAM_TOP - p->paddr;	/* TODO: no magic number */
 	p->flags = 0;
 
 	free_pages(p);
 
 	/* High RAM */
+#if HIGHRAM_SIZE != 0
 	p = kmalloc(sizeof(*p), 0);
 	p->paddr = HIGHRAM_BASE;
 	p->size = HIGHRAM_SIZE;
 	p->flags = 0;
 
 	free_pages(p);
+#endif
+}
+
+int get_tlb_entries(void)
+{
+	return 48;	/* MSIM preset */
 }

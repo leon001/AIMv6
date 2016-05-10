@@ -88,5 +88,21 @@ struct bus_device {
 		struct bus_device * inst, int data_width);
 };
 
+/* Managing devices */
+
+struct device_index {
+	int (*add)(struct device *dev);
+	int (*remove)(struct device *dev);
+	struct device *(*from_id)(devid_t major, devid_t minor);
+	struct device *(*from_name)(char *name);
+};
+
+void set_device_index(struct device_index *index);
+
+int dev_add(struct device *dev);
+int dev_remove(struct device *dev);
+struct device *dev_from_id(devid_t major, devid_t minor);
+struct device *dev_from_name(char *name);
+
 #endif /* _DEVICE_H */
 

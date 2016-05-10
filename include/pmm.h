@@ -22,6 +22,8 @@
 #include <sys/types.h>
 #include <vmm.h>
 
+#ifndef __ASSEMBLER__
+
 /* FIXME change name and create seperate header */
 typedef uint32_t gfp_t;
 /* currently ignored */
@@ -30,10 +32,11 @@ struct pages {
 	addr_t paddr;
 	addr_t size;
 	gfp_t flags;
+	atomic_t refs;	/* for shared memory */
 };
 
 struct page_allocator {
-	struct pages *(*alloc)(addr_t count, gfp_t flags);
+	int (*alloc)(struct pages *pages);
 	void (*free)(struct pages *pages);
 	addr_t (*get_free)(void);
 };
@@ -41,19 +44,22 @@ struct page_allocator {
 int page_allocator_init(void);
 int page_allocator_move(struct simple_allocator *old);
 void set_page_allocator(struct page_allocator *allocator);
+/* The registration above COPIES the struct. */
 
-/* Allocate continuous pages with *byte* count @count and characteristics
- * @flags (unused).
- * @count should be *always* aligned to page size.
- * NOTE: the returned structure is 'kmalloc'ed. */
-struct pages *alloc_pages(addr_t count, gfp_t flags);
-/* Return the physical pages indicated by @pages to the allocator.
- * NOTE: @pages itself is 'kfree'd. */
+/* 
+ * This interface may look wierd, but it prevents the page allocator from doing
+ * any kmalloc-like allocation: it either breaks a block or remove a block upon
+ * page allocation.
+ * Returns 0 for success and EOF for failure.
+ */
+int alloc_pages(struct pages *pages);
 void free_pages(struct pages *pages);
 addr_t get_free_memory(void);
 
 /* initialize the page-block structure for remaining free memory */
 void add_memory_pages(void);
+
+#endif /* !__ASSEMBLER__ */
 
 #endif /* _PMM_H */
 

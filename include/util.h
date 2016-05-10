@@ -23,6 +23,16 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
+#ifdef __LP64__
+#define WORD_SHIFT	3
+#define WORD_SIZE	8
+#define BITS_PER_LONG	64
+#else
+#define WORD_SHIFT	2
+#define WORD_SIZE	4
+#define BITS_PER_LONG	32
+#endif
+
 #ifndef __ASSEMBLER__
 
 #include <sys/types.h>
@@ -63,16 +73,33 @@
 	((typeof(p))ALIGN_ABOVE((unsigned long)(p), (a)))
 #define PTR_ALIGN_BELOW(p, a)	\
 	((typeof(p))ALIGN_BELOW((unsigned long)(p), (a)))
+#define PTR_IS_ALIGNED(p, a)	\
+	IS_ALIGNED((unsigned long)(p), (a))
 
 #define ROUNDUP(x, d)		(DIV_ROUND_UP(x, d) * (d))
 #define ROUNDDOWN(x, d)		((x) - ((x) % (d)))
 #define ROUND_CLOSEST(x, d)	(((x) + ((d) / 2)) / (d))
 
+/* binary operations on unsigned integral types */
+#define get_lowest_0(x) ({\
+	typeof(x) _x = x; \
+	int i = 0; \
+	if (_x + 1 == 0) i = -1; \
+	else while ((_x & 1) == 1) { \
+		i += 1; \
+		_x >>= 1; \
+	} \
+	i; \
+})
+
 #define ADDR_CAST(x)		((size_t)(x))
+#define ULCAST(x)		((size_t)(x))
+#define PTRCAST(x)		((void *)ULCAST(x))
 
 #else	/* __ASSEMBLER__ */
 
-#define ADDR_CAST(x)		(x)
+#define ULCAST(x)		(x)
+#define PTRCAST(x)		(x)
 
 #endif	/* !__ASSEMBLER__ */
 

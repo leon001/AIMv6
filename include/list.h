@@ -23,6 +23,8 @@
 
 #include <util.h>
 
+#ifndef __ASSEMBLER__
+
 /*
  * Simple doubly-linked list implementation
  *
@@ -45,7 +47,7 @@ static inline void INIT_LIST_HEAD(struct list_head *list)
 
 /*
  * A shortcut for list initialization:
- * struct list_head *list = EMPTY_LIST(list);
+ * struct list_head list = EMPTY_LIST(list);
  */
 #define LIST_HEAD_INIT(list)	{ &(list), &(list) }
 #define EMPTY_LIST(list)	LIST_HEAD_INIT(list)
@@ -126,6 +128,13 @@ static inline int list_is_singular(const struct list_head *head)
 
 #define list_next_entry(ptr, type, member) \
 	list_entry((ptr)->member.next, type, member)
+#define list_prev_entry(ptr, type, member) \
+	list_entry((ptr)->member.prev, type, member)
+/* A more convenient wrapper for list_next_entry() for lists with same type */
+#define next_entry(ptr, member) \
+	list_next_entry(ptr, typeof(*ptr), member)
+#define prev_entry(ptr, member) \
+	list_prev_entry(ptr, typeof(*ptr), member)
 
 /*
  * For-each loops.
@@ -134,13 +143,13 @@ static inline int list_is_singular(const struct list_head *head)
 	for (pos = (head)->next; pos != (head); pos = pos->next)
 #define for_each_reverse(pos, head) \
 	for (pos = (head)->prev; pos != (head); pos = pos->prev)
-/* The two variants are designed for safety against concurrent removal */
+/* The two variants are designed for safety against removal */
 #define for_each_safe(pos, n, head) \
 	for (pos = (head)->next, n = pos->next; pos != (head); \
-	    pos = n, n = pos->next)
+	     pos = n, n = pos->next)
 #define for_each_reverse_safe(pos, n, head) \
 	for (pos = (head)->prev, n = pos->prev; pos != (head); \
-	    pos = n, n = pos->prev)
+	     pos = n, n = pos->prev)
 
 #define for_each_entry(pos, head, member) \
 	for (pos = list_entry((head)->next, typeof(*pos), member); \
@@ -150,4 +159,22 @@ static inline int list_is_singular(const struct list_head *head)
 	for (pos = list_entry((head)->prev, typeof(*pos), member); \
 	     &pos->member != (head); \
 	     pos = list_entry(pos->member.prev, typeof(*pos), member))
-#endif
+/*
+ * Again, for removal, so you can do something like:
+ * for_each_entry_safe(pos, n, head, member)
+ *     delete(pos);
+ */
+#define for_each_entry_safe(pos, n, head, member)			\
+	for (pos = list_entry((head)->next, typeof(*pos), member),	\
+		n = list_entry(pos->member.next, typeof(*pos), member);	\
+	     &pos->member != (head); 					\
+	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
+#define for_each_entry_safe_reverse(pos, n, head, member)		\
+	for (pos = list_entry((head)->prev, typeof(*pos), member),	\
+		n = list_entry(pos->member.prev, typeof(*pos), member);	\
+	     &pos->member != (head); 					\
+	     pos = n, n = list_entry(n->member.prev, typeof(*n), member))
+
+#endif /* !__ASSEMBLER__ */
+
+#endif /* _LIST_H */
