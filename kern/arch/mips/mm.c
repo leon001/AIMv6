@@ -22,6 +22,8 @@
 
 #include <mmu.h>
 #include <sys/types.h>
+#include <tlb.h>
+#include <mipsregs.h>
 
 void page_index_clear(pgindex_t * index)
 {
@@ -61,5 +63,22 @@ void add_memory_pages(void)
 	 * Addresses elsewhere are entirely machine dependent.
 	 */
 	mips_add_memory_pages();
+}
+
+void tlb_flush(void)
+{
+	int nr_entries = get_tlb_entries();
+	for (int i = 0; i < nr_entries; ++i) {
+		write_c0_index(i);
+		write_c0_entryhi(ENTRYHI_DUMMY(i));
+		write_c0_entrylo0(0);
+		write_c0_entrylo1(0);
+		tlbwi();
+	}
+}
+
+void arch_mm_init(void)
+{
+	tlb_flush();
 }
 

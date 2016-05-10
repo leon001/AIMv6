@@ -21,15 +21,11 @@
 
 /* premap_addr() and postmap_addr() in addrspace.h */
 #include <addrspace.h>
-#include <asm.h>	/* WORD_SHIFT */
 #include <util.h>
 
 #define PAGE_SHIFT	12
 #define PAGE_SIZE	(1 << PAGE_SHIFT)
 #define PAGE_MASK	(PAGE_SIZE - 1)
-
-#define PTXMASK		((1 << (PAGE_SHIFT - WORD_SHIFT)) - 1)
-#define NR_PTENTRIES	(1 << (PAGE_SHIFT - WORD_SHIFT))
 
 #ifndef __ASSEMBLER__
 

@@ -21,6 +21,7 @@
 #include <mmu.h>
 #include <atomic.h>
 #include <errno.h>
+#include <panic.h>
 
 struct mm *
 mm_new(void)
@@ -30,7 +31,7 @@ mm_new(void)
 	if (mm != NULL) {
 		list_init(&(mm->vma_head));
 		mm->vma_count = 0;
-		if (init_pgindex(&(mm->pgindex)) < 0) {
+		if ((mm->pgindex = init_pgindex()) == NULL) {
 			kfree(mm);
 			return NULL;
 		}
@@ -49,7 +50,7 @@ __clean_vma(struct mm *mm, struct vma *vma)
 
 	assert(vma->size == vma->pages->size);
 
-	unmapped = unmap_pages(&(mm->pgindex), vma->start, vma->size, &pa);
+	unmapped = unmap_pages(mm->pgindex, vma->start, vma->size, &pa);
 
 	assert(pa == vma->pages->paddr);
 	assert(unmapped == vma->size);
@@ -89,7 +90,7 @@ mm_destroy(struct mm *mm)
 		kfree(vma);
 	}
 
-	destroy_pgindex(&(mm->pgindex));
+	destroy_pgindex(mm->pgindex);
 
 	kfree(mm);
 }
@@ -126,7 +127,7 @@ __unmap_and_free_vma(struct mm *mm, struct vma *vma_start, size_t size)
 
 		list_del(&(vma->node));
 		/* temporary in case of typo - assertation will be removed */
-		assert(unmap_pages(&(mm->pgindex), vma->start, vma->size,
+		assert(unmap_pages(mm->pgindex, vma->start, vma->size,
 		    NULL) == PAGE_SIZE);
 		if (__unref_and_free_pages(vma->pages) == __PAGES_FREED)
 			kfree(vma->pages);
@@ -176,7 +177,7 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 			goto rollback_pages;
 		}
 
-		if ((retcode = map_pages(&(mm->pgindex), vcur, p->paddr,
+		if ((retcode = map_pages(mm->pgindex, vcur, p->paddr,
 		    PAGE_SIZE, flags)) < 0) {
 			goto rollback_pgalloc;
 		}
@@ -238,24 +239,11 @@ destroy_uvm(struct mm *mm, void *addr, size_t len)
 void
 mm_test(void)
 {
-	struct mm *mm;
-	uint32_t *arr;
 	kprintf("==========mm_test()  started==========\n");
-	mm = mm_new();
-	kprintf("MM: %p\n", mm);
-	kprintf("PGINDEX: %p\n", mm->pgindex);
-	assert(create_uvm(mm, (void *)0x100000, 5 * PAGE_SIZE,
-	    VMA_READ | VMA_WRITE) == 0);
-	arr = (uint32_t *)pa2kva(mm->pgindex);
-	kprintf("PDE: %p\n", arr[0]);
-	arr = (uint32_t *)pa2kva(arr[0]);
-	kprintf("PTE: %p\n", arr[0x100]);
-	assert(destroy_uvm(mm, (void *)0x100000, 3 * PAGE_SIZE) == 0);
-	assert(destroy_uvm(mm, (void *)0x103000, 2 * PAGE_SIZE) == 0);
-	mm_destroy(mm);
-	mm = mm_new();
-	kprintf("MM: %p\n", mm);
-	kprintf("PGINDEX: %p\n", mm->pgindex);
+	struct mm *mm = mm_new();
+	assert(create_uvm(mm, (void *)0x100000, 5 * PAGE_SIZE, VMA_READ | VMA_WRITE) == 0);
+	assert(destroy_uvm(mm, (void *)0x100000, 2 * PAGE_SIZE) == 0);
+	assert(destroy_uvm(mm, (void *)0x102000, 3 * PAGE_SIZE) == 0);
 	mm_destroy(mm);
 	kprintf("==========mm_test() finished==========\n");
 }

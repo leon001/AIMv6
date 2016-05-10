@@ -16,11 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_TRAP_H
-#define _ASM_TRAP_H
-
-#define TLB_REFILL_ENTRY	0xffffffff80000000
-#define GENERIC_EXCEPT_ENTRY	0xffffffff80000180
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
+
+#include <aim/sync.h>
+#include <asm.h>
+
+void spinlock_init(lock_t *lock)
+{
+	*lock = UNLOCKED;
+}
+
+void spin_lock(lock_t *lock)
+{
+	while (xchg(lock, LOCKED) != 0)
+		/* nothing */;
+}
+
+void spin_unlock(lock_t *lock)
+{
+	xchg(lock, UNLOCKED);
+}
 

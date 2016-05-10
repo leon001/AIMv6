@@ -104,6 +104,5 @@ __noreturn void trap_return(struct regs *regs)
 /* temporary */
 void trap_test(void)
 {
-	asm volatile ("int $121;");
 }
 

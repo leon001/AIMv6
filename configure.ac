@@ -42,7 +42,7 @@ AIM_GCC_FUNC_ATTRIBUTE([noreturn])
 AIM_GCC_FUNC_ATTRIBUTE([weak])
 AIM_GCC_FUNC_ATTRIBUTE([noinline])
 AIM_GCC_FUNC_ATTRIBUTE([visibility])
-AX_GCC_VAR_ATTRIBUTE([used])
+AIM_GCC_VAR_ATTRIBUTE([used])
 AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
 
 AC_SUBST([AIM_CFLAGS], [$aim_cflags])
@@ -90,14 +90,19 @@ AS_CASE([$ARCH],
 	],
 	[mips32], [
 		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
+		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
+		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
+		AS_VAR_SET([with_cpus], [4])
+		AS_VAR_SET([enable_io_mem], [yes])
+		AS_VAR_SET([enable_io_port], [no])
 	],
 	[mips64], [
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
-	],
-	[mips*], [
+		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
+		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
+		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([enable_io_mem], [yes])
 		AS_VAR_SET([enable_io_port], [no])
-		AS_VAR_SET([with_cpus], [4])
 	],
 	[i386], [
 		AS_VAR_SET([enable_io_mem], [yes])
@@ -213,6 +218,11 @@ AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 	[order of firmware stack per CPU (size=1<<order)])
 
+AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
+	[base virtual address for array storing GP register during trap entry])
+AIM_ARG_WITH([mips-pgdir-slot-base], [PGDIR_SLOT_BASE],
+	[base virtual address for array storing per CPU page directories])
+
 # Drivers
 AIM_ARG_ENABLE([io-mem], [IO_MEM], [memory-mapped IO driver])
 AIM_ARG_ENABLE([io-port], [IO_PORT], [port IO driver])
@@ -247,6 +257,10 @@ AM_CONDITIONAL([ALGO_FLFF], [test x$with_simple_allocator = xflff])
 AS_VAR_SET([with_page_allocator], [ff])
 AIM_ARG_WITH([page-allocator], [PAGE_ALLOCATOR], [page allocator])
 AM_CONDITIONAL([ALGO_FF], [test x$with_page_allocator = xff])
+
+AS_VAR_SET([with_dev_index], [devlist])
+AIM_ARG_WITH([dev-index], [DEVICE_INDEX], [device index])
+AM_CONDITIONAL([ALGO_DEVLIST], [test x$with_dev_index = xdevlist])
 
 # per-target configuration
 AS_CASE([$MACH],
@@ -341,6 +355,7 @@ AC_CONFIG_FILES([
 	kern/arch/mips/mach-loongson3a/Makefile
 	kern/init/Makefile
 	kern/dev/Makefile
+	kern/dev/index/Makefile
 	kern/debug/Makefile
 	kern/mm/Makefile
 	kern/mm/pmm/Makefile
