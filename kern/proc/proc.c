@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+ * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -23,16 +24,41 @@
 #include <sys/types.h>
 #include <mm.h>
 #include <pmm.h>
+#include <proc.h>
+#include <namespace.h>
 
 /*
  * This should be a seperate function, don't directly use kernel memory
  * interfaces. There are different sets of interfaces we can allocate memory
  * from, and we can't say any one of them is best.
  */
-void *alloc_kstack(size_t *size)
+void *alloc_kstack(void)
+{
+	/* currently we use pgalloc() */
+	addr_t paddr;
+
+	paddr = pgalloc();
+	if (paddr == -1)
+		return NULL;
+	return pa2kva(paddr);
+}
+
+void *alloc_kstack_size(size_t *size)
 {
 	/* calculate the actual size we allocate */
-	/* currently we use alloc_pages */
-	return NULL;
+	panic("custom kstack size not implemented\n");
+}
+
+struct proc *proc_new(struct namespace *ns)
+{
+	struct proc *proc = (struct proc *)kmalloc(sizeof(*proc), 0);
+
+	proc->kstack = alloc_kstack();
+	proc->kstack_size = PAGE_SIZE;
+
+	proc->tid = 0;
+	proc->kpid = kpid_new();
+	proc->pid = (ns == NULL) ? proc->kpid : pid_new(ns);
+	proc->state = PS_EMBRYO;
 }
 

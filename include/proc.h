@@ -34,8 +34,8 @@ struct proc {
 
 	/* other stuff go here */
 	int		tid;	/* Thread ID (unused - for multithreading) */
-	int		pid;	/* Process ID */
-	int		ppid;	/* Parent process ID */
+	int		pid;	/* Process ID within namespace @namespace */
+	int		kpid;	/* Process ID */
 	unsigned int	state;	/* Process state (runnability) */
 	/* The state values come from OpenBSD */
 	/* TODO: may have more...? */
@@ -60,7 +60,6 @@ struct proc {
 	 * We put program arguments above user stack.
 	 */
 	struct regs	*context;	/* Context before switch */
-	struct trapframe *tf;		/* Current trap frame */
 	size_t		heapsize;	/* Expandable heap size */
 
 	/* TODO: do we need these? */
@@ -77,8 +76,9 @@ struct proc {
 	struct list_head proc_node;
 };
 
-/* Create a struct proc and */
-struct proc *newproc(void);
+/* Create a struct proc inside namespace @ns and initialize everything if we
+ * can by default. */
+struct proc *proc_new(struct namespace *ns);
 
 #endif /* _PROC_H */
 
