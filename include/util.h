@@ -26,9 +26,11 @@
 #ifdef __LP64__
 #define WORD_SHIFT	3
 #define WORD_SIZE	8
+#define BITS_PER_LONG	64
 #else
 #define WORD_SHIFT	2
 #define WORD_SIZE	4
+#define BITS_PER_LONG	32
 #endif
 
 #ifndef __ASSEMBLER__
