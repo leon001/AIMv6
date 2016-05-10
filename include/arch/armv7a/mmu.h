@@ -49,12 +49,17 @@
 #define ARM_PT_AP_USER_BOTH	0x3
 
 #define ARM_PT_L1_TABLE_BASE_MASK	0xFFFFFC00
+#define ARM_PT_L1_SECT_BASE_MASK	0xFFF00000
 
 #define ARM_PT_L1_TYPE_MASK	0x3
 #define ARM_PT_L1_RES		0x3
 #define ARM_PT_L1_SECT		0x2
 #define ARM_PT_L1_TABLE		0x1
 #define ARM_PT_L1_FREE		0x0
+
+#define ARM_PT_L2_PAGE_BASE_MASK	0xFFFFF000
+
+#define ARM_PT_L2_PAGE		0x2
 
 #ifndef __ASSEMBLER__
 
