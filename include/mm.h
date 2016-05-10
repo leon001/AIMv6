@@ -115,6 +115,26 @@ int get_addr_space(void);
 struct mm;
 
 /*
+ * Kernel mapping structure.
+ * Mostly the same as struct early_mapping, with permission flags
+ */
+struct kernmap {
+	addr_t		paddr;
+	void		*vaddr;
+	size_t		size;
+	uint32_t	type;
+#define KM_LINEAR	0	/* Default linear mapping */
+#define KM_KMMAP	1	/* Require kmmap subsystem (?) */
+	uint32_t	flags;
+#define KM_EXEC		0x1
+#define KM_WRITE	0x2
+#define KM_READ		0x4
+};
+
+/* Pointer to struct kernmap array */
+extern struct kernmap *kernmaps;
+
+/*
  * Virtual memory area structure
  *
  * The list of virtual memory areas must satisfy:
@@ -182,8 +202,11 @@ int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags);
 /* Destroy a size @len user space mapping starting at @addr */
 int destroy_uvm(struct mm *mm, void *addr, size_t len);
 /* Share user space mapping between two memory mapping structures for
- * copy-on-write or shared memory.  Not implemented. */
-int share_uvm(struct mm *mm_src, void *addr_src, struct mm *mm_dst,
+ * copy-on-write or shared memory.
+ * Returns the newly mapped virtual address from destination struct
+ * mm, which is usually, but not always, @addr_dst, in case of some
+ * architectures (like MIPS) requiring page coloring. */
+void *share_uvm(struct mm *mm_src, void *addr_src, struct mm *mm_dst,
     void *addr_dst, size_t len, uint32_t flags);
 /* Duplicate user space mapping and copy contents inside.
  * FIXME: shall we include VMA flags? */
@@ -199,7 +222,10 @@ int copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
 /* Does the reverse */
 int copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
 
-/* Create a struct mm with a new page index */
+/* Create a struct mm with a new page index and _kernel mappings inserted_.
+ * The kernel mappings are added by map_pages() and iterating over
+ * the array of struct kernmap (kernmaps).
+ * FIXME: please review */
 struct mm *mm_new(void);
 /* Destroy a struct mm and all the underlying memory mappings */
 void mm_destroy(struct mm *mm);
