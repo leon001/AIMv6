@@ -125,7 +125,7 @@ void *cache_alloc(struct allocator_cache *cache)
 int cache_free(struct allocator_cache *cache, void *obj)
 {
 	if (cache == NULL)
-		return NULL;
+		return EOF;
 	spin_lock(&cache->lock);
 	int retval = __caching_allocator.free(cache, obj);
 	spin_unlock(&cache->lock);

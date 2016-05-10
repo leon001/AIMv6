@@ -20,8 +20,8 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-/* from kernel */
 #include <sys/types.h>
+#include <aim/early_kmmap.h>
 #include <init.h>
 #include <console.h>
 #include <mm.h>

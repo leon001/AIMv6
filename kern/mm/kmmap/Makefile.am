@@ -17,16 +17,9 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = \
-	kmmap \
-	pmm \
-	vmm
+noinst_LTLIBRARIES = libkmmap.la
 
-noinst_LTLIBRARIES = libmm.la
-
-libmm_la_SOURCES = mmu.c uvm.c
-libmm_la_LIBADD = \
-	kmmap/libkmmap.la \
-	vmm/libvmm.la \
-	pmm/libpmm.la
+libkmmap_la_SOURCES = \
+	early_kmmap.c \
+	kmmap.c
 

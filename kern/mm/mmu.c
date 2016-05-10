@@ -21,7 +21,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
-
+#include <aim/early_kmmap.h>
 #include <mm.h>
 #include <mmu.h>
 #include <panic.h>
@@ -44,103 +44,6 @@
  * These data structure are kept in memory, and will later be used to
  * initialize the page allocator and the kmmap subsystem.
  */
-
-#define EARLY_MAPPING_QUEUE_LENGTH	10
-
-/* internal data structure */
-static int __early_mapping_queue_size;
-static struct early_mapping __early_mapping_queue[EARLY_MAPPING_QUEUE_LENGTH];
-static size_t __mem_top;
-static size_t __kmmap_top;
-
-void early_mapping_clear(void)
-{
-	__early_mapping_queue_size = 0;
-	__mem_top = KERN_BASE;
-	__kmmap_top = KMMAP_BASE;
-}
-
-/* add a mapping entry */
-int early_mapping_add(struct early_mapping *entry)
-{
-	if (__early_mapping_queue_size > EARLY_MAPPING_QUEUE_LENGTH) {
-		/* Bad data structure. Panic immediately to prevent damage. */
-		panic("Early mapping data structure invalid.\n");
-	}
-	if (__early_mapping_queue_size == EARLY_MAPPING_QUEUE_LENGTH) {
-		/* Queue full */
-		return EOF;
-	}
-	/* TODO: check for overlap and alignment */
-	__early_mapping_queue[__early_mapping_queue_size] = *entry;
-	__early_mapping_queue_size += 1;
-	return 0;
-}
-
-size_t early_mapping_add_memory(addr_t base, size_t size)
-{
-	/* check available address space */
-	if (__mem_top >= KMMAP_BASE)
-		return 0;
-	if (size > KMMAP_BASE - __mem_top)
-		size = KMMAP_BASE - __mem_top;
-
-	/* construct the descriptor and register the mapping */
-	struct early_mapping desc = {
-		.paddr = base,
-		.vaddr = __mem_top,
-		.size = (size_t)size,
-		.type = EARLY_MAPPING_MEMORY
-	};
-	int ret = early_mapping_add(&desc);
-	if (ret != 0) return 0;/* fail */
-	__mem_top += size;
-	return size;
-}
-
-size_t early_mapping_add_kmmap(addr_t base, size_t size)
-{
-	/* check available address space */
-	if (__kmmap_top >= RESERVED_BASE)
-		return EOF;
-
-	/* construct the descriptor and register the mapping */
-	struct early_mapping desc = {
-		.paddr = base,
-		.vaddr = __kmmap_top,
-		.size = size,
-		.type = EARLY_MAPPING_KMMAP
-	};
-	int ret = early_mapping_add(&desc);
-	if (ret != 0) return 0;
-	__kmmap_top += size;
-	return __kmmap_top - size;
-}
-
-/*
- * basic iterator. Caller should not work with internal data structure.
- * If given a pointer to some early mapping entry, return the next one.
- * If given a NULL, return the first entry.
- * If given some invalid entry, or if no more entries are available, return
- * NULL.
- */
-struct early_mapping *early_mapping_next(struct early_mapping *base)
-{
-	struct early_mapping *next;
-	int tmp;
-
-	if (base == NULL) {
-		next = __early_mapping_queue;
-	} else {
-		next = base + 1; /* One entry */
-	}
-	tmp = next - __early_mapping_queue;
-	if (tmp < 0 || tmp >= __early_mapping_queue_size) {
-		return NULL;
-	} else {
-		return next;
-	}
-}
 
 int page_index_init(pgindex_t *boot_page_index)
 {

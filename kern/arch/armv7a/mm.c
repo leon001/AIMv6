@@ -22,6 +22,7 @@
 
 /* from kernel */
 #include <sys/types.h>
+#include <aim/early_kmmap.h>
 #include <aim/export.h>
 #include <list.h>
 #include <util.h>
@@ -34,6 +35,17 @@
 #include <libc/string.h>
 
 static struct allocator_cache *pt_l1_cache = NULL, *pt_l2_cache = NULL;
+
+bool early_mapping_valid(struct early_mapping *entry)
+{
+	if (!IS_ALIGNED(entry->paddr, ARM_SECT_SIZE))
+		return false;
+	if (!IS_ALIGNED(entry->vaddr, ARM_SECT_SIZE))
+		return false;
+	if (!IS_ALIGNED(entry->size, ARM_SECT_SIZE))
+		return false;
+	return true;
+}
 
 addr_t get_mem_physbase()
 {

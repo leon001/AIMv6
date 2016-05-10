@@ -27,6 +27,7 @@
 
 #include <aim/device.h>
 #include <aim/initcalls.h>
+#include <aim/early_kmmap.h>
 #include <console.h>
 #include <mm.h>
 #include <panic.h>
@@ -168,7 +169,7 @@ INITCALL_DEV(__init)
 
 #if PRIMARY_CONSOLE == uart_zynq
 
-static size_t __early_mapped_base;
+static void *__early_mapped_base;
 
 /* Meant to register to kernel, so this interface routine is static */
 static int __early_console_putchar(unsigned char c)
@@ -179,7 +180,7 @@ static int __early_console_putchar(unsigned char c)
 
 static void __mmu_handler(void)
 {
-	__early_uart_zynq.base = __early_mapped_base;
+	__early_uart_zynq.base = (size_t)__early_mapped_base;
 }
 
 static void __jump_handler(void)

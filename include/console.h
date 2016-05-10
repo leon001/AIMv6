@@ -42,5 +42,15 @@ int kputs(const char *s);
 int __default_kputs(const char *s);
 #define DEFAULT_KPUTS __default_kputs
 
+#ifdef DEBUG_OUTPUT
+#define debug_kprintf(fmt, ...) \
+	do { \
+		kputs("DEBUG: "); \
+		kprintf(fmt, ##__VA_ARGS__); \
+	} while (0)
+#else
+#define debug_kprintf(fmt, ...)
+#endif /* DEBUG_OUTPUT */
+
 #endif /* _CONSOLE_H */
 

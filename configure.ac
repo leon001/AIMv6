@@ -81,6 +81,11 @@ AIM_SUPPORT_MACH([msim loongson3a zynq pc generic unknown])
 # It is usually meaningless to compile a secondary implementation into the
 # firmware or the bootloader, so implementations should check corresponding
 # macros.
+
+# Debug options
+AS_VAR_SET([enable_debug_output], [yes])
+AIM_ARG_ENABLE([debug-output], [DEBUG_OUTPUT], [debug output on kernel console])
+
 AS_VAR_SET([with_kstacksize], [4096])
 
 AS_CASE([$ARCH],
@@ -362,6 +367,7 @@ AC_CONFIG_FILES([
 	kern/dev/index/Makefile
 	kern/debug/Makefile
 	kern/mm/Makefile
+	kern/mm/kmmap/Makefile
 	kern/mm/pmm/Makefile
 	kern/mm/vmm/Makefile
 	kern/proc/Makefile
@@ -404,6 +410,7 @@ Target
 
 Kernel
 --------
+  DEBUG_OUTPUT:	${enable_debug_output}
   KERN_BASE:	${with_kern_base}
   KMMAP_BASE:	${with_kmmap_base}
   RESERVED:	${with_reserved_base}
