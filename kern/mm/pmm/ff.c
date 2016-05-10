@@ -37,7 +37,6 @@ struct block {
 	struct list_head node;
 };
 
-static struct page_allocator __allocator;
 static struct list_head __head;
 static addr_t __free_space;
 //static lock_t lock;
@@ -135,10 +134,13 @@ int page_allocator_init(void)
 {
 	__free_space = 0;
 	list_init(&__head);
-	__allocator.alloc = __alloc;
-	__allocator.free = __free;
-	__allocator.get_free = __get_free;
-	set_page_allocator(&__allocator);
+
+	struct page_allocator allocator = {
+		.alloc		= __alloc,
+		.free		= __free,
+		.get_free 	= __get_free
+	};
+	set_page_allocator(&allocator);
 	return 0;
 }
 

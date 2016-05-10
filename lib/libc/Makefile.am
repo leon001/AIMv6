@@ -24,9 +24,10 @@ noinst_LTLIBRARIES = \
 	libc.la
 
 SRCS = \
-	snprintf.c \
 	memcpy.c \
 	memset.c \
+	snprintf.c \
+	strcmp.c \
 	$(top_srcdir)/include/sys/types.h \
 	stdarg.h \
 	stddef.h \

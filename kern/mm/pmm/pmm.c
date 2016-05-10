@@ -23,35 +23,39 @@
 #include <sys/types.h>
 
 #include <pmm.h>
-#include <panic.h>
 
-static struct page_allocator *__page_allocator = NULL;
+#include <libc/string.h>
+
+/* dummy implementations */
+static int __alloc(struct pages *pages) { return EOF; }
+static void __free(struct pages *pages) {}
+static addr_t __get_free(void) { return 0; }
+
+static struct page_allocator __allocator = {
+	.alloc		= __alloc,
+	.free		= __free,
+	.get_free	= __get_free
+};
 
 void set_page_allocator(struct page_allocator *allocator)
 {
-	__page_allocator = allocator;
+	memcpy(&__allocator, allocator, sizeof(*allocator));
 }
 
 int alloc_pages(struct pages *pages)
 {
-	if (__page_allocator == NULL)
-		panic("alloc_pages() called but no allocator available.\n");
 	if (pages == NULL)
 		return EOF;
-	return __page_allocator->alloc(pages);
+	return __allocator.alloc(pages);
 }
 
 void free_pages(struct pages *pages)
 {
-	if (__page_allocator == NULL)
-		panic("free_page() called but no allocator available.\n");
-	__page_allocator->free(pages);
+	__allocator.free(pages);
 }
 
 addr_t get_free_memory(void)
 {
-	if (__page_allocator == NULL)
-		panic("get_free_memory() called but no allocator available.\n");
-	return __page_allocator->get_free();
+	return __allocator.get_free();
 }
 

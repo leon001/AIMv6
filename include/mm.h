@@ -16,6 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #ifndef _MM_H
 #define _MM_H
 
@@ -23,6 +27,8 @@
 #include <mmu.h>
 #include <pmm.h>
 #include <sys/types.h>
+
+#ifndef __ASSEMBLER__
 
 /* premap_addr: always returns low address.
  * The function which assumes that the argument is a high address
@@ -39,8 +45,6 @@
 	size_t i = (size_t)(a); \
 	(i >= KERN_BASE) ? (i) : __postmap_addr(i); \
 })
-
-#ifndef __ASSEMBLER__
 
 addr_t get_mem_physbase();
 addr_t get_mem_size();
@@ -182,7 +186,14 @@ pgindex_t *init_pgindex(void);
  * already done with */
 void destroy_pgindex(pgindex_t *pgindex);
 /* Map virtual address starting at @vaddr to physical pages at @paddr, with
- * VMA flags @flags (VMA_READ, etc.)  */
+ * VMA flags @flags (VMA_READ, etc.) Additional flags apply as following:
+ */
+#define MAP_TYPE_MASK	0x30000
+#define MAP_USER_MEM	0x00000
+#define	MAP_KERN_MEM	0x10000
+#define MAP_PRIV_DEV	0x20000	/* eg. device on private bus */
+#define MAP_SHARED_DEV	0x30000	/* normal devices */
+#define MAP_LARGE	0x40000
 int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
     uint32_t flags);
 /*
