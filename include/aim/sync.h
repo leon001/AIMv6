@@ -16,9 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _AIM_SYNC_H
+#define _AIM_SYNC_H
+
 #include <sys/types.h>
 
 #include <arch-sync.h>
+
+#ifndef __ASSEMBLER__
 
 /* Spinlocks. Implemented by architectures. */
 
@@ -46,4 +51,8 @@ void semaphore_inc(semaphore_t *sem);
 	semaphore_t *_sem = sem; \
 	semaphore_dec(_sem); \
 	semaphore_inc(_sem); })
+
+#endif /* !__ASSEMBLER__ */
+
+#endif /* _AIM_SYNC_H */
 

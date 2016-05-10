@@ -258,6 +258,10 @@ AS_VAR_SET([with_page_allocator], [ff])
 AIM_ARG_WITH([page-allocator], [PAGE_ALLOCATOR], [page allocator])
 AM_CONDITIONAL([ALGO_FF], [test x$with_page_allocator = xff])
 
+AS_VAR_SET([with_caching_allocator], [slab])
+AIM_ARG_WITH([caching-allocator], [CACHING_ALLOCATOR], [caching allocator])
+AM_CONDITIONAL([ALGO_SLAB], [test x$with_caching_allocator = xslab])
+
 AS_VAR_SET([with_dev_index], [devlist])
 AIM_ARG_WITH([dev-index], [DEVICE_INDEX], [device index])
 AM_CONDITIONAL([ALGO_DEVLIST], [test x$with_dev_index = xdevlist])
@@ -387,6 +391,10 @@ General
   CFLAGS:	${CFLAGS}
   LDFLAGS:	${LDFLAGS}
 
+* Flags are overridden by architecture and machine-specific flags,
+* further overridden by per-target flags,
+* and further overridden by flags passed to `make`.
+
 Target
 --------
   architecture:	${ARCH}
@@ -399,6 +407,13 @@ Kernel
   KERN_BASE:	${with_kern_base}
   KMMAP_BASE:	${with_kmmap_base}
   RESERVED:	${with_reserved_base}
+
+Algorithms
+--------
+  simple allocator:	${with_simple_allocator}
+  page allocator:	${with_page_allocator}
+  caching allocator:	${with_caching_allocator}
+  device index:		${with_dev_index}
 
 Drivers
 --------

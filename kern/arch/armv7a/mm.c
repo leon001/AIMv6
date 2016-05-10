@@ -25,10 +25,15 @@
 #include <aim/export.h>
 #include <list.h>
 #include <util.h>
+#include <console.h>
 #include <mm.h>
 #include <mmu.h>
 #include <pmm.h>
 #include <vmm.h>
+#include <panic.h>
+#include <libc/string.h>
+
+static struct allocator_cache *pt_l1_cache = NULL, *pt_l2_cache = NULL;
 
 addr_t get_mem_physbase()
 {
@@ -45,25 +50,122 @@ addr_t get_mem_size()
 /*
  * by CLEARing a page index, caller assumes it contains no allocated space.
  * Often used to initialize a page index.
+ * Two functions for clearing two different levels of the page table.
+ * First one used by early boot stages, and both are used as allocator
+ * callbacks, so they are named differently and have different signature.
  */
 void page_index_clear(pgindex_t * index)
 {
-	arm_pte_l1_t *page_table = index;
-	int i;
-	for (i = 0; i < ARM_PT_L1_LENGTH; ++i) {
-		page_table[i] = 0;
-	}
+	memset(index, 0, ARM_PT_L1_SIZE);
 }
 
-/* This internal routine does not check for bad parameters */
-static inline void __arm_map_sect(arm_pte_l1_t *page_table, addr_t paddr,
-	size_t vaddr, uint32_t ap, uint32_t dom)
+static void __pt_l2_clear(void *pt)
 {
-	arm_pte_l1_t entry = ARM_PT_L1_SECT;
-	entry |= paddr >> ARM_SECT_SHIFT << 20;
+	memset(pt, 0, ARM_PT_L2_SIZE);
+}
+
+/* process general flags into ARM-specific flags */
+#define convert_flags(flags, ap, tex, c, b, s, xn) \
+	do { \
+	uint32_t f = (flags); \
+	if (f & VMA_WRITE) (ap) = ARM_PT_AP_USER_BOTH; \
+	else if (f & VMA_READ) (ap) = ARM_PT_AP_USER_READ; \
+	else (ap) = ARM_PT_AP_USER_NONE; \
+	if (f & VMA_EXEC) (xn) = 0; \
+	else (xn) = 1; \
+	f &= MAP_TYPE_MASK; \
+	switch(f) { \
+		case MAP_USER_MEM: (tex)=1; (c)=1; (b)=1; (s)=1; break; \
+		case MAP_KERN_MEM: (tex)=1; (c)=1; (b)=1; (s)=1; break; \
+		case MAP_PRIV_DEV: (tex)=2; (c)=0; (b)=0; (s)=0; break; \
+		case MAP_SHARED_DEV: (tex)=0; (c)=0; (b)=1; (s)=0; break; \
+		default: (tex)=1; (c)=1; (b)=1; (s)=1; \
+	} \
+	} while (0)
+
+/* internal routines does not check for bad parameters */
+/* does nothing if not mapped */
+static inline void __arm_unmap_l1(arm_pte_l1_t *page_table, size_t vaddr)
+{
+	arm_pte_l1_t entry;
+
+	entry = page_table[vaddr >> ARM_SECT_SHIFT];
+	if ((entry & ARM_PT_L1_TYPE_MASK) == ARM_PT_L1_TABLE) {
+		entry &= ARM_PT_L1_TABLE_BASE_MASK;
+		cache_free(pt_l2_cache, (void *)entry);
+	}
+	page_table[vaddr >> ARM_SECT_SHIFT] = 0;
+}
+
+static inline void __arm_map_sect(arm_pte_l1_t *page_table, addr_t paddr,
+	size_t vaddr, uint32_t flags)
+{
+	uint32_t ap, tex, c, b, s, xn;
+	arm_pte_l1_t entry;
+
+	kprintf("DEBUG: map_sect(pt=0x%08x, paddr=0x%08x, vaddr=0x%08x, flags=0x%08x)\n",
+		page_table, (size_t)paddr, vaddr, flags);
+	/* process flags */
+	convert_flags(flags, ap, tex, c, b, s, xn);
+	/* cleanup */
+	__arm_unmap_l1(page_table, vaddr);
+	/* apply map */
+	entry = ARM_PT_L1_SECT;
+	entry |= paddr;
+	entry |= s << 16;
+	entry |= tex << 12;
 	entry |= ap << 10;
-	entry |= dom << 5;
+	entry |= xn << 4;
+	entry |= c << 3;
+	entry |= b << 2;
 	page_table[vaddr >> ARM_SECT_SHIFT] = entry;
+}
+
+/* does nothing if there's a table mapped already. */
+static inline void __arm_map_table(arm_pte_l1_t *page_table, size_t vaddr)
+{
+	arm_pte_l1_t entry;
+
+	/* check whether we map at all */
+	entry = page_table[vaddr >> ARM_SECT_SHIFT];
+	if ((entry & ARM_PT_L1_TYPE_MASK) == ARM_PT_L1_TABLE)
+		return;
+	/* allocate a L2 table */
+	void *l2 = cache_alloc(pt_l2_cache);
+	assert(l2 != NULL);
+	/* apply map */
+	entry = ARM_PT_L1_TABLE;
+	entry |= kva2pa((uint32_t)l2);
+	page_table[vaddr >> ARM_SECT_SHIFT] = entry;
+}
+
+static inline void __arm_map_page(arm_pte_l1_t *page_table, addr_t paddr,
+	size_t vaddr, uint32_t flags)
+{
+	uint32_t ap, tex, c, b, s, xn;
+	arm_pte_l1_t *t1, e1;
+	arm_pte_l2_t *t2, e2;
+
+	kprintf("DEBUG: map_page(pt=0x%08x, paddr=0x%08x, vaddr=0x%08x, flags=0x%08x)\n",
+		page_table, (size_t)paddr, vaddr, flags);
+	/* process flags */
+	convert_flags(flags, ap, tex, c, b, s, xn);
+	/* make sure a table is mapped */
+	__arm_map_table(page_table, ALIGN_BELOW(vaddr, ARM_SECT_SIZE));
+	/* get the L2 table */
+	t1 = page_table;
+	e1 = t1[vaddr >> ARM_SECT_SHIFT];
+	t2 = (arm_pte_l2_t *)(e1 & ARM_PT_L1_TABLE_BASE_MASK);
+	/* apply map */
+	e2 = ARM_PT_L2_PAGE;
+	e2 |= paddr;
+	e2 |= s << 10;
+	e2 |= tex << 6;
+	e2 |= ap << 4;
+	e2 |= c << 3;
+	e2 |= b << 2;
+	e2 |= xn;
+	t2[(vaddr >> ARM_PAGE_SHIFT) & 0xFF] = e2;
 }
 
 /*
@@ -81,7 +183,8 @@ int page_index_early_map(pgindex_t *index, addr_t paddr, size_t vaddr,
 	/* map each ARM SECT */
 	size_t vend = vaddr + length;
 	while (vaddr < vend) {
-		__arm_map_sect(index, paddr, vaddr, ARM_PT_AP_USER_NONE, 0);
+		/* Failsafe attributes for early mappings */
+		__arm_map_sect(index, paddr, vaddr, MAP_SHARED_DEV | VMA_EXEC);
 		paddr += ARM_SECT_SIZE;
 		vaddr += ARM_SECT_SIZE;
 	}
@@ -140,5 +243,131 @@ int get_addr_space()
 		:[pc] "=r" (pc)
 	);
 	return (pc > KERN_BASE);
+}
+
+void arch_mm_init(void)
+{
+	/* initialize allocator cache for L1 page tables */
+	pt_l1_cache = kmalloc(sizeof(*pt_l1_cache), 0);
+	assert(pt_l1_cache != NULL);
+	pt_l1_cache->size = ARM_PT_L1_SIZE;
+	pt_l1_cache->align = ARM_PT_L1_SIZE;
+	pt_l1_cache->flags = 0;
+	pt_l1_cache->create_obj = (void *)page_index_clear;
+	pt_l1_cache->destroy_obj = (void *)page_index_clear;
+	assert(cache_create(pt_l1_cache) == 0);
+
+	/* initialize allocator cache for L2 page tables */
+	pt_l2_cache = kmalloc(sizeof(*pt_l2_cache), 0);
+	assert(pt_l2_cache != NULL);
+	pt_l2_cache->size = ARM_PT_L2_SIZE;
+	pt_l2_cache->align = ARM_PT_L2_SIZE;
+	pt_l2_cache->flags = 0;
+	pt_l2_cache->create_obj = __pt_l2_clear;
+	pt_l2_cache->destroy_obj = __pt_l2_clear;
+	assert(cache_create(pt_l2_cache) == 0);
+
+	/* SCU, cache and branch predict goes here */
+}
+
+pgindex_t *init_pgindex(void)
+{
+	return (pgindex_t *)cache_alloc(pt_l1_cache);
+}
+
+void destroy_pgindex(pgindex_t *pgindex)
+{
+	arm_pte_l1_t *table = pgindex;
+	int i;
+
+	/* free L2 tables (if any) */
+	for (i = 0; i < ARM_PT_L1_LENGTH; i += 1) {
+		uint32_t type = table[i] & ARM_PT_L1_TYPE_MASK;
+		if (type == ARM_PT_L1_TABLE) {
+			uint32_t l2table =
+				table[i] & ARM_PT_L1_TABLE_BASE_MASK;
+			cache_free(pt_l2_cache, (void *)l2table);
+		}
+	}
+
+	/* free the L1 table itself */
+	cache_free(pt_l1_cache, pgindex);
+}
+
+int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
+    uint32_t flags)
+{
+	if (pgindex == NULL) return EOF;
+	/* make sure we are page aligned */
+	if (!(
+		IS_ALIGNED((size_t)vaddr, ARM_PAGE_SIZE) &&
+		IS_ALIGNED(paddr, ARM_PAGE_SIZE) &&
+		IS_ALIGNED(size, ARM_PAGE_SIZE)
+	)) return EOF;
+	/* apply mappings */
+	while (size > 0) {
+		if (
+			IS_ALIGNED((size_t)vaddr, ARM_SECT_SIZE) &&
+			IS_ALIGNED(paddr, ARM_SECT_SIZE) &&
+			size >= ARM_SECT_SIZE
+		) {
+			/* allowed and possible, map a section */
+			__arm_map_sect(pgindex, paddr, (size_t)vaddr, flags);
+			vaddr += ARM_SECT_SIZE;
+			paddr += ARM_SECT_SIZE;
+			size -= ARM_SECT_SIZE;
+		} else {
+			/* allowed and possible, map a section */
+			__arm_map_page(pgindex, paddr, (size_t)vaddr, flags);
+			vaddr += ARM_PAGE_SIZE;
+			paddr += ARM_PAGE_SIZE;
+			size -= ARM_PAGE_SIZE;
+		}
+	}
+	return 0;
+}
+
+#define get_mapped(pt, vaddr, paddr, size) \
+	do { \
+	arm_pte_l1_t e1 = (pt)[(vaddr) >> ARM_SECT_SHIFT]; \
+	arm_pte_l2_t *t2, e2; \
+	switch (e1 & ARM_PT_L1_TYPE_MASK) { \
+		case ARM_PT_L1_TABLE: \
+			t2 = (arm_pte_l2_t *)(e1 & ARM_PT_L1_TABLE_BASE_MASK); \
+			e2 = t2[(vaddr >> ARM_PAGE_SHIFT) & 0xFF]; \
+			(paddr) = e2 & ARM_PT_L2_PAGE_BASE_MASK; \
+			(size) = ARM_PAGE_SIZE; \
+			break; \
+		case ARM_PT_L1_SECT: \
+			(paddr) = e1 & ARM_PT_L1_SECT_BASE_MASK; \
+			(size) = ARM_SECT_SIZE; \
+			break; \
+		default: (paddr)=0; (size)=0; \
+	} \
+	} while (0)
+
+ssize_t unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, addr_t *paddr)
+{
+	arm_pte_l1_t *table = pgindex;
+	addr_t head_paddr, this_paddr;
+	size_t block_size, this_size;
+
+	/* find a start point */
+	get_mapped(table, (size_t)vaddr, this_paddr, this_size);
+	if (this_size == 0) return 0;
+	head_paddr = this_paddr;
+	block_size = this_size;
+	while (block_size < size) {
+		/* unmap */
+		/* increment address */
+		vaddr += this_size;
+		get_mapped(table, (size_t)vaddr, this_paddr, this_size);
+		if (this_size == 0 || this_paddr != head_paddr + block_size) {
+			return block_size;
+		} else {
+			block_size += this_size;
+		}
+	}
+	return block_size;
 }
 

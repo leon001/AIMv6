@@ -22,6 +22,8 @@
 #include <sys/types.h>
 #include <vmm.h>
 
+#ifndef __ASSEMBLER__
+
 /* FIXME change name and create seperate header */
 typedef uint32_t gfp_t;
 /* currently ignored */
@@ -42,6 +44,7 @@ struct page_allocator {
 int page_allocator_init(void);
 int page_allocator_move(struct simple_allocator *old);
 void set_page_allocator(struct page_allocator *allocator);
+/* The registration above COPIES the struct. */
 
 /* 
  * This interface may look wierd, but it prevents the page allocator from doing
@@ -55,6 +58,8 @@ addr_t get_free_memory(void);
 
 /* initialize the page-block structure for remaining free memory */
 void add_memory_pages(void);
+
+#endif /* !__ASSEMBLER__ */
 
 #endif /* _PMM_H */
 

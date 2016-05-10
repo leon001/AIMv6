@@ -19,11 +19,15 @@
 include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libserial-raw.la libserial.la
+noinst_DATA =
 
 SRCS = uart.c uart.h
+MODULE_SRCS =
 
 if UART_ZYNQ
-SRCS += uart-zynq.c uart-zynq.h uart-zynq-hw.h
+MODULE_SRCS += uart-zynq.c uart-zynq.h uart-zynq-hw.h
+noinst_DATA += uart-zynq.o
+uart-zynq.o: uart-zynq.c uart-zynq.h uart-zynq-hw.h
 endif
 
 if UART_MSIM
@@ -34,7 +38,7 @@ if UART_NS16550
 SRCS += uart-ns16550.h uart-ns16550.c uart-ns16550-hw.h
 endif
 
-libserial_raw_la_SOURCES = $(SRCS)
+libserial_raw_la_SOURCES = $(SRCS) $(MODULE_SRCS)
 libserial_raw_la_CPPFLAGS = $(AM_CPPFLAGS_NOPIC)
 libserial_raw_la_CFLAGS = $(AM_CFLAGS_NOPIC)
 libserial_raw_la_CCASFLAGS = $(AM_CCASFLAGS_NOPIC)

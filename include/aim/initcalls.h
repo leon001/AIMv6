@@ -27,32 +27,29 @@ typedef int (*initcall_t)(void);
 	static initcall_t __##sec##_initcall_##fn __used \
 	__attribute__((__section__(".init." #sec))) = fn;
 
-/*
- * In AIM, early, normal, and late initcalls ALL have stages, so we
- * can have different organizations for this part.
- * For a bootable kernel, not all of them need to be configured.
- */
-#define EARLY_INITCALL(fn, id) \
-	__initcall(fn, early##id)
+/* In AIM, normal initcalls have stages. */
+#define EARLY_INITCALL(fn) \
+	__initcall(fn, early)
 
 /* don't add NORM here as it should be the default pace to go */
 #define INITCALL(fn, id) \
 	__initcall(fn, norm##id)
 
-#define LATE_INITCALL(fn, id) \
-	__initcall(fn, late##id)
+#define LATE_INITCALL(fn) \
+	__initcall(fn, late)
 
 /* This is slightly different to linux. We assign a stage for rootfs. */
-#define INITCALL_PURE(fn)	EARLY_INITCALL(fn, 0)
-#define INITCALL_CORE(fn)	EARLY_INITCALL(fn, 1)
-#define INITCALL_POSTCORE(fn)	EARLY_INITCALL(fn, 2)
-#define INITCALL_ARCH(fn)	EARLY_INITCALL(fn, 3)
-#define INITCALL_SUBSYS(fn)	EARLY_INITCALL(fn, 4)
-#define INITCALL_FS(fn)		EARLY_INITCALL(fn, 5)
-#define INITCALL_ROOTFS(fn)	EARLY_INITCALL(fn, 6)
-#define INITCALL_DEV(fn)	EARLY_INITCALL(fn, 7)
+#define INITCALL_PURE(fn)	INITCALL(fn, 0)
+#define INITCALL_CORE(fn)	INITCALL(fn, 1)
+#define INITCALL_POSTCORE(fn)	INITCALL(fn, 2)
+#define INITCALL_ARCH(fn)	INITCALL(fn, 3)
+#define INITCALL_SUBSYS(fn)	INITCALL(fn, 4)
+#define INITCALL_FS(fn)		INITCALL(fn, 5)
+#define INITCALL_ROOTFS(fn)	INITCALL(fn, 6)
+#define INITCALL_DEV(fn)	INITCALL(fn, 7)
 
 int do_early_initcalls();
+int do_initcalls();
 
 #endif /* __ASSEMBLER__ */
 

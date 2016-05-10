@@ -78,6 +78,19 @@
 #define ROUNDDOWN(x, d)		((x) - ((x) % (d)))
 #define ROUND_CLOSEST(x, d)	(((x) + ((d) / 2)) / (d))
 
+/* binary operations on unsigned integral types */
+#define get_lowest_0(x) ({\
+	typeof(x) _x = x; \
+	int i = 0; \
+	if (_x + 1 == 0) i = -1; \
+	else while ((_x & 1) == 1) { \
+		i += 1; \
+		_x >>= 1; \
+	} \
+	i; \
+})
+
+#define ADDR_CAST(x)		((size_t)(x))
 #define ULCAST(x)		((size_t)(x))
 #define PTRCAST(x)		((void *)ULCAST(x))
 

@@ -37,6 +37,7 @@ noinst_HEADERS = \
 	vmm.h \
 	arch/armv7a/io.h \
 	arch/armv7a/arch-sync.h \
+	arch/armv7a/atomic.h \
 	arch/armv7a/mach-zynq/mach.h \
 	arch/mips/addrspace.h \
 	arch/mips/asm.h \
