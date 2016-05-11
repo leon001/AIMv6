@@ -245,9 +245,18 @@ mm_test(void)
 {
 	kprintf("==========mm_test()  started==========\n");
 	struct mm *mm = mm_new();
+	kprintf("pgindex: %p\n", mm->pgindex);
+	kprintf("creating uvm\n");
 	assert(create_uvm(mm, (void *)0x100000, 5 * PAGE_SIZE, VMA_READ | VMA_WRITE) == 0);
+	kprintf("destroying uvm1\n");
 	assert(destroy_uvm(mm, (void *)0x100000, 2 * PAGE_SIZE) == 0);
+	kprintf("destroying uvm2\n");
 	assert(destroy_uvm(mm, (void *)0x102000, 3 * PAGE_SIZE) == 0);
+	kprintf("destroying mm\n");
+	mm_destroy(mm);
+	kprintf("another mm\n");
+	mm = mm_new();
+	kprintf("pgindex: %p\n", mm->pgindex);
 	mm_destroy(mm);
 	kprintf("==========mm_test() finished==========\n");
 }
