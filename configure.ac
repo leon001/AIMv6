@@ -45,6 +45,11 @@ AIM_GCC_FUNC_ATTRIBUTE([visibility])
 AIM_GCC_VAR_ATTRIBUTE([used])
 AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
 
+# Builtin functions - not required
+AX_GCC_BUILTIN(__builtin_popcount)
+AX_GCC_BUILTIN(__builtin_popcountl)
+AX_GCC_BUILTIN(__builtin_popcountll)
+
 AC_SUBST([AIM_CFLAGS], [$aim_cflags])
 
 AM_PROG_AS
