@@ -240,6 +240,16 @@ destroy_uvm(struct mm *mm, void *addr, size_t len)
 	return 0;
 }
 
+void *
+share_uvm(struct mm *mm_src,
+	  void *addr_src,
+	  struct mm *mm_dst,
+	  void *addr_dst,
+	  size_t len,
+	  uint32_t flags)
+{
+}
+
 void
 mm_test(void)
 {

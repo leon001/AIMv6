@@ -219,10 +219,9 @@ int destroy_uvm(struct mm *mm, void *addr, size_t len);
  * architectures (like MIPS) requiring page coloring. */
 void *share_uvm(struct mm *mm_src, void *addr_src, struct mm *mm_dst,
     void *addr_dst, size_t len, uint32_t flags);
-/* Duplicate user space mapping and copy contents inside.
- * FIXME: shall we include VMA flags? */
-int dup_uvm(struct mm *mm_src, void *addr_src, struct mm *mm_dst,
-    void *addr_dst, size_t len);
+#define UVM_CLONE	1	/* Direct clone */
+#define UVM_SHARE	2	/* Share - for shared memory */
+#define UVM_COW		3	/* Copy on write */
 
 /*
  * Architecture-independent interfaces
