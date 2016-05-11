@@ -52,7 +52,7 @@ struct proc {
 #define PF_SIGNALED	0x00000400	/* killed by a signal */
 	int		oncpu;		/* CPU ID being running on */
 #define CPU_NONE	-1
-	uintptr_t	bed;		/* address we are sleeping on */
+	uintptr_t	bed;		/* object we are sleeping on */
 	struct namespace *namespace;	/* Namespace */
 	struct mm 	*mm; /* Memory mapping structure including pgindex */
 	/*
@@ -60,7 +60,7 @@ struct proc {
 	 * User stack is placed above all loaded program segments.
 	 * We put program arguments above user stack.
 	 */
-	struct regs	*context;	/* Context before switch */
+	struct regs	context;	/* Context before switch */
 	size_t		heapsize;	/* Expandable heap size */
 
 	/* TODO: do we need these? */

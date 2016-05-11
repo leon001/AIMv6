@@ -26,6 +26,7 @@
 #include <pmm.h>
 #include <proc.h>
 #include <namespace.h>
+#include <libc/string.h>
 
 /*
  * This should be a seperate function, don't directly use kernel memory
@@ -67,6 +68,16 @@ struct proc *proc_new(struct namespace *ns)
 	proc->bed = NULL;
 	proc->namespace = ns;
 	proc->mm = mm_new();
-	proc->regs = (struct regs *)kmalloc(sizeof(*(proc->regs), 0));
+	memset(&(proc->context), 0, sizeof(&(proc->context)));
+	proc->heapsize = 0;
+	proc->ustacktop = 0;
+	proc->progtop = 0;
+	memset(&(proc->name), 0, sizeof(&(proc->name)));
+
+	proc->parent = NULL;
+	proc->first_child = NULL;
+	proc->next_sibling = NULL;
+	proc->prev_sibling = NULL;
+	list_init(&(proc->proc_node));
 }
 
