@@ -33,6 +33,28 @@ struct pages {
 	addr_t size;
 	gfp_t flags;
 	atomic_t refs;	/* for shared memory */
+	/*
+	 * When swapping pages in and out, we normally save the page content
+	 * and virtual page number (along with an identification of page
+	 * index - could be PID if a page directory is _uniquely_ related
+	 * to a process) together.  But if we are allowing shared memory,
+	 * we need to save a _list_ of virtual page numbers (as well as page
+	 * index identifications) since two virtual pages from different page
+	 * indexes can be mapped to a same physical page, and if we are
+	 * swapping such page out, we need to invalidate both virtual page
+	 * entries.  To enable us finding all the virtual pages easily, we
+	 * need to keep track of the list of virtual pages mapped to
+	 * the same physical page (or page block).
+	 *
+	 * Here we are saving the list of such virtual pages inside the
+	 * pages struct.  They are a list of struct vma (mm.h).
+	 *
+	 * FIXME: please review.  I think we need to wrap another layer
+	 * outside `struct pages`, probably `struct mm_pages` or something,
+	 * because the page allocator does not really care how many references
+	 * are there and how many VMAs are mapped to a page.
+	 */
+	struct list_head share_vma_node;
 };
 
 struct page_allocator {
