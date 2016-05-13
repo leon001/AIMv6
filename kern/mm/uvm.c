@@ -139,6 +139,23 @@ __unmap_and_free_vma(struct mm *mm, struct vma *vma_start, size_t size)
 	}
 }
 
+static struct vma *
+__vma_new(struct mm *mm, void *addr, size_t size, uint32_t flags)
+{
+	struct vma *vma = (struct vma *)kmalloc(sizeof(*vma), 0);
+
+	if (vma != NULL) {
+		vma->mm = mm;
+		vma->start = addr;
+		vma->size = size;
+		vma->flags = flags;
+		vma->pages = NULL;
+		list_init(&(vma->node));
+	}
+
+	return vma;
+}
+
 int
 create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 {
@@ -158,14 +175,11 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 
 	vma_cur = vma_start;
 	for (; mapped < len; mapped += PAGE_SIZE, vcur += PAGE_SIZE) {
-		vma = (struct vma *)kmalloc(sizeof(*vma), 0);
+		vma = __vma_new(mm, vcur, PAGE_SIZE, flags);
 		if (vma == NULL) {
 			retcode = -ENOMEM;
 			goto rollback;
 		}
-		vma->start = vcur;
-		vma->size = PAGE_SIZE;
-		vma->flags = flags;
 
 		p = (struct pages *)kmalloc(sizeof(*p), 0);
 		if (p == NULL) {

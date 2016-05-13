@@ -161,6 +161,7 @@ struct vma {
 #define VMA_READ	0x04
 	/* More flags */
 #define VMA_FILE	0x100		/* For mmap(2) */
+	struct mm	*mm;
 	/* Since we are not maintaining a list for all physical pages, we
 	 * have to keep a struct pages pointer with struct vma in case of
 	 * shared memory. */
