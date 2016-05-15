@@ -19,5 +19,8 @@
 #ifndef _ARCH_SYNC_H
 #define _ARCH_SYNC_H
 
+#define smp_mb() \
+	asm volatile ("sync" : : : "memory")
+
 #endif
 
