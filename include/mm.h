@@ -119,24 +119,30 @@ int get_addr_space(void);
 struct mm;
 
 /*
- * Kernel mapping structure.
- * Mostly the same as struct early_mapping, with permission flags
+ * User page structure based on struct pages but including additional
+ * members such as reference counts
  */
-struct kernmap {
-	addr_t		paddr;
-	void		*vaddr;
-	size_t		size;
-	uint32_t	type;
-#define KM_LINEAR	0	/* Default linear mapping */
-#define KM_KMMAP	1	/* Require kmmap subsystem (?) */
-	uint32_t	flags;
-#define KM_EXEC		0x1
-#define KM_WRITE	0x2
-#define KM_READ		0x4
+struct upages {
+	struct pages;
+	atomic_t refs;	/* for shared memory */
+	/*
+	 * When swapping pages in and out, we normally save the page content
+	 * and virtual page number (along with an identification of page
+	 * index - could be PID if a page directory is _uniquely_ related
+	 * to a process) together.  But if we are allowing shared memory,
+	 * we need to save a _list_ of virtual page numbers (as well as page
+	 * index identifications) since two virtual pages from different page
+	 * indexes can be mapped to a same physical page, and if we are
+	 * swapping such page out, we need to invalidate both virtual page
+	 * entries.  To enable us finding all the virtual pages easily, we
+	 * need to keep track of the list of virtual pages mapped to
+	 * the same physical page (or page block).
+	 *
+	 * Here we are saving the list of such virtual pages inside the
+	 * pages struct.  They are a list of struct vma (mm.h).
+	 */
+	struct list_head share_vma_node;
 };
-
-/* Pointer to struct kernmap array */
-extern struct kernmap *kernmaps;
 
 /*
  * Virtual memory area structure
@@ -145,7 +151,7 @@ extern struct kernmap *kernmaps;
  * 1. that the virtual memory areas should be sorted in ascending order of
  *    virtual address, AND
  * 2. that each virtual memory area should be mapped to exactly one
- *    contiguous page block (stored in struct pages) in a one-to-one manner,
+ *    contiguous page block (stored in struct upages) in a one-to-one manner,
  *    AND
  * 3. that the virtual memory areas should never overlap.
  */
@@ -163,9 +169,9 @@ struct vma {
 #define VMA_FILE	0x100		/* For mmap(2) */
 	struct mm	*mm;
 	/* Since we are not maintaining a list for all physical pages, we
-	 * have to keep a struct pages pointer with struct vma in case of
+	 * have to keep a struct upages pointer with struct vma in case of
 	 * shared memory. */
-	struct pages	*pages;
+	struct upages	*pages;
 	struct list_head node;
 };
 

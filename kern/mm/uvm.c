@@ -61,14 +61,14 @@ __clean_vma(struct mm *mm, struct vma *vma)
 }
 
 static void
-__ref_pages(struct pages *p)
+__ref_upages(struct upages *p)
 {
 	atomic_inc(&(p->refs));
 }
 
 #define __PAGES_FREED	1
 static int
-__unref_and_free_pages(struct pages *p)
+__unref_and_free_upages(struct upages *p)
 {
 	atomic_dec(&(p->refs));
 	if (p->refs == 0) {
@@ -161,7 +161,7 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 {
 	int retcode = 0;
 	struct vma *vma_start, *vma, *vma_cur;
-	struct pages *p;
+	struct upages *p;
 	void *vcur = addr;
 	size_t mapped = 0;
 
@@ -181,7 +181,7 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 			goto rollback;
 		}
 
-		p = (struct pages *)kmalloc(sizeof(*p), 0);
+		p = (struct upages *)kmalloc(sizeof(*p), 0);
 		if (p == NULL) {
 			retcode = -ENOMEM;
 			goto rollback_vma;
