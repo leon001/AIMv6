@@ -26,6 +26,11 @@ libbitmap_la_SOURCES = \
 		       bitmap_complement.c \
 		       bitmap_empty.c \
 		       bitmap_equal.c \
+		       bitmap_find_first_bit.c \
+		       bitmap_find_first_zero_bit.c \
+		       bitmap_find_last_bit.c \
+		       bitmap_find_next_bit.c \
+		       bitmap_find_next_zero_bit.c \
 		       bitmap_full.c \
 		       bitmap_intersects.c \
 		       bitmap_or.c \

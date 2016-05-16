@@ -56,6 +56,17 @@ extern int __bitmap_weight(const unsigned long *bitmap, int bits);
 extern void bitmap_set(unsigned long *map, int i, int len);
 extern void bitmap_clear(unsigned long *map, int start, int nr);
 
+extern unsigned long bitmap_find_next_bit(const unsigned long *addr,
+		unsigned long size, unsigned long offset);
+extern unsigned long bitmap_find_next_zero_bit(const unsigned long *addr,
+		unsigned long size, unsigned long offset);
+extern unsigned long bitmap_find_first_bit(const unsigned long *addr,
+		unsigned long size);
+extern unsigned long bitmap_find_first_zero_bit(const unsigned long *addr,
+		unsigned long size);
+extern unsigned long bitmap_find_last_bit(const unsigned long *addr,
+		unsigned long size);
+
 static inline void bitmap_zero(unsigned long *dst, int nbits)
 {
 	int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
