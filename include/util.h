@@ -27,10 +27,14 @@
 #define WORD_SHIFT	3
 #define WORD_SIZE	8
 #define BITS_PER_LONG	64
+#define BITS_PER_LONG_LOG	6
+#define BITS_PER_LONG_MASK	63
 #else
 #define WORD_SHIFT	2
 #define WORD_SIZE	4
 #define BITS_PER_LONG	32
+#define BITS_PER_LONG_LOG	5
+#define BITS_PER_LONG_MASK	31
 #endif
 
 #ifndef __ASSEMBLER__

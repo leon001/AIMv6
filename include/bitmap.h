@@ -24,7 +24,7 @@
 #include <atomic.h>
 
 #define DECLARE_BITMAP(var, nbit) \
-	unsigned long var[BITS_
+	unsigned int var[BITS_PER_INT]
 
 #define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
 #define BITMAP_LAST_WORD_MASK(nbits)					\
@@ -62,11 +62,11 @@
  * bitmap_find_first_bit(addr, nbits)		Position first set bit in *addr
  * bitmap_find_next_zero_bit(addr, nbits, bit)	Position next zero bit in *addr >= bit
  * bitmap_find_next_bit(addr, nbits, bit)	Position next set bit in *addr >= bit
+ * bitmap_test_bit(i, dst)			Whether i-th bit is set
  *
  * The following from atomic.h also applies for bitmaps:
- * atomic_set_bit(dst, i)			Set i-th bit
- * atomic_clear_bit(dst, i)			Clear i-th bit
- * atomic_test_bit(dst, i)			Whether i-th bit is set
+ * atomic_set_bit(i, dst)			Set i-th bit
+ * atomic_clear_bit(i, dst)			Clear i-th bit
  */
 
 extern int __bitmap_empty(const unsigned long *bitmap, int bits);
@@ -194,6 +194,11 @@ static inline void bitmap_shift_left(unsigned long *dst,
 		const unsigned long *src, int n, int nbits)
 {
 	__bitmap_shift_left(dst, src, n, nbits);
+}
+
+static inline int bitmap_test_bit(int nr, const volatile unsigned long *addr)
+{
+	return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
 }
 
 #endif

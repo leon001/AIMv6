@@ -164,6 +164,8 @@ sym:		.long	long
 /* Load-link and Store-conditional */
 # define LL		ll
 # define SC		sc
+# define __LL		"ll"
+# define __SC		"sc"
 /*
  * CP0 Transfers, See MIPS Run 8.7.10.
  *
@@ -215,6 +217,8 @@ sym:		.long	long
 /* Load-link and Store-conditional */
 # define LL		lld
 # define SC		scd
+# define __LL		"lld"
+# define __SC		"scd"
 /* CP0 Transfers, See MIPS Run 8.7.10 */
 # define MFC0		dmfc0
 # define MTC0		dmtc0
