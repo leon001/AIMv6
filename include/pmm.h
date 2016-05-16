@@ -21,6 +21,7 @@
 
 #include <sys/types.h>
 #include <vmm.h>
+#include <mmu.h>
 
 #ifndef __ASSEMBLER__
 

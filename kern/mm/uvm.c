@@ -89,7 +89,7 @@ mm_destroy(struct mm *mm)
 
 	for_each_entry_safe (vma, vma_next, &(mm->vma_head), node) {
 		__clean_vma(mm, vma);
-		if (__unref_and_free_pages(vma->pages) == __PAGES_FREED)
+		if (__unref_and_free_upages(vma->pages) == __PAGES_FREED)
 			kfree(vma->pages);
 		kfree(vma);
 	}
@@ -133,7 +133,7 @@ __unmap_and_free_vma(struct mm *mm, struct vma *vma_start, size_t size)
 		/* temporary in case of typo - assertation will be removed */
 		assert(unmap_pages(mm->pgindex, vma->start, vma->size,
 		    NULL) == PAGE_SIZE);
-		if (__unref_and_free_pages(vma->pages) == __PAGES_FREED)
+		if (__unref_and_free_upages(vma->pages) == __PAGES_FREED)
 			kfree(vma->pages);
 		kfree(vma);
 	}
@@ -201,7 +201,7 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 		}
 
 		vma->pages = p;
-		__ref_pages(p);
+		__ref_upages(p);
 		list_add_after(&(vma->node), &(vma_cur->node));
 		vma_cur = vma;
 		continue;

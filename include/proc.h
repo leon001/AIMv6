@@ -21,6 +21,9 @@
 
 #include <sys/types.h>
 #include <namespace.h>
+#include <mm.h>
+#include <list.h>
+#include <regs.h>
 
 #define PROC_NAME_LEN_MAX	256
 
