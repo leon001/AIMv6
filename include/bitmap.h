@@ -21,6 +21,10 @@
 
 #include <util.h>
 #include <libc/string.h>
+#include <atomic.h>
+
+#define DECLARE_BITMAP(var, nbit) \
+	unsigned long var[BITS_
 
 #define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
 #define BITMAP_LAST_WORD_MASK(nbits)					\
@@ -28,6 +32,42 @@
 	((nbits) % BITS_PER_LONG) ?					\
 		(1UL<<((nbits) % BITS_PER_LONG))-1 : ~0UL		\
 )
+
+/*
+ * The available bitmap operations and their rough meaning in the
+ * case that the bitmap is a single unsigned long are thus:
+ *
+ * Note that nbits should be always a compile time evaluable constant.
+ * Otherwise many inlines will generate horrible code.
+ *
+ * Another note: the following operations are NOT necessarily atomic.
+ *
+ * bitmap_zero(dst, nbits)			*dst = 0UL
+ * bitmap_fill(dst, nbits)			*dst = ~0UL
+ * bitmap_copy(dst, src, nbits)			*dst = *src
+ * bitmap_and(dst, src1, src2, nbits)		*dst = *src1 & *src2
+ * bitmap_or(dst, src1, src2, nbits)		*dst = *src1 | *src2
+ * bitmap_xor(dst, src1, src2, nbits)		*dst = *src1 ^ *src2
+ * bitmap_andnot(dst, src1, src2, nbits)	*dst = *src1 & ~(*src2)
+ * bitmap_complement(dst, src, nbits)		*dst = ~(*src)
+ * bitmap_equal(src1, src2, nbits)		Are *src1 and *src2 equal?
+ * bitmap_intersects(src1, src2, nbits) 	Do *src1 and *src2 overlap?
+ * bitmap_subset(src1, src2, nbits)		Is *src1 a subset of *src2?
+ * bitmap_empty(src, nbits)			Are all bits zero in *src?
+ * bitmap_full(src, nbits)			Are all bits set in *src?
+ * bitmap_weight(src, nbits)			Hamming Weight: number set bits
+ * bitmap_set(dst, pos, nbits)			Set specified bit area
+ * bitmap_clear(dst, pos, nbits)		Clear specified bit area
+ * bitmap_find_first_zero_bit(addr, nbits)	Position first zero bit in *addr
+ * bitmap_find_first_bit(addr, nbits)		Position first set bit in *addr
+ * bitmap_find_next_zero_bit(addr, nbits, bit)	Position next zero bit in *addr >= bit
+ * bitmap_find_next_bit(addr, nbits, bit)	Position next set bit in *addr >= bit
+ *
+ * The following from atomic.h also applies for bitmaps:
+ * atomic_set_bit(dst, i)			Set i-th bit
+ * atomic_clear_bit(dst, i)			Clear i-th bit
+ * atomic_test_bit(dst, i)			Whether i-th bit is set
+ */
 
 extern int __bitmap_empty(const unsigned long *bitmap, int bits);
 extern int __bitmap_full(const unsigned long *bitmap, int bits);
