@@ -363,6 +363,8 @@ AC_CONFIG_FILES([
 	kern/arch/mips/mach-msim/Makefile
 	kern/arch/mips/mach-loongson3a/Makefile
 	kern/init/Makefile
+	kern/lib/Makefile
+	kern/lib/libbitmap/Makefile
 	kern/dev/Makefile
 	kern/dev/index/Makefile
 	kern/debug/Makefile

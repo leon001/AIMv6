@@ -23,6 +23,7 @@ SUBDIRS = \
 	init \
 	dev \
 	debug \
+	lib \
 	mm \
 	proc
 
@@ -37,6 +38,9 @@ vmaim_elf_SOURCES =
 # If an object has no used symbol, it is discarded.
 # Static library order must always solve the refer graph topologically.
 # NO circular reference is allowed.
+KERNEL_INTERNAL_LIBS = \
+	lib/libbitmap/libbitmap.la
+
 KERNEL_LIBS = \
 	arch/$(ARCH)/libentry.la \
 	init/libinit.la \
@@ -45,6 +49,7 @@ KERNEL_LIBS = \
 	arch/$(ARCH)/lib$(ARCH).la \
 	$(top_builddir)/drivers/libdrivers.la \
 	$(MODULES) \
+	$(KERNEL_INTERNAL_LIBS) \
 	$(top_builddir)/lib/libc/libc.la \
 	debug/libdebug.la
 vmaim_elf_LDADD = $(KERNEL_LIBS)
