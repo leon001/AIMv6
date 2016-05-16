@@ -59,7 +59,7 @@ struct proc *proc_new(struct namespace *ns)
 
 	proc->tid = 0;
 	proc->kpid = kpid_new();
-	proc->pid = (ns == NULL) ? proc->kpid : pid_new(ns);
+	proc->pid = pid_new(proc);
 	proc->state = PS_EMBRYO;
 	proc->exit_code = 0;
 	proc->exit_signal = 0;

@@ -59,6 +59,9 @@
 
 #define DIV_ROUND_UP(n, d)	(((n) + (d) - 1) / (d))
 
+#define BITS_TO_LONGS(n)	DIV_ROUND_UP(n, sizeof(unsigned long))
+#define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
+
 #define swap(a, b) \
 	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
 
