@@ -20,6 +20,7 @@
 #define _ATOMIC_H
 
 #include <sys/types.h>
+#include <arch-sync.h>
 
 /* counter += val */
 static inline void atomic_add(atomic_t *counter, uint32_t val)
@@ -35,6 +36,7 @@ static inline void atomic_sub(atomic_t *counter, uint32_t val)
 static inline void atomic_inc(atomic_t *counter)
 {
 	uint32_t reg;
+	smp_mb();
 	asm volatile (
 		"	.set	push;"
 		"	.set	reorder;"
@@ -45,12 +47,14 @@ static inline void atomic_inc(atomic_t *counter)
 		"	.set	pop;"
 		: [reg] "=&r"(reg), [mem] "+m"(*counter)
 	);
+	smp_mb();
 }
 
 /* counter-- */
 static inline void atomic_dec(atomic_t *counter)
 {
 	uint32_t reg;
+	smp_mb();
 	asm volatile (
 		"	.set	push;"
 		"	.set	reorder;"
@@ -61,6 +65,7 @@ static inline void atomic_dec(atomic_t *counter)
 		"	.set	pop;"
 		: [reg] "=&r"(reg), [mem] "+m"(*counter)
 	);
+	smp_mb();
 }
 
 #endif
