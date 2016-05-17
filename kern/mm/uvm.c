@@ -156,6 +156,20 @@ __vma_new(struct mm *mm, void *addr, size_t size, uint32_t flags)
 	return vma;
 }
 
+static struct upages *
+__upages_new(size_t size, uint32_t flags)
+{
+	struct upages *p = (struct upages *)kmalloc(sizeof(*p), 0);
+	if (p != NULL) {
+		p->padde = 0;
+		p->flags = flags;
+		p->size = size;
+		p->refs = 0;
+		list_init(&(p->sharing_vma));
+	}
+	return p;
+}
+
 int
 create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 {
@@ -181,15 +195,11 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 			goto rollback;
 		}
 
-		p = (struct upages *)kmalloc(sizeof(*p), 0);
+		p = __upages_new(PAGE_SIZE, 0);
 		if (p == NULL) {
 			retcode = -ENOMEM;
 			goto rollback_vma;
 		}
-		p->paddr = 0;
-		p->flags = 0;
-		p->size = PAGE_SIZE;
-		p->refs = 0;
 		if (alloc_pages(p) < 0) {
 			retcode = -ENOMEM;
 			goto rollback_pages;
@@ -254,13 +264,9 @@ destroy_uvm(struct mm *mm, void *addr, size_t len)
 	return 0;
 }
 
-void *
-share_uvm(struct mm *mm_src,
-	  void *addr_src,
-	  struct mm *mm_dst,
-	  void *addr_dst,
-	  size_t len,
-	  uint32_t flags)
+/* Dumb copy implementation */
+int
+mm_clone(struct mm **dst, const struct mm *src)
 {
 }
 

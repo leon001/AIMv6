@@ -139,9 +139,9 @@ struct upages {
 	 * the same physical page (or page block).
 	 *
 	 * Here we are saving the list of such virtual pages inside the
-	 * pages struct.  They are a list of struct vma (mm.h).
+	 * pages struct.  They are a list of struct vma (below).
 	 */
-	struct list_head share_vma_node;
+	struct list_head sharing_vma;
 };
 
 /*
@@ -210,6 +210,15 @@ int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
  * The physical address of unmapped pages are stored in @paddr.
  */
 ssize_t unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, addr_t *paddr);
+/*
+ * Change the page permission flags without changing the actual mapping.
+ */
+int set_pages_perm(pgindex_t *pgindex, void *vaddr, size_t size, uint32_t flags);
+/*
+ * Invalidate pages, but without actually deleting the page index entries.
+ */
+ssize_t invalidate_pages(pgindex_t *pgindex, void *vaddr, size_t size,
+    addr_t *paddr);
 
 /*
  * Architecture-independent interfaces
@@ -219,16 +228,12 @@ ssize_t unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, addr_t *paddr)
 int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags);
 /* Destroy a size @len user space mapping starting at @addr */
 int destroy_uvm(struct mm *mm, void *addr, size_t len);
-/* Share user space mapping between two memory mapping structures for
- * copy-on-write or shared memory.
- * Returns the newly mapped virtual address from destination struct
- * mm, which is usually, but not always, @addr_dst, in case of some
- * architectures (like MIPS) requiring page coloring. */
-void *share_uvm(struct mm *mm_src, void *addr_src, struct mm *mm_dst,
-    void *addr_dst, size_t len, uint32_t flags);
-#define UVM_CLONE	1	/* Direct clone */
-#define UVM_SHARE	2	/* Share - for shared memory */
-#define UVM_COW		3	/* Copy on write */
+/* Create a size @len user space mapping which shares same physical pages
+ * under @addr_src in struct mm @src, preferably at @addr_dst.
+ * If @addr_dst == NULL, the routine chooses where to map.
+ * Returns the virtual address we are mapping to. */
+void *share_uvm(struct mm *dst, const void *addr_dst, const struct mm *src,
+    const void *addr_src, size_t len);
 
 /*
  * Architecture-independent interfaces
@@ -239,13 +244,13 @@ int copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
 /* Does the reverse */
 int copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
 
-/* Create a struct mm with a new page index and _kernel mappings inserted_.
- * The kernel mappings are added by map_pages() and iterating over
- * the array of struct kernmap (kernmaps).
- * FIXME: please review */
+/* Create a struct mm with a new page index and _kernel mappings inserted_. */
 struct mm *mm_new(void);
 /* Destroy a struct mm and all the underlying memory mappings */
 void mm_destroy(struct mm *mm);
+/* Clone a memory mapping as a whole.  @dst stores a pointer to newly-cloned
+ * struct mm */
+int mm_clone(struct mm **dst, const struct mm *src);
 
 #endif /* !__ASSEMBLER__ */
 
