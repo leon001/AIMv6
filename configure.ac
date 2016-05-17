@@ -206,6 +206,13 @@ AC_SUBST([MEM_SIZE], [$with_mem_size])
 AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [detect])
 AC_SUBST([NR_CPUS], [$with_cpus])
 
+# MIPS kernel hyperparameters
+AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
+	[base virtual address for array storing GP register during trap entry])
+AIM_ARG_WITH([mips-pgdir-slot-base], [PGDIR_SLOT_BASE],
+	[base virtual address for array storing per CPU page directories])
+
+# Kernel hyperparameters
 AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0x80000000])
 AC_SUBST([KERN_BASE], [$with_kern_base])
 
@@ -220,13 +227,11 @@ AC_SUBST([RESERVED_BASE], [$with_reserved_base])
 AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 	[size of kernel stack])
 
+AIM_ARG_WITH([max-processes], [MAX_PROCESSES], [maximum number of processes],
+	[65536])
+
 AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 	[order of firmware stack per CPU (size=1<<order)])
-
-AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
-	[base virtual address for array storing GP register during trap entry])
-AIM_ARG_WITH([mips-pgdir-slot-base], [PGDIR_SLOT_BASE],
-	[base virtual address for array storing per CPU page directories])
 
 # Drivers
 AIM_ARG_ENABLE([io-mem], [IO_MEM], [memory-mapped IO driver])

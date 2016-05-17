@@ -21,6 +21,7 @@
 
 #include <proc.h>
 #include <namespace.h>
+#include <sys/types.h>
 
 /* struct proclist is implemented in scheduler source. */
 struct proclist;
@@ -28,6 +29,8 @@ struct proclist;
 struct scheduler {
 	/* The actual data structure storing the set of proc */
 	struct proclist	*proclist;
+	/* Initialize scheduler and process list inside */
+	void		(*init)(void);
 	/* Remove and return an arbitrary proc from proc list */
 	struct proc *	(*pick)(void);
 	int		(*add)(struct proc *);
@@ -41,5 +44,10 @@ struct scheduler {
 	 */
 	struct proc *	(*find)(pid_t pid, struct namespace *ns);
 };
+
+/* Made them replaceable in case of someone trying PID randomization like
+ * OpenBSD. */
+pid_t kpid_new(void);
+pid_t pid_new(struct namespace *ns);
 
 #endif

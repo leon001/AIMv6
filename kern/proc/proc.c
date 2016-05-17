@@ -58,8 +58,8 @@ struct proc *proc_new(struct namespace *ns)
 	proc->kstack_size = PAGE_SIZE;
 
 	proc->tid = 0;
-	proc->kpid = kpid_new();
-	proc->pid = pid_new(proc);
+	proc->kpid = 0;
+	proc->pid = 0;
 	proc->state = PS_EMBRYO;
 	proc->exit_code = 0;
 	proc->exit_signal = 0;
@@ -79,5 +79,7 @@ struct proc *proc_new(struct namespace *ns)
 	proc->next_sibling = NULL;
 	proc->prev_sibling = NULL;
 	list_init(&(proc->proc_node));
+
+	return proc;
 }
 

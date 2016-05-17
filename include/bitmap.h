@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -22,6 +22,15 @@
 #include <util.h>
 #include <libc/string.h>
 #include <atomic.h>
+
+/*
+ * Declare a bitmap with n bits.
+ * You can do declarations like
+ *
+ *     static DECLARE_BITMAP(a, 40);
+ *
+ * although it's pretty unreadable.
+ */
 
 #define DECLARE_BITMAP(var, nbit) \
 	unsigned int var[BITS_PER_INT]
