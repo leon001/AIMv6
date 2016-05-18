@@ -248,9 +248,8 @@ int copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
 struct mm *mm_new(void);
 /* Destroy a struct mm and all the underlying memory mappings */
 void mm_destroy(struct mm *mm);
-/* Clone a memory mapping as a whole.  @dst stores a pointer to newly-cloned
- * struct mm */
-int mm_clone(struct mm **dst, const struct mm *src);
+/* Clone a memory mapping as a whole.  @dst should be initialized via mm_new */
+int mm_clone(struct mm *dst, const struct mm *src);
 
 #endif /* !__ASSEMBLER__ */
 

@@ -26,6 +26,7 @@
 #include <atomic.h>
 #include <errno.h>
 #include <panic.h>
+#include <libc/string.h>
 
 struct mm *
 mm_new(void)
@@ -121,18 +122,21 @@ __find_vma_before(struct mm *mm, void *addr, size_t size)
 	return vma_prev;
 }
 
+/* Unmapping takes place _at_ @vma_start */
 static void
 __unmap_and_free_vma(struct mm *mm, struct vma *vma_start, size_t size)
 {
 	struct vma *vma_cur = vma_start;
-	for (size_t i = 0; i < size; i += PAGE_SIZE) {
+	size_t vma_size = 0;
+	for (size_t i = 0; i < size; i += vma_size) {
 		struct vma *vma = vma_cur;
 		vma_cur = next_entry(vma_cur, node);
 
+		vma_size = vma->size;
 		list_del(&(vma->node));
 		/* temporary in case of typo - assertation will be removed */
 		assert(unmap_pages(mm->pgindex, vma->start, vma->size,
-		    NULL) == PAGE_SIZE);
+		    NULL) == vma_size);
 		if (__unref_and_free_upages(vma->pages) == __PAGES_FREED)
 			kfree(vma->pages);
 		kfree(vma);
@@ -161,7 +165,7 @@ __upages_new(size_t size, uint32_t flags)
 {
 	struct upages *p = (struct upages *)kmalloc(sizeof(*p), 0);
 	if (p != NULL) {
-		p->padde = 0;
+		p->paddr = 0;
 		p->flags = flags;
 		p->size = size;
 		p->refs = 0;
@@ -228,7 +232,7 @@ rollback_vma:
 	return 0;
 
 rollback:
-	__unmap_and_free_vma(mm, vma_start, mapped);
+	__unmap_and_free_vma(mm, next_entry(vma_start, node), mapped);
 	return retcode;
 }
 
@@ -266,8 +270,64 @@ destroy_uvm(struct mm *mm, void *addr, size_t len)
 
 /* Dumb copy implementation */
 int
-mm_clone(struct mm **dst, const struct mm *src)
+mm_clone(struct mm *dst, const struct mm *src)
 {
+	struct vma *vma_new, *vma_cur, *vma_start, *vma;
+	struct upages *p;
+	size_t cloned_size = 0;
+	int retcode = 0;
+
+	vma_start = list_entry(&(dst->vma_head), struct vma, node);
+	vma_cur = vma_start;
+
+	for_each_entry (vma, &(src->vma_head), node) {
+		/* TODO: I wonder if I should reuse the code in that of
+		 * create_uvm() */
+		vma_new = __vma_new(dst, vma->start, vma->size, vma->flags);
+		if (vma == NULL) {
+			retcode = -ENOMEM;
+			goto rollback;
+		}
+
+		p = __upages_new(vma_new->pages->size, vma_new->pages->flags);
+		if (p == NULL) {
+			retcode = -ENOMEM;
+			goto rollback_vma;
+		}
+
+		if (alloc_pages(p) < 0) {
+			retcode = -ENOMEM;
+			goto rollback_pages;
+		}
+
+		if ((retcode = map_pages(dst->pgindex, vma_new->start,
+		    p->paddr, vma_new->size, vma_new->flags)) < 0) {
+			goto rollback_pgalloc;
+		}
+
+		memmove(pa2kva(vma->pages->paddr), pa2kva(p->paddr),
+		    vma_new->size);
+
+		vma_new->pages = p;
+		__ref_upages(p);
+		list_add_after(&(vma_new->node), &(vma_cur->node));
+		vma_cur = vma_new;
+		cloned_size += vma_new->size;
+		continue;
+
+rollback_pgalloc:
+		free_pages(p);
+rollback_pages:
+		kfree(p);
+rollback_vma:
+		kfree(vma_new);
+		goto rollback;
+	}
+
+	return 0;
+rollback:
+	__unmap_and_free_vma(dst, next_entry(vma_start, node), cloned_size);
+	return retcode;
 }
 
 void

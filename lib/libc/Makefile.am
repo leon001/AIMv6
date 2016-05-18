@@ -25,6 +25,7 @@ noinst_LTLIBRARIES = \
 
 SRCS = \
 	memcpy.c \
+	memmove.c \
 	memset.c \
 	snprintf.c \
 	strcmp.c \
