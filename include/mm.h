@@ -28,6 +28,7 @@
 #include <mmu.h>
 #include <pmm.h>
 #include <sys/types.h>
+#include <aim/sync.h>
 
 #ifndef __ASSEMBLER__
 

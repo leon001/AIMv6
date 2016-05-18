@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <panic.h>
 #include <libc/string.h>
+#include <aim/sync.h>
 
 struct mm *
 mm_new(void)
@@ -128,13 +129,18 @@ __unmap_and_free_vma(struct mm *mm, struct vma *vma_start, size_t size)
 {
 	struct vma *vma_cur = vma_start;
 	size_t vma_size = 0;
+	bool intr;
 	for (size_t i = 0; i < size; i += vma_size) {
 		struct vma *vma = vma_cur;
 		vma_cur = next_entry(vma_cur, node);
 
 		vma_size = vma->size;
 		list_del(&(vma->node));
+
+		spin_lock_irq_save(&(vma->pages->lock), intr);
 		list_del(&(vma->share_node));
+		spin_unlock_irq_restore(&(vma->pages->lock), intr);
+
 		/* temporary in case of typo - assertation will be removed */
 		assert(unmap_pages(mm->pgindex, vma->start, vma->size,
 		    NULL) == vma_size);
@@ -184,6 +190,7 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 	struct upages *p;
 	void *vcur = addr;
 	size_t mapped = 0;
+	bool intr;
 
 	if (!IS_ALIGNED(len, PAGE_SIZE) ||
 	    mm == NULL ||
@@ -219,7 +226,11 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 		vma->pages = p;
 		__ref_upages(p);
 		list_add_after(&(vma->node), &(vma_cur->node));
+
+		spin_lock_irq_save(&(p->lock), intr);
 		list_add_after(&(vma->share_node), &(p->vma_head));
+		spin_unlock_irq_restore(&(p->lock), intr);
+
 		vma_cur = vma;
 		continue;
 
@@ -279,6 +290,7 @@ mm_clone(struct mm *dst, const struct mm *src)
 	struct upages *p;
 	size_t cloned_size = 0;
 	int retcode = 0;
+	bool intr;
 
 	vma_start = list_entry(&(dst->vma_head), struct vma, node);
 	vma_cur = vma_start;
@@ -314,7 +326,11 @@ mm_clone(struct mm *dst, const struct mm *src)
 		vma_new->pages = p;
 		__ref_upages(p);
 		list_add_after(&(vma_new->node), &(vma_cur->node));
+
+		spin_lock_irq_save(&(p->lock), intr);
 		list_add_after(&(vma_new->share_node), &(p->vma_head));
+		spin_unlock_irq_restore(&(p->lock), intr);
+
 		vma_cur = vma_new;
 		cloned_size += vma_new->size;
 		continue;
