@@ -209,7 +209,7 @@ AC_SUBST([NR_CPUS], [$with_cpus])
 # MIPS kernel hyperparameters
 AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
 	[base virtual address for array storing GP register during trap entry])
-AIM_ARG_WITH([mips-pgdir-slot-base], [PGDIR_SLOT_BASE],
+AIM_ARG_WITH([mips-pgdir-slot-base], [MIPS_PGDIR_SLOT_BASE],
 	[base virtual address for array storing per CPU page directories])
 
 # Kernel hyperparameters

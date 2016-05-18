@@ -173,6 +173,35 @@ dd if=kern/arch/mips/kernel.elf of=/dev/mapper/loop0p2 conv=notrunc
 
 Run MSIM to bring up the operating system.
 
+##### Debugging
+
+You need to build a `cross-gdb` to enable debugging MIPS programs.  See
+`doc/toolchain.md` for details.
+
+Run
+
+```
+msim -g 1234
+```
+
+to bring up a server for remote debugging.
+
+Run
+
+```
+mips64el-n64-linux-uclibc-gdb
+```
+
+then enter
+
+```
+tar rem 127.0.0.1:1234
+```
+
+to connect to the gdb server brought up by MSIM.
+
+Stepping over C code in MSIM is quite slow though.
+
 #### Loongson 3A
 
 You should prepare a SATA-to-USB converter or something to enable you to upload

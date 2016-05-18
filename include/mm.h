@@ -219,6 +219,8 @@ int set_pages_perm(pgindex_t *pgindex, void *vaddr, size_t size, uint32_t flags)
  */
 ssize_t invalidate_pages(pgindex_t *pgindex, void *vaddr, size_t size,
     addr_t *paddr);
+/* Switch page index to the given one */
+int switch_pgindex(pgindex_t *pgindex);
 
 /*
  * Architecture-independent interfaces

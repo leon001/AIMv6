@@ -284,12 +284,12 @@ mm_clone(struct mm *dst, const struct mm *src)
 		/* TODO: I wonder if I should reuse the code in that of
 		 * create_uvm() */
 		vma_new = __vma_new(dst, vma->start, vma->size, vma->flags);
-		if (vma == NULL) {
+		if (vma_new == NULL) {
 			retcode = -ENOMEM;
 			goto rollback;
 		}
 
-		p = __upages_new(vma_new->pages->size, vma_new->pages->flags);
+		p = __upages_new(vma->pages->size, vma->pages->flags);
 		if (p == NULL) {
 			retcode = -ENOMEM;
 			goto rollback_vma;
@@ -305,7 +305,7 @@ mm_clone(struct mm *dst, const struct mm *src)
 			goto rollback_pgalloc;
 		}
 
-		memmove(pa2kva(vma->pages->paddr), pa2kva(p->paddr),
+		memmove(pa2kva(p->paddr), pa2kva(vma->pages->paddr),
 		    vma_new->size);
 
 		vma_new->pages = p;
@@ -334,7 +334,7 @@ void
 mm_test(void)
 {
 	kprintf("==========mm_test()  started==========\n");
-	struct mm *mm = mm_new();
+	struct mm *mm = mm_new(), *new_mm;
 	kprintf("pgindex: %p\n", mm->pgindex);
 	kprintf("creating uvm\n");
 	assert(create_uvm(mm, (void *)0x100000, 5 * PAGE_SIZE, VMA_READ | VMA_WRITE) == 0);
@@ -344,7 +344,25 @@ mm_test(void)
 	assert(destroy_uvm(mm, (void *)0x102000, 3 * PAGE_SIZE) == 0);
 	kprintf("destroying mm\n");
 	mm_destroy(mm);
+	/* The following should be tested only after kmmap subsystem has
+	 * been fully implemented since mm_new() needs it to create
+	 * kernel mappings. */
+#if 0
 	kprintf("another mm\n");
+	mm = mm_new();
+	kprintf("pgindex: %p\n", mm->pgindex);
+	assert(create_uvm(mm, (void *)0x100000, 5 * PAGE_SIZE, VMA_READ | VMA_WRITE) == 0);
+	switch_pgindex(mm->pgindex);
+	*(unsigned long *)0x100000 = 0xdeadbeef;
+	new_mm = mm_new();
+	kprintf("new pgindex: %p\n", new_mm->pgindex);
+	mm_clone(new_mm, mm);
+	switch_pgindex(new_mm->pgindex);
+	assert(*(unsigned long *)0x100000 == 0xdeadbeef);
+	mm_destroy(mm);
+	mm_destroy(new_mm);
+#endif
+	kprintf("yet another mm\n");
 	mm = mm_new();
 	kprintf("pgindex: %p\n", mm->pgindex);
 	mm_destroy(mm);

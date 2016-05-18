@@ -69,6 +69,15 @@ to select such configuration.
 Run
 
 ```
+ct-ng menuconfig
+```
+
+and go into **Debug facilities**, select **gdb**, get in there and select
+**Build a static cross gdb**.  Save your configuration and exit.
+
+Run
+
+```
 ct-ng build
 ```
 
