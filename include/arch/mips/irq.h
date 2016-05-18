@@ -72,7 +72,7 @@
 		"	mfc0	$1, $12;" \
 		"	ori	$1, $1, 1;" \
 		"	mtc0	$1, $12;" \
-		"1f:	.set	pop;" \
+		"1:	.set	pop;" \
 		: /* no output */ \
 		: "r"(flags) \
 		: "$1", "memory" \
