@@ -19,7 +19,7 @@
 #ifndef _ASM_IRQ_H
 #define _ASM_IRQ_H
 
-#if defined(_MIPS_ARCH_MIPS32) || defined(_MIPS_ARCH_MIPS64)
+#if __mips_isa_rev == 1
 /* No revision 2 instructions */
 #define local_irq_enable() \
 	asm volatile ( \
@@ -77,7 +77,7 @@
 		: "r"(flags) \
 		: "$1", "memory" \
 	)
-#else
+#else	/* Rev 2 */
 #define local_irq_enable()	asm volatile ("ei")
 
 #define local_irq_disable()	asm volatile ("di")

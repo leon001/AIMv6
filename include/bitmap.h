@@ -43,6 +43,8 @@
 )
 
 /*
+ * NOTE: always use the interfaces provided HERE (in this comment).
+ *
  * The available bitmap operations and their rough meaning in the
  * case that the bitmap is a single unsigned long are thus:
  *

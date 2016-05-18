@@ -134,6 +134,7 @@ __unmap_and_free_vma(struct mm *mm, struct vma *vma_start, size_t size)
 
 		vma_size = vma->size;
 		list_del(&(vma->node));
+		list_del(&(vma->share_node));
 		/* temporary in case of typo - assertation will be removed */
 		assert(unmap_pages(mm->pgindex, vma->start, vma->size,
 		    NULL) == vma_size);
@@ -155,6 +156,7 @@ __vma_new(struct mm *mm, void *addr, size_t size, uint32_t flags)
 		vma->flags = flags;
 		vma->pages = NULL;
 		list_init(&(vma->node));
+		list_init(&(vma->share_node));
 	}
 
 	return vma;
@@ -169,7 +171,7 @@ __upages_new(size_t size, uint32_t flags)
 		p->flags = flags;
 		p->size = size;
 		p->refs = 0;
-		list_init(&(p->sharing_vma));
+		list_init(&(p->vma_head));
 	}
 	return p;
 }
@@ -217,6 +219,7 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 		vma->pages = p;
 		__ref_upages(p);
 		list_add_after(&(vma->node), &(vma_cur->node));
+		list_add_after(&(vma->share_node), &(p->vma_head));
 		vma_cur = vma;
 		continue;
 
@@ -311,6 +314,7 @@ mm_clone(struct mm *dst, const struct mm *src)
 		vma_new->pages = p;
 		__ref_upages(p);
 		list_add_after(&(vma_new->node), &(vma_cur->node));
+		list_add_after(&(vma_new->share_node), &(p->vma_head));
 		vma_cur = vma_new;
 		cloned_size += vma_new->size;
 		continue;

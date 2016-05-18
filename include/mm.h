@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+ * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -119,70 +120,6 @@ int get_addr_space(void);
 struct mm;
 
 /*
- * User page structure based on struct pages but including additional
- * members such as reference counts
- */
-struct upages {
-	struct pages;
-	atomic_t refs;	/* for shared memory */
-	/*
-	 * When swapping pages in and out, we normally save the page content
-	 * and virtual page number (along with an identification of page
-	 * index - could be PID if a page directory is _uniquely_ related
-	 * to a process) together.  But if we are allowing shared memory,
-	 * we need to save a _list_ of virtual page numbers (as well as page
-	 * index identifications) since two virtual pages from different page
-	 * indexes can be mapped to a same physical page, and if we are
-	 * swapping such page out, we need to invalidate both virtual page
-	 * entries.  To enable us finding all the virtual pages easily, we
-	 * need to keep track of the list of virtual pages mapped to
-	 * the same physical page (or page block).
-	 *
-	 * Here we are saving the list of such virtual pages inside the
-	 * pages struct.  They are a list of struct vma (below).
-	 */
-	struct list_head sharing_vma;
-};
-
-/*
- * Virtual memory area structure
- *
- * The list of virtual memory areas must satisfy:
- * 1. that the virtual memory areas should be sorted in ascending order of
- *    virtual address, AND
- * 2. that each virtual memory area should be mapped to exactly one
- *    contiguous page block (stored in struct upages) in a one-to-one manner,
- *    AND
- * 3. that the virtual memory areas should never overlap.
- */
-struct vma {
-	/* Must be page-aligned */
-	void		*start;
-	size_t		size;
-
-	uint32_t	flags;
-	/* These flags match ELF segment flags */
-#define VMA_EXEC	0x01
-#define VMA_WRITE	0x02
-#define VMA_READ	0x04
-	/* More flags */
-#define VMA_FILE	0x100		/* For mmap(2) */
-	struct mm	*mm;
-	/* Since we are not maintaining a list for all physical pages, we
-	 * have to keep a struct upages pointer with struct vma in case of
-	 * shared memory. */
-	struct upages	*pages;
-	struct list_head node;
-};
-
-struct mm {
-	struct list_head vma_head;	/* virtual memory area list sentry */
-	size_t		vma_count;	/* number of virtual memory areas */
-	size_t		ref_count;	/* reference count (may be unused) */
-	pgindex_t	*pgindex;	/* pointer to page index */
-};
-
-/*
  * Architecture-specific interfaces
  * All addresses should be page-aligned.
  * Note that these interfaces are independent of struct mm and struct vma,
@@ -225,6 +162,7 @@ int switch_pgindex(pgindex_t *pgindex);
 /*
  * Architecture-independent interfaces
  * Address must be page-aligned.
+ * The mm lock MUST be held.
  */
 /* Create a size @len user space mapping starting at virtual address @addr */
 int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags);
@@ -239,7 +177,7 @@ void *share_uvm(struct mm *dst, const void *addr_dst, const struct mm *src,
 
 /*
  * Architecture-independent interfaces
- * Address need not be page-aligned
+ * Address need not be page-aligned.
  */
 /* Copy from kernel address @kvaddr to user space at @uvaddr */
 int copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
@@ -252,6 +190,83 @@ struct mm *mm_new(void);
 void mm_destroy(struct mm *mm);
 /* Clone a memory mapping as a whole.  @dst should be initialized via mm_new */
 int mm_clone(struct mm *dst, const struct mm *src);
+
+/*
+ * The following are data structures which other models usually don't care
+ * about.
+ *
+ * I (Gan) would rather put them into a separate header...
+ */
+
+/*
+ * User page structure based on struct pages but including additional
+ * members such as reference counts.
+ */
+struct upages {
+	struct pages;
+	lock_t lock;
+	atomic_t refs;	/* for shared memory */
+	/*
+	 * When swapping pages in and out, we normally save the page content
+	 * and virtual page number (along with an identification of page
+	 * index - could be PID if a page directory is _uniquely_ related
+	 * to a process) together.  But if we are allowing shared memory,
+	 * we need to save a _list_ of virtual page numbers (as well as page
+	 * index identifications) since two virtual pages from different page
+	 * indexes can be mapped to a same physical page, and if we are
+	 * swapping such page out, we need to invalidate both virtual page
+	 * entries.  To enable us finding all the virtual pages easily, we
+	 * need to keep track of the list of virtual pages mapped to
+	 * the same physical page (or page block).
+	 *
+	 * Here we are saving the list of such virtual pages inside the
+	 * pages struct.  They are a list of struct vma (below).
+	 */
+	struct list_head vma_head;
+};
+
+/*
+ * Virtual memory area structure
+ *
+ * The list of virtual memory areas must satisfy:
+ * 1. that the virtual memory areas should be sorted in ascending order of
+ *    virtual address, AND
+ * 2. that each virtual memory area should be mapped to exactly one
+ *    contiguous page block (stored in struct upages) in a one-to-one manner,
+ *    AND
+ * 3. that the virtual memory areas should never overlap.
+ */
+struct vma {
+	/* Must be page-aligned */
+	void		*start;
+	size_t		size;
+
+	uint32_t	flags;
+	/* These flags match ELF segment flags */
+#define VMA_EXEC	0x01
+#define VMA_WRITE	0x02
+#define VMA_READ	0x04
+	/* More flags */
+#define VMA_FILE	0x100		/* For mmap(2) */
+	struct mm	*mm;
+	/* Since we are not maintaining a list for all physical pages, we
+	 * have to keep a struct upages pointer with struct vma in case of
+	 * shared memory. */
+	struct upages	*pages;
+	/* A list of VMAs in the same memory mapping structure */
+	struct list_head node;
+	/* A list of VMAs sharing the same physical pages.  We don't require
+	 * ordering for this list. */
+	struct list_head share_node;
+};
+
+struct mm {
+	struct list_head vma_head;	/* virtual memory area list sentry */
+	size_t		vma_count;	/* number of virtual memory areas */
+	size_t		ref_count;	/* reference count (may be unused) */
+	pgindex_t	*pgindex;	/* pointer to page index */
+	lock_t		lock;
+};
 
 #endif /* !__ASSEMBLER__ */
 

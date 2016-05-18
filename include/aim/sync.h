@@ -22,6 +22,7 @@
 #include <sys/types.h>
 
 #include <arch-sync.h>
+#include <irq.h>	/* local_irq_XXX */
 
 #ifndef __ASSEMBLER__
 
@@ -36,6 +37,17 @@ void spinlock_init(lock_t *lock);
 void spin_lock(lock_t *lock);
 /* spin_unlock may contain instructions to send event */
 void spin_unlock(lock_t *lock);
+
+#define spin_lock_irq_save(lock, flags) \
+	do { \
+		local_irq_save(flags); \
+		spin_lock(lock); \
+	} while (0)
+#define spin_unlock_irq_restore(lock, flags) \
+	do { \
+		spin_unlock(lock); \
+		local_irq_restore(flags); \
+	} while (0)
 
 /* Semaphore, implemented by architectures. */
 typedef struct {
