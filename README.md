@@ -175,6 +175,12 @@ Run MSIM to bring up the operating system.
 
 ##### Debugging
 
+**IMPORTANT:** MSIM's gdb support is **extremely experimental**, that is,
+slow, and sometimes causes errors on gdb.  It is highly recommended to
+debug your kernel statically (that is, via the kernel's own output), or
+via MSIM's interface and disassembly dumps from
+`mips64el-n64-linux-uclibc-objdump -Ss`.
+
 You need to build a `cross-gdb` to enable debugging MIPS programs.  See
 `doc/toolchain.md` for details.
 
@@ -200,8 +206,6 @@ tar rem 127.0.0.1:1234
 
 to connect to the gdb server brought up by MSIM.
 
-Stepping over C code in MSIM is quite slow though.
-
 #### Loongson 3A
 
 You should prepare a SATA-to-USB converter or something to enable you to upload
@@ -209,6 +213,9 @@ your kernel image into the hard disk inside Loongson 3A box.
 
 Replace the `boot/vmlinux` file with the kernel image you compiled, and you're
 done.
+
+We do **NOT** support debugging on Loongson 3A.  However, technical
+contributions are always welcome.
 
 ### ARM on qemu
 
