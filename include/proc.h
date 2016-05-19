@@ -27,6 +27,8 @@
 
 #define PROC_NAME_LEN_MAX	256
 
+typedef int pid_t;
+
 struct proc {
 	/*
 	 * the kernel stack pointer is used to prepare C runtime, thus accessed
@@ -37,8 +39,8 @@ struct proc {
 
 	/* other stuff go here */
 	int		tid;	/* Thread ID (unused - for multithreading) */
-	int		pid;	/* Process ID within namespace @namespace */
-	int		kpid;	/* Process ID */
+	pid_t		pid;	/* Process ID within namespace @namespace */
+	pid_t		kpid;	/* Process ID */
 	unsigned int	state;	/* Process state (runnability) */
 	/* The state values come from OpenBSD */
 	/* TODO: may have more...? */

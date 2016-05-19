@@ -33,7 +33,7 @@
  */
 
 #define DECLARE_BITMAP(var, nbit) \
-	unsigned int var[BITS_PER_INT]
+	unsigned long var[BITS_TO_LONGS(nbit)]
 
 #define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) % BITS_PER_LONG))
 #define BITMAP_LAST_WORD_MASK(nbits)					\

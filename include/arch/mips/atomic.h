@@ -85,9 +85,9 @@ static inline void atomic_set_bit(unsigned long nr,
 
 	smp_mb();
 	asm volatile (
-		"1:	" __LL "%0, %1;"
+		"1:	"__LL " %0, %1;"
 		"	or	%0, %2;"
-		"	" __SC "%0, %1;"
+		"	"__SC " %0, %1;"
 		"	beqzl	%0, 1b;"
 		: "=&r"(temp), "+m"(*m)
 		: "ir"(1UL << bit)
@@ -104,9 +104,9 @@ static inline void atomic_clear_bit(unsigned long nr,
 
 	smp_mb();
 	asm volatile (
-		"1:	" __LL "%0, %1;"
+		"1:	"__LL " %0, %1;"
 		"	and	%0, %2;"
-		"	" __SC "%0, %1;"
+		"	"__SC " %0, %1;"
 		"	beqzl	%0, 1b;"
 		: "=&r"(temp), "+m"(*m)
 		: "ir"(~(1UL << bit))

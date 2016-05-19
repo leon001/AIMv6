@@ -31,11 +31,15 @@ uart-zynq.o: uart-zynq.c uart-zynq.h uart-zynq-hw.h
 endif
 
 if UART_MSIM
-SRCS += uart-msim.c uart-msim.h
+MODULE_SRCS += uart-msim.c uart-msim.h
+noinst_DATA += uart-msim.o
+uart-msim.o: uart-msim.c uart-msim.h 
 endif
 
 if UART_NS16550
-SRCS += uart-ns16550.h uart-ns16550.c uart-ns16550-hw.h
+MODULE_SRCS += uart-ns16550.h uart-ns16550.c uart-ns16550-hw.h
+noinst_DATA += uart-ns16550.o
+uart-ns16550.o: uart-ns16550.c uart-ns16550.h uart-ns16550-hw.h
 endif
 
 libserial_raw_la_SOURCES = $(SRCS) $(MODULE_SRCS)

@@ -23,7 +23,12 @@
 #include <namespace.h>
 #include <sys/types.h>
 
-/* struct proclist is implemented in scheduler source. */
+/*
+ * struct proclist is implemented in scheduler source.
+ *
+ * Usually, different schedulers require different data structures for
+ * process list.
+ */
 struct proclist;
 
 struct scheduler {
@@ -44,10 +49,5 @@ struct scheduler {
 	 */
 	struct proc *	(*find)(pid_t pid, struct namespace *ns);
 };
-
-/* Made them replaceable in case of someone trying PID randomization like
- * OpenBSD. */
-pid_t kpid_new(void);
-pid_t pid_new(struct namespace *ns);
 
 #endif

@@ -27,6 +27,13 @@
 #include <proc.h>
 #include <namespace.h>
 #include <libc/string.h>
+#include <aim/sync.h>
+#include <bitmap.h>
+
+static struct {
+	lock_t lock;
+	DECLARE_BITMAP(bitmap, MAX_PROCESSES);
+} freekpid;
 
 /*
  * This should be a seperate function, don't directly use kernel memory
@@ -50,6 +57,25 @@ void *alloc_kstack_size(size_t *size)
 	panic("custom kstack size not implemented\n");
 }
 
+/* Find and remove the first available KPID from the free KPID set. */
+static pid_t kpid_new(void)
+{
+	bool flags;
+	pid_t kpid;
+
+	spin_lock_irq_save(&freekpid.lock, flags);
+	kpid = bitmap_find_first_zero_bit(freekpid.bitmap, MAX_PROCESSES);
+	atomic_set_bit(kpid, freekpid.bitmap);
+	spin_unlock_irq_restore(&freekpid.lock, flags);
+
+	return kpid;
+}
+
+static void kpid_recycle(pid_t kpid)
+{
+	atomic_clear_bit(kpid, freekpid.bitmap);
+}
+
 struct proc *proc_new(struct namespace *ns)
 {
 	struct proc *proc = (struct proc *)kmalloc(sizeof(*proc), 0);
@@ -58,8 +84,9 @@ struct proc *proc_new(struct namespace *ns)
 	proc->kstack_size = PAGE_SIZE;
 
 	proc->tid = 0;
-	proc->kpid = 0;
-	proc->pid = 0;
+	proc->kpid = kpid_new();
+	/* TODO: change this in case of implementing namespaces */
+	proc->pid = proc->kpid;
 	proc->state = PS_EMBRYO;
 	proc->exit_code = 0;
 	proc->exit_signal = 0;
@@ -68,11 +95,11 @@ struct proc *proc_new(struct namespace *ns)
 	proc->bed = NULL;
 	proc->namespace = ns;
 	proc->mm = mm_new();
-	memset(&(proc->context), 0, sizeof(&(proc->context)));
+	memset(&(proc->context), 0, sizeof(proc->context));
 	proc->heapsize = 0;
 	proc->ustacktop = 0;
 	proc->progtop = 0;
-	memset(&(proc->name), 0, sizeof(&(proc->name)));
+	memset(&(proc->name), 0, sizeof(proc->name));
 
 	proc->parent = NULL;
 	proc->first_child = NULL;
@@ -81,5 +108,10 @@ struct proc *proc_new(struct namespace *ns)
 	list_init(&(proc->proc_node));
 
 	return proc;
+}
+
+void proc_init(void)
+{
+	spinlock_init(&freekpid.lock);
 }
 
