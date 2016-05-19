@@ -97,11 +97,28 @@ You are done.
 
 #### ARM developers
 
-Crosstool-NG also ships an `arm-unknown-eabi` configuration.  The installation
-steps are mostly similar to those for MIPS developers, except that the target
-names are changed to `arm-unknown-eabi`.
+**CAUTION: Building from this toolchain is not yet fully tested**
 
-**Not yet tested, though.**
+Crosstool-NG ships an `arm-unknown-linux-gnueabi` which works through
+autotools requirements.
+
+Run
+
+```
+ct-ng arm-unknown-linux-gnueabi
+ct-ng build
+```
+
+to build such toolchain.  Despite an overkill, this could at least give you
+a working toolchain.
+
+You do need to patch the source a little bit, though.  Run
+
+```
+patch -p1 < ct-ng-arm-unknown-linux-gnueabi.patch
+```
+
+to circumvent a potential error during linking.
 
 ### Building From Scratch
 

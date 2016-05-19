@@ -230,6 +230,10 @@ The `-s -S` option will enable gdb support on port 1234. You can then run
 `gdb firmware/arch/armv7a/firmware.elf` with needed options and connect to the
 emulator via `target remote:1234` in its command line.
 
+**TODO:** please provide a complete, end-to-end QEMU setup, including the
+command lines to build disk images (if any), starting up kernels and/or
+firmwares, etc.
+
 ### i386 on qemu
 
 #### Creating a blank disk image
