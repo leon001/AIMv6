@@ -40,7 +40,7 @@ void trap_init(void)
 	write_c0_status(status & ~ST_BEV);
 }
 
-static void dump_regs(struct regs *regs)
+static void dump_regs(struct trapframe *regs)
 {
 	kprintf("zero\t%016x\n", regs->gpr[_ZERO]);
 	kprintf("at\t%016x\n", regs->gpr[_AT]);
@@ -80,16 +80,16 @@ static void dump_regs(struct regs *regs)
 	kprintf("BVA\t%016x\n", regs->badvaddr);
 }
 
-void trap_handler(struct regs *regs)
+void trap_handler(struct trapframe *regs)
 {
 	dump_regs(regs);
 	panic("Unexpected trap\n");
 	trap_return(regs);
 }
 
-extern void trap_exit(struct regs *regs);
+extern void trap_exit(struct trapframe *regs);
 
-__noreturn void trap_return(struct regs *regs)
+__noreturn void trap_return(struct trapframe *regs)
 {
 	/* Retain interrupt masks while changing other fields according to
 	 * register set */

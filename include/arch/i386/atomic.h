@@ -34,7 +34,6 @@ static inline void atomic_sub(atomic_t *counter, uint32_t val)
 /* counter++ */
 static inline void atomic_inc(atomic_t *counter)
 {
-	uint32_t reg;
 	asm volatile (
 		"lock incl	%0"
 		: "+m" (*counter)
@@ -44,7 +43,6 @@ static inline void atomic_inc(atomic_t *counter)
 /* counter-- */
 static inline void atomic_dec(atomic_t *counter)
 {
-	uint32_t reg;
 	asm volatile (
 		"lock decl	%0"
 		: "+m" (*counter)

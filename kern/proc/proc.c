@@ -86,7 +86,7 @@ struct proc *proc_new(struct namespace *ns)
 	proc->tid = 0;
 	proc->kpid = kpid_new();
 	/* TODO: change this in case of implementing namespaces */
-	proc->pid = proc->kpid;
+	proc->pid = pid_new(proc->kpid, ns);
 	proc->state = PS_EMBRYO;
 	proc->exit_code = 0;
 	proc->exit_signal = 0;
@@ -94,7 +94,7 @@ struct proc *proc_new(struct namespace *ns)
 	proc->oncpu = CPU_NONE;
 	proc->bed = NULL;
 	proc->namespace = ns;
-	proc->mm = mm_new();
+	proc->mm = NULL;
 	memset(&(proc->context), 0, sizeof(proc->context));
 	proc->heapsize = 0;
 	proc->ustacktop = 0;

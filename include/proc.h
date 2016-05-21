@@ -30,6 +30,7 @@
 typedef int pid_t;
 
 struct proc {
+	/* TODO: move thread-specific data into a separate structure */
 	/*
 	 * the kernel stack pointer is used to prepare C runtime, thus accessed
 	 * in assembly. Force it here at offset 0 for easy access.
