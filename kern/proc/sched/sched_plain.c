@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,28 +16,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PERCPU_H
-#define _PERCPU_H
-
-#include <sys/types.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <proc.h>
-#include <smp.h>	/* cpuid(), arch directory */
+#include <bitmap.h>
+#include <namespace.h>
+#include <lock.h>
 
-struct percpu {
-	/*
-	 * to retrieve the kernel stack, this pointer need to be accessed from
-	 * within the assembly code. Keep it here as the first element.
-	 */
-	struct proc *proc;
+/*
+ * Plain round-robin scheduler implementation.
+ */
 
-	/* other stuff go here */
+struct proclist {
+	lock_t lock;
+	struct list_head head;	/* head of process list */
 };
 
-extern struct percpu cpus[];
+static struct proclist proclist;
 
-#define cpu		cpus[cpuid()]
-#define current_proc	cpu.proc
+void sched_plain_init(void)
+{
+	list_init(&proclist.head);
+	spinlock_init(&proclist.lock);
+}
 
-#endif /* _PERCPU_H */
+struct scheduler sched_plain = {
+	.proclist = &proclist,
+	.init = sched_plain_init,
+	.pick = NULL,
+	.add = NULL,
+	.remove = NULL,
+	.next = NULL,
+	.find = NULL,
+};
 

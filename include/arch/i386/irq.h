@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,28 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PERCPU_H
-#define _PERCPU_H
+#ifndef _ASM_IRQ_H
+#define _ASM_IRQ_H
 
-#include <sys/types.h>
+#define local_irq_save(flags) \
+	asm volatile ("pushf; pop %0;" : "=rm"(flags) : : "memory")
 
-#include <proc.h>
-#include <smp.h>	/* cpuid(), arch directory */
+#define local_irq_restore(flags) \
+	asm volatile ("push %0; popf;" : : "g"(flags) : "memory")
 
-struct percpu {
-	/*
-	 * to retrieve the kernel stack, this pointer need to be accessed from
-	 * within the assembly code. Keep it here as the first element.
-	 */
-	struct proc *proc;
-
-	/* other stuff go here */
-};
-
-extern struct percpu cpus[];
-
-#define cpu		cpus[cpuid()]
-#define current_proc	cpu.proc
-
-#endif /* _PERCPU_H */
-
+#endif

@@ -51,6 +51,12 @@ void *alloc_kstack(void)
 	return pa2kva(paddr);
 }
 
+/* Exact opposite of alloc_kstack */
+void free_kstack(void *kstack)
+{
+	pgfree(kva2pa(kstack));
+}
+
 void *alloc_kstack_size(size_t *size)
 {
 	/* calculate the actual size we allocate */
@@ -80,7 +86,13 @@ struct proc *proc_new(struct namespace *ns)
 {
 	struct proc *proc = (struct proc *)kmalloc(sizeof(*proc), 0);
 
+	if (proc == NULL)
+		return NULL;
+
 	proc->kstack = alloc_kstack();
+	if (proc->kstack == NULL)
+		goto rollback_proc;
+
 	proc->kstack_size = PAGE_SIZE;
 
 	proc->tid = 0;
@@ -108,6 +120,15 @@ struct proc *proc_new(struct namespace *ns)
 	list_init(&(proc->proc_node));
 
 	return proc;
+rollback_proc:
+	kfree(proc);
+	return NULL;
+}
+
+void proc_destroy(struct proc *proc)
+{
+	free_kstack(proc->kstack);
+	kfree(proc);
 }
 
 void proc_init(void)

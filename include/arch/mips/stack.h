@@ -163,8 +163,29 @@
 	POP	\reg
 	MTC0	\reg, CP0_EPC
 	POP	\reg
-	/* MTC0	\reg, CP0_BADVADDR */	/* discarded */
+	MTC0	\reg, CP0_BADVADDR	/* discarded */
 	.endm
+
+	.macro	PUSHUP	reg base
+	ADDU	\base, WORD_SIZE
+	STORE	\reg, (\base)
+	.endm
+
+	.macro	PUSHDOWN reg base
+	SUBU	\base, WORD_SIZE
+	STORE	\reg, (\base)
+	.endm
+
+	.macro	POPUP	reg base
+	LOAD	\reg, (\base)
+	ADDU	\base, WORD_SIZE
+	.endm
+
+	.macro	POPDOWN	reg base
+	LOAD	\reg, (\base)
+	SUBU	\base, WORD_SIZE
+	.endm
+
 #else	/* !__ASSEMBLER__ */
 #include <sys/types.h>
 extern unsigned long kernelsp[NR_CPUS]

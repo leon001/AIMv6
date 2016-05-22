@@ -86,6 +86,8 @@ struct proc {
 /* Create a struct proc inside namespace @ns and initialize everything if we
  * can by default. */
 struct proc *proc_new(struct namespace *ns);
+/* Exact opposite of proc_new */
+void proc_destroy(struct proc *proc);
 
 #endif /* _PROC_H */
 
