@@ -33,19 +33,42 @@ static struct trapframe *__proc_trapframe(struct proc *proc)
 }
 
 /******** Kernel processes *******/
-static void __bootstrap_ktrapframe(struct trapframe *tf, void *entry, void *stack)
+static void __bootstrap_ktrapframe(struct trapframe *tf,
+				   void *entry,
+				   void *stack,
+				   void *args)
 {
+	/*
+	 * As all registers, no matter caller-saved or callee-saved,
+	 * are preserved in trap frames, we can safely assign all
+	 * registers with some values.
+	 */
 	tf->status = read_c0_status();
 	tf->cause = read_c0_cause();
 	tf->epc = (unsigned long)entry;
 	tf->gpr[_T9] = tf->epc;
 	tf->gpr[_SP] = (unsigned long)stack;
+	tf->gpr[_A0] = (unsigned long)args;
 }
 
 extern void forkret(void);
 
 static void __bootstrap_kcontext(struct regs *regs, struct trapframe *tf)
 {
+	/*
+	 * Some of the registers are scratch registers (i.e. caller-saved),
+	 * so we should notice that only callee-saved registers can be
+	 * played with when bootstrapping contexts, as the values in scratch
+	 * registers are not necessarily preserved before and after
+	 * executing a routine (hence unreliable).
+	 *
+	 * On MIPS, callee-saved registers are: s0-s7, sp, s8(or fp), ra.
+	 *
+	 * In practice, only callee-saved registers are to be preserved in
+	 * per-process context structure, but I reserved spaces for all
+	 * registers anyway.
+	 * Maybe I should save only callee-saved registers in future...
+	 */
 	regs->status = read_c0_status();
 	regs->cause = read_c0_cause();
 	/* t9 is the register storing function entry address in PIC */
@@ -54,15 +77,10 @@ static void __bootstrap_kcontext(struct regs *regs, struct trapframe *tf)
 	regs->gpr[_SP] = (unsigned long)tf;
 }
 
-void proc_ksetup(struct proc *proc,
-		void *entry,
-		void *stack,
-		int argc,
-		char *argv[],
-		char *envp[])
+void proc_ksetup(struct proc *proc, void *entry, void *stack, void *args)
 {
 	struct trapframe *tf = __proc_trapframe(proc);
-	__bootstrap_ktrapframe(tf, entry, stack);
+	__bootstrap_ktrapframe(tf, entry, stack, args);
 	__bootstrap_kcontext(&(proc->context), tf);
 }
 

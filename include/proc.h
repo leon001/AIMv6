@@ -95,8 +95,7 @@ void proc_test(void);		/* temporary */
 
 /* The following are architecture-specific code */
 /* Setup a kernel process with entry, stack, and arguments */
-void proc_ksetup(struct proc *proc, void *entry, void *stack, int argc,
-    char *argv[], char *envp[]);
+void proc_ksetup(struct proc *proc, void *entry, void *stack, void *args);
 void switch_context(struct proc *proc);
 /* Return to trap frame in @proc.  Usually called once by fork child */
 void proc_trap_return(struct proc *proc);
