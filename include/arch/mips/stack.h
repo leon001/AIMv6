@@ -166,24 +166,44 @@
 	MTC0	\reg, CP0_BADVADDR	/* discarded */
 	.endm
 
-	.macro	PUSHUP	reg base
+	.macro	PUSHUF	reg base
 	ADDU	\base, WORD_SIZE
 	STORE	\reg, (\base)
 	.endm
 
-	.macro	PUSHDOWN reg base
+	.macro	PUSHDF reg base
 	SUBU	\base, WORD_SIZE
 	STORE	\reg, (\base)
 	.endm
 
-	.macro	POPUP	reg base
+	.macro	POPUF	reg base
 	LOAD	\reg, (\base)
 	ADDU	\base, WORD_SIZE
 	.endm
 
-	.macro	POPDOWN	reg base
+	.macro	POPDF	reg base
 	LOAD	\reg, (\base)
 	SUBU	\base, WORD_SIZE
+	.endm
+
+	.macro	PUSHUE	reg base
+	STORE	\reg, (\base)
+	ADDU	\base, WORD_SIZE
+	.endm
+
+	.macro	PUSHDE reg base
+	STORE	\reg, (\base)
+	SUBU	\base, WORD_SIZE
+	.endm
+
+	.macro	POPUE	reg base
+	ADDU	\base, WORD_SIZE
+	LOAD	\reg, (\base)
+	.endm
+
+	.macro	POPDE	reg base
+	SUBU	\base, WORD_SIZE
+	LOAD	\reg, (\base)
 	.endm
 
 #else	/* !__ASSEMBLER__ */

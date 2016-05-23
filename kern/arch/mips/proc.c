@@ -46,6 +46,8 @@ extern void forkret(void);
 
 static void __bootstrap_kcontext(struct regs *regs, struct trapframe *tf)
 {
+	regs->status = read_c0_status();
+	regs->cause = read_c0_cause();
 	/* t9 is the register storing function entry address in PIC */
 	regs->gpr[_T9] = regs->gpr[_RA] = (unsigned long)forkret;
 	/* Kernel stack pointer just below trap frame */

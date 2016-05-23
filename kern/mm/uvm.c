@@ -37,6 +37,7 @@ mm_new(void)
 	if (mm != NULL) {
 		list_init(&(mm->vma_head));
 		mm->vma_count = 0;
+		spinlock_init(&(mm->lock));
 		if ((mm->pgindex = init_pgindex()) == NULL) {
 			kfree(mm);
 			return NULL;
@@ -177,6 +178,7 @@ __upages_new(size_t size, uint32_t flags)
 		p->flags = flags;
 		p->size = size;
 		p->refs = 0;
+		spinlock_init(&(p->lock));
 		list_init(&(p->vma_head));
 	}
 	return p;

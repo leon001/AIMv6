@@ -40,7 +40,7 @@ void trap_init(void)
 	write_c0_status(status & ~ST_BEV);
 }
 
-static void dump_regs(struct trapframe *regs)
+void dump_regs(struct trapframe *regs)
 {
 	kprintf("zero\t%016x\n", regs->gpr[_ZERO]);
 	kprintf("at\t%016x\n", regs->gpr[_AT]);

@@ -28,94 +28,96 @@
 LEAF(switch_regs)
 	.set	push
 	.set	noat
-	PUSHUP	zero, a0
-	PUSHUP	AT, a0
-	PUSHUP	v0, a0
-	PUSHUP	v1, a0
-	PUSHUP	a0, a0
-	PUSHUP	a1, a0
-	PUSHUP	a2, a0
-	PUSHUP	a3, a0
-	PUSHUP	t0, a0
-	PUSHUP	t1, a0
-	PUSHUP	t2, a0
-	PUSHUP	t3, a0
-	PUSHUP	t4, a0
-	PUSHUP	t5, a0
-	PUSHUP	t6, a0
-	PUSHUP	t7, a0
-	PUSHUP	s0, a0
-	PUSHUP	s1, a0
-	PUSHUP	s2, a0
-	PUSHUP	s3, a0
-	PUSHUP	s4, a0
-	PUSHUP	s5, a0
-	PUSHUP	s6, a0
-	PUSHUP	s7, a0
-	PUSHUP	t8, a0
-	PUSHUP	t9, a0
-	PUSHUP	k0, a0
-	PUSHUP	k1, a0
-	PUSHUP	gp, a0
-	PUSHUP	sp, a0
-	PUSHUP	s8, a0
-	PUSHUP	ra, a0
+	PUSHUE	zero, a0
+	PUSHUE	AT, a0
+	PUSHUE	v0, a0
+	PUSHUE	v1, a0
+	PUSHUE	a0, a0
+	PUSHUE	a1, a0
+	PUSHUE	a2, a0
+	PUSHUE	a3, a0
+	PUSHUE	t0, a0
+	PUSHUE	t1, a0
+	PUSHUE	t2, a0
+	PUSHUE	t3, a0
+	PUSHUE	t4, a0
+	PUSHUE	t5, a0
+	PUSHUE	t6, a0
+	PUSHUE	t7, a0
+	PUSHUE	s0, a0
+	PUSHUE	s1, a0
+	PUSHUE	s2, a0
+	PUSHUE	s3, a0
+	PUSHUE	s4, a0
+	PUSHUE	s5, a0
+	PUSHUE	s6, a0
+	PUSHUE	s7, a0
+	PUSHUE	t8, a0
+	PUSHUE	t9, a0
+	PUSHUE	k0, a0
+	PUSHUE	k1, a0
+	PUSHUE	gp, a0
+	PUSHUE	sp, a0
+	PUSHUE	s8, a0
+	PUSHUE	ra, a0
 	mflo	a2
-	PUSHUP	a2, a0
+	PUSHUE	a2, a0
 	mfhi	a2
-	PUSHUP	a2, a0
+	PUSHUE	a2, a0
 	mfc0	a2, CP0_STATUS
-	PUSHUP	a2, a0
+	PUSHUE	a2, a0
 	mfc0	a2, CP0_CAUSE
-	PUSHUP	a2, a0
+	PUSHUE	a2, a0
 	MFC0	a2, CP0_EPC
-	PUSHUP	a2, a0
+	PUSHUE	a2, a0
 	MFC0	a2, CP0_BADVADDR
-	PUSHUP	a2, a0
+	PUSHUE	a2, a0
 
-	POPUP	a2, a1	/* discard zero */
-	POPUP	AT, a1
-	POPUP	v0, a1
-	POPUP	v1, a1
-	POPUP	a0, a1
-	POPUP	a2, a1	/* discard a1 */
-	POPUP	a2, a1
-	POPUP	a3, a1
-	POPUP	t0, a1
-	POPUP	t1, a1
-	POPUP	t2, a1
-	POPUP	t3, a1
-	POPUP	t4, a1
-	POPUP	t5, a1
-	POPUP	t6, a1
-	POPUP	t7, a1
-	POPUP	s0, a1
-	POPUP	s1, a1
-	POPUP	s2, a1
-	POPUP	s3, a1
-	POPUP	s4, a1
-	POPUP	s5, a1
-	POPUP	s6, a1
-	POPUP	s7, a1
-	POPUP	t8, a1
-	POPUP	t9, a1
-	POPUP	k0, a1
-	POPUP	k1, a1
-	POPUP	gp, a1
-	POPUP	sp, a1
-	POPUP	s8, a1
-	POPUP	ra, a1
-	POPUP	a2, a1
+	POPUF	a2, a1	/* discard zero */
+	POPUF	AT, a1
+	POPUF	v0, a1
+	POPUF	v1, a1
+	POPUF	a0, a1
+	POPUF	a2, a1	/* discard a1 */
+	POPUF	a2, a1
+	POPUF	a3, a1
+	POPUF	t0, a1
+	POPUF	t1, a1
+	POPUF	t2, a1
+	POPUF	t3, a1
+	POPUF	t4, a1
+	POPUF	t5, a1
+	POPUF	t6, a1
+	POPUF	t7, a1
+	POPUF	s0, a1
+	POPUF	s1, a1
+	POPUF	s2, a1
+	POPUF	s3, a1
+	POPUF	s4, a1
+	POPUF	s5, a1
+	POPUF	s6, a1
+	POPUF	s7, a1
+	POPUF	t8, a1
+	POPUF	t9, a1
+	POPUF	k0, a1
+	POPUF	k1, a1
+	POPUF	gp, a1
+	POPUF	sp, a1
+	POPUF	s8, a1
+	POPUF	ra, a1
+	POPUF	a2, a1
 	mtlo	a2
-	POPUP	a2, a1
+	POPUF	a2, a1
 	mthi	a2
-	POPUP	a2, a1
+	POPUF	a2, a1
 	mtc0	a2, CP0_STATUS
-	POPUP	a2, a1
+	POPUF	a2, a1
 	mtc0	a2, CP0_CAUSE
-	POPUP	a2, a1
+	POPUF	a2, a1
 	MTC0	a2, CP0_EPC
-	POPUP	a2, a1
+	POPUF	a2, a1
 	MTC0	a2, CP0_BADVADDR
+
+	jr	ra
 	.set	pop
 END(switch_regs)
