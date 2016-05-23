@@ -8,12 +8,9 @@
 
 void kthread1(void)
 {
-	int i, j = 0;
-	for (;; ++j) {
-		for (i = 0; i < 100000; ++i)
-			/* nothing */;
-		kprintf("KTHREAD1: %d\n", j);
-	}
+	kprintf("KTHREAD1: congratulations!\n");
+	for (;;)
+		/* nothing */;
 }
 
 void proc_test(void)

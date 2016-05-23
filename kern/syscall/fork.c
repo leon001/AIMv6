@@ -17,9 +17,7 @@
  */
 
 #include <percpu.h>
-
-/* Arch code */
-extern void proc_trap_return(struct proc *proc);
+#include <proc.h>
 
 void forkret(void)
 {

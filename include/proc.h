@@ -89,13 +89,17 @@ struct proc *proc_new(struct namespace *ns);
 /* Exact opposite of proc_new */
 void proc_destroy(struct proc *proc);
 void proc_init(void);
+pid_t pid_new(pid_t kpid, struct namespace *ns);
+void pid_recycle(pid_t pid, struct namespace *ns);
+void proc_test(void);		/* temporary */
+
+/* The following are architecture-specific code */
 /* Setup a kernel process with entry, stack, and arguments */
 void proc_ksetup(struct proc *proc, void *entry, void *stack, int argc,
     char *argv[], char *envp[]);
 void switch_context(struct proc *proc);
-pid_t pid_new(pid_t kpid, struct namespace *ns);
-void pid_recycle(pid_t pid, struct namespace *ns);
-void proc_test(void);		/* temporary */
+/* Return to trap frame in @proc.  Usually called once by fork child */
+void proc_trap_return(struct proc *proc);
 
 #endif /* _PROC_H */
 
