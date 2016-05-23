@@ -29,11 +29,15 @@
 #include <libc/string.h>
 #include <aim/sync.h>
 #include <bitmap.h>
+#include <smp.h>
+#include <percpu.h>
 
 static struct {
 	lock_t lock;
 	DECLARE_BITMAP(bitmap, MAX_PROCESSES);
 } freekpid;
+
+static struct proc idleproc[NR_CPUS];
 
 /*
  * This should be a seperate function, don't directly use kernel memory
@@ -127,6 +131,8 @@ rollback_proc:
 
 void proc_destroy(struct proc *proc)
 {
+	pid_recycle(proc->pid, proc->namespace);
+	kpid_recycle(proc->kpid);
 	free_kstack(proc->kstack);
 	kfree(proc);
 }
@@ -134,5 +140,7 @@ void proc_destroy(struct proc *proc)
 void proc_init(void)
 {
 	spinlock_init(&freekpid.lock);
+
+	current_proc = &idleproc[cpuid()];
 }
 

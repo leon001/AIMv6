@@ -18,31 +18,59 @@
 
 #include <arch-trap.h>
 #include <mipsregs.h>
+#include <stack.h>
+#include <mmu.h>
+#include <regs.h>
+#include <proc.h>
+#include <percpu.h>
 
-static void __bootstrap_trapframe(struct trapframe *tf, void *entry, void *stack)
+static struct trapframe *__proc_trapframe(struct proc *proc)
+{
+	struct trapframe *tf;
+
+	tf = (struct trapframe *)(proc->kstack + KSTACKSIZE - sizeof(*tf));
+	return tf;
+}
+
+/******** Kernel processes *******/
+static void __bootstrap_ktrapframe(struct trapframe *tf, void *entry, void *stack)
 {
 	tf->status = read_c0_status();
 	tf->cause = read_c0_cause();
 	tf->epc = (unsigned long)entry;
+	tf->gpr[_T9] = tf->epc;
 	tf->gpr[_SP] = (unsigned long)stack;
 }
 
 extern void forkret(void);
 
-static void __bootstrap_context(struct regs *regs, struct trapframe *tf)
+static void __bootstrap_kcontext(struct regs *regs, struct trapframe *tf)
 {
-	regs->gpr[_RA] = forkret;
+	/* t9 is the register storing function entry address in PIC */
+	regs->gpr[_T9] = regs->gpr[_RA] = (unsigned long)forkret;
 	/* Kernel stack pointer just below trap frame */
-	regs->gpr[_SP] = tf;
+	regs->gpr[_SP] = (unsigned long)tf;
 }
 
-void proc_setup(struct proc *proc, void *entry, void *stack)
+void proc_ksetup(struct proc *proc,
+		void *entry,
+		void *stack,
+		int argc,
+		char *argv[],
+		char *envp[])
 {
-	struct trapframe *tf;
+	struct trapframe *tf = __proc_trapframe(proc);
+	__bootstrap_ktrapframe(tf, entry, stack);
+	__bootstrap_kcontext(&(proc->context), tf);
+}
 
-	tf = (struct trapframe *)(proc->kstack - sizeof(*tf));
-	__bootstrap_trapframe(tf, entry, stack);
-	__bootstrap_context(&(proc->context), tf);
+/******** User processes (TODO) *******/
+
+void proc_trap_return(struct proc *proc)
+{
+	struct trapframe *tf = __proc_trapframe(proc);
+
+	trap_return(tf);
 }
 
 void switch_context(struct proc *proc)
@@ -53,7 +81,7 @@ void switch_context(struct proc *proc)
 	/* Switch page directory */
 	pgdir_slots[cpuid()] = proc->mm->pgindex;
 	/* Switch kernel stack */
-	kernelsp[cpuid()] = proc->kstack + KSTACK_SIZE;
+	kernelsp[cpuid()] = (unsigned long)(proc->kstack + KSTACKSIZE);
 	/* Switch general registers */
 	switch_regs(&(current->context), &(proc->context));
 }

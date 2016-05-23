@@ -30,8 +30,12 @@
 #include <panic.h>
 #include <init.h>
 #include <aim/initcalls.h>
+#include <proc.h>
+#include <percpu.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
+
+struct percpu cpus[NR_CPUS];
 
 void __noreturn master_init(void)
 {
@@ -91,8 +95,7 @@ void __noreturn master_init(void)
 	extern void mm_test(void);
 	mm_test();
 
-	/* allocate per-cpu context and kworker */
-//	proc_init();
+	proc_init();
 
 	/* do initcalls, one by one */
 	do_initcalls();
@@ -135,6 +138,9 @@ void __noreturn master_init(void)
 	 */
 
 	/* initialize or cleanup namespace */
+
+	/* Temporary test */
+	proc_test();
 
 
 	panic("Test done, all is well.\n");

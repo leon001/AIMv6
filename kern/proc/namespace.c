@@ -24,3 +24,7 @@ pid_t pid_new(pid_t kpid, struct namespace *ns)
 	return kpid;
 }
 
+void pid_recycle(pid_t pid, struct namespace *ns)
+{
+}
+

@@ -16,12 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <trap.h>
 #include <percpu.h>
+
+/* Arch code */
+extern void proc_trap_return(struct proc *proc);
 
 void forkret(void)
 {
-	/* We should have already set up the trap frame. */
-	trap_return(current_proc->tf);
+	proc_trap_return(current_proc);
 }
 
