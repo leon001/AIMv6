@@ -24,18 +24,23 @@
 #include <proc.h>
 #include <percpu.h>
 
+static void *__kstacktop(struct proc *proc)
+{
+	return proc->kstack + proc->kstack_size;
+}
+
 static struct trapframe *__proc_trapframe(struct proc *proc)
 {
 	struct trapframe *tf;
 
-	tf = (struct trapframe *)(proc->kstack + KSTACKSIZE - sizeof(*tf));
+	tf = (struct trapframe *)(__kstacktop(proc) - sizeof(*tf));
 	return tf;
 }
 
 /******** Kernel processes *******/
 static void __bootstrap_ktrapframe(struct trapframe *tf,
 				   void *entry,
-				   void *stack,
+				   void *stacktop,
 				   void *args)
 {
 	/*
@@ -47,7 +52,7 @@ static void __bootstrap_ktrapframe(struct trapframe *tf,
 	tf->cause = read_c0_cause();
 	tf->epc = (unsigned long)entry;
 	tf->gpr[_T9] = tf->epc;
-	tf->gpr[_SP] = (unsigned long)stack;
+	tf->gpr[_SP] = (unsigned long)stacktop;
 	tf->gpr[_A0] = (unsigned long)args;
 }
 
@@ -77,10 +82,10 @@ static void __bootstrap_kcontext(struct regs *regs, struct trapframe *tf)
 	regs->gpr[_SP] = (unsigned long)tf;
 }
 
-void proc_ksetup(struct proc *proc, void *entry, void *stack, void *args)
+void proc_ksetup(struct proc *proc, void *entry, void *args)
 {
 	struct trapframe *tf = __proc_trapframe(proc);
-	__bootstrap_ktrapframe(tf, entry, stack, args);
+	__bootstrap_ktrapframe(tf, entry, __kstacktop(proc), args);
 	__bootstrap_kcontext(&(proc->context), tf);
 }
 
@@ -101,7 +106,7 @@ void switch_context(struct proc *proc)
 	/* Switch page directory */
 	pgdir_slots[cpuid()] = proc->mm->pgindex;
 	/* Switch kernel stack */
-	kernelsp[cpuid()] = (unsigned long)(proc->kstack + KSTACKSIZE);
+	kernelsp[cpuid()] = (unsigned long)__kstacktop(proc);
 	/* Switch general registers */
 	switch_regs(&(current->context), &(proc->context));
 }
