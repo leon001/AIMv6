@@ -102,6 +102,7 @@ void __noreturn master_init(void)
 	do_initcalls();
 
 	/* temporary tests */
+#if 0
 	struct allocator_cache cache = {
 		.size = 1024,
 		.align = 1024,
@@ -128,7 +129,7 @@ void __noreturn master_init(void)
 	cache_create(&cache);
 	a = cache_alloc(&cache);
 	kprintf("DEBUG: a = 0x%08x\n", a);
-
+#endif
 	/* startup smp */
 
 	/*
