@@ -26,6 +26,7 @@
 #include <namespace.h>
 #include <aim/sync.h>
 #include <aim/initcalls.h>
+#include <list.h>
 
 /*
  * Plain round-robin scheduler implementation.
@@ -55,7 +56,6 @@ static struct proc *__sched_plain_pick(void)
 	struct list_head *node;
 	struct proc *proc;
 	unsigned long flags;
-
 	spin_lock_irq_save(&(plain_scheduler.proclist.lock), flags);
 
 	if (list_empty(&(plain_scheduler.proclist.head))) {
