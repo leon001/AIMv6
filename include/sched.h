@@ -55,6 +55,9 @@ struct scheduler {
 
 extern struct scheduler *scheduler;
 
+void sched_enter_critical(void);
+void sched_exit_critical(void);
+
 void sched_init(void);
 void proc_add(struct proc *proc);
 void schedule(void);

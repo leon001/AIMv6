@@ -18,9 +18,19 @@
 
 #include <percpu.h>
 #include <proc.h>
+#include <sched.h>
 
 void forkret(void)
 {
+	/*
+	 * We are coming from switch_contex() invocation from
+	 * schedule(), and since we are inside the scheduler
+	 * critical section, we need to exit there.
+	 *
+	 * This trick comes from xv6.
+	 */
+	sched_exit_critical();
+
 	proc_trap_return(current_proc);
 }
 

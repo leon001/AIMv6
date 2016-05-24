@@ -25,13 +25,23 @@
 #include <percpu.h>
 
 static lock_t sched_lock;
+static unsigned long __sched_intrflags;
+
+void sched_enter_critical(void)
+{
+	spin_lock_irq_save(&sched_lock, __sched_intrflags);
+}
+
+void sched_exit_critical(void)
+{
+	spin_unlock_irq_restore(&sched_lock, __sched_intrflags);
+}
 
 void schedule(void)
 {
 	struct proc *oldproc = current_proc, *newproc;
-	unsigned long flags;
 
-	spin_lock_irq_save(&(sched_lock), flags);
+	sched_enter_critical();
 
 	if (oldproc->state == PS_ONPROC)
 		oldproc->state = PS_RUNNABLE;
@@ -40,11 +50,11 @@ void schedule(void)
 	if (newproc == NULL)
 		newproc = cpu_idleproc;
 
-	switch_context(newproc);
-
 	newproc->state = PS_ONPROC;
 
-	spin_unlock_irq_restore(&(sched_lock), flags);
+	switch_context(newproc);
+
+	sched_exit_critical();
 }
 
 void proc_add(struct proc *proc)

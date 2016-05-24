@@ -67,7 +67,7 @@ static struct proc *__sched_plain_pick(void)
 	/* Involved a trick that we directly start iterating at
 	 * plain_scheduler.current, skipping the sentry node. */
 	for_each (node,
-	    plain_scheduler.current ?
+	    !plain_scheduler.current ?
 	    &(plain_scheduler.proclist.head) :
 	    &(plain_scheduler.current->sched_node)) {
 		if (node == &(plain_scheduler.proclist.head))
@@ -75,6 +75,10 @@ static struct proc *__sched_plain_pick(void)
 		proc = list_entry(node, struct proc, sched_node);
 		if (proc->state == PS_RUNNABLE) {
 			plain_scheduler.current = proc;
+			spin_unlock_irq_restore(
+			    &(plain_scheduler.proclist.lock),
+			    flags
+			);
 			return proc;
 		}
 	}

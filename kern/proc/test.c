@@ -7,46 +7,62 @@
  * Temporary test since I haven't implemented scheduler and timer yet.
  */
 
-void kthread1(void)
+void kthread(void *arg)
 {
 	int j;
-	kprintf("KTHREAD1: congratulations!\n");
+	int id = (int)arg;
+	kprintf("KTHREAD%d: congratulations!\n", id);
 	for (;;) {
+		/* There is no unified timer interface so I implemented
+		 * suspension as busy-wait.  Change the limit if things
+		 * happen too fast for you. */
 		for (j = 0; j < 100000; ++j)
 			/* nothing */;
-		kprintf("KTHREAD1: running here\n");
-		schedule();
-	}
-}
-
-void kthread2(void)
-{
-	int j;
-	kprintf("KTHREAD2: congratulations!\n");
-	for (;;) {
-		for (j = 0; j < 100000; ++j)
-			/* nothing */;
-		kprintf("KTHREAD2: running there\n");
+		kprintf("KTHREAD%d: running here\n", id);
 		schedule();
 	}
 }
 
 void proc_test(void)
 {
-	struct proc *kthread1_proc, *kthread2_proc;
+	struct proc *kthreads[5];
+	int i;
 
-	kthread1_proc = proc_new(NULL);
-	kthread1_proc->mm = mm_new();
-	proc_ksetup(kthread1_proc, kthread1, kthread1_proc->kstack, NULL);
-	kthread1_proc->state = PS_RUNNABLE;
-	proc_add(kthread1_proc);
+	for (i = 0; i < 5; ++i) {
+		kthreads[i] = proc_new(NULL);
+		kthreads[i]->mm = mm_new();	/* should be kernel_mm */
+		proc_ksetup(kthreads[i], kthread, kthreads[i]->kstack,
+		    (void *)i);
+		kthreads[i]->state = PS_RUNNABLE;
+		proc_add(kthreads[i]);
+	}
 
-	kthread2_proc = proc_new(NULL);
-	kthread2_proc->mm = mm_new();
-	proc_ksetup(kthread2_proc, kthread2, kthread2_proc->kstack, NULL);
-	kthread2_proc->state = PS_RUNNABLE;
-	proc_add(kthread2_proc);
+	schedule();
 
-	switch_context(kthread1_proc);
+	/*
+	 * Correct output:
+	 *
+	 * THREAD0: congratulations!
+	 * KTHREAD0: running here
+	 * KTHREAD1: congratulations!
+	 * KTHREAD1: running here
+	 * KTHREAD2: congratulations!
+	 * KTHREAD2: running here
+	 * KTHREAD3: congratulations!
+	 * KTHREAD3: running here
+	 * KTHREAD4: congratulations!
+	 * KTHREAD4: running here
+	 * KTHREAD0: running here
+	 * KTHREAD1: running here
+	 * KTHREAD2: running here
+	 * KTHREAD3: running here
+	 * KTHREAD4: running here
+	 * KTHREAD0: running here
+	 * KTHREAD1: running here
+	 * KTHREAD2: running here
+	 * KTHREAD3: running here
+	 * KTHREAD4: running here
+	 * ...
+	 */
 }
 
