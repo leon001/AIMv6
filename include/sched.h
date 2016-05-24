@@ -22,12 +22,24 @@
 #include <proc.h>
 #include <namespace.h>
 #include <sys/types.h>
+#include <aim/sync.h>
 
 /* struct scheduler serves like abstract class in Java */
 struct scheduler {
 	/* Initialization routine should be registered statically as
 	 * initcalls. */
-	/* Return a proc to be scheduled onto processor */
+
+	/*
+	 * All the following routines are atomic.
+	 *
+	 * Moreover, pick() method assumes that the caller is inside a
+	 * critical section.
+	 */
+
+	/*
+	 * Return a proc to be scheduled onto processor, or NULL to
+	 * indicate that the processor should be idle.
+	 */
 	struct proc *	(*pick)(void);
 	int		(*add)(struct proc *);
 	/* Remove a specific proc from proc list */

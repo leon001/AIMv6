@@ -70,7 +70,7 @@ void *alloc_kstack_size(size_t *size)
 /* Find and remove the first available KPID from the free KPID set. */
 static pid_t kpid_new(void)
 {
-	bool flags;
+	unsigned long flags;
 	pid_t kpid;
 
 	spin_lock_irq_save(&freekpid.lock, flags);

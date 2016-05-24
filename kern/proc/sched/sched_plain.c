@@ -23,7 +23,7 @@
 #include <proc.h>
 #include <bitmap.h>
 #include <namespace.h>
-#include <lock.h>
+#include <aim/sync.h>
 
 /*
  * Plain round-robin scheduler implementation.
@@ -44,6 +44,30 @@ static struct plain_scheduler plain_scheduler;
 
 static struct proc *__sched_plain_pick(void)
 {
+	list_head *node;
+	struct proc *proc;
+	unsigned long flags;
+
+	spin_lock_irq_save(&(plain_scheduler.proclist.lock), flags);
+
+	if (list_empty(&(plain_scheduler.proclist.head))) {
+		spin_unlock_irq_restore(&(plain_scheduler.proclist.lock),
+		    flags);
+		return NULL;
+	}
+
+	/* Involved a trick that we directly start iterating at
+	 * plain_scheduler.current, skipping the sentry node. */
+	for_each (node, &(plain_scheduler.current->sched_node)) {
+		if (node == &(plain_scheduler.proclist.head))
+			continue;
+		proc = list_entry(node, struct proc, sched_node);
+		if (proc->state == PS_RUNNABLE)
+			return proc;
+	}
+
+	spin_unlock_irq_restore(&(plain_scheduler.proclist.lock), flags);
+	return NULL;
 }
 
 static void sched_plain_init(void)
@@ -54,5 +78,4 @@ static void sched_plain_init(void)
 	plain_scheduler.next = NULL;
 	plain_scheduler.find = NULL;
 }
-INITCALL_SUBSYS(sched_plain_init);
 

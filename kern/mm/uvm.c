@@ -130,7 +130,7 @@ __unmap_and_free_vma(struct mm *mm, struct vma *vma_start, size_t size)
 {
 	struct vma *vma_cur = vma_start;
 	size_t vma_size = 0;
-	bool intr;
+	unsigned long intr;
 	for (size_t i = 0; i < size; i += vma_size) {
 		struct vma *vma = vma_cur;
 		vma_cur = next_entry(vma_cur, node);
@@ -192,7 +192,7 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 	struct upages *p;
 	void *vcur = addr;
 	size_t mapped = 0;
-	bool intr;
+	unsigned long intr;
 
 	if (!IS_ALIGNED(len, PAGE_SIZE) ||
 	    mm == NULL ||
@@ -292,7 +292,7 @@ mm_clone(struct mm *dst, const struct mm *src)
 	struct upages *p;
 	size_t cloned_size = 0;
 	int retcode = 0;
-	bool intr;
+	unsigned long intr;
 
 	vma_start = list_entry(&(dst->vma_head), struct vma, node);
 	vma_cur = vma_start;
