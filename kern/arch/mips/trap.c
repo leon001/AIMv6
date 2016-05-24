@@ -40,56 +40,56 @@ void trap_init(void)
 	write_c0_status(status & ~ST_BEV);
 }
 
-static void dump_regs(struct regs *regs)
+static void dump_regs(struct trapframe *regs)
 {
-	kprintf("zero\t%016x\n", regs->gpr[_ZERO]);
-	kprintf("at\t%016x\n", regs->gpr[_AT]);
-	kprintf("v0\t%016x\n", regs->gpr[_V0]);
-	kprintf("v1\t%016x\n", regs->gpr[_V1]);
-	kprintf("a0\t%016x\n", regs->gpr[_A0]);
-	kprintf("a1\t%016x\n", regs->gpr[_A1]);
-	kprintf("a2\t%016x\n", regs->gpr[_A2]);
-	kprintf("a3\t%016x\n", regs->gpr[_A3]);
-	kprintf("t0\t%016x\n", regs->gpr[_T0]);
-	kprintf("t1\t%016x\n", regs->gpr[_T1]);
-	kprintf("t2\t%016x\n", regs->gpr[_T2]);
-	kprintf("t3\t%016x\n", regs->gpr[_T3]);
-	kprintf("t4\t%016x\n", regs->gpr[_T4]);
-	kprintf("t5\t%016x\n", regs->gpr[_T5]);
-	kprintf("t6\t%016x\n", regs->gpr[_T6]);
-	kprintf("t7\t%016x\n", regs->gpr[_T7]);
-	kprintf("s0\t%016x\n", regs->gpr[_S0]);
-	kprintf("s1\t%016x\n", regs->gpr[_S1]);
-	kprintf("s2\t%016x\n", regs->gpr[_S2]);
-	kprintf("s3\t%016x\n", regs->gpr[_S3]);
-	kprintf("s4\t%016x\n", regs->gpr[_S4]);
-	kprintf("s5\t%016x\n", regs->gpr[_S5]);
-	kprintf("s6\t%016x\n", regs->gpr[_S6]);
-	kprintf("s7\t%016x\n", regs->gpr[_S7]);
-	kprintf("t8\t%016x\n", regs->gpr[_T8]);
-	kprintf("t9\t%016x\n", regs->gpr[_T9]);
-	kprintf("gp\t%016x\n", regs->gpr[_GP]);
-	kprintf("sp\t%016x\n", regs->gpr[_SP]);
-	kprintf("s8\t%016x\n", regs->gpr[_S8]);
-	kprintf("ra\t%016x\n", regs->gpr[_RA]);
-	kprintf("LO\t%016x\n", regs->lo);
-	kprintf("HI\t%016x\n", regs->hi);
-	kprintf("STATUS\t%016x\n", regs->status);
-	kprintf("CAUSE\t%016x\n", regs->cause);
-	kprintf("EPC\t%016x\n", regs->epc);
-	kprintf("BVA\t%016x\n", regs->badvaddr);
+	kprintf("zero\t%p\n", regs->gpr[_ZERO]);
+	kprintf("at\t%p\n", regs->gpr[_AT]);
+	kprintf("v0\t%p\n", regs->gpr[_V0]);
+	kprintf("v1\t%p\n", regs->gpr[_V1]);
+	kprintf("a0\t%p\n", regs->gpr[_A0]);
+	kprintf("a1\t%p\n", regs->gpr[_A1]);
+	kprintf("a2\t%p\n", regs->gpr[_A2]);
+	kprintf("a3\t%p\n", regs->gpr[_A3]);
+	kprintf("t0\t%p\n", regs->gpr[_T0]);
+	kprintf("t1\t%p\n", regs->gpr[_T1]);
+	kprintf("t2\t%p\n", regs->gpr[_T2]);
+	kprintf("t3\t%p\n", regs->gpr[_T3]);
+	kprintf("t4\t%p\n", regs->gpr[_T4]);
+	kprintf("t5\t%p\n", regs->gpr[_T5]);
+	kprintf("t6\t%p\n", regs->gpr[_T6]);
+	kprintf("t7\t%p\n", regs->gpr[_T7]);
+	kprintf("s0\t%p\n", regs->gpr[_S0]);
+	kprintf("s1\t%p\n", regs->gpr[_S1]);
+	kprintf("s2\t%p\n", regs->gpr[_S2]);
+	kprintf("s3\t%p\n", regs->gpr[_S3]);
+	kprintf("s4\t%p\n", regs->gpr[_S4]);
+	kprintf("s5\t%p\n", regs->gpr[_S5]);
+	kprintf("s6\t%p\n", regs->gpr[_S6]);
+	kprintf("s7\t%p\n", regs->gpr[_S7]);
+	kprintf("t8\t%p\n", regs->gpr[_T8]);
+	kprintf("t9\t%p\n", regs->gpr[_T9]);
+	kprintf("gp\t%p\n", regs->gpr[_GP]);
+	kprintf("sp\t%p\n", regs->gpr[_SP]);
+	kprintf("s8\t%p\n", regs->gpr[_S8]);
+	kprintf("ra\t%p\n", regs->gpr[_RA]);
+	kprintf("LO\t%p\n", regs->lo);
+	kprintf("HI\t%p\n", regs->hi);
+	kprintf("STATUS\t%p\n", regs->status);
+	kprintf("CAUSE\t%p\n", regs->cause);
+	kprintf("EPC\t%p\n", regs->epc);
+	kprintf("BVA\t%p\n", regs->badvaddr);
 }
 
-void trap_handler(struct regs *regs)
+void trap_handler(struct trapframe *regs)
 {
 	dump_regs(regs);
 	panic("Unexpected trap\n");
 	trap_return(regs);
 }
 
-extern void trap_exit(struct regs *regs);
+extern void trap_exit(struct trapframe *regs);
 
-__noreturn void trap_return(struct regs *regs)
+__noreturn void trap_return(struct trapframe *regs)
 {
 	/* Retain interrupt masks while changing other fields according to
 	 * register set */

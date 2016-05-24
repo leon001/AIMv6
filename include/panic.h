@@ -19,6 +19,10 @@
 #ifndef _PANIC_H
 #define _PANIC_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 __noreturn
 void __panic(void);
 

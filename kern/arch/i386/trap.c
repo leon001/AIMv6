@@ -88,7 +88,7 @@ void trap_handler(struct trapframe *tf)
 {
 	kprintf("Caught exception %d (%s)\n", tf->trapno,
 	    tf->trapno <= T_MSG_MAX ? trapmsg[tf->trapno] : "");
-	panic("Dying...\n");
+	trap_return(tf);
 }
 
 /*
@@ -96,14 +96,14 @@ void trap_handler(struct trapframe *tf)
  * the behavior of exiting a trap handler, which is usually the case
  * of finishing fork(2).
  */
-__noreturn void trap_return(struct regs *regs)
+__noreturn void trap_return(struct trapframe *regs)
 {
-	panic("trap_return\n");
+	trap_exit(regs);
 }
 
 /* temporary */
 void trap_test(void)
 {
-	asm volatile ("int $121;");
+	asm volatile ("int $110;");
 }
 

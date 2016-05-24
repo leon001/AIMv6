@@ -21,7 +21,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <mm.h>
+#include <mmu.h>
 
 .section .text.low
 

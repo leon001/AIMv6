@@ -137,3 +137,7 @@ void add_memory_pages(void)
 	}
 }
 
+void arch_mm_init(void)
+{
+}
+

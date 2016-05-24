@@ -23,6 +23,8 @@
 
 #include <util.h>
 
+#ifndef __ASSEMBLER__
+
 /*
  * Simple doubly-linked list implementation
  *
@@ -144,10 +146,10 @@ static inline int list_is_singular(const struct list_head *head)
 /* The two variants are designed for safety against removal */
 #define for_each_safe(pos, n, head) \
 	for (pos = (head)->next, n = pos->next; pos != (head); \
-	    pos = n, n = pos->next)
+	     pos = n, n = pos->next)
 #define for_each_reverse_safe(pos, n, head) \
 	for (pos = (head)->prev, n = pos->prev; pos != (head); \
-	    pos = n, n = pos->prev)
+	     pos = n, n = pos->prev)
 
 #define for_each_entry(pos, head, member) \
 	for (pos = list_entry((head)->next, typeof(*pos), member); \
@@ -172,4 +174,7 @@ static inline int list_is_singular(const struct list_head *head)
 		n = list_entry(pos->member.prev, typeof(*pos), member);	\
 	     &pos->member != (head); 					\
 	     pos = n, n = list_entry(n->member.prev, typeof(*n), member))
-#endif
+
+#endif /* !__ASSEMBLER__ */
+
+#endif /* _LIST_H */

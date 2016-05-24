@@ -30,8 +30,12 @@
 #include <panic.h>
 #include <init.h>
 #include <aim/initcalls.h>
+#include <proc.h>
+#include <percpu.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
+
+struct percpu cpus[NR_CPUS];
 
 void __noreturn master_init(void)
 {
@@ -65,11 +69,12 @@ void __noreturn master_init(void)
 	kputs("KERN: Page allocator initialized.\n");
 	add_memory_pages();
 	kputs("KERN: Pages added.\n");
-	kprintf("KERN: Free memory: 0x%08x\n", (size_t)get_free_memory());
-	struct simple_allocator *old = get_simple_allocator();
+	kprintf("KERN: Free memory: 0x%p\n", (size_t)get_free_memory());
+	struct simple_allocator old;
+	get_simple_allocator(&old);
 	simple_allocator_init();
 	kputs("KERN: Simple allocator initialized.\n");
-	page_allocator_move(old);
+	page_allocator_move(&old);
 	kputs("KERN: Page allocator moved.\n");
 
 	trap_init();
@@ -81,26 +86,62 @@ void __noreturn master_init(void)
 
 	kputs("KERN: Traps test passed.\n");
 
+	/* do early initcalls, one by one */
+	do_early_initcalls();
+
 	mm_init();
 	kputs("KERN: Memory management component initialized.\n");
 
 	extern void mm_test(void);
 	mm_test();
 
-	/* allocate per-cpu context and kworker */
-//	proc_init();
+	proc_init();
+	sched_init();
 
-	/* do early initcalls, one by one */
-	do_early_initcalls();
+	/* do initcalls, one by one */
+	do_initcalls();
+
+	/* temporary tests */
+	struct allocator_cache cache = {
+		.size = 1024,
+		.align = 1024,
+		.flags = 0,
+		.create_obj = NULL,
+		.destroy_obj = NULL
+	};
+	cache_create(&cache);
+	void *a, *b, *c;
+	a = cache_alloc(&cache);
+	kprintf("DEBUG: a = 0x%08x\n", a);
+	b = cache_alloc(&cache);
+	kprintf("DEBUG: b = 0x%08x\n", b);
+	c = cache_alloc(&cache);
+	kprintf("DEBUG: c = 0x%08x\n", c);
+	cache_free(&cache, a);
+	cache_free(&cache, b);
+	cache_free(&cache, c);
+	a = cache_alloc(&cache);
+	kprintf("DEBUG: a = 0x%08x\n", a);
+	cache_free(&cache, a);
+	int ret = cache_destroy(&cache);
+	kprintf("DEBUG: cache_destroy returned %d.\n", ret);
+	cache_create(&cache);
+	a = cache_alloc(&cache);
+	kprintf("DEBUG: a = 0x%08x\n", a);
 
 	/* startup smp */
 
 	/*
 	 * do initcalls, one by one.
 	 * They may fork or sleep or reschedule.
+	 * In case any initcalls issue a fork, there MUST be EXACTLY one return
+	 * from each initcall.
 	 */
 
 	/* initialize or cleanup namespace */
+
+	/* Temporary test */
+	proc_test();
 
 
 	panic("Test done, all is well.\n");

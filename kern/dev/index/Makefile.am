@@ -22,6 +22,7 @@ noinst_DATA =
 
 if ALGO_DEVLIST
 noinst_DATA += devlist.o
+devlist.o: devlist.c
 endif
 
 libindex_la_SOURCES = index.c

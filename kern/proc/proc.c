@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+ * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -23,16 +24,127 @@
 #include <sys/types.h>
 #include <mm.h>
 #include <pmm.h>
+#include <proc.h>
+#include <namespace.h>
+#include <libc/string.h>
+#include <aim/sync.h>
+#include <bitmap.h>
+#include <smp.h>
+#include <sched.h>
+#include <percpu.h>
+
+static struct {
+	lock_t lock;
+	DECLARE_BITMAP(bitmap, MAX_PROCESSES);
+} freekpid;
+
+struct proc idleproc[NR_CPUS];
 
 /*
  * This should be a seperate function, don't directly use kernel memory
  * interfaces. There are different sets of interfaces we can allocate memory
  * from, and we can't say any one of them is best.
  */
-void *alloc_kstack(size_t *size)
+void *alloc_kstack(void)
+{
+	/* currently we use pgalloc() */
+	addr_t paddr;
+
+	paddr = pgalloc();
+	if (paddr == -1)
+		return NULL;
+	return pa2kva(paddr);
+}
+
+/* Exact opposite of alloc_kstack */
+void free_kstack(void *kstack)
+{
+	pgfree(kva2pa(kstack));
+}
+
+void *alloc_kstack_size(size_t *size)
 {
 	/* calculate the actual size we allocate */
-	/* currently we use alloc_pages */
+	panic("custom kstack size not implemented\n");
+}
+
+/* Find and remove the first available KPID from the free KPID set. */
+static pid_t kpid_new(void)
+{
+	unsigned long flags;
+	pid_t kpid;
+
+	spin_lock_irq_save(&freekpid.lock, flags);
+	kpid = bitmap_find_first_zero_bit(freekpid.bitmap, MAX_PROCESSES);
+	atomic_set_bit(kpid, freekpid.bitmap);
+	spin_unlock_irq_restore(&freekpid.lock, flags);
+
+	return kpid;
+}
+
+static void kpid_recycle(pid_t kpid)
+{
+	atomic_clear_bit(kpid, freekpid.bitmap);
+}
+
+struct proc *proc_new(struct namespace *ns)
+{
+	struct proc *proc = (struct proc *)kmalloc(sizeof(*proc), 0);
+
+	if (proc == NULL)
+		return NULL;
+
+	proc->kstack = alloc_kstack();
+	if (proc->kstack == NULL)
+		goto rollback_proc;
+
+	proc->kstack_size = PAGE_SIZE;
+
+	proc->kpid = kpid_new();
+	/* TODO: change this in case of implementing namespaces */
+	proc->pid = pid_new(proc->kpid, ns);
+	proc->tid = proc->kpid;
+	proc->state = PS_EMBRYO;
+	proc->exit_code = 0;
+	proc->exit_signal = 0;
+	proc->flags = 0;
+	proc->oncpu = CPU_NONE;
+	proc->bed = NULL;
+	proc->namespace = ns;
+	proc->mm = NULL;
+	memset(&(proc->context), 0, sizeof(proc->context));
+	proc->heapsize = 0;
+	proc->ustacktop = 0;
+	proc->progtop = 0;
+	memset(&(proc->name), 0, sizeof(proc->name));
+
+	proc->leader = NULL;
+	proc->parent = NULL;
+	proc->first_child = NULL;
+	proc->next_sibling = NULL;
+	proc->prev_sibling = NULL;
+	proc->scheduler = scheduler;
+	list_init(&(proc->sched_node));
+
+	return proc;
+rollback_proc:
+	kfree(proc);
 	return NULL;
+}
+
+void proc_destroy(struct proc *proc)
+{
+	pid_recycle(proc->pid, proc->namespace);
+	kpid_recycle(proc->kpid);
+	free_kstack(proc->kstack);
+	kfree(proc);
+}
+
+void proc_init(void)
+{
+	spinlock_init(&freekpid.lock);
+
+	current_proc = cpu_idleproc;
+	cpu_idleproc->state = PS_RUNNABLE;
 }
 

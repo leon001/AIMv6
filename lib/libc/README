@@ -1,0 +1,7 @@
+Static C library supporting user space and kernel
+
+You can safely ignore this directory altogether when learning operating system
+concepts since they are only providing C library function equivalents.
+
+The code is completely borrowed from OpenBSD.
+

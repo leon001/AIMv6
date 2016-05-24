@@ -36,6 +36,7 @@ OUTPUT_FORMAT(TARGET)
 ENTRY(__start)
 
 SECTIONS {
+	PROVIDE(pgdir_slots = MIPS_PGDIR_SLOT_BASE);
 	. = KERN_START;
 	.text : {
 		*(.text*);

@@ -105,8 +105,6 @@ int uart_putchar(unsigned char c)
 
 #else /* not RAW, or kernel driver */
 
-#if PRIMARY_CONSOLE == uart_msim
-
 int early_console_putchar(unsigned char c)
 {
 	__uart_msim_putchar(&__early_uart_msim_lp, c);
@@ -137,8 +135,6 @@ int early_console_init(void)
 
 	return 0;
 }
-
-#endif /* PRIMARY_CONSOLE == uart_msim */
 
 #endif /* RAW */
 

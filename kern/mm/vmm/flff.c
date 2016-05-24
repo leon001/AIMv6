@@ -47,8 +47,6 @@ struct blockhdr {
 #define PAYLOAD(bh)		((void *)((struct blockhdr *)(bh) + 1))
 #define HEADER(payload)		((struct blockhdr *)(payload) - 1)
 
-static struct simple_allocator __bootstrap_allocator;
-static struct simple_allocator __allocator;
 static struct list_head __bootstrap_head;
 static struct list_head __head;
 //static lock_t lock;
@@ -216,10 +214,13 @@ int simple_allocator_bootstrap(void *pt, size_t size)
 	block->free = true;
 	list_init(&__bootstrap_head);
 	list_add_after(&block->node, &__bootstrap_head);
-	__bootstrap_allocator.alloc = __bootstrap_alloc;
-	__bootstrap_allocator.free = __bootstrap_free;
-	__bootstrap_allocator.size = __size;
-	set_simple_allocator(&__bootstrap_allocator);
+
+	struct simple_allocator allocator = {
+		.alloc	= __bootstrap_alloc,
+		.free	= __bootstrap_free,
+		.size	= __size
+	};
+	set_simple_allocator(&allocator);
 	return 0;
 }
 
@@ -227,10 +228,12 @@ int simple_allocator_init(void)
 {
 	list_init(&__head);
 
-	__allocator.alloc = __proper_alloc;
-	__allocator.free = __proper_free;
-	__allocator.size = __size;
-	set_simple_allocator(&__allocator);
+	struct simple_allocator allocator = {
+		.alloc	= __proper_alloc,
+		.free	= __proper_free,
+		.size	= __size
+	};
+	set_simple_allocator(&allocator);
 	return 0;
 }
 

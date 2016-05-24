@@ -23,12 +23,12 @@
 #include <config.h>
 #endif
 
-struct regs;
+struct trapframe;
 
 void trap_init(void);
 
 __noreturn
-void trap_return(struct regs *regs);
+void trap_return(struct trapframe *regs);
 
 #endif /* _TRAP_H */
 

@@ -56,6 +56,8 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <util.h>
+#include <smp.h>
+#include <tlb.h>
 
 #ifndef __LP64__	/* 32 bit */
 
@@ -367,5 +369,13 @@ unmap_pages(pgindex_t *pgindex,
 	__free_intermediate_pgtable(pgindex, vaddr, unmapped_bytes);
 
 	return unmapped_bytes;
+}
+
+int
+switch_pgindex(pgindex_t *pgindex)
+{
+	pgdir_slots[cpuid()] = pgindex;
+	tlb_flush();
+	return 0;
 }
 
