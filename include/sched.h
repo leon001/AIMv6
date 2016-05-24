@@ -23,20 +23,11 @@
 #include <namespace.h>
 #include <sys/types.h>
 
-/*
- * struct proclist is implemented in scheduler source.
- *
- * Usually, different schedulers require different data structures for
- * process list.
- */
-struct proclist;
-
+/* struct scheduler serves like abstract class in Java */
 struct scheduler {
-	/* The actual data structure storing the set of proc */
-	struct proclist	*proclist;
-	/* Initialize scheduler and process list inside */
-	void		(*init)(void);
-	/* Remove and return an arbitrary proc from proc list */
+	/* Initialization routine should be registered statically as
+	 * initcalls. */
+	/* Return a proc to be scheduled onto processor */
 	struct proc *	(*pick)(void);
 	int		(*add)(struct proc *);
 	/* Remove a specific proc from proc list */

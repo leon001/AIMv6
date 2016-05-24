@@ -80,7 +80,9 @@ struct proc {
 	struct proc	*first_child;
 	struct proc	*next_sibling;
 	struct proc	*prev_sibling;
-	struct list_head proc_node;
+
+	struct scheduler *scheduler;	/* Scheduler for this process */
+	struct list_head sched_node;	/* List node in scheduler */
 };
 
 /* Create a struct proc inside namespace @ns and initialize everything if we

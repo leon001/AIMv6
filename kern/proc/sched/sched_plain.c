@@ -34,21 +34,25 @@ struct proclist {
 	struct list_head head;	/* head of process list */
 };
 
-static struct proclist proclist;
+struct plain_scheduler {
+	struct scheduler;
+	struct proclist proclist;
+	struct proc *current;
+};
 
-void sched_plain_init(void)
+static struct plain_scheduler plain_scheduler;
+
+static struct proc *__sched_plain_pick(void)
 {
-	list_init(&proclist.head);
-	spinlock_init(&proclist.lock);
 }
 
-struct scheduler sched_plain = {
-	.proclist = &proclist,
-	.init = sched_plain_init,
-	.pick = NULL,
-	.add = NULL,
-	.remove = NULL,
-	.next = NULL,
-	.find = NULL,
-};
+static void sched_plain_init(void)
+{
+	plain_scheduler.pick = NULL;
+	plain_scheduler.add = NULL;
+	plain_scheduler.remove = NULL;
+	plain_scheduler.next = NULL;
+	plain_scheduler.find = NULL;
+}
+INITCALL_SUBSYS(sched_plain_init);
 
