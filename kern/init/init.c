@@ -96,6 +96,7 @@ void __noreturn master_init(void)
 	mm_test();
 
 	proc_init();
+	sched_init();
 
 	/* do initcalls, one by one */
 	do_initcalls();

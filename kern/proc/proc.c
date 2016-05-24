@@ -30,6 +30,7 @@
 #include <aim/sync.h>
 #include <bitmap.h>
 #include <smp.h>
+#include <sched.h>
 #include <percpu.h>
 
 static struct {
@@ -37,7 +38,7 @@ static struct {
 	DECLARE_BITMAP(bitmap, MAX_PROCESSES);
 } freekpid;
 
-static struct proc idleproc[NR_CPUS];
+struct proc idleproc[NR_CPUS];
 
 /*
  * This should be a seperate function, don't directly use kernel memory
@@ -99,10 +100,10 @@ struct proc *proc_new(struct namespace *ns)
 
 	proc->kstack_size = PAGE_SIZE;
 
-	proc->tid = 0;
 	proc->kpid = kpid_new();
 	/* TODO: change this in case of implementing namespaces */
 	proc->pid = pid_new(proc->kpid, ns);
+	proc->tid = proc->kpid;
 	proc->state = PS_EMBRYO;
 	proc->exit_code = 0;
 	proc->exit_signal = 0;
@@ -117,11 +118,13 @@ struct proc *proc_new(struct namespace *ns)
 	proc->progtop = 0;
 	memset(&(proc->name), 0, sizeof(proc->name));
 
+	proc->leader = NULL;
 	proc->parent = NULL;
 	proc->first_child = NULL;
 	proc->next_sibling = NULL;
 	proc->prev_sibling = NULL;
-	list_init(&(proc->proc_node));
+	proc->scheduler = scheduler;
+	list_init(&(proc->sched_node));
 
 	return proc;
 rollback_proc:
@@ -141,6 +144,7 @@ void proc_init(void)
 {
 	spinlock_init(&freekpid.lock);
 
-	current_proc = &idleproc[cpuid()];
+	current_proc = cpu_idleproc;
+	cpu_idleproc->state = PS_RUNNABLE;
 }
 

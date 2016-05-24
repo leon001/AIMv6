@@ -377,6 +377,7 @@ AC_CONFIG_FILES([
 	kern/mm/pmm/Makefile
 	kern/mm/vmm/Makefile
 	kern/proc/Makefile
+	kern/proc/sched/Makefile
 	kern/syscall/Makefile
 	lib/Makefile
 	lib/libc/Makefile

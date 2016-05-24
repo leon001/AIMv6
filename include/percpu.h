@@ -35,9 +35,12 @@ struct percpu {
 };
 
 extern struct percpu cpus[];
+/* Idle proc is per-cpu dummy process here. */
+extern struct proc idleproc[];
 
 #define cpu		cpus[cpuid()]
 #define current_proc	cpu.proc
+#define cpu_idleproc	(&idleproc[cpuid()])
 
 #endif /* _PERCPU_H */
 

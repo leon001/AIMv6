@@ -22,16 +22,34 @@
 
 #include <proc.h>
 #include <sched.h>
+#include <percpu.h>
 
 static lock_t sched_lock;
 
 void schedule(void)
 {
+	struct proc *oldproc = current_proc, *newproc;
 	unsigned long flags;
+
 	spin_lock_irq_save(&(sched_lock), flags);
-	/* TODO: fill in everything: changing process state, picking
-	 * next process, switching context, etc. */
+
+	if (oldproc->state == PS_ONPROC)
+		oldproc->state = PS_RUNNABLE;
+
+	newproc = scheduler->pick();
+	if (newproc == NULL)
+		newproc = cpu_idleproc;
+
+	switch_context(newproc);
+
+	newproc->state = PS_ONPROC;
+
 	spin_unlock_irq_restore(&(sched_lock), flags);
+}
+
+void proc_add(struct proc *proc)
+{
+	scheduler->add(proc);
 }
 
 void sched_init(void)

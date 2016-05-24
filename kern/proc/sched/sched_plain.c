@@ -21,9 +21,11 @@
 #endif
 
 #include <proc.h>
+#include <sched.h>
 #include <bitmap.h>
 #include <namespace.h>
 #include <aim/sync.h>
+#include <aim/initcalls.h>
 
 /*
  * Plain round-robin scheduler implementation.
@@ -40,11 +42,17 @@ struct plain_scheduler {
 	struct proc *current;
 };
 
-static struct plain_scheduler plain_scheduler;
+static struct proc *__sched_plain_pick(void);
+static int __sched_plain_add(struct proc *proc);
+
+static struct plain_scheduler plain_scheduler = {
+	.pick = __sched_plain_pick,
+	.add = __sched_plain_add
+};
 
 static struct proc *__sched_plain_pick(void)
 {
-	list_head *node;
+	struct list_head *node;
 	struct proc *proc;
 	unsigned long flags;
 
@@ -58,24 +66,41 @@ static struct proc *__sched_plain_pick(void)
 
 	/* Involved a trick that we directly start iterating at
 	 * plain_scheduler.current, skipping the sentry node. */
-	for_each (node, &(plain_scheduler.current->sched_node)) {
+	for_each (node,
+	    plain_scheduler.current ?
+	    &(plain_scheduler.proclist.head) :
+	    &(plain_scheduler.current->sched_node)) {
 		if (node == &(plain_scheduler.proclist.head))
 			continue;
 		proc = list_entry(node, struct proc, sched_node);
-		if (proc->state == PS_RUNNABLE)
+		if (proc->state == PS_RUNNABLE) {
+			plain_scheduler.current = proc;
 			return proc;
+		}
 	}
 
 	spin_unlock_irq_restore(&(plain_scheduler.proclist.lock), flags);
 	return NULL;
 }
 
-static void sched_plain_init(void)
+static int __sched_plain_add(struct proc *proc)
 {
-	plain_scheduler.pick = NULL;
-	plain_scheduler.add = NULL;
-	plain_scheduler.remove = NULL;
-	plain_scheduler.next = NULL;
-	plain_scheduler.find = NULL;
+	unsigned long flags;
+
+	spin_lock_irq_save(&(plain_scheduler.proclist.lock), flags);
+	list_add_before(&(proc->sched_node), &(plain_scheduler.proclist.head));
+	spin_unlock_irq_restore(&(plain_scheduler.proclist.lock), flags);
+	return 0;
 }
 
+static int __sched_plain_init(void)
+{
+	list_init(&(plain_scheduler.proclist.head));
+	spinlock_init(&(plain_scheduler.proclist.lock));
+	plain_scheduler.current = NULL;
+	return 0;
+}
+INITCALL_SUBSYS(__sched_plain_init);
+
+/* TODO: use a macro switch to enable scheduler module selection */
+struct scheduler *scheduler = (struct scheduler *)&plain_scheduler;

@@ -47,6 +47,7 @@ KERNEL_LIBS = \
 	arch/$(ARCH)/libentry.la \
 	init/libinit.la \
 	proc/libproc.la \
+	proc/sched/libsched.la \
 	syscall/libsyscall.la \
 	dev/libdev.la \
 	mm/libmm.la \

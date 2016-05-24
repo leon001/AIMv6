@@ -76,6 +76,7 @@ struct proc {
 	char		name[PROC_NAME_LEN_MAX];
 
 	/* Process tree related */
+	struct proc	*leader;	/* Main thread of the same process */
 	struct proc	*parent;
 	struct proc	*first_child;
 	struct proc	*next_sibling;

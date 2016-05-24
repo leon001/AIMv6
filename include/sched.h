@@ -27,7 +27,7 @@
 /* struct scheduler serves like abstract class in Java */
 struct scheduler {
 	/* Initialization routine should be registered statically as
-	 * initcalls. */
+	 * initcalls.  FIXME: ??? */
 
 	/*
 	 * All the following routines are atomic.
@@ -52,5 +52,11 @@ struct scheduler {
 	 */
 	struct proc *	(*find)(pid_t pid, struct namespace *ns);
 };
+
+extern struct scheduler *scheduler;
+
+void sched_init(void);
+void proc_add(struct proc *proc);
+void schedule(void);
 
 #endif

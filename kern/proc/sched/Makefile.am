@@ -17,12 +17,9 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = sched
+noinst_LTLIBRARIES = libsched.la
 
-noinst_LTLIBRARIES = libproc.la
-
-libproc_la_SOURCES = \
-	proc.c \
-	test.c \
-	namespace.c
+libsched_la_SOURCES = \
+	sched.c \
+	sched_plain.c
 
