@@ -25,7 +25,7 @@
 
 /* This function merely switches registers and you can safely
  * ignore this implementation if you're not interested. */
-LEAF(switch_regs)
+BEGIN(switch_regs)
 	.set	push
 	.set	noat
 	PUSHUE	zero, a0
