@@ -16,9 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * IMPORTANT: rename this file to "smp.h" after moving to the desired directory.
- */
 #ifndef _MACH_SMP_H
 #define _MACH_SMP_H
 

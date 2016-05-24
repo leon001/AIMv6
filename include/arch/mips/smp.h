@@ -40,10 +40,11 @@
  * is encoded.
  */
 #ifndef __ASSEMBLER__
+#include <mipsregs.h>
 /*
  * The header is included by a C header/source.
  */
-inline unsigned int __cpuid(void)
+static inline unsigned int __cpuid(void)
 {
 	return read_c0_ebase() & EBASE_CPUNUM_MASK;
 }

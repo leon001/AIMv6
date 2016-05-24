@@ -45,6 +45,11 @@ AIM_GCC_FUNC_ATTRIBUTE([visibility])
 AIM_GCC_VAR_ATTRIBUTE([used])
 AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
 
+# Builtin functions - not required
+AX_GCC_BUILTIN(__builtin_popcount)
+AX_GCC_BUILTIN(__builtin_popcountl)
+AX_GCC_BUILTIN(__builtin_popcountll)
+
 AC_SUBST([AIM_CFLAGS], [$aim_cflags])
 
 AM_PROG_AS
@@ -201,6 +206,13 @@ AC_SUBST([MEM_SIZE], [$with_mem_size])
 AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [detect])
 AC_SUBST([NR_CPUS], [$with_cpus])
 
+# MIPS kernel hyperparameters
+AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
+	[base virtual address for array storing GP register during trap entry])
+AIM_ARG_WITH([mips-pgdir-slot-base], [MIPS_PGDIR_SLOT_BASE],
+	[base virtual address for array storing per CPU page directories])
+
+# Kernel hyperparameters
 AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0x80000000])
 AC_SUBST([KERN_BASE], [$with_kern_base])
 
@@ -215,13 +227,11 @@ AC_SUBST([RESERVED_BASE], [$with_reserved_base])
 AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 	[size of kernel stack])
 
+AIM_ARG_WITH([max-processes], [MAX_PROCESSES], [maximum number of processes],
+	[65536])
+
 AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 	[order of firmware stack per CPU (size=1<<order)])
-
-AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
-	[base virtual address for array storing GP register during trap entry])
-AIM_ARG_WITH([mips-pgdir-slot-base], [PGDIR_SLOT_BASE],
-	[base virtual address for array storing per CPU page directories])
 
 # Drivers
 AIM_ARG_ENABLE([io-mem], [IO_MEM], [memory-mapped IO driver])
@@ -257,6 +267,10 @@ AM_CONDITIONAL([ALGO_FLFF], [test x$with_simple_allocator = xflff])
 AS_VAR_SET([with_page_allocator], [ff])
 AIM_ARG_WITH([page-allocator], [PAGE_ALLOCATOR], [page allocator])
 AM_CONDITIONAL([ALGO_FF], [test x$with_page_allocator = xff])
+
+AS_VAR_SET([with_caching_allocator], [slab])
+AIM_ARG_WITH([caching-allocator], [CACHING_ALLOCATOR], [caching allocator])
+AM_CONDITIONAL([ALGO_SLAB], [test x$with_caching_allocator = xslab])
 
 AS_VAR_SET([with_dev_index], [devlist])
 AIM_ARG_WITH([dev-index], [DEVICE_INDEX], [device index])
@@ -354,6 +368,8 @@ AC_CONFIG_FILES([
 	kern/arch/mips/mach-msim/Makefile
 	kern/arch/mips/mach-loongson3a/Makefile
 	kern/init/Makefile
+	kern/lib/Makefile
+	kern/lib/libbitmap/Makefile
 	kern/dev/Makefile
 	kern/dev/index/Makefile
 	kern/debug/Makefile
@@ -361,6 +377,8 @@ AC_CONFIG_FILES([
 	kern/mm/pmm/Makefile
 	kern/mm/vmm/Makefile
 	kern/proc/Makefile
+	kern/proc/sched/Makefile
+	kern/syscall/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile
@@ -387,6 +405,10 @@ General
   CFLAGS:	${CFLAGS}
   LDFLAGS:	${LDFLAGS}
 
+* Flags are overridden by architecture and machine-specific flags,
+* further overridden by per-target flags,
+* and further overridden by flags passed to `make`.
+
 Target
 --------
   architecture:	${ARCH}
@@ -399,6 +421,13 @@ Kernel
   KERN_BASE:	${with_kern_base}
   KMMAP_BASE:	${with_kmmap_base}
   RESERVED:	${with_reserved_base}
+
+Algorithms
+--------
+  simple allocator:	${with_simple_allocator}
+  page allocator:	${with_page_allocator}
+  caching allocator:	${with_caching_allocator}
+  device index:		${with_dev_index}
 
 Drivers
 --------

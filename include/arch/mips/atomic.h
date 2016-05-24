@@ -1,4 +1,11 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/*
+ * This file is subject to the terms and conditions of the GNU General Public
+ * License.  See the file "COPYING" in the main directory of this archive
+ * for more details.
+ *
+ * Copyright (c) 1994 - 1997, 99, 2000, 06, 07  Ralf Baechle (ralf@linux-mips.org)
+ * Copyright (c) 1999, 2000  Silicon Graphics, Inc.
+ * Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -20,6 +27,8 @@
 #define _ATOMIC_H
 
 #include <sys/types.h>
+#include <arch-sync.h>
+#include <asm.h>
 
 /* counter += val */
 static inline void atomic_add(atomic_t *counter, uint32_t val)
@@ -35,6 +44,7 @@ static inline void atomic_sub(atomic_t *counter, uint32_t val)
 static inline void atomic_inc(atomic_t *counter)
 {
 	uint32_t reg;
+	smp_mb();
 	asm volatile (
 		"	.set	push;"
 		"	.set	reorder;"
@@ -43,14 +53,16 @@ static inline void atomic_inc(atomic_t *counter)
 		"	sc	%[reg], %[mem];"
 		"	beqz	%[reg], 1b;"
 		"	.set	pop;"
-		: [reg] "=&r"(reg), [mem] "=m"(*counter)
+		: [reg] "=&r"(reg), [mem] "+m"(*counter)
 	);
+	smp_mb();
 }
 
 /* counter-- */
 static inline void atomic_dec(atomic_t *counter)
 {
 	uint32_t reg;
+	smp_mb();
 	asm volatile (
 		"	.set	push;"
 		"	.set	reorder;"
@@ -59,8 +71,47 @@ static inline void atomic_dec(atomic_t *counter)
 		"	sc	%[reg], %[mem];"
 		"	beqz	%[reg], 1b;"
 		"	.set	pop;"
-		: [reg] "=&r"(reg), [mem] "=m"(*counter)
+		: [reg] "=&r"(reg), [mem] "+m"(*counter)
 	);
+	smp_mb();
+}
+
+static inline void atomic_set_bit(unsigned long nr,
+				  volatile unsigned long *addr)
+{
+	unsigned long *m = ((unsigned long *)addr) + (nr >> BITS_PER_LONG_LOG);
+	int bit = nr & BITS_PER_LONG_MASK;
+	unsigned long temp;
+
+	smp_mb();
+	asm volatile (
+		"1:	"__LL " %0, %1;"
+		"	or	%0, %2;"
+		"	"__SC " %0, %1;"
+		"	beqzl	%0, 1b;"
+		: "=&r"(temp), "+m"(*m)
+		: "ir"(1UL << bit)
+	);
+	smp_mb();
+}
+
+static inline void atomic_clear_bit(unsigned long nr,
+				    volatile unsigned long *addr)
+{
+	unsigned long *m = ((unsigned long *)addr) + (nr >> BITS_PER_LONG_LOG);
+	int bit = nr & BITS_PER_LONG_MASK;
+	unsigned long temp;
+
+	smp_mb();
+	asm volatile (
+		"1:	"__LL " %0, %1;"
+		"	and	%0, %2;"
+		"	"__SC " %0, %1;"
+		"	beqzl	%0, 1b;"
+		: "=&r"(temp), "+m"(*m)
+		: "ir"(~(1UL << bit))
+	);
+	smp_mb();
 }
 
 #endif

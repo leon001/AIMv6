@@ -17,8 +17,12 @@
 
 include $(top_srcdir)/env.am
 
+SUBDIRS = sched
+
 noinst_LTLIBRARIES = libproc.la
 
 libproc_la_SOURCES = \
-	proc.c
+	proc.c \
+	test.c \
+	namespace.c
 

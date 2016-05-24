@@ -21,10 +21,16 @@
 
 #include <sys/types.h>
 #include <namespace.h>
+#include <mm.h>
+#include <list.h>
+#include <regs.h>
 
 #define PROC_NAME_LEN_MAX	256
 
+typedef int pid_t;
+
 struct proc {
+	/* TODO: move thread-specific data into a separate structure */
 	/*
 	 * the kernel stack pointer is used to prepare C runtime, thus accessed
 	 * in assembly. Force it here at offset 0 for easy access.
@@ -34,8 +40,8 @@ struct proc {
 
 	/* other stuff go here */
 	int		tid;	/* Thread ID (unused - for multithreading) */
-	int		pid;	/* Process ID */
-	int		ppid;	/* Parent process ID */
+	pid_t		pid;	/* Process ID within namespace @namespace */
+	pid_t		kpid;	/* Process ID */
 	unsigned int	state;	/* Process state (runnability) */
 	/* The state values come from OpenBSD */
 	/* TODO: may have more...? */
@@ -51,7 +57,8 @@ struct proc {
 #define PF_EXITING	0x00000004	/* getting shut down */
 #define PF_SIGNALED	0x00000400	/* killed by a signal */
 	int		oncpu;		/* CPU ID being running on */
-	uintptr_t	bed;		/* address we are sleeping on */
+#define CPU_NONE	-1
+	uintptr_t	bed;		/* object we are sleeping on */
 	struct namespace *namespace;	/* Namespace */
 	struct mm 	*mm; /* Memory mapping structure including pgindex */
 	/*
@@ -59,8 +66,7 @@ struct proc {
 	 * User stack is placed above all loaded program segments.
 	 * We put program arguments above user stack.
 	 */
-	struct regs	*context;	/* Context before switch */
-	struct trapframe *tf;		/* Current trap frame */
+	struct regs	context;	/* Context before switch */
 	size_t		heapsize;	/* Expandable heap size */
 
 	/* TODO: do we need these? */
@@ -70,15 +76,32 @@ struct proc {
 	char		name[PROC_NAME_LEN_MAX];
 
 	/* Process tree related */
+	struct proc	*leader;	/* Main thread of the same process */
 	struct proc	*parent;
 	struct proc	*first_child;
 	struct proc	*next_sibling;
 	struct proc	*prev_sibling;
-	struct list_head proc_node;
+
+	struct scheduler *scheduler;	/* Scheduler for this process */
+	struct list_head sched_node;	/* List node in scheduler */
 };
 
-/* Create a struct proc and */
-struct proc *newproc(void);
+/* Create a struct proc inside namespace @ns and initialize everything if we
+ * can by default. */
+struct proc *proc_new(struct namespace *ns);
+/* Exact opposite of proc_new */
+void proc_destroy(struct proc *proc);
+void proc_init(void);
+pid_t pid_new(pid_t kpid, struct namespace *ns);
+void pid_recycle(pid_t pid, struct namespace *ns);
+void proc_test(void);		/* temporary */
+
+/* The following are architecture-specific code */
+/* Setup a kernel process with entry, stack, and arguments */
+void proc_ksetup(struct proc *proc, void *entry, void *stack, void *args);
+void switch_context(struct proc *proc);
+/* Return to trap frame in @proc.  Usually called once by fork child */
+void proc_trap_return(struct proc *proc);
 
 #endif /* _PROC_H */
 

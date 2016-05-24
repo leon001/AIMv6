@@ -67,6 +67,7 @@ static void probe_memory(void)
 
 			/* identity mapping */
 			desc.vaddr = desc.paddr;
+			desc.type = EARLY_MAPPING_TEMP;
 			early_mapping_add(&desc);
 
 			mem_size = max2(mem_size,

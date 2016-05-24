@@ -151,8 +151,6 @@ static int __uart_ns16550_putchar(struct chr_device *inst, unsigned char c)
 
 #else /* not RAW, or kernel driver */
 
-#if PRIMARY_CONSOLE == uart_ns16550
-
 /* Meant to register to kernel, so this interface routine is static */
 static int early_console_putchar(unsigned char c)
 {
@@ -198,8 +196,6 @@ int early_console_init(void)
 		for (;;) ;	/* panic */
 	return 0;
 }
-
-#endif /* PRIMARY_CONSOLE == uart_ns16550 */
 
 #endif /* RAW */
 

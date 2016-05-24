@@ -18,11 +18,17 @@
 include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libvmm.la
+noinst_DATA =
 
 SRCS = vmm.c
 
 if ALGO_FLFF
 SRCS += flff.c
+endif
+
+if ALGO_SLAB
+noinst_DATA += slab.o
+slab.o: slab.c
 endif
 
 libvmm_la_SOURCES = $(SRCS)

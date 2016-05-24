@@ -21,14 +21,25 @@
 
 #include <proc.h>
 #include <namespace.h>
+#include <sys/types.h>
+#include <aim/sync.h>
 
-/* struct proclist is implemented in scheduler source. */
-struct proclist;
-
+/* struct scheduler serves like abstract class in Java */
 struct scheduler {
-	/* The actual data structure storing the set of proc */
-	struct proclist	*proclist;
-	/* Remove and return an arbitrary proc from proc list */
+	/* Initialization routine should be registered statically as
+	 * initcalls.  FIXME: ??? */
+
+	/*
+	 * All the following routines are atomic.
+	 *
+	 * Moreover, pick() method assumes that the caller is inside a
+	 * critical section.
+	 */
+
+	/*
+	 * Return a proc to be scheduled onto processor, or NULL to
+	 * indicate that the processor should be idle.
+	 */
 	struct proc *	(*pick)(void);
 	int		(*add)(struct proc *);
 	/* Remove a specific proc from proc list */
@@ -41,5 +52,14 @@ struct scheduler {
 	 */
 	struct proc *	(*find)(pid_t pid, struct namespace *ns);
 };
+
+extern struct scheduler *scheduler;
+
+void sched_enter_critical(void);
+void sched_exit_critical(void);
+
+void sched_init(void);
+void proc_add(struct proc *proc);
+void schedule(void);
 
 #endif

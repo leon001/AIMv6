@@ -21,7 +21,32 @@ MODULES =
 # For each module capable for compiling into the kernel,
 # add its entry here.
 
+##############
+# Algorithms #
+##############
+
 if ALGO_DEVLIST
 MODULES += $(top_builddir)/kern/dev/index/devlist.o
 endif
 
+if ALGO_SLAB
+MODULES += $(top_builddir)/kern/mm/vmm/slab.o
+endif
+
+# TODO: add scheduler module here
+
+################
+# UART serials #
+################
+
+if UART_ZYNQ
+MODULES += $(top_builddir)/drivers/serial/uart-zynq.o
+endif
+
+if UART_MSIM
+MODULES += $(top_builddir)/drivers/serial/uart-msim.o
+endif
+
+if UART_NS16550
+MODULES += $(top_builddir)/drivers/serial/uart-ns16550.o
+endif

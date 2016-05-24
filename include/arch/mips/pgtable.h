@@ -84,5 +84,9 @@ typedef uint64_t pgindex_t;
 
 #endif	/* !__LP64__ */
 
+#ifndef __ASSEMBLER__
+extern pgindex_t *pgdir_slots[];	/* Defined in vmaim.lds.S */
+#endif	/* !__ASSEMBLER__ */
+
 #endif
 

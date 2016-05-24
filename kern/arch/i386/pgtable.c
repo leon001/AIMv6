@@ -16,48 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * MIPS does not have a page index walker like ARM or i386, so we have
- * the freedom to design our own page table.
- *
- * Here, the page table is a standard 2-level hierarchical table.
- *
- * The entries for all directories except leaf page tables are kernel virtual
- * addresses pointing to next-level directories:
- * 33222222222211111111110000000000
- * 10987654321098765432109876543210
- * +--4K-aligned virtual address--+
- *
- * The leaf page tables stores PFN and additional information in the
- * following format:
- * 33222222222211111111 110 0 0 0 000000
- * 10987654321098765432 109 8 7 6 543210
- * +-------PFN--------+ CCF D V G 00X000
- *
- * pgindex_t is the type of *virtual* address to the page table structure.
- */
-
 #include <mm.h>
 #include <pmm.h>
 #include <vmm.h>
 #include <mmu.h>
-#include <pgtable.h>
 #include <libc/string.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <util.h>
+#include <panic.h>
 
 struct pagedesc {
-	uint32_t	pdev;	/* page directory physical address */
-	uint32_t	ptev;	/* leaf page table physical address */
-	int		pdx;
-	int		ptx;
+	pde_t	*pdep;
+	pte_t	*ptep;
+	int	pdx;
+	int	ptx;
 };
-
-/*
- * This page table implementation is rather inefficient, hence not for
- * production purposes.
- */
 
 /*
  * Get a page index descriptor (PDE, PTE in our case) for the page table,
@@ -70,12 +44,12 @@ __getpagedesc(pgindex_t *pgindex,
 	      struct pagedesc *pd)
 {
 	addr_t paddr;
-	pde_t *pde = (pde_t *)*pgindex;
-	pd->pdev = *pgindex;
+	pde_t *pde = (pde_t *)pgindex;
+	pd->pdep = pde;
 	pd->pdx = PDX(addr);
-	if (pde[pd->pdx] != 0) {
+	if (pde[pd->pdx] & PTE_P) {
 		/* We already have the intermediate directory */
-		pd->ptev = pde[pd->pdx];
+		pd->ptep = (pte_t *)pa2kva(PTE_PADDR(pde[pd->pdx]));
 	} else {
 		/* We don't have it, fail or create one */
 		if (!create) {
@@ -83,31 +57,53 @@ __getpagedesc(pgindex_t *pgindex,
 		}
 		if ((paddr = pgalloc()) == -1)
 			return -ENOMEM;
-		pd->ptev = (uint32_t)pa2kva(paddr);
-		memset((void *)pd->ptev, 0, PAGE_SIZE);
-		pde[pd->pdx] = pd->ptev;
+		pd->ptep = (pte_t *)pa2kva(paddr);
+		memset((void *)pd->ptep, 0, PAGE_SIZE);
+		pde[pd->pdx] = mkpte(paddr, PTE_P | PTE_R | PTE_U);
 	}
 	pd->ptx = PTX(addr);
 	return 0;
 }
 
-int
-init_pgindex(pgindex_t *pgindex)
+/*
+ * This function assumes that:
+ * 1. (Leaf) page table entries for vaddr..vaddr+size are already zero.
+ * 2. @vaddr and @size are page-aligned.
+ */
+static void
+__free_intermediate_pgtable(pgindex_t *pgindex, void *vaddr, size_t size)
+{
+	pde_t *pde = (pde_t *)pgindex;
+	int pdx = PDX(vaddr), pdx_end = PDX(vaddr + size - PAGE_SIZE);
+	for (; pdx <= pdx_end; ++pdx) {
+		pte_t *pte = (pte_t *)pa2kva(PTE_PADDR(pde[pdx]));
+		for (int i = 0; i < NR_PTENTRIES; ++i) {
+			if (pte[i] & PTE_P)
+				goto rollback_next_pde;
+		}
+		pgfree(kva2pa(PTE_PADDR(pde[pdx])));
+		pde[pdx] &= ~PTE_P;
+rollback_next_pde:
+		/* nothing */;
+	}
+}
+
+pgindex_t *
+init_pgindex(void)
 {
 	addr_t paddr = pgalloc();
 	if (paddr == -1)
-		return -ENOMEM;
+		return NULL;
 
-	*pgindex = (pgindex_t)pa2kva(paddr);
-	memset((void *)*pgindex, 0, PAGE_SIZE);
+	memset(pa2kva(paddr), 0, PAGE_SIZE);
 
-	return 0;
+	return pa2kva(paddr);
 }
 
 void
 destroy_pgindex(pgindex_t *pgindex)
 {
-	pgfree(kva2pa((void *)*pgindex));
+	pgfree(kva2pa(pgindex));
 }
 
 /* TODO: put this into a header */
@@ -125,33 +121,9 @@ __pgtable_perm(uint32_t vma_flags)
 	 * I prepended the function with double underscores to indicate
 	 * that this function should not be called elsewhere.
 	 */
-	uint32_t flags = PTE_VALID | PTE_GLOBAL | PTE_CACHEABLE |
-		((vma_flags & VMA_WRITE) ? PTE_DIRTY : 0) |
-		__mach_pgtable_perm(vma_flags);
+	uint32_t flags = PTE_P | PTE_U |
+		((vma_flags & VMA_WRITE) ? PTE_R : 0);
 	return flags;
-}
-
-/*
- * This function assumes that:
- * 1. (Leaf) page table entries for vaddr..vaddr+size are already zero.
- * 2. @vaddr and @size are page-aligned.
- */
-static void
-__free_intermediate_pgtable(pgindex_t *pgindex, void *vaddr, size_t size)
-{
-	pde_t *pde = (pde_t *)*pgindex;
-	int pdx = PDX(vaddr), pdx_end = PDX(vaddr + size - PAGE_SIZE);
-	for (; pdx <= pdx_end; ++pdx) {
-		pte_t *pte = (pte_t *)pde[pdx];
-		for (int i = 0; i < NR_PTENTRIES; ++i) {
-			if (pte[i] != 0)
-				goto rollback_next_pde;
-		}
-		pgfree(kva2pa((void *)pde[pdx]));
-		pde[pdx] = 0;
-rollback_next_pde:
-		/* nothing */;
-	}
 }
 
 int
@@ -163,7 +135,6 @@ map_pages(pgindex_t *pgindex,
 {
 	struct pagedesc pd;
 	int retcode;
-	pte_t *pte;
 	addr_t pend = paddr + size;
 	addr_t pcur = paddr;
 	void *vcur = vaddr;
@@ -183,8 +154,7 @@ map_pages(pgindex_t *pgindex,
 		if (retcode == -ENOMEM)
 			goto rollback;
 
-		pte = (pte_t *)pd.ptev;
-		if (pte[pd.ptx] != 0) {
+		if (pd.ptep[pd.ptx] & PTE_P) {
 			/* we are mapping on the exact same virtual
 			 * page which is either valid or invalid (paged
 			 * out), fail */
@@ -198,8 +168,7 @@ map_pages(pgindex_t *pgindex,
 	vcur = vaddr;
 	for (; pcur < pend; pcur += PAGE_SIZE, vcur += PAGE_SIZE) {
 		__getpagedesc(pgindex, vcur, false, &pd);
-		pte = (pte_t *)pd.ptev;
-		pte[pd.ptx] = pcur | __pgtable_perm(flags);
+		pd.ptep[pd.ptx] = pcur | __pgtable_perm(flags);
 	}
 
 	return 0;
@@ -217,8 +186,7 @@ unmap_pages(pgindex_t *pgindex,
 {
 	void *vcur = vaddr, *vend = vaddr + size;
 	ssize_t unmapped_bytes = 0;
-	struct pagedesc pd;
-	pte_t *pte;
+	struct pagedesc pd = {0};	/* suppresses warning */
 	addr_t pcur = 0;
 
 	for (; vcur < vend; vcur += PAGE_SIZE,
@@ -227,18 +195,17 @@ unmap_pages(pgindex_t *pgindex,
 		if (__getpagedesc(pgindex, vcur, false, &pd) < 0)
 			/* may return -ENOENT? */
 			panic("unmap_pages non-existent: %p %p\n",
-			    *pgindex, vcur);
-		pte = (pte_t *)pd.ptev;
+			    pgindex, vcur);
 		if (unmapped_bytes == 0) {
 			/* unmapping the first page: store the physical
 			 * address */
-			pcur = PTE_PADDR(pte[pd.ptx]);
+			pcur = PTE_PADDR(pd.ptep[pd.ptx]);
 			if (paddr != NULL)
 				*paddr = pcur;
-		} else if (pte[pd.ptx] != pcur) {
+		} else if (pd.ptep[pd.ptx] != pcur) {
 			break;
 		}
-		pte[pd.ptx] = 0;
+		pd.ptep[pd.ptx] = 0;
 	}
 
 	__free_intermediate_pgtable(pgindex, vaddr, unmapped_bytes);

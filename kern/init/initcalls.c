@@ -30,12 +30,35 @@ int do_early_initcalls()
 	extern initcall_t SYMBOL(early_init_start)[];
 	extern initcall_t SYMBOL(early_init_end)[];
 	/* get pointers, don't compare arrays. */
-	initcall_t *start = &early_init_start[0];
-	initcall_t *end = &early_init_end[0];
+	initcall_t *start = &SYMBOL(early_init_start)[0];
+	initcall_t *end = &SYMBOL(early_init_end)[0];
 	initcall_t *this;
 	bool failed = false;
 
 	kprintf("DEBUG: early initcalls 0x%08x to 0x%08x\n", start, end);
+	for (this = start; this < end; this += 1) {
+		int ret = (*this)();
+		if (ret < 0) {
+			/* don't panic */
+			kprintf("OOPS: Initcall entry 0x%08x failed.\n",
+				*this);
+			failed = true;
+		}
+	}
+	return (failed == true)? EOF : 0;
+}
+
+int do_initcalls()
+{
+	extern initcall_t SYMBOL(norm_init_start)[];
+	extern initcall_t SYMBOL(norm_init_end)[];
+	/* get pointers, don't compare arrays. */
+	initcall_t *start = &SYMBOL(norm_init_start)[0];
+	initcall_t *end = &SYMBOL(norm_init_end)[0];
+	initcall_t *this;
+	bool failed = false;
+
+	kprintf("DEBUG: initcalls 0x%08x to 0x%08x\n", start, end);
 	for (this = start; this < end; this += 1) {
 		int ret = (*this)();
 		if (ret < 0) {

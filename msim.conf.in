@@ -21,6 +21,7 @@
 # Low 256MB RAM
 add rwm ram 0x00000000
 ram generic 256M
+ram fill 0xff
 
 # High RAM
 @MSIM_CONF_HIGHRAM_BASE@
