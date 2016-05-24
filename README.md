@@ -236,6 +236,21 @@ firmwares, etc.
 
 ### i386 on qemu
 
+#### Compiling
+
+A sample compiling configuration:
+
+```
+$ env ARCH=i386 MACH=generic ./configure \
+> --enable-static --disable-shared --without-pic \
+> --with-kern-start=0x100000 --with-mem-size=0x20000000
+$ make clean
+$ make
+```
+
+where `--with-kern-start` specifies the starting address kernel will be
+loaded at.
+
 #### Creating a blank disk image
 
 ```
