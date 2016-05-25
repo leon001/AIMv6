@@ -20,7 +20,7 @@
 #include <arch-trap.h>
 #include <mipsregs.h>
 #include <mm.h>
-#include <smp.h>
+#include <percpu.h>
 
 /*
  * See lib/libc/arch/mips/syscall.S for how to retrieve system call number
@@ -36,7 +36,7 @@ int syscall_no(struct trapframe *tf)
 
 unsigned long syscall_arg(struct trapframe *tf, int index)
 {
-	addr_t addr;
+	unsigned long addr;
 
 	if (index < 8) {
 		return tf->gpr[_A0 + index];
@@ -48,7 +48,8 @@ unsigned long syscall_arg(struct trapframe *tf, int index)
 		if (!is_user(addr))
 			return *(unsigned long *)addr;
 
-		return *(unsigned long *)uva2kva(current_pgdir, (void *)addr);
+		return *(unsigned long *)uva2kva(current_proc->mm->pgindex,
+		    (void *)addr);
 	}
 }
 
@@ -61,7 +62,7 @@ void syscall_return(struct trapframe *tf, unsigned long long result)
 
 unsigned long syscall_arg(struct trapframe *tf, int index)
 {
-	addr_t addr;
+	unsigned long addr;
 	if (index < 4) {
 		return tf->gpr[_A0 + index];
 	} else {
@@ -72,7 +73,8 @@ unsigned long syscall_arg(struct trapframe *tf, int index)
 		if (!is_user(addr))
 			return *(unsigned long *)addr;
 
-		return *(unsigned long *)uva2kva(current_pgdir, (void *)addr);
+		return *(unsigned long *)uva2kva(current_proc->mm->pgindex,
+		    (void *)addr);
 	}
 }
 
