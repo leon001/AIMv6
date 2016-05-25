@@ -34,6 +34,9 @@
 
 #include <drivers/io/io-mem.h>
 
+/* we need macro comparision */
+#define UART_ZYNQ	1
+
 /* FIXME zedboard uses UART1 only */
 #define UART_BASE	UART1_PHYSBASE
 
@@ -167,7 +170,7 @@ static int __init(void)
 
 INITCALL_DEV(__init)
 
-#if PRIMARY_CONSOLE == uart_zynq
+#if PRIMARY_CONSOLE == UART_ZYNQ
 
 static void *__early_mapped_base;
 

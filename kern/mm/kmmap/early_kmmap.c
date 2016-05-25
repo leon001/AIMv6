@@ -41,18 +41,22 @@
 
 static struct early_mapping queue[EARLY_MAPPING_QUEUE_LENGTH];
 static int queue_size;
-static size_t mem_top, kmmap_top;
+static void *mem_top, *kmmap_top;
 
 void early_mapping_clear(void)
 {
 	queue_size = 0;
-	mem_top = KERN_BASE;
-	kmmap_top = KMMAP_BASE;
+	mem_top = (void *)KERN_BASE;
+	kmmap_top = (void *)KMMAP_BASE;
 	debug_kprintf("Early mappings cleared.\n");
 }
 
 int early_mapping_add(struct early_mapping *entry)
 {
+	debug_kprintf(
+		"Adding early mapping: va=0x%08x, pa=0x%08x, size=0x%08x.\n",
+		entry->vaddr, (size_t)entry->paddr, entry->size
+	);
 	/* Prevent damage in case of bad data structure. */
 	assert(queue_size <= EARLY_MAPPING_QUEUE_LENGTH);
 
@@ -71,20 +75,16 @@ int early_mapping_add(struct early_mapping *entry)
 	}
 	/* Commit change */
 	queue[queue_size++] = *entry;
-	debug_kprintf(
-		"Added early mapping: va=0x%08x, pa=0x%08x, size=0x%08x.\n",
-		entry->vaddr, (size_t)entry->paddr, entry->size
-	);
 	return 0;
 }
 
 size_t early_mapping_add_memory(addr_t base, size_t size)
 {
 	/* Check available address space */
-	if (mem_top >= KMMAP_BASE)
+	if ((size_t)mem_top >= KMMAP_BASE)
 		return 0;
-	if (size > KMMAP_BASE - mem_top)
-		size = KMMAP_BASE - mem_top;
+	if (size > KMMAP_BASE - (size_t)mem_top)
+		size = KMMAP_BASE - (size_t)mem_top;
 	/* Construct entry */
 	struct early_mapping entry = {
 		.paddr	= base,
@@ -102,9 +102,9 @@ size_t early_mapping_add_memory(addr_t base, size_t size)
 void *early_mapping_add_kmmap(addr_t base, size_t size)
 {
 	/* Check available address space */
-	if (kmmap_top >= RESERVED_BASE)
+	if ((size_t)kmmap_top >= RESERVED_BASE)
 		return NULL;
-	if (size > RESERVED_BASE - kmmap_top)
+	if (size > RESERVED_BASE - (size_t)kmmap_top)
 		return NULL;
 	/* Construct entry */
 	struct early_mapping entry = {

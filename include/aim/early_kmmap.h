@@ -25,7 +25,7 @@
 
 struct early_mapping {
 	addr_t	paddr;
-	size_t	vaddr;
+	void	*vaddr;
 	size_t	size;
 	int	type;
 #define	EARLY_MAPPING_MEMORY	0	/* linear memory mappings */

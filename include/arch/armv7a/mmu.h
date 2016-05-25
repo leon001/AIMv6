@@ -101,7 +101,7 @@ typedef uint32_t arm_pte_l2_t;
 typedef arm_pte_l1_t pgindex_t;
 
 void page_index_clear(pgindex_t * index);
-int page_index_early_map(pgindex_t * index, addr_t paddr, size_t vaddr,
+int page_index_early_map(pgindex_t * index, addr_t paddr, void *vaddr,
 	size_t length);
 
 #endif

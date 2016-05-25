@@ -29,6 +29,10 @@ if ALGO_SLAB
 MODULES += $(top_builddir)/kern/mm/vmm/slab.o
 endif
 
+if ALGO_KMLIST
+MODULES += $(top_builddir)/kern/mm/kmmap/kmlist.o
+endif
+
 if UART_ZYNQ
 MODULES += $(top_builddir)/drivers/serial/uart-zynq.o
 endif

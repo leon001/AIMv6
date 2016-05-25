@@ -18,6 +18,12 @@
 include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libkmmap.la
+noinst_DATA =
+
+if ALGO_KMLIST
+noinst_DATA += kmlist.o
+kmlist.o: kmlist.c
+endif
 
 libkmmap_la_SOURCES = \
 	early_kmmap.c \
