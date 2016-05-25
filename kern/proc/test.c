@@ -2,6 +2,7 @@
 #include <console.h>
 #include <proc.h>
 #include <sched.h>
+#include <libc/unistd.h>
 
 /*
  * Temporary test since I haven't implemented scheduler and timer yet.
@@ -19,7 +20,10 @@ void kthread(void *arg)
 		for (j = 0; j < 100000; ++j)
 			/* nothing */;
 		kprintf("KTHREAD%d: running here\n", id);
-		schedule();
+		/* TODO: create user threads instead of kernel threads.
+		 * Here I'm just checking whether system call framework
+		 * works. */
+		sched_yield();
 	}
 }
 

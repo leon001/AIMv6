@@ -18,11 +18,10 @@
 
 #include <arch-trap.h>
 #include <mipsregs.h>
-#include <stack.h>
-#include <mmu.h>
 #include <regs.h>
 #include <proc.h>
 #include <percpu.h>
+#include <smp.h>
 
 static void *__kstacktop(struct proc *proc)
 {
@@ -104,9 +103,9 @@ void switch_context(struct proc *proc)
 	current_proc = proc;
 
 	/* Switch page directory */
-	pgdir_slots[cpuid()] = proc->mm->pgindex;
+	current_pgdir = proc->mm->pgindex;
 	/* Switch kernel stack */
-	kernelsp[cpuid()] = (unsigned long)__kstacktop(proc);
+	current_kernelsp = (unsigned long)__kstacktop(proc);
 	/* Switch general registers */
 	switch_regs(&(current->context), &(proc->context));
 }

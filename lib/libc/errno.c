@@ -16,29 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MMU_H
-#define _MMU_H
-
-/* premap_addr() and postmap_addr() in addrspace.h */
-#include <addrspace.h>
-#include <util.h>
-
-#define PAGE_SHIFT	12
-#define PAGE_SIZE	(1 << PAGE_SHIFT)
-#define PAGE_MASK	(PAGE_SIZE - 1)
-#define PAGE_OFFSET(a)	(ULCAST(a) & PAGE_MASK)
-
-#ifndef __ASSEMBLER__
-
-#include <sys/types.h>
-#include <pgtable.h>
-#include <pmm.h>
-
-void page_index_clear(pgindex_t *index);
-int page_index_early_map(pgindex_t *index, addr_t paddr, size_t vaddr,
-    size_t length);
-
-#endif	/* !__ASSEMBLER__ */
-
-#endif
-
+void __set_errno(int errno)
+{
+	/* currently blank */
+}
