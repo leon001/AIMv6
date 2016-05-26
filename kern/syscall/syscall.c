@@ -43,7 +43,7 @@ void handle_syscall(struct trapframe *tf)
 	/* We assume that there are no system calls with more than 8
 	 * arguments. */
 	unsigned long args[8];
-	long long result;
+	unsigned long long result;
 
 	if (__syscalls[sysno] == NULL) {
 		__syscall_nonexist(tf);
