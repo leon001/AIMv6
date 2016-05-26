@@ -18,11 +18,10 @@
 
 #include <arch-trap.h>
 #include <mipsregs.h>
-#include <stack.h>
-#include <mmu.h>
 #include <regs.h>
 #include <proc.h>
 #include <percpu.h>
+#include <smp.h>
 
 static void *__kstacktop(struct proc *proc)
 {
@@ -82,7 +81,7 @@ static void __bootstrap_kcontext(struct regs *regs, struct trapframe *tf)
 	regs->gpr[_SP] = (unsigned long)tf;
 }
 
-void proc_ksetup(struct proc *proc, void *entry, void *args)
+void __proc_ksetup(struct proc *proc, void *entry, void *args)
 {
 	struct trapframe *tf = __proc_trapframe(proc);
 	__bootstrap_ktrapframe(tf, entry, __kstacktop(proc), args);
@@ -104,9 +103,9 @@ void switch_context(struct proc *proc)
 	current_proc = proc;
 
 	/* Switch page directory */
-	pgdir_slots[cpuid()] = proc->mm->pgindex;
+	current_pgdir = proc->mm->pgindex;
 	/* Switch kernel stack */
-	kernelsp[cpuid()] = (unsigned long)__kstacktop(proc);
+	current_kernelsp = (unsigned long)__kstacktop(proc);
 	/* Switch general registers */
 	switch_regs(&(current->context), &(proc->context));
 }

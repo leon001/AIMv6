@@ -104,7 +104,7 @@ static int __sched_plain_init(void)
 	plain_scheduler.current = NULL;
 	return 0;
 }
-INITCALL_SUBSYS(__sched_plain_init);
+INITCALL_SCHED(__sched_plain_init);
 
 /* TODO: use a macro switch to enable scheduler module selection */
 struct scheduler *scheduler = (struct scheduler *)&plain_scheduler;

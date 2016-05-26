@@ -48,14 +48,15 @@ KERNEL_LIBS = \
 	init/libinit.la \
 	proc/libproc.la \
 	proc/sched/libsched.la \
-	syscall/libsyscall.la \
 	dev/libdev.la \
 	mm/libmm.la \
 	arch/$(ARCH)/lib$(ARCH).la \
 	syscall/libsyscall.la \
+	arch/$(ARCH)/lib$(ARCH)syscall.la \
 	$(top_builddir)/drivers/libdrivers.la \
 	$(MODULES) \
 	$(KERNEL_INTERNAL_LIBS) \
+	$(top_builddir)/lib/libc/arch/$(ARCH)/libc-$(ARCH).la \
 	$(top_builddir)/lib/libc/libc.la \
 	debug/libdebug.la
 vmaim_elf_LDADD = $(KERNEL_LIBS)

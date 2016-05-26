@@ -30,5 +30,7 @@ void trap_init(void);
 __noreturn
 void trap_return(struct trapframe *regs);
 
+void handle_syscall(struct trapframe *tf);
+
 #endif /* _TRAP_H */
 
