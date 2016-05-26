@@ -50,6 +50,7 @@ static inline unsigned int __cpuid(void)
 }
 
 #define cpuid()		__cpuid()
+
 #else	/* __ASSEMBLER__ */
 /*
  * The header is included by an assembly header/source.
@@ -61,5 +62,12 @@ static inline unsigned int __cpuid(void)
 #endif	/* !__ASSEMBLER__ */
 
 #endif	/* Rev. */
+
+#ifndef __ASSEMBLER__
+#include <mmu.h>
+#include <stack.h>
+#define current_kernelsp	kernelsp[cpuid()]
+#define current_pgdir		pgdir_slots[cpuid()]
+#endif	/* !__ASSEMBLER__ */
 
 #endif

@@ -18,6 +18,13 @@
 
 MODULES = 
 
+################
+# System calls #
+################
+
+MODULES += $(top_builddir)/kern/syscall/fork.o \
+	   $(top_builddir)/kern/syscall/sched_yield.o
+
 # For each module capable for compiling into the kernel,
 # add its entry here.
 
@@ -33,7 +40,8 @@ if ALGO_SLAB
 MODULES += $(top_builddir)/kern/mm/vmm/slab.o
 endif
 
-# TODO: add scheduler module here
+# TODO: allow options
+MODULES += $(top_builddir)/kern/proc/sched/sched_plain.o
 
 ################
 # UART serials #

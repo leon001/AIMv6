@@ -220,7 +220,3 @@ void jump_handlers_apply(void)
 	}
 }
 
-void mm_init(void)
-{
-	arch_mm_init();
-}

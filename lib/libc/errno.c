@@ -16,8 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-void forkret(struct trapframe *tf)
+void __set_errno(int errno)
 {
-	trap_return(tf);
+	/* currently blank */
 }
-

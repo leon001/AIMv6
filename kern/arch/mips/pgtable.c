@@ -379,3 +379,15 @@ switch_pgindex(pgindex_t *pgindex)
 	return 0;
 }
 
+void *
+uva2kva(pgindex_t *pgindex, void *uaddr)
+{
+	struct pagedesc pd;
+	pte_t *pte;
+
+	if (__getpagedesc(pgindex, uaddr, false, &pd) < 0)
+		return NULL;
+	pte = (pte_t *)pd.ptev;
+	return pa2kva(PTE_PADDR(pte[pd.ptx]) | PAGE_OFFSET(uaddr));
+}
+

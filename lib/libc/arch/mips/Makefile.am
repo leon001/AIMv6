@@ -17,3 +17,6 @@
 
 include $(top_srcdir)/env.am
 
+noinst_LTLIBRARIES = libc-mips.la
+
+libc_mips_la_SOURCES = syscall.S

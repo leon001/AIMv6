@@ -140,6 +140,14 @@ void proc_destroy(struct proc *proc)
 	kfree(proc);
 }
 
+/* Arch-portion code there */
+extern void __proc_ksetup(struct proc *proc, void *entry, void *args);
+void proc_ksetup(struct proc *proc, void *entry, void *args)
+{
+	proc->mm = kernel_mm;
+	__proc_ksetup(proc, entry, args);
+}
+
 void proc_init(void)
 {
 	spinlock_init(&freekpid.lock);
