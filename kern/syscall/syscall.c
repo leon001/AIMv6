@@ -38,7 +38,7 @@ static void __syscall_fail(struct trapframe *tf, int error)
 
 void handle_syscall(struct trapframe *tf)
 {
-	int i, retcode;
+	int i, retcode, errno;
 	int sysno = syscall_no(tf);
 	/* We assume that there are no system calls with more than 8
 	 * arguments. */
@@ -65,10 +65,11 @@ void handle_syscall(struct trapframe *tf)
 		 * The kernel is not dealing with multiple ABIs on the
 		 * same platform.
 		 */
-		result = __syscalls[sysno](sysno, args[0], args[1],
+		result = __syscalls[sysno](&errno, args[0], args[1],
 					   args[2], args[3], args[4],
 					   args[5], args[6], args[7]);
 		syscall_return(tf, result);
+		syscall_set_errno(tf, errno);
 	}
 }
 
