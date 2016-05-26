@@ -5,7 +5,7 @@ The system calls are designed as modules here: each system call has exactly one 
 
 1. Each system call (or each family of system calls) *SHOULD* be handled in one source file.
 2. No system call can receive more than 8 arguments.
-3. `int *errno` should be prepended to the system call argument list in the kernel side system call handler,
+3. `int sysno, int *errno` should be prepended to the system call argument list in the kernel side system call handler,
   where the error number is stored.
   * E.g. the kernel side handler `sys_execve` for system call
   
@@ -16,7 +16,7 @@ The system calls are designed as modules here: each system call has exactly one 
     should look like
     
     ```C
-    int sys_execve(int *errno, const char *fn, const char *argv[], const char *envp[]);
+    int sys_execve(int sysno, int *errno, const char *fn, const char *argv[], const char *envp[]);
     ```
 4. After each handler the following statement should be added for registering the handler:
 
