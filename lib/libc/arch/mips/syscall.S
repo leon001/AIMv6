@@ -19,6 +19,7 @@
 #include <asm.h>
 #include <regdef.h>
 #include <libc/syscalls.h>
+#include <util.h>
 
 /*
  * The arguments are already organized by C compiler as per MIPS ABI, so
@@ -39,19 +40,29 @@
  * 3. Everything else follows the standard ABI calling convention.
  */
 
+#define FRAMESZ	32
+
+/*
+ * RA is saved on the bottom slot of the whole stackframe, i.e. it is pushed
+ * first.
+ */
+#define RA_OFF	(FRAMESZ - WORD_SIZE)
+
 #define DEFINE_SYSCALL(name) \
-NESTED(name, 32, ra); \
+NESTED(name, FRAMESZ, ra); \
 	.set	noreorder; \
 	.cpload t9; \
 	.set	reorder; \
-	SUBU	sp, 32; \
+	SUBU	sp, FRAMESZ; \
 	.cprestore 16; \
 	li	v0, NRSYS_##name; \
 	syscall; \
 	beqz	a3, 1f; \
 	move	a0, a3; \
+	STORE	ra, RA_OFF(sp); \
 	jal	__set_errno; \
-1:	ADDU	sp, 32; \
+	LOAD	ra, RA_OFF(sp); \
+1:	ADDU	sp, FRAMESZ; \
 	jr	ra; \
 	nop; \
 END(name);

@@ -31,7 +31,7 @@
  *     fork(void) -> sys_fork(int no)
  *     exit(int code) -> sys_exit(int no, int code)
  */
-typedef unsigned long long (*syscall_t)(int no, ...);
+typedef unsigned long long (*syscall_t)(int *errno, ...);
 
 /*
  * Arch-independent

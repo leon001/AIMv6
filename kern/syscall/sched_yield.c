@@ -20,9 +20,10 @@
 #include <syscall.h>
 #include <libc/syscalls.h>
 
-unsigned long long sys_sched_yield(int sysno)
+unsigned long long sys_sched_yield(int *errno)
 {
 	schedule();
+	*errno = 0;
 	return 0;
 }
 ADD_SYSCALL(sys_sched_yield, NRSYS_sched_yield);
