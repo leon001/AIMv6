@@ -20,7 +20,7 @@
 #include <syscall.h>
 #include <libc/syscalls.h>
 
-unsigned long long sys_sched_yield(int *errno)
+int sys_sched_yield(int *errno)
 {
 	schedule();
 	*errno = 0;
