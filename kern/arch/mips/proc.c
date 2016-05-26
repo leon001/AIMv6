@@ -81,7 +81,7 @@ static void __bootstrap_kcontext(struct regs *regs, struct trapframe *tf)
 	regs->gpr[_SP] = (unsigned long)tf;
 }
 
-void proc_ksetup(struct proc *proc, void *entry, void *args)
+void __proc_ksetup(struct proc *proc, void *entry, void *args)
 {
 	struct trapframe *tf = __proc_trapframe(proc);
 	__bootstrap_ktrapframe(tf, entry, __kstacktop(proc), args);

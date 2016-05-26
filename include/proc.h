@@ -97,9 +97,14 @@ void pid_recycle(pid_t pid, struct namespace *ns);
 void proc_test(void);		/* temporary */
 
 /* The following are architecture-specific code */
+
 /*
  * Setup a kernel process with entry and arguments.
  * A kernel process works on its kernel stack.
+ *
+ * For architecture developers: you are not required to implement
+ * proc_ksetup().  You only need to provide arch-dependent code
+ * __proc_ksetup() (see kern/proc/proc.c)
  */
 void proc_ksetup(struct proc *proc, void *entry, void *args);
 void switch_context(struct proc *proc);

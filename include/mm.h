@@ -271,6 +271,9 @@ struct mm {
 	lock_t		lock;
 };
 
+/* All kernel processes share this memory mapping structure. */
+extern struct mm *kernel_mm;
+
 #endif /* !__ASSEMBLER__ */
 
 #endif /* _MM_H */

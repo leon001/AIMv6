@@ -29,6 +29,8 @@
 #include <libc/string.h>
 #include <aim/sync.h>
 
+struct mm *kernel_mm;
+
 struct mm *
 mm_new(void)
 {
@@ -350,5 +352,11 @@ rollback_vma:
 rollback:
 	__unmap_and_free_vma(dst, next_entry(vma_start, node), cloned_size);
 	return retcode;
+}
+
+void mm_init(void)
+{
+	arch_mm_init();
+	kernel_mm = mm_new();
 }
 
