@@ -30,9 +30,15 @@ static void __syscall_nonexist(struct trapframe *tf)
 	syscall_return(tf, -1);
 }
 
+static void __syscall_fail(struct trapframe *tf, int error)
+{
+	syscall_set_errno(tf, error);
+	syscall_return(tf, -1);
+}
+
 void handle_syscall(struct trapframe *tf)
 {
-	int i;
+	int i, retcode;
 	int sysno = syscall_no(tf);
 	/* We assume that there are no system calls with more than 8
 	 * arguments. */
@@ -42,8 +48,13 @@ void handle_syscall(struct trapframe *tf)
 	if (__syscalls[sysno] == NULL) {
 		__syscall_nonexist(tf);
 	} else {
-		for (i = 0; i < 8; ++i)
-			args[i] = syscall_arg(tf, i);
+		for (i = 0; i < 8; ++i) {
+			retcode = syscall_arg(tf, i, &args[i]);
+			if (retcode < 0) {
+				__syscall_fail(tf, -retcode);
+				return;
+			}
+		}
 		/*
 		 * Here comes the magic.
 		 * We made all kernel system call handler entries to be

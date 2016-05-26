@@ -50,7 +50,7 @@ void syscall_set_errno(struct trapframe *tf, int errno);
 /*
  * Arch-specific function to get the (i+1)th argument of system call.
  */
-unsigned long syscall_arg(struct trapframe *tf, int index);
+int syscall_arg(struct trapframe *tf, int index, unsigned long *result);
 void syscall_return(struct trapframe *tf, unsigned long long result);
 
 #define ADD_SYSCALL(entry, sysno) \

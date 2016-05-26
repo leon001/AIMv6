@@ -21,6 +21,7 @@
 #include <mipsregs.h>
 #include <mm.h>
 #include <percpu.h>
+#include <errno.h>
 
 /*
  * See lib/libc/arch/mips/syscall.S for how to retrieve system call number
@@ -34,23 +35,22 @@ int syscall_no(struct trapframe *tf)
 
 #ifdef __LP64__	/* 64 bit */
 
-unsigned long syscall_arg(struct trapframe *tf, int index)
+int syscall_arg(struct trapframe *tf, int index, unsigned long *result)
 {
 	unsigned long addr;
 
 	if (index < 8) {
-		return tf->gpr[_A0 + index];
+		*result = tf->gpr[_A0 + index];
 	} else {
 		addr = tf->gpr[_SP] + (index - 8) * WORD_SIZE;
 
-		/* TODO: SHOULD BE REMOVED after implementing user space
-		 * This only serves for quick tests for system calls. */
-		if (!is_user(addr))
-			return *(unsigned long *)addr;
-
-		return *(unsigned long *)uva2kva(current_proc->mm->pgindex,
-		    (void *)addr);
+		/* We should defend for corrupted SP value here. */
+		if (!is_user(addr) && !from_kernel(tf))
+			/* TODO: should signal the process to terminate */
+			return -EFAULT;
+		*result = *(unsigned long *)addr;
 	}
+	return 0;
 }
 
 void syscall_return(struct trapframe *tf, unsigned long long result)
@@ -60,22 +60,21 @@ void syscall_return(struct trapframe *tf, unsigned long long result)
 
 #else	/* 32 bit */
 
-unsigned long syscall_arg(struct trapframe *tf, int index)
+int syscall_arg(struct trapframe *tf, int index, unsigned long *result)
 {
 	unsigned long addr;
 	if (index < 4) {
-		return tf->gpr[_A0 + index];
+		*result = tf->gpr[_A0 + index];
 	} else {
 		addr = tf->gpr[_SP] + index * WORD_SIZE;
 
-		/* TODO: SHOULD BE REMOVED after implementing user space
-		 * This only serves for quick tests for system calls. */
-		if (!is_user(addr))
-			return *(unsigned long *)addr;
-
-		return *(unsigned long *)uva2kva(current_proc->mm->pgindex,
-		    (void *)addr);
+		/* We should defend for corrupted SP value here. */
+		if (!is_user(addr) && !from_kernel(tf))
+			/* TODO: should signal the process to terminate */
+			return -EFAULT;
+		*result = *(unsigned long *)addr;
 	}
+	return 0;
 }
 
 void syscall_return(struct trapframe *tf, unsigned long long result)
