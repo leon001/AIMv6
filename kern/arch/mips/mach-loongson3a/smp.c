@@ -22,6 +22,7 @@
 
 #include <mp.h>
 #include <smp.h>
+#include <platform.h>
 
 extern void slave_entry(void);
 
@@ -35,9 +36,8 @@ void mach_smp_startup(void)
 	int i;
 
 	for (i = 1; i < nr_cpus(); ++i) {
-		write32(MSIM_ORDER_MAILBOX_BASE +
-		    (1 << MSIM_ORDER_MAILBOX_ORDER) * i,
-		    (unsigned long)slave_entry);
+		write64(LOONGSON3A_COREx_IPI_MB0(i),
+			(unsigned long)slave_entry);
 	}
 }
 

@@ -85,9 +85,9 @@ void mips_add_memory_pages(void)
 	 */
 	/*******MAGIC STARTS HERE********/
 	for (j = 0; j < LOONGSON3A_CORE_WINS; ++j) {
-		base = read64(LOONGSON3A_CPU_WINx_BASEADDR(j));
-		mask = read64(LOONGSON3A_CPU_WINx_MASKADDR(j));
-		mmap = read64(LOONGSON3A_CPU_WINx_MMAPADDR(j));
+		base = read64(LOONGSON3A_CPU_WINx_BASE(j));
+		mask = read64(LOONGSON3A_CPU_WINx_MASK(j));
+		mmap = read64(LOONGSON3A_CPU_WINx_MMAP(j));
 		kprintf("CPU address mappings: %p %p %p\n", base, mask, mmap);
 
 		if ((base & 0xfffffffff0000000) == 0x10000000)
