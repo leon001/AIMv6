@@ -142,14 +142,27 @@ BEGIN(slave_entry)
 	or	a0, ST_EXCM
 	xor	a0, ST_EXCM
 	MTC032	a0, CP0_STATUS
+	bal	load_slave_sp
+	jal	slave_early_init
+1:	b	1b
+END(slave_entry)
+
+BEGIN(slave_upper_entry)
+	.set	noreorder
+	.cpload	t9
+	.set	reorder
+	bal	load_slave_sp
+	.cprestore
+	jal	slave_init
+1:	b	1b
+END(slave_upper_entry)
+
+BEGIN(load_slave_sp)
 	LA	t0, slave_stacks
 	cpuid	t1, t2
 	SLL	t1, WORD_SHIFT
 	ADDU	t0, t1
 	LOAD	sp, (t0)
-	jal	slave_early_init
-END(slave_entry)
-
-BEGIN(slave_upper_entry)
-END(slave_upper_entry)
+	jr	ra
+END(load_slave_sp)
 

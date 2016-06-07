@@ -151,8 +151,12 @@ void proc_ksetup(struct proc *proc, void *entry, void *args)
 void proc_init(void)
 {
 	spinlock_init(&freekpid.lock);
+}
 
+void idle_init(void)
+{
 	current_proc = cpu_idleproc;
 	cpu_idleproc->state = PS_RUNNABLE;
+	cpu_idleproc->mm = kernel_mm;
 }
 

@@ -3,6 +3,7 @@
 #include <proc.h>
 #include <sched.h>
 #include <libc/unistd.h>
+#include <mp.h>
 
 /*
  * Temporary test since I haven't implemented scheduler and timer yet.
@@ -19,7 +20,7 @@ void kthread(void *arg)
 		 * happen too fast for you. */
 		for (j = 0; j < 100000; ++j)
 			/* nothing */;
-		kprintf("KTHREAD%d: running here\n", id);
+		kprintf("KTHREAD%d: running on CPU %d\n", id, cpuid());
 		/* TODO: create user threads instead of kernel threads.
 		 * Here I'm just checking whether system call framework
 		 * works. */
@@ -32,6 +33,14 @@ void proc_test(void)
 	struct proc *kthreads[5];
 	int i;
 
+	/*
+	 * DEVELOPER NOTE:
+	 * Make sure you have tested cases where
+	 * (1) # of runnable processes is less than # of CPUs.
+	 * (2) # of runnable processes is greater than # of CPUs.
+	 * (3) transitions between (1) and (2) (not tested since fork() is
+	 *     unavailable yet)
+	 */
 	for (i = 0; i < 5; ++i) {
 		kthreads[i] = proc_new(NULL);
 		proc_ksetup(kthreads[i], kthread, (void *)i);

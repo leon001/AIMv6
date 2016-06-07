@@ -37,6 +37,18 @@
 
 #define BOOTSTRAP_POOL_SIZE	1024
 
+/*
+ * Initialization routine common to master and slave at last stages.
+ *
+ * Will jump to scheduler here.
+ */
+static void __noreturn rest_init(void)
+{
+	idle_init();
+	for (;;)
+		schedule();
+}
+
 void __noreturn master_init(void)
 {
 	__attribute__ ((aligned(16)))
@@ -97,12 +109,12 @@ void __noreturn master_init(void)
 
 	proc_init();
 	sched_init();
+	idle_init();
 
 	/* do initcalls, one by one */
 	do_initcalls();
 
 	/* temporary tests */
-#if 0
 	struct allocator_cache cache = {
 		.size = 1024,
 		.align = 1024,
@@ -129,7 +141,7 @@ void __noreturn master_init(void)
 	cache_create(&cache);
 	a = cache_alloc(&cache);
 	kprintf("DEBUG: a = 0x%08x\n", a);
-#endif
+
 	/* startup smp */
 	smp_startup();
 
@@ -142,15 +154,17 @@ void __noreturn master_init(void)
 
 	/* initialize or cleanup namespace */
 
-	/* Temporary test */
+	/* Temporary test, WILL BE REMOVED */
 	proc_test();
 
-
-	panic("Test done, all is well.\n");
+	/* TODO: shall we synchronize rest_init() on different cores? */
+	rest_init();
 }
 
 void __noreturn slave_init(void)
 {
-	panic("Unimplemented routine called.");
+	kprintf("KERN CPU %d: init\n", cpuid());
+
+	rest_init();
 }
 
