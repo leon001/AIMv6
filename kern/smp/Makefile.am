@@ -17,11 +17,6 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libsched.la
+noinst_LTLIBRARIES = libsmp.la
 
-# TODO: allow options
-noinst_DATA = sched_plain.o
-
-libsched_la_SOURCES = \
-	sched.c
-
+libsmp_la_SOURCES = smp.c

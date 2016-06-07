@@ -123,7 +123,8 @@ struct mm;
 /*
  * Architecture-specific interfaces
  * All addresses should be page-aligned.
- * Note that these interfaces are independent of struct mm and struct vma,
+ * Note that these interfaces are independent of struct mm and struct vma.
+ * Also, these interfaces assume that the page index is exclusively owned.
  */
 /* Initialize a page index table and fill in the structure @pgindex */
 pgindex_t *init_pgindex(void);
@@ -165,7 +166,6 @@ void *uva2kva(pgindex_t *pgindex, void *uaddr);
 /*
  * Architecture-independent interfaces
  * Address must be page-aligned.
- * The mm lock MUST be held.
  */
 /* Create a size @len user space mapping starting at virtual address @addr */
 int create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags);
@@ -175,7 +175,7 @@ int destroy_uvm(struct mm *mm, void *addr, size_t len);
  * under @addr_src in struct mm @src, preferably at @addr_dst.
  * If @addr_dst == NULL, the routine chooses where to map.
  * Returns the virtual address we are mapping to. */
-void *share_uvm(struct mm *dst, const void *addr_dst, const struct mm *src,
+void *share_uvm(struct mm *dst, const void *addr_dst, struct mm *src,
     const void *addr_src, size_t len);
 
 /*
@@ -192,7 +192,7 @@ struct mm *mm_new(void);
 /* Destroy a struct mm and all the underlying memory mappings */
 void mm_destroy(struct mm *mm);
 /* Clone a memory mapping as a whole.  @dst should be initialized via mm_new */
-int mm_clone(struct mm *dst, const struct mm *src);
+int mm_clone(struct mm *dst, struct mm *src);
 
 /*
  * The following are data structures which other models usually don't care

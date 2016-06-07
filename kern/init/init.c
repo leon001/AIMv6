@@ -32,10 +32,10 @@
 #include <aim/initcalls.h>
 #include <proc.h>
 #include <percpu.h>
+#include <sched.h>
+#include <mp.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
-
-struct percpu cpus[NR_CPUS];
 
 void __noreturn master_init(void)
 {
@@ -131,6 +131,7 @@ void __noreturn master_init(void)
 	kprintf("DEBUG: a = 0x%08x\n", a);
 #endif
 	/* startup smp */
+	smp_startup();
 
 	/*
 	 * do initcalls, one by one.

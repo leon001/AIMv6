@@ -26,6 +26,7 @@ SUBDIRS = \
 	lib \
 	mm \
 	proc \
+	smp \
 	syscall
 
 CLEANFILES = vmaim.s
@@ -50,6 +51,7 @@ KERNEL_LIBS = \
 	proc/sched/libsched.la \
 	dev/libdev.la \
 	mm/libmm.la \
+	smp/libsmp.la \
 	arch/$(ARCH)/lib$(ARCH).la \
 	syscall/libsyscall.la \
 	arch/$(ARCH)/lib$(ARCH)syscall.la \
