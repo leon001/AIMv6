@@ -151,6 +151,8 @@ void __noreturn master_init(void)
 
 void __noreturn slave_init(void)
 {
-	panic("Unimplemented routine called.");
+	kprintf("KERN CPU %d: init\n", cpuid());
+	for (;;)
+		/* nothing */;
 }
 
