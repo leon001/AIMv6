@@ -97,7 +97,6 @@ AS_CASE([$ARCH],
 		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
 		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
 		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
-		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([enable_io_mem], [yes])
 		AS_VAR_SET([enable_io_port], [no])
 	],
@@ -105,7 +104,6 @@ AS_CASE([$ARCH],
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
 		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
 		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
-		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([enable_io_mem], [yes])
 		AS_VAR_SET([enable_io_port], [no])
 	],
@@ -148,6 +146,7 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
 		AS_VAR_SET([with_cpus], [4])
+		AS_VAR_SET([with_max_cpus], [4])
 		AS_VAR_SET([with_highram_base], [0x80000000])
 		AS_VAR_SET([with_highram_size], [0x00000000])
 	], 
@@ -155,6 +154,8 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_fwstack_order], [12])
 	],
 	[loongson3a], [
+		AS_VAR_SET([with_cpus], [4])
+		AS_VAR_SET([with_max_cpus], [4])
 		AS_VAR_SET([enable_uart_ns16550], [yes])
 		AS_VAR_SET([with_primary_console], [uart-ns16550])
 	],
@@ -204,7 +205,9 @@ AIM_ARG_WITH([mem-size], [MEM_SIZE], [amount of memory installed], [detect])
 AC_SUBST([MEM_SIZE], [$with_mem_size])
 
 AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [detect])
+AIM_ARG_WITH([max-cpus], [MAX_CPUS], [maximum number of cores], [NR_CPUS])
 AC_SUBST([NR_CPUS], [$with_cpus])
+AC_SUBST([MAX_CPUS], [$with_max_cpus])
 
 # MIPS kernel hyperparameters
 AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
@@ -378,6 +381,7 @@ AC_CONFIG_FILES([
 	kern/mm/vmm/Makefile
 	kern/proc/Makefile
 	kern/proc/sched/Makefile
+	kern/smp/Makefile
 	kern/syscall/Makefile
 	lib/Makefile
 	lib/libc/Makefile

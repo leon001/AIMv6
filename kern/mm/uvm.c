@@ -201,6 +201,8 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 	    !PTR_IS_ALIGNED(addr, PAGE_SIZE))
 		return -EINVAL;
 
+	spin_lock(&(mm->lock));
+
 	if (!(vma_start = __find_vma_before(mm, addr, len)))
 		return -EFAULT;
 
@@ -247,10 +249,14 @@ rollback_vma:
 		goto rollback;
 	}
 
-	return 0;
+	retcode = 0;
+	goto finalize;
 
 rollback:
 	__unmap_and_free_vma(mm, next_entry(vma_start, node), mapped);
+
+finalize:
+	spin_unlock(&(mm->lock));
 	return retcode;
 }
 
@@ -259,11 +265,14 @@ destroy_uvm(struct mm *mm, void *addr, size_t len)
 {
 	struct vma *vma, *vma_start;
 	size_t i = 0;
+	int retcode;
 
 	if (!IS_ALIGNED(len, PAGE_SIZE) ||
 	    mm == NULL ||
 	    !PTR_IS_ALIGNED(addr, PAGE_SIZE))
 		return -EINVAL;
+
+	spin_lock(&(mm->lock));
 
 	/* find the vma */
 	for_each_entry (vma, &(mm->vma_head), node) {
@@ -271,24 +280,32 @@ destroy_uvm(struct mm *mm, void *addr, size_t len)
 			break;
 	}
 	/* not found? */
-	if (&(vma->node) == &(mm->vma_head))
-		return -EFAULT;
+	if (&(vma->node) == &(mm->vma_head)) {
+		retcode = -EFAULT;
+		goto finalize;
+	}
 	vma_start = vma;
 	i += PAGE_SIZE;
 	for (; i < len; i += PAGE_SIZE) {
 		vma = next_entry(vma, node);
-		if (vma->start != addr + i)
+		if (vma->start != addr + i) {
 			/* requested region contain unmapped virtual page */
-			return -EFAULT;
+			retcode = -EFAULT;
+			goto finalize;
+		}
 	}
 
 	__unmap_and_free_vma(mm, vma_start, len);
-	return 0;
+	retcode = 0;
+
+finalize:
+	spin_unlock(&(mm->lock));
+	return retcode;
 }
 
 /* Dumb copy implementation */
 int
-mm_clone(struct mm *dst, const struct mm *src)
+mm_clone(struct mm *dst, struct mm *src)
 {
 	struct vma *vma_new, *vma_cur, *vma_start, *vma;
 	struct upages *p;
@@ -298,6 +315,9 @@ mm_clone(struct mm *dst, const struct mm *src)
 
 	vma_start = list_entry(&(dst->vma_head), struct vma, node);
 	vma_cur = vma_start;
+
+	spin_lock(&(dst->lock));
+	spin_lock(&(src->lock));
 
 	for_each_entry (vma, &(src->vma_head), node) {
 		/* TODO: I wonder if I should reuse the code in that of
@@ -348,9 +368,15 @@ rollback_vma:
 		goto rollback;
 	}
 
-	return 0;
+	retcode = 0;
+	goto finalize;
+
 rollback:
 	__unmap_and_free_vma(dst, next_entry(vma_start, node), cloned_size);
+
+finalize:
+	spin_unlock(&(src->lock));
+	spin_unlock(&(dst->lock));
 	return retcode;
 }
 

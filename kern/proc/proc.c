@@ -38,7 +38,7 @@ static struct {
 	DECLARE_BITMAP(bitmap, MAX_PROCESSES);
 } freekpid;
 
-struct proc idleproc[NR_CPUS];
+struct proc idleproc[MAX_CPUS];
 
 /*
  * This should be a seperate function, don't directly use kernel memory

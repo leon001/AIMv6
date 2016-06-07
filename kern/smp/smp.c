@@ -20,29 +20,34 @@
 #include <config.h>
 #endif
 
-#include <init.h>
-#include <console.h>
-#include <drivers/io/io-mem.h>
+#include <mp.h>
+#include <percpu.h>
 
-unsigned long kernelsp[MAX_CPUS];
+void *slave_stacks[MAX_CPUS];
+struct percpu cpus[MAX_CPUS];
 
-void abs_jump(void *addr)
+extern void arch_smp_startup(void);
+
+static void alloc_slave_stacks(void)
 {
-	asm volatile (
-		"move	$25, %0;"
-		"jr	%0"
-		: /* no output */
-		: "r"(addr)
-	);
+	int i;
+	struct pages p;
+
+	p.size = KSTACKSIZE;
+	p.flags = 0;
+
+	/* Allocate kernel stacks for slave CPUs */
+	for (i = 1; i < nr_cpus(); ++i) {
+		if (alloc_pages(&p) < 0)
+			panic("smp_startup: not enough memory for stacks\n");
+		slave_stacks[i] = pa2kva(p.paddr);
+	}
 }
 
-void early_arch_init(void)
+void smp_startup(void)
 {
-	io_mem_init(&early_memory_bus);
-	early_mach_init();
-}
-
-void arch_init(void)
-{
+	alloc_slave_stacks();
+	/* Arch-specific code */
+	arch_smp_startup();
 }
 

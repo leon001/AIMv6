@@ -26,9 +26,11 @@
 #include <mm.h>
 /* from libc */
 #include <libc/stdio.h>
+#include <aim/sync.h>
 
 static putchar_fp __putchar = NULL;
 static puts_fp __puts = NULL;
+static lock_t __lock;
 
 /*
  * In most cases,
@@ -50,6 +52,7 @@ void set_console(putchar_fp putchar, puts_fp puts)
 {
 	__putchar = putchar;
 	__puts = puts;
+	spinlock_init(&__lock);
 }
 
 int kprintf(const char *fmt, ...)
@@ -136,10 +139,18 @@ static inline puts_fp __get_kputs(void)
 
 int kputs(const char *s)
 {
+	int result;
+	unsigned long flags;
 	puts_fp puts = __get_kputs();
 
 	if (puts == NULL)
 		return EOF;
-	return puts(s);
+	/* We probably don't want kputs() to be interrupted externally or by another
+	 * core. */
+	spin_lock_irq_save(&__lock, flags);
+	result = puts(s);
+	spin_unlock_irq_restore(&__lock, flags);
+
+	return result;
 }
 
