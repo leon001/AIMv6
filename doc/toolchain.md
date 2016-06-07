@@ -115,7 +115,7 @@ a working toolchain.
 You do need to patch the source a little bit, though.  Run
 
 ```
-patch -p1 < ct-ng-arm-unknown-linux-gnueabi.patch
+git apply ct-ng-arm-unknown-linux-gnueabi.patch
 ```
 
 to circumvent a potential error during linking.
