@@ -216,7 +216,7 @@
 
 #else	/* !__ASSEMBLER__ */
 #include <sys/types.h>
-extern unsigned long kernelsp[NR_CPUS];
+extern unsigned long kernelsp[];
 #endif	/* __ASSEMBLER__ */
 
 #endif

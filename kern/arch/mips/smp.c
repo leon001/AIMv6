@@ -16,33 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+extern void mach_smp_startup(void);
 
-#include <init.h>
-#include <console.h>
-#include <drivers/io/io-mem.h>
-
-unsigned long kernelsp[MAX_CPUS];
-
-void abs_jump(void *addr)
+void arch_smp_startup(void)
 {
-	asm volatile (
-		"move	$25, %0;"
-		"jr	%0"
-		: /* no output */
-		: "r"(addr)
-	);
+	mach_smp_startup();
 }
-
-void early_arch_init(void)
-{
-	io_mem_init(&early_memory_bus);
-	early_mach_init();
-}
-
-void arch_init(void)
-{
-}
-

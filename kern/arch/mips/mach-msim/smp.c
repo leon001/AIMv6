@@ -20,29 +20,25 @@
 #include <config.h>
 #endif
 
-#include <init.h>
-#include <console.h>
-#include <drivers/io/io-mem.h>
+#include <mp.h>
+#include <smp.h>
+#include <mach-smp.h>
 
-unsigned long kernelsp[MAX_CPUS];
+extern void slave_entry(void);
 
-void abs_jump(void *addr)
+int nr_cpus(void)
 {
-	asm volatile (
-		"move	$25, %0;"
-		"jr	%0"
-		: /* no output */
-		: "r"(addr)
-	);
+	return NR_CPUS;
 }
 
-void early_arch_init(void)
+void mach_smp_startup(void)
 {
-	io_mem_init(&early_memory_bus);
-	early_mach_init();
-}
+	int i;
 
-void arch_init(void)
-{
+	for (i = 1; i < nr_cpus(); ++i) {
+		write32(MSIM_ORDER_MAILBOX_BASE +
+		    (1 << MSIM_ORDER_MAILBOX_ORDER) * i,
+		    (unsigned long)slave_entry);
+	}
 }
 

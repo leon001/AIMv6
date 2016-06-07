@@ -38,7 +38,7 @@ void set_console(putchar_fp putchar, puts_fp puts);
  */
 int kprintf(const char *fmt, ...);
 int kputchar(int c);
-int kputs(const char *s);
+int kputs(const char *s);	/* Atomic */
 int __default_kputs(const char *s);
 #define DEFAULT_KPUTS __default_kputs
 

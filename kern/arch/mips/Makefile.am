@@ -37,7 +37,7 @@ CLEANFILES = vmaim.lds
 libentry_la_SOURCES = entry.S
 
 libmips_la_SOURCES = arch_init.c mm.c trap.c trapentry.S pgtable.c sync.c \
-		     tlbex.S proc.c switch.S traptest.c
+		     tlbex.S proc.c switch.S traptest.c smp.c
 libmips_la_LIBADD = \
 		    $(PREFIXED_MACH)/lib$(MACH).la
 
