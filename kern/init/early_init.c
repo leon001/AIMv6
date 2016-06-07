@@ -77,13 +77,9 @@ void __noreturn master_early_init(void)
 void __noreturn slave_early_init(void)
 {
 	kprintf("KERN CPU %d: early init\n", cpuid());
-	for (;;)
-		/* nothing */;
-#if 0
 	early_slave_mm_init();
 	extern uint32_t slave_upper_entry;
 	abs_jump((void *)postmap_addr(&slave_upper_entry));
-#endif
 }
 
 
