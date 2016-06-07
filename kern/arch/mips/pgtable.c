@@ -179,9 +179,9 @@ __getpagedesc(pgindex_t *pgindex,
 	      struct pagedesc *pd)
 {
 	pgd_t *pgd = (pgd_t *)pgindex;
-	pud_t *pud;
-	pmd_t *pmd;
-	pte_t *pte;
+	pud_t *pud = NULL;
+	pmd_t *pmd = NULL;
+	pte_t *pte = NULL;
 	pd->pgdv = (uint64_t)pgd;
 	pd->pgx = PGX(addr);
 	pd->pux = PUX(addr);
@@ -210,6 +210,8 @@ __getpagedesc(pgindex_t *pgindex,
 	return 0;
 
 nomem:
+	assert(pmd != NULL);
+	assert(pud != NULL);
 	__del_empty_pgdir(pmd, pd->pmx);
 	__del_empty_pgdir(pud, pd->pux);
 	__del_empty_pgdir(pgd, pd->pgx);
