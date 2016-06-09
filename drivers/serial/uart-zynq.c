@@ -133,6 +133,7 @@ static inline int __uart_zynq_putchar(struct chr_device * inst, unsigned char c)
 
 void uart_init(void)
 {
+	__early_uart_zynq.base = UART_BASE;
 	__early_uart_zynq.bus = &early_memory_bus;
 	__uart_zynq_init(&__early_uart_zynq);
 }

@@ -25,6 +25,7 @@
 #include <aim/kmmap.h>
 #include <aim/initcalls.h>
 #include <mm.h>
+#include <vmm.h>
 #include <console.h>
 #include <panic.h>
 #include <list.h>
@@ -41,14 +42,42 @@ struct kmlist_entry {
 
 static struct list_head head = EMPTY_LIST(head);
 
+static inline bool __overlap(struct kmmap_entry *e1, struct kmmap_entry *e2)
+{
+	return OVERLAP(
+		(size_t)e1->vaddr, e1->size,
+		(size_t)e2->vaddr, e2->size
+	);
+}
+
 static int map(struct kmmap_entry *entry)
 {
+	struct kmlist_entry *next, *prev, *this;
+
 	if (!IS_ALIGNED(entry->paddr, PAGE_SIZE))
 		return EOF;
 	if (!IS_ALIGNED((size_t)entry->vaddr, PAGE_SIZE))
 		return EOF;
-	
-	return EOF;
+	/* walk the list for the first higher entry */
+	for_each_entry(next, &head, node) {
+		if (next->data.vaddr > entry->vaddr)
+			break;
+	}
+	/* check for overlap */
+	prev = prev_entry(next, node);
+	if (!list_is_first(&next->node, &head) && __overlap(&prev->data, entry)) {
+		return EOF;
+	}
+	if (!list_is_last(&prev->node, &head) && __overlap(&next->data, entry)) {
+		return EOF;
+	}
+	/* allocate space and insertion */
+	this = kmalloc(sizeof(*this), 0);
+	if (this == NULL) return EOF;
+	this->data = *entry;
+	list_add_before(&this->node, &next->node);
+
+	return 0;
 }
 
 static void init(void)
@@ -56,6 +85,7 @@ static void init(void)
 	struct early_mapping *old;
 	struct kmmap_entry new;
 
+	kprintf("KERN: <kmlist> Initializing.\n");
 	/* Go through early kmmap queue */
 	for (
 		old = early_mapping_next(NULL); old != NULL;
@@ -83,6 +113,7 @@ static void init(void)
 		new.size = old->size;
 		assert(map(&new) == 0);
 	}
+	kprintf("KERN: <kmlist> Done.\n");
 }
 
 static size_t unmap(void *vaddr)

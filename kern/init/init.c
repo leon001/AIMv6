@@ -30,6 +30,7 @@
 #include <panic.h>
 #include <init.h>
 #include <aim/initcalls.h>
+#include <aim/kmmap.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
 
@@ -90,6 +91,9 @@ void __noreturn master_init(void)
 
 	extern void mm_test(void);
 	mm_test();
+
+	/* init kernel mapping management */
+	kmmap_init();
 
 	/* allocate per-cpu context and kworker */
 //	proc_init();
