@@ -96,13 +96,5 @@ NESTED(name, FRAMESZ, ra); \
 	nop; \
 END(name);
 
-DEFINE_SYSCALL(fork)
-DEFINE_SYSCALL(execve)
-DEFINE_SYSCALL(waitpid)
-DEFINE_SYSCALL(kill)
-DEFINE_SYSCALL(sched_yield)
-DEFINE_SYSCALL(getpid)
-DEFINE_SYSCALL(nanosleep)
-DEFINE_SYSCALL(getppid)
-DEFINE_SYSCALL(exit)
+#include <libc/syscall-list.S>
 
