@@ -42,6 +42,10 @@ int syscall_arg(struct trapframe *tf, int index, unsigned long *result)
 	if (index < 8) {
 		*result = tf->gpr[_A0 + index];
 	} else {
+		/*
+		 * NOTREACHED.
+		 * We only consider no more than 8 system call arguments.
+		 */
 		addr = tf->gpr[_SP] + (index - 8) * WORD_SIZE;
 
 		/* We should defend for corrupted SP value here. */
