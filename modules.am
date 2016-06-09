@@ -18,8 +18,19 @@
 
 MODULES = 
 
+################
+# System calls #
+################
+
+MODULES += $(top_builddir)/kern/syscall/fork.o \
+	   $(top_builddir)/kern/syscall/sched_yield.o
+
 # For each module capable for compiling into the kernel,
 # add its entry here.
+
+##############
+# Algorithms #
+##############
 
 if ALGO_DEVLIST
 MODULES += $(top_builddir)/kern/dev/index/devlist.o
@@ -33,7 +44,21 @@ if ALGO_KMLIST
 MODULES += $(top_builddir)/kern/mm/kmmap/kmlist.o
 endif
 
+# TODO: allow options
+MODULES += $(top_builddir)/kern/proc/sched/sched_plain.o
+
+################
+# UART serials #
+################
+
 if UART_ZYNQ
 MODULES += $(top_builddir)/drivers/serial/uart-zynq.o
 endif
 
+if UART_MSIM
+MODULES += $(top_builddir)/drivers/serial/uart-msim.o
+endif
+
+if UART_NS16550
+MODULES += $(top_builddir)/drivers/serial/uart-ns16550.o
+endif

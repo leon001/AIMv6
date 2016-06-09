@@ -19,5 +19,5 @@ include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libmsim.la
 
-libmsim_la_SOURCES = memory.c
+libmsim_la_SOURCES = memory.c smp.c
 libmsim_la_LIBADD = $(builddir)/../mach-generic/libmips-generic.la

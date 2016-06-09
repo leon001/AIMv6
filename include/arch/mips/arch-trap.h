@@ -22,5 +22,32 @@
 #define TLB_REFILL_ENTRY	0xffffffff80000000
 #define GENERIC_EXCEPT_ENTRY	0xffffffff80000180
 
+#ifndef __ASSEMBLER__
+
+#include <sys/types.h>
+#include <cp0regdef.h>
+
+struct trapframe {
+	/* Here I just copy from struct regs.  We can make them
+	 * different later. */
+	/* general purpose registers */
+	unsigned long	gpr[32];
+
+	/* coprocessor registers */
+	unsigned long	lo;
+	unsigned long	hi;
+	unsigned long	status;
+	unsigned long	cause;
+	unsigned long	epc;
+	unsigned long	badvaddr;
+};
+
+static inline bool from_kernel(struct trapframe *tf)
+{
+	return ((tf->status & ST_KSU) == KSU_KERNEL);
+}
+
+#endif	/* !__ASSEMBLER__ */
+
 #endif
 

@@ -29,7 +29,7 @@ KERN_SUBDIRS = mach-generic $(PREFIXED_MACH)
 SUBDIRS = $(KERN_SUBDIRS)
 DIST_SUBDIRS = mach-generic mach-msim mach-loongson3a
 
-noinst_LTLIBRARIES = libmips.la libentry.la
+noinst_LTLIBRARIES = libmips.la libentry.la libmipssyscall.la
 noinst_DATA = vmaim.lds
 
 CLEANFILES = vmaim.lds
@@ -37,9 +37,13 @@ CLEANFILES = vmaim.lds
 libentry_la_SOURCES = entry.S
 
 libmips_la_SOURCES = arch_init.c mm.c trap.c trapentry.S pgtable.c sync.c \
-		     tlbex.S
+		     tlbex.S proc.c switch.S traptest.c smp.c
 libmips_la_LIBADD = \
 		    $(PREFIXED_MACH)/lib$(MACH).la
+
+# libsyscall.la depends on this, containing system call arguments retrieval
+# etc.
+libmipssyscall_la_SOURCES = syscall.c
 
 vmaim.lds: vmaim.lds.S
 	$(COMPILE) -E -P $^ -o $@

@@ -26,6 +26,7 @@
 #include <console.h>
 #include <mm.h>
 #include <panic.h>
+#include <smp.h>
 
 /*
  * NOTE: early mappings should be registered prior to calling this function.
@@ -52,6 +53,13 @@ void early_mm_init(void)
 	kputs("KERN: MMU is now on!\n");
 }
 
+void early_slave_mm_init(void)
+{
+	extern pgindex_t boot_page_index;
+	mmu_init((pgindex_t *)kva2pa(postmap_addr((void *)&boot_page_index)));
+	kprintf("KERN CPU %d: MMU is now on!\n", cpuid());
+}
+
 void __noreturn master_early_init(void)
 {
 	early_mapping_clear();
@@ -68,7 +76,10 @@ void __noreturn master_early_init(void)
 
 void __noreturn slave_early_init(void)
 {
-	panic("Unimplemented routine called.");
+	kprintf("KERN CPU %d: early init\n", cpuid());
+	early_slave_mm_init();
+	extern uint32_t slave_upper_entry;
+	abs_jump((void *)postmap_addr(&slave_upper_entry));
 }
 
 

@@ -56,6 +56,8 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <util.h>
+#include <smp.h>
+#include <tlb.h>
 
 #ifndef __LP64__	/* 32 bit */
 
@@ -177,9 +179,9 @@ __getpagedesc(pgindex_t *pgindex,
 	      struct pagedesc *pd)
 {
 	pgd_t *pgd = (pgd_t *)pgindex;
-	pud_t *pud;
-	pmd_t *pmd;
-	pte_t *pte;
+	pud_t *pud = NULL;
+	pmd_t *pmd = NULL;
+	pte_t *pte = NULL;
 	pd->pgdv = (uint64_t)pgd;
 	pd->pgx = PGX(addr);
 	pd->pux = PUX(addr);
@@ -208,6 +210,8 @@ __getpagedesc(pgindex_t *pgindex,
 	return 0;
 
 nomem:
+	assert(pmd != NULL);
+	assert(pud != NULL);
 	__del_empty_pgdir(pmd, pd->pmx);
 	__del_empty_pgdir(pud, pd->pux);
 	__del_empty_pgdir(pgd, pd->pgx);
@@ -367,5 +371,25 @@ unmap_pages(pgindex_t *pgindex,
 	__free_intermediate_pgtable(pgindex, vaddr, unmapped_bytes);
 
 	return unmapped_bytes;
+}
+
+int
+switch_pgindex(pgindex_t *pgindex)
+{
+	pgdir_slots[cpuid()] = pgindex;
+	tlb_flush();
+	return 0;
+}
+
+void *
+uva2kva(pgindex_t *pgindex, void *uaddr)
+{
+	struct pagedesc pd;
+	pte_t *pte;
+
+	if (__getpagedesc(pgindex, uaddr, false, &pd) < 0)
+		return NULL;
+	pte = (pte_t *)pd.ptev;
+	return pa2kva(PTE_PADDR(pte[pd.ptx]) | PAGE_OFFSET(uaddr));
 }
 

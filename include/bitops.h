@@ -19,6 +19,10 @@
 #ifndef _BITOPS_H
 #define _BITOPS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /*
  * If an architecture have instruction-level implementation of
  * ffs(), fls(), ffz() or flz(), define them there.
@@ -187,5 +191,58 @@ static inline int __generic_flz64(uint64_t word)
 #endif
 	return flz((unsigned long)word);
 }
+
+/*
+ * Hamming weight: count set bits
+ */
+static inline int hweight32(uint32_t w)
+{
+#ifndef HAVE___BUILTIN_POPCOUNT
+	uint32_t res = w - ((w >> 1) & 0x55555555);
+	res = (res & 0x33333333) + ((res >> 2) & 0x33333333);
+	res = (res + (res >> 4)) & 0x0F0F0F0F;
+	res = res + (res >> 8);
+	return (int)((res + (res >> 16)) & 0x000000FF);
+#else	/* __builtin_popcount available */
+	return __builtin_popcount(w);
+#endif	/* !HAVE___BUILTIN_POPCOUNT */
+}
+
+static inline int hweight64(uint64_t w)
+{
+#ifndef HAVE___BUILTIN_POPCOUNTLL
+#if BITS_PER_LONG == 32
+	return hweight32((uint32_t)(w >> 32)) + hweight32((uint32_t)w);
+#elif BITS_PER_LONG == 64
+	uint64_t res = w - ((w >> 1) & 0x5555555555555555ul);
+	res = (res & 0x3333333333333333ul) + ((res >> 2) & 0x3333333333333333ul);
+	res = (res + (res >> 4)) & 0x0F0F0F0F0F0F0F0Ful;
+	res = res + (res >> 8);
+	res = res + (res >> 16);
+	return (int)((res + (res >> 32)) & 0x00000000000000FFul);
+#endif
+#else	/* __builtin_popcountll available */
+	return __builtin_popcountll(w);
+#endif	/* !HAVE___BUILTIN_POPCOUNTLL */
+}
+
+#ifndef HAVE___BUILTIN_POPCOUNTL
+#if BITS_PER_LONG == 32
+#define hweight(x)	hweight32(x)
+#elif BITS_PER_LONG == 64
+#define hweight(x)	hweight64(x)
+#endif
+#else	/* __builtin_popcount available */
+#define hweight(x)	__builtin_popcountl(x)
+#endif	/* !HAVE___BUILTIN_POPCOUNT */
+
+/* Aliases */
+#define count_set_bits(x)	hweight(x)
+#define count_set_bits32(x)	hweight32(x)
+#define count_set_bits64(x)	hweight64(x)
+
+#define count_zero_bits(x)	count_set_bits(~(x))
+#define count_zero_bits32(x)	count_set_bits32(~(x))
+#define count_zero_bits64(x)	count_set_bits64(~(x))
 
 #endif

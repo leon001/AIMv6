@@ -34,4 +34,7 @@ struct regs {
 	unsigned long	badvaddr;
 };
 
+void switch_regs(struct regs *old, struct regs *new);
+
 #endif
+

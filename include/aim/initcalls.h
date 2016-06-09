@@ -48,6 +48,9 @@ typedef int (*initcall_t)(void);
 #define INITCALL_ROOTFS(fn)	INITCALL(fn, 6)
 #define INITCALL_DEV(fn)	INITCALL(fn, 7)
 
+#define INITCALL_SYSCALLS(fn)	INITCALL_SUBSYS(fn)
+#define INITCALL_SCHED(fn)	INITCALL_SUBSYS(fn)
+
 int do_early_initcalls();
 int do_initcalls();
 

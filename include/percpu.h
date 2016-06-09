@@ -22,16 +22,25 @@
 #include <sys/types.h>
 
 #include <proc.h>
+#include <smp.h>	/* cpuid(), arch directory */
 
 struct percpu {
 	/*
 	 * to retrieve the kernel stack, this pointer need to be accessed from
 	 * within the assembly code. Keep it here as the first element.
 	 */
-	struct proc *curr;
+	struct proc *proc;
 
 	/* other stuff go here */
 };
+
+extern struct percpu cpus[];
+/* Idle proc is per-cpu dummy process here. */
+extern struct proc idleproc[];
+
+#define cpu		cpus[cpuid()]
+#define current_proc	cpu.proc
+#define cpu_idleproc	(&idleproc[cpuid()])
 
 #endif /* _PERCPU_H */
 

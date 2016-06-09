@@ -19,6 +19,8 @@
 #include <asm.h>
 #include <regdef.h>
 #include <cp0regdef.h>
+#include <smp.h>
+#include <util.h>
 
 /*
  * IMPORTANT NOTE:
@@ -56,7 +58,7 @@ setup_pic:
 	 * compute the address manually.  To ensure correctness, optimization
 	 * and instruction reordering should be turned off. */
 	.set	noreorder
-	bal	locate
+	bal	1f
 	nop
 	/* Idea from UBoot: we embed the value of _gp in the entry code, and
 	 * fetch the value during execution there.
@@ -65,11 +67,10 @@ setup_pic:
 	 * the high 32 bits with all 1s.
 	 */
 	.word	_gp		/* at __start + 8 = t9 + 8 */
-locate:
+1:
 	SUBU	t9, ra, 8
 	lw	gp, 8(t9)
 	.set	reorder
-	/* Now set up gp */
 	/* Ensure that we are inside kernel mode. */
 	MFC032	a0, CP0_STATUS
 	or	a0, ST_EXCM
@@ -122,3 +123,46 @@ BEGIN(master_upper_entry)
 	jal	master_init
 1:	b	1b
 END(master_upper_entry)
+
+BEGIN(slave_entry)
+	/*
+	 * The logic is mostly the same as master early entry except:
+	 * 1. We do not clean bss (obviously)
+	 * 2. The stack top is different (slave_stacks[cpuid()])
+	 */
+	.set	noreorder
+	bal	1f
+	nop
+	.word	_gp
+1:
+	SUBU	t9, ra, 8
+	lw	gp, 8(t9)
+	.set	reorder
+	MFC032	a0, CP0_STATUS
+	or	a0, ST_EXCM
+	xor	a0, ST_EXCM
+	MTC032	a0, CP0_STATUS
+	bal	load_slave_sp
+	jal	slave_early_init
+1:	b	1b
+END(slave_entry)
+
+BEGIN(slave_upper_entry)
+	.set	noreorder
+	.cpload	t9
+	.set	reorder
+	bal	load_slave_sp
+	.cprestore
+	jal	slave_init
+1:	b	1b
+END(slave_upper_entry)
+
+BEGIN(load_slave_sp)
+	LA	t0, slave_stacks
+	cpuid	t1, t2
+	SLL	t1, WORD_SHIFT
+	ADDU	t0, t1
+	LOAD	sp, (t0)
+	jr	ra
+END(load_slave_sp)
+

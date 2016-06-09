@@ -42,10 +42,10 @@ trapentry:
 
 	pushl	%esp
 	call	trap_handler
-	addl	$4, %esp
 
-.globl	trapret
-trapret:
+.globl	trap_exit
+trap_exit:
+	movl	4(%esp), %esp
 	popal
 	popl	%gs
 	popl	%fs
@@ -53,3 +53,4 @@ trapret:
 	popl	%ds
 	addl	$0x8, %esp
 	iret
+

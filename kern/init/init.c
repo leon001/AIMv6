@@ -29,10 +29,26 @@
 #include <trap.h>
 #include <panic.h>
 #include <init.h>
+#include <proc.h>
+#include <percpu.h>
+#include <sched.h>
+#include <mp.h>
 #include <aim/initcalls.h>
 #include <aim/kmmap.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
+
+/*
+ * Initialization routine common to master and slave at last stages.
+ *
+ * Will jump to scheduler here.
+ */
+static void __noreturn rest_init(void)
+{
+	idle_init();
+	for (;;)
+		schedule();
+}
 
 void __noreturn master_init(void)
 {
@@ -66,7 +82,7 @@ void __noreturn master_init(void)
 	kputs("KERN: Page allocator initialized.\n");
 	add_memory_pages();
 	kputs("KERN: Pages added.\n");
-	kprintf("KERN: Free memory: 0x%08x\n", (size_t)get_free_memory());
+	kprintf("KERN: Free memory: 0x%p\n", (size_t)get_free_memory());
 	struct simple_allocator old;
 	get_simple_allocator(&old);
 	simple_allocator_init();
@@ -95,8 +111,9 @@ void __noreturn master_init(void)
 	/* init kernel mapping management */
 	kmmap_init();
 
-	/* allocate per-cpu context and kworker */
-//	proc_init();
+	proc_init();
+	sched_init();
+	idle_init();
 
 	/* do initcalls, one by one */
 	do_initcalls();
@@ -130,6 +147,7 @@ void __noreturn master_init(void)
 	kprintf("DEBUG: a = 0x%08x\n", a);
 
 	/* startup smp */
+	smp_startup();
 
 	/*
 	 * do initcalls, one by one.
@@ -140,12 +158,17 @@ void __noreturn master_init(void)
 
 	/* initialize or cleanup namespace */
 
+	/* Temporary test, WILL BE REMOVED */
+	proc_test();
 
-	panic("Test done, all is well.\n");
+	/* TODO: shall we synchronize rest_init() on different cores? */
+	rest_init();
 }
 
 void __noreturn slave_init(void)
 {
-	panic("Unimplemented routine called.");
+	kprintf("KERN CPU %d: init\n", cpuid());
+
+	rest_init();
 }
 

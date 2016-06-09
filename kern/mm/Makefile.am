@@ -24,7 +24,7 @@ SUBDIRS = \
 
 noinst_LTLIBRARIES = libmm.la
 
-libmm_la_SOURCES = mmu.c uvm.c
+libmm_la_SOURCES = mmu.c uvm.c test.c
 libmm_la_LIBADD = \
 	kmmap/libkmmap.la \
 	vmm/libvmm.la \

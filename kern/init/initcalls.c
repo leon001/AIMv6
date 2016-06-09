@@ -60,6 +60,7 @@ int do_initcalls()
 
 	kprintf("DEBUG: initcalls 0x%08x to 0x%08x\n", start, end);
 	for (this = start; this < end; this += 1) {
+		kprintf("DEBUG: executing 0x%p\n", *this);
 		int ret = (*this)();
 		if (ret < 0) {
 			/* don't panic */

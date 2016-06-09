@@ -23,8 +23,11 @@ SUBDIRS = \
 	init \
 	dev \
 	debug \
+	lib \
 	mm \
-	proc
+	proc \
+	smp \
+	syscall
 
 CLEANFILES = vmaim.s
 
@@ -35,16 +38,27 @@ vmaim_elf_SOURCES =
 # DO NOT CHANGE THE ORDER OF ARCHIVES HERE!
 # Linkers go through input files one by one and will NOT go back.
 # If an object has no used symbol, it is discarded.
-# Static library order must always solve the refer graph topologically.
+# Static library order must always solve the refer graph topologically,
+# that is, callers go first, and callees go last.
 # NO circular reference is allowed.
+KERNEL_INTERNAL_LIBS = \
+	lib/libbitmap/libbitmap.la
+
 KERNEL_LIBS = \
 	arch/$(ARCH)/libentry.la \
 	init/libinit.la \
+	proc/libproc.la \
+	proc/sched/libsched.la \
 	dev/libdev.la \
 	mm/libmm.la \
+	smp/libsmp.la \
 	arch/$(ARCH)/lib$(ARCH).la \
+	syscall/libsyscall.la \
+	arch/$(ARCH)/lib$(ARCH)syscall.la \
 	$(top_builddir)/drivers/libdrivers.la \
 	$(MODULES) \
+	$(KERNEL_INTERNAL_LIBS) \
+	$(top_builddir)/lib/libc/arch/$(ARCH)/libc-$(ARCH).la \
 	$(top_builddir)/lib/libc/libc.la \
 	debug/libdebug.la
 vmaim_elf_LDADD = $(KERNEL_LIBS)

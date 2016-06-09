@@ -45,6 +45,11 @@ AIM_GCC_FUNC_ATTRIBUTE([visibility])
 AIM_GCC_VAR_ATTRIBUTE([used])
 AIM_REQUIRE_COMPILE_FLAG([-fplan9-extensions])
 
+# Builtin functions - not required
+AX_GCC_BUILTIN(__builtin_popcount)
+AX_GCC_BUILTIN(__builtin_popcountl)
+AX_GCC_BUILTIN(__builtin_popcountll)
+
 AC_SUBST([AIM_CFLAGS], [$aim_cflags])
 
 AM_PROG_AS
@@ -97,7 +102,6 @@ AS_CASE([$ARCH],
 		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
 		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
 		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
-		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([enable_io_mem], [yes])
 		AS_VAR_SET([enable_io_port], [no])
 	],
@@ -105,7 +109,6 @@ AS_CASE([$ARCH],
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
 		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
 		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
-		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([enable_io_mem], [yes])
 		AS_VAR_SET([enable_io_port], [no])
 	],
@@ -148,6 +151,7 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
 		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
 		AS_VAR_SET([with_cpus], [4])
+		AS_VAR_SET([with_max_cpus], [4])
 		AS_VAR_SET([with_highram_base], [0x80000000])
 		AS_VAR_SET([with_highram_size], [0x00000000])
 	], 
@@ -155,6 +159,8 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_fwstack_order], [12])
 	],
 	[loongson3a], [
+		AS_VAR_SET([with_cpus], [4])
+		AS_VAR_SET([with_max_cpus], [4])
 		AS_VAR_SET([enable_uart_ns16550], [yes])
 		AS_VAR_SET([with_primary_console], [UART_NS16550])
 	],
@@ -204,8 +210,17 @@ AIM_ARG_WITH([mem-size], [MEM_SIZE], [amount of memory installed], [DETECT])
 AC_SUBST([MEM_SIZE], [$with_mem_size])
 
 AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [DETECT])
+AIM_ARG_WITH([max-cpus], [MAX_CPUS], [maximum number of cores], [NR_CPUS])
 AC_SUBST([NR_CPUS], [$with_cpus])
+AC_SUBST([MAX_CPUS], [$with_max_cpus])
 
+# MIPS kernel hyperparameters
+AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
+	[base virtual address for array storing GP register during trap entry])
+AIM_ARG_WITH([mips-pgdir-slot-base], [MIPS_PGDIR_SLOT_BASE],
+	[base virtual address for array storing per CPU page directories])
+
+# Kernel hyperparameters
 AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0x80000000])
 AC_SUBST([KERN_BASE], [$with_kern_base])
 
@@ -220,13 +235,11 @@ AC_SUBST([RESERVED_BASE], [$with_reserved_base])
 AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 	[size of kernel stack])
 
+AIM_ARG_WITH([max-processes], [MAX_PROCESSES], [maximum number of processes],
+	[65536])
+
 AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 	[order of firmware stack per CPU (size=1<<order)])
-
-AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
-	[base virtual address for array storing GP register during trap entry])
-AIM_ARG_WITH([mips-pgdir-slot-base], [PGDIR_SLOT_BASE],
-	[base virtual address for array storing per CPU page directories])
 
 # Drivers
 AIM_ARG_ENABLE([io-mem], [IO_MEM], [memory-mapped IO driver])
@@ -372,6 +385,8 @@ AC_CONFIG_FILES([
 	kern/arch/mips/mach-msim/Makefile
 	kern/arch/mips/mach-loongson3a/Makefile
 	kern/init/Makefile
+	kern/lib/Makefile
+	kern/lib/libbitmap/Makefile
 	kern/dev/Makefile
 	kern/dev/index/Makefile
 	kern/debug/Makefile
@@ -380,6 +395,9 @@ AC_CONFIG_FILES([
 	kern/mm/pmm/Makefile
 	kern/mm/vmm/Makefile
 	kern/proc/Makefile
+	kern/proc/sched/Makefile
+	kern/smp/Makefile
+	kern/syscall/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile

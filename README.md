@@ -173,6 +173,39 @@ dd if=kern/arch/mips/kernel.elf of=/dev/mapper/loop0p2 conv=notrunc
 
 Run MSIM to bring up the operating system.
 
+##### Debugging
+
+**IMPORTANT:** MSIM's gdb support is **extremely experimental**, that is,
+slow, and sometimes causes errors on gdb.  It is highly recommended to
+debug your kernel statically (that is, via the kernel's own output), or
+via MSIM's interface and disassembly dumps from
+`mips64el-n64-linux-uclibc-objdump -Ss`.
+
+You need to build a `cross-gdb` to enable debugging MIPS programs.  See
+`doc/toolchain.md` for details.
+
+Run
+
+```
+msim -g 1234
+```
+
+to bring up a server for remote debugging.
+
+Run
+
+```
+mips64el-n64-linux-uclibc-gdb
+```
+
+then enter
+
+```
+tar rem 127.0.0.1:1234
+```
+
+to connect to the gdb server brought up by MSIM.
+
 #### Loongson 3A
 
 You should prepare a SATA-to-USB converter or something to enable you to upload
@@ -180,6 +213,9 @@ your kernel image into the hard disk inside Loongson 3A box.
 
 Replace the `boot/vmlinux` file with the kernel image you compiled, and you're
 done.
+
+We do **NOT** support debugging on Loongson 3A.  However, technical
+contributions are always welcome.
 
 ### ARM on qemu
 
@@ -194,7 +230,26 @@ The `-s -S` option will enable gdb support on port 1234. You can then run
 `gdb firmware/arch/armv7a/firmware.elf` with needed options and connect to the
 emulator via `target remote:1234` in its command line.
 
+**TODO:** please provide a complete, end-to-end QEMU setup, including the
+command lines to build disk images (if any), starting up kernels and/or
+firmwares, etc.
+
 ### i386 on qemu
+
+#### Compiling
+
+A sample compiling configuration:
+
+```
+$ env ARCH=i386 MACH=generic ./configure \
+> --enable-static --disable-shared --without-pic \
+> --with-kern-start=0x100000 --with-mem-size=0x20000000
+$ make clean
+$ make
+```
+
+where `--with-kern-start` specifies the starting address kernel will be
+loaded at.
 
 #### Creating a blank disk image
 

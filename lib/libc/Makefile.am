@@ -24,7 +24,9 @@ noinst_LTLIBRARIES = \
 	libc.la
 
 SRCS = \
+        errno.c \
 	memcpy.c \
+	memmove.c \
 	memset.c \
 	snprintf.c \
 	strcmp.c \

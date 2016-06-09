@@ -28,6 +28,9 @@
 #include <trap.h>
 #include <console.h>
 #include <arch-trap.h>
+#include <syscall.h>
+#include <decode.h>
+#include <panic.h>
 
 void trap_init(void)
 {
@@ -40,56 +43,225 @@ void trap_init(void)
 	write_c0_status(status & ~ST_BEV);
 }
 
-static void dump_regs(struct regs *regs)
+static void dump_regs(struct trapframe *regs)
 {
-	kprintf("zero\t%016x\n", regs->gpr[_ZERO]);
-	kprintf("at\t%016x\n", regs->gpr[_AT]);
-	kprintf("v0\t%016x\n", regs->gpr[_V0]);
-	kprintf("v1\t%016x\n", regs->gpr[_V1]);
-	kprintf("a0\t%016x\n", regs->gpr[_A0]);
-	kprintf("a1\t%016x\n", regs->gpr[_A1]);
-	kprintf("a2\t%016x\n", regs->gpr[_A2]);
-	kprintf("a3\t%016x\n", regs->gpr[_A3]);
-	kprintf("t0\t%016x\n", regs->gpr[_T0]);
-	kprintf("t1\t%016x\n", regs->gpr[_T1]);
-	kprintf("t2\t%016x\n", regs->gpr[_T2]);
-	kprintf("t3\t%016x\n", regs->gpr[_T3]);
-	kprintf("t4\t%016x\n", regs->gpr[_T4]);
-	kprintf("t5\t%016x\n", regs->gpr[_T5]);
-	kprintf("t6\t%016x\n", regs->gpr[_T6]);
-	kprintf("t7\t%016x\n", regs->gpr[_T7]);
-	kprintf("s0\t%016x\n", regs->gpr[_S0]);
-	kprintf("s1\t%016x\n", regs->gpr[_S1]);
-	kprintf("s2\t%016x\n", regs->gpr[_S2]);
-	kprintf("s3\t%016x\n", regs->gpr[_S3]);
-	kprintf("s4\t%016x\n", regs->gpr[_S4]);
-	kprintf("s5\t%016x\n", regs->gpr[_S5]);
-	kprintf("s6\t%016x\n", regs->gpr[_S6]);
-	kprintf("s7\t%016x\n", regs->gpr[_S7]);
-	kprintf("t8\t%016x\n", regs->gpr[_T8]);
-	kprintf("t9\t%016x\n", regs->gpr[_T9]);
-	kprintf("gp\t%016x\n", regs->gpr[_GP]);
-	kprintf("sp\t%016x\n", regs->gpr[_SP]);
-	kprintf("s8\t%016x\n", regs->gpr[_S8]);
-	kprintf("ra\t%016x\n", regs->gpr[_RA]);
-	kprintf("LO\t%016x\n", regs->lo);
-	kprintf("HI\t%016x\n", regs->hi);
-	kprintf("STATUS\t%016x\n", regs->status);
-	kprintf("CAUSE\t%016x\n", regs->cause);
-	kprintf("EPC\t%016x\n", regs->epc);
-	kprintf("BVA\t%016x\n", regs->badvaddr);
+	kprintf("zero\t%p\n", regs->gpr[_ZERO]);
+	kprintf("at\t%p\n", regs->gpr[_AT]);
+	kprintf("v0\t%p\n", regs->gpr[_V0]);
+	kprintf("v1\t%p\n", regs->gpr[_V1]);
+	kprintf("a0\t%p\n", regs->gpr[_A0]);
+	kprintf("a1\t%p\n", regs->gpr[_A1]);
+	kprintf("a2\t%p\n", regs->gpr[_A2]);
+	kprintf("a3\t%p\n", regs->gpr[_A3]);
+	kprintf("t0\t%p\n", regs->gpr[_T0]);
+	kprintf("t1\t%p\n", regs->gpr[_T1]);
+	kprintf("t2\t%p\n", regs->gpr[_T2]);
+	kprintf("t3\t%p\n", regs->gpr[_T3]);
+	kprintf("t4\t%p\n", regs->gpr[_T4]);
+	kprintf("t5\t%p\n", regs->gpr[_T5]);
+	kprintf("t6\t%p\n", regs->gpr[_T6]);
+	kprintf("t7\t%p\n", regs->gpr[_T7]);
+	kprintf("s0\t%p\n", regs->gpr[_S0]);
+	kprintf("s1\t%p\n", regs->gpr[_S1]);
+	kprintf("s2\t%p\n", regs->gpr[_S2]);
+	kprintf("s3\t%p\n", regs->gpr[_S3]);
+	kprintf("s4\t%p\n", regs->gpr[_S4]);
+	kprintf("s5\t%p\n", regs->gpr[_S5]);
+	kprintf("s6\t%p\n", regs->gpr[_S6]);
+	kprintf("s7\t%p\n", regs->gpr[_S7]);
+	kprintf("t8\t%p\n", regs->gpr[_T8]);
+	kprintf("t9\t%p\n", regs->gpr[_T9]);
+	kprintf("gp\t%p\n", regs->gpr[_GP]);
+	kprintf("sp\t%p\n", regs->gpr[_SP]);
+	kprintf("s8\t%p\n", regs->gpr[_S8]);
+	kprintf("ra\t%p\n", regs->gpr[_RA]);
+	kprintf("LO\t%p\n", regs->lo);
+	kprintf("HI\t%p\n", regs->hi);
+	kprintf("STATUS\t%p\n", regs->status);
+	kprintf("CAUSE\t%p\n", regs->cause);
+	kprintf("EPC\t%p\n", regs->epc);
+	kprintf("BVA\t%p\n", regs->badvaddr);
 }
 
-void trap_handler(struct regs *regs)
+/*
+ * Determine the branch target according to given program counter.
+ *
+ * @pc locates the branching or jumping instruction.
+ */
+static unsigned long __branch_target(struct trapframe *tf, unsigned long pc)
 {
-	dump_regs(regs);
-	panic("Unexpected trap\n");
+	unsigned int insn = read_insn(pc);
+	unsigned int opcode = OPCODE(insn);
+	unsigned int func, rs, rt, rd;
+	unsigned long offset, branch_pc, cont_pc;
+
+	cont_pc = pc + 8;
+
+	/* Handle jumps */
+	switch (opcode) {
+	case OP_SPECIAL:
+		rs = R_RS(insn);
+		rd = R_RD(insn);
+		func = R_FUNC(insn);
+		switch (func) {
+		case FN_JALR:
+			/* JALR changes destination register (RA in most cases)
+			 * to return address */
+			tf->gpr[rd] = cont_pc;
+			/* fallthru */
+		case FN_JR:
+			/* JR and JALR sets target to where the source register
+			 * is pointing */
+			return tf->gpr[rs];
+		default:
+			goto fail;
+		}
+		break;
+	case OP_JAL:
+		tf->gpr[_RA] = cont_pc;
+		/* fallthru */
+	case OP_J:
+		return (pc & ~J_ACTUAL_INDEX_MASK) | J_INDEX(insn);
+	}
+
+	/* Handle branches */
+	rs = I_RS(insn);
+	offset = I_IOFFSET(insn);
+	/* Offset are added to the address of delay slot, not the branch itself,
+	 * as described in MIPS64 manual */
+	branch_pc = pc + offset + 4;
+
+	switch (opcode) {
+	case OP_REGIMM:
+		func = I_FUNC(insn);
+		switch (func) {
+		case FN_BLTZAL:
+		case FN_BLTZALL:
+			if (tf->gpr[rs] < 0)
+				/* question: will RA be overwritten even if a
+				 * branch doesn't happen? */
+				tf->gpr[_RA] = cont_pc;
+			/* fallthru */
+		case FN_BLTZ:
+		case FN_BLTZL:
+			if (tf->gpr[rs] < 0)
+				return branch_pc;
+			else
+				return cont_pc;
+			break;
+		case FN_BGEZAL:
+		case FN_BGEZALL:
+			if (tf->gpr[rs] >= 0)
+				tf->gpr[_RA] = cont_pc;
+			/* fallthru */
+		case FN_BGEZ:
+		case FN_BGEZL:
+			if (tf->gpr[rs] >= 0)
+				return branch_pc;
+			else
+				return cont_pc;
+			break;
+		default:
+			goto fail;
+		}
+		break;
+	case OP_BLEZ:
+	case OP_BLEZL:
+		if (tf->gpr[rs] <= 0)
+			return branch_pc;
+		else
+			return cont_pc;
+		break;
+	case OP_BGTZ:
+	case OP_BGTZL:
+		if (tf->gpr[rs] > 0)
+			return branch_pc;
+		else
+			return cont_pc;
+		break;
+	}
+
+	/* Handle beq and bne */
+	rt = I_RT(insn);
+	switch (opcode) {
+	case OP_BEQ:
+	case OP_BEQL:
+		if (tf->gpr[rs] == tf->gpr[rt])
+			return branch_pc;
+		else
+			return cont_pc;
+		break;
+	case OP_BNE:
+	case OP_BNEL:
+		if (tf->gpr[rs] != tf->gpr[rt])
+			return branch_pc;
+		else
+			return cont_pc;
+		break;
+	}
+
+fail:
+	kprintf("instruction address = %016x\r\n", pc);
+	kprintf("instruction content = %08x\r\n", insn);
+	panic("branch_target(): not a branch instruction\r\n");
+	/* NOTREACHED */
+	return 0;
+}
+
+/* 
+ * Skips the current exception victim instruction and move on if necessary,
+ * i.e. after system call or some of breakpoints.
+ *
+ * This routine should be called after everything is done.
+ */
+static void __skip_victim(struct trapframe *tf)
+{
+	/* Check if victim instruction is inside a branch delay slot */
+	if (tf->cause & CR_BD)
+		tf->epc = __branch_target(tf, tf->epc);
+	else
+		tf->epc += 4;
+}
+
+void trap_handler(struct trapframe *regs)
+{
+	if (EXCCODE(regs->cause) == EC_sys) {
+		handle_syscall(regs);
+		/*
+		 * After executing ERET instruction MIPS processor return to
+		 * the exception-throwing instruction (called _victim_), or
+		 * the branching instruction directly preceding the victim in
+		 * case of throwing an exception inside branch delay slot.
+		 *
+		 * In case of system calls, if we do not manually compute
+		 * the desired return address (that is, directly following
+		 * the system call instruction), the processor will execute
+		 * SYSCALL instruction again and again.
+		 *
+		 * Unfortunately, dealing with system calls inside a branch
+		 * delay slot involves disassembling the branching instruction
+		 * and predicting the branch target, which is handled in
+		 * __skip_victim().
+		 */
+		__skip_victim(regs);
+	} else if (EXCCODE(regs->cause) == EC_bp) {
+		/*
+		 * As a test for __skip_victim(), we skip the victim to resume
+		 * execution when handling breakpoints.
+		 * We can add various debugging routines (or deliberate
+		 * backdoors) later for breakpoints.
+		 */
+		__skip_victim(regs);
+	} else {
+		dump_regs(regs);
+		panic("Unexpected trap\n");
+	}
 	trap_return(regs);
 }
 
-extern void trap_exit(struct regs *regs);
+extern void trap_exit(struct trapframe *regs);
 
-__noreturn void trap_return(struct regs *regs)
+__noreturn void trap_return(struct trapframe *regs)
 {
 	/* Retain interrupt masks while changing other fields according to
 	 * register set */
@@ -99,9 +271,5 @@ __noreturn void trap_return(struct regs *regs)
 	write_c0_status(status);
 	regs->status = (regs->status & ~ST_IM) | im;
 	trap_exit(regs);
-}
-
-void trap_test(void)
-{
 }
 

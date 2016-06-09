@@ -1,0 +1,28 @@
+diff --git a/kern/arch/armv7a/entry.S b/kern/arch/armv7a/entry.S
+index 4303a98..7bbad1c 100644
+--- a/kern/arch/armv7a/entry.S
++++ b/kern/arch/armv7a/entry.S
+@@ -105,6 +105,23 @@ slave_upper_entry:
+ 	movs	fp, sp
+ 	bl	slave_init
+ 
++/*
++ * [Gan] This is a workaround for those who are desperate to use a GNU/Linux
++ * toolchain (such as arm-unknown-linux-gnueabi) or those who are unwilling
++ * to build a toolchain from source.
++ *
++ * Specifically, when libgcc from a GNU/Linux toolchain is performing soft
++ * division it may trigger a SIGFPE which in turn calls a non-existent global
++ * "raise" function, which causes an undefined reference error.  Here, we
++ * provide a busy-loop "raise" implementation to dismiss the SIGFPE exception.
++ *
++ * Your code should not go here anyway.
++ */
++.globl raise
++
++raise:
++	bl	raise
++
+ .bss
+ 
+ /* Broadcast a pointer the boot data lock, so we can release it later */

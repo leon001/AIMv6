@@ -24,7 +24,7 @@
 #include <console.h>
 #include <drivers/io/io-mem.h>
 
-unsigned long kernelsp[NR_CPUS];
+unsigned long kernelsp[MAX_CPUS];
 
 void abs_jump(void *addr)
 {

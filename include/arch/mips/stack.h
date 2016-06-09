@@ -163,11 +163,60 @@
 	POP	\reg
 	MTC0	\reg, CP0_EPC
 	POP	\reg
-	/* MTC0	\reg, CP0_BADVADDR */	/* discarded */
+	MTC0	\reg, CP0_BADVADDR	/* discarded */
 	.endm
+
+	/* Push onto upward-growing stack, filled stack top */
+	.macro	PUSHUF	reg base
+	ADDU	\base, WORD_SIZE
+	STORE	\reg, (\base)
+	.endm
+
+	/* Push onto downward-growing stack, filled stack top */
+	.macro	PUSHDF reg base
+	SUBU	\base, WORD_SIZE
+	STORE	\reg, (\base)
+	.endm
+
+	/* Pop from upward-growing stack, filled stack top */
+	.macro	POPUF	reg base
+	LOAD	\reg, (\base)
+	ADDU	\base, WORD_SIZE
+	.endm
+
+	/* Pop from downward-growing stack, filled stack top */
+	.macro	POPDF	reg base
+	LOAD	\reg, (\base)
+	SUBU	\base, WORD_SIZE
+	.endm
+
+	/* Push onto upward-growing stack, empty stack top */
+	.macro	PUSHUE	reg base
+	STORE	\reg, (\base)
+	ADDU	\base, WORD_SIZE
+	.endm
+
+	/* Push onto downward-growing stack, empty stack top */
+	.macro	PUSHDE reg base
+	STORE	\reg, (\base)
+	SUBU	\base, WORD_SIZE
+	.endm
+
+	/* Pop from upward-growing stack, empty stack top */
+	.macro	POPUE	reg base
+	ADDU	\base, WORD_SIZE
+	LOAD	\reg, (\base)
+	.endm
+
+	/* Pop from downward-growing stack, empty stack top */
+	.macro	POPDE	reg base
+	SUBU	\base, WORD_SIZE
+	LOAD	\reg, (\base)
+	.endm
+
 #else	/* !__ASSEMBLER__ */
 #include <sys/types.h>
-extern unsigned long kernelsp[NR_CPUS]
+extern unsigned long kernelsp[];
 #endif	/* __ASSEMBLER__ */
 
 #endif

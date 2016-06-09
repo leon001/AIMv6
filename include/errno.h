@@ -68,5 +68,9 @@
 #define	EROFS		30		/* Read-only file system */
 #define	EMLINK		31		/* Too many links */
 #define	EPIPE		32		/* Broken pipe */
+#define	EAGAIN		35		/* Resource temporarily unavailable */
+#define	ENAMETOOLONG	63		/* File name too long */
+#define	ENOSYS		78		/* Function not implemented */
+#define	EILSEQ		84		/* Illegal byte sequence */
 
 #endif

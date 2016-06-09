@@ -21,6 +21,7 @@
 
 #include <sys/types.h>
 #include <vmm.h>
+#include <mmu.h>
 
 #ifndef __ASSEMBLER__
 
@@ -32,7 +33,6 @@ struct pages {
 	addr_t paddr;
 	addr_t size;
 	gfp_t flags;
-	atomic_t refs;	/* for shared memory */
 };
 
 struct page_allocator {
@@ -55,6 +55,27 @@ void set_page_allocator(struct page_allocator *allocator);
 int alloc_pages(struct pages *pages);
 void free_pages(struct pages *pages);
 addr_t get_free_memory(void);
+
+/* Returns -1 on error */
+static inline addr_t pgalloc(void)
+{
+	struct pages p;
+	p.size = PAGE_SIZE;
+	p.flags = 0;
+	if (alloc_pages(&p) != 0)
+		return -1;
+	return p.paddr;
+}
+
+static inline void pgfree(addr_t paddr)
+{
+	struct pages p;
+	p.paddr = paddr;
+	p.size = PAGE_SIZE;
+	p.flags = 0;
+	free_pages(&p);
+}
+
 
 /* initialize the page-block structure for remaining free memory */
 void add_memory_pages(void);
