@@ -118,17 +118,54 @@ static void init(void)
 
 static size_t unmap(void *vaddr)
 {
-	return 0;
+	struct kmlist_entry *this;
+	size_t size;
+	/* walk the list for the first not-lower entry */
+	for_each_entry(this, &head, node) {
+		if (this->data.vaddr >= vaddr)
+			break;
+	}
+	/* if we get a higher address, the unmap is invalid */
+	if (this->data.vaddr > vaddr)
+		return 0;
+	/* remove from list and free up space */
+	size = this->data.size;
+	list_del(&this->node);
+	kfree(this);
+	return size;
 }
 
-static int __kva2pa(void *vaddr, addr_t *paddr)
+static int lookup(void *vaddr, addr_t *paddr)
 {
-	return EOF;
+	struct kmlist_entry *this;
+	/* walk the list for the first not-lower entry */
+	for_each_entry(this, &head, node) {
+		if (this->data.vaddr >= vaddr)
+			break;
+	}
+	/* if we get a higher address, no result */
+	if (this->data.vaddr > vaddr)
+		return EOF;
+	/* pass paddr if caller asked */
+	if (paddr != NULL)
+		*paddr = this->data.paddr;
+	/* indicate a found mapping */
+	return 0;
 }
 
 static struct kmmap_entry *next(struct kmmap_entry *base)
 {
-	return NULL;
+	struct kmlist_entry *entry;
+	if (base == NULL) {
+		/* empty or first */
+		if (list_empty(&head)) return NULL;
+		else entry = list_first_entry(&head, typeof(*entry), node);
+	} else {
+		entry = container_of(base, typeof(*entry), data);
+		if (list_is_last(&entry->node, &head)) return NULL;
+		else entry = next_entry(entry, node);
+	}
+	return &entry->data;
 }
 
 static int __init(void)
@@ -137,7 +174,7 @@ static int __init(void)
 		.init	= init,
 		.map	= map,
 		.unmap	= unmap,
-		.kva2pa	= __kva2pa,
+		.kva2pa	= lookup,
 		.next	= next
 	};
 	set_kmmap_keeper(&this);
