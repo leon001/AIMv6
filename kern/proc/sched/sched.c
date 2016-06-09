@@ -23,6 +23,7 @@
 #include <proc.h>
 #include <sched.h>
 #include <percpu.h>
+#include <mp.h>
 
 static lock_t sched_lock;
 static unsigned long __sched_intrflags;
@@ -35,6 +36,12 @@ void sched_enter_critical(void)
 void sched_exit_critical(void)
 {
 	spin_unlock_irq_restore(&sched_lock, __sched_intrflags);
+}
+
+static void __update_proc(struct proc *proc)
+{
+	proc->state = PS_ONPROC;
+	proc->oncpu = cpuid();
 }
 
 void schedule(void)
@@ -50,7 +57,7 @@ void schedule(void)
 	if (newproc == NULL)
 		newproc = cpu_idleproc;
 
-	newproc->state = PS_ONPROC;
+	__update_proc(newproc);
 
 	switch_context(newproc);
 
