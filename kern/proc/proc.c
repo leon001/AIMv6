@@ -148,6 +148,14 @@ void proc_ksetup(struct proc *proc, void *entry, void *args)
 	__proc_ksetup(proc, entry, args);
 }
 
+/* Arch-portion code there */
+extern void __proc_usetup(struct proc *proc, void *entry, void *stacktop,
+    void *args);
+void proc_usetup(struct proc *proc, void *entry, void *stacktop, void *args)
+{
+	__proc_usetup(proc, entry, stacktop, args);
+}
+
 void proc_init(void)
 {
 	spinlock_init(&freekpid.lock);
