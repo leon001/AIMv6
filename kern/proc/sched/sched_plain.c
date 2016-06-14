@@ -27,6 +27,7 @@
 #include <aim/sync.h>
 #include <aim/initcalls.h>
 #include <list.h>
+#include <mp.h>
 
 /*
  * Plain round-robin scheduler implementation.
@@ -66,6 +67,7 @@ static struct proc *__sched_plain_pick(void)
 
 	/* Involved a trick that we directly start iterating at
 	 * plain_scheduler.current, skipping the sentry node. */
+	kprintf("DEBUG: CPU %d checking proclist\n", cpuid());
 	for_each (node,
 	    !plain_scheduler.current ?
 	    &(plain_scheduler.proclist.head) :
@@ -73,6 +75,7 @@ static struct proc *__sched_plain_pick(void)
 		if (node == &(plain_scheduler.proclist.head))
 			continue;
 		proc = list_entry(node, struct proc, sched_node);
+		kprintf("DEBUG: CPU %d checking PID %d state %d\n", cpuid(), proc->kpid, proc->state);
 		if (proc->state == PS_RUNNABLE) {
 			plain_scheduler.current = proc;
 			spin_unlock_irq_restore(

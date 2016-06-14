@@ -166,5 +166,6 @@ void idle_init(void)
 	current_proc = cpu_idleproc;
 	cpu_idleproc->state = PS_RUNNABLE;
 	cpu_idleproc->mm = kernel_mm;
+	cpu_idleproc->kpid = 0;
 }
 

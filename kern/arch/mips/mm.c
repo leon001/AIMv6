@@ -75,6 +75,8 @@ void tlb_flush(void)
 		write_c0_entrylo1(0);
 		tlbwi();
 	}
+	/* Clear ASID */
+	write_c0_entryhi(0);
 }
 
 void arch_mm_init(void)

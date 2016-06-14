@@ -374,6 +374,26 @@ unmap_pages(pgindex_t *pgindex,
 }
 
 int
+set_pages_perm(pgindex_t *pgindex, void *addr, size_t len, uint32_t flags)
+{
+	size_t i;
+	pte_t *pte;
+	struct pagedesc pd;
+
+	for (i = 0; i < len; i += PAGE_SIZE, addr += PAGE_SIZE) {
+		if (__getpagedesc(pgindex, addr, false, &pd) < 0)
+			/* may return -ENOENT? */
+			panic("change_pages_perm non-existent: %p %p\n",
+			    pgindex, addr);
+		pte = (pte_t *)pd.ptev;
+		pte[pd.ptx] &= ~PTE_LOWMASK;
+		pte[pd.ptx] |= __pgtable_perm(flags);
+	}
+
+	return 0;
+}
+
+int
 switch_pgindex(pgindex_t *pgindex)
 {
 	pgdir_slots[cpuid()] = pgindex;

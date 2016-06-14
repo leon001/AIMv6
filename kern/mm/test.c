@@ -43,21 +43,19 @@ mm_test(void)
 	/* The following should be tested only after kmmap subsystem has
 	 * been fully implemented since mm_new() needs it to create
 	 * kernel mappings. */
-#if 0
 	kprintf("another mm\n");
 	mm = mm_new();
 	kprintf("pgindex: %p\n", mm->pgindex);
-	assert(create_uvm(mm, (void *)0x100000, 5 * PAGE_SIZE, VMA_READ | VMA_WRITE) == 0);
+	assert(create_uvm(mm, (void *)0x1000, 1 * PAGE_SIZE, VMA_READ | VMA_WRITE) == 0);
 	switch_pgindex(mm->pgindex);
-	*(unsigned long *)0x100000 = 0xdeadbeef;
+	*(unsigned long *)0x1000 = 0xdeadbeef;
 	new_mm = mm_new();
 	kprintf("new pgindex: %p\n", new_mm->pgindex);
 	mm_clone(new_mm, mm);
 	switch_pgindex(new_mm->pgindex);
-	assert(*(unsigned long *)0x100000 == 0xdeadbeef);
+	assert(*(unsigned long *)0x1000 == 0xdeadbeef);
 	mm_destroy(mm);
 	mm_destroy(new_mm);
-#endif
 	kprintf("yet another mm\n");
 	mm = mm_new();
 	kprintf("pgindex: %p\n", mm->pgindex);

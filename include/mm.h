@@ -177,6 +177,7 @@ int destroy_uvm(struct mm *mm, void *addr, size_t len);
  * Returns the virtual address we are mapping to. */
 void *share_uvm(struct mm *dst, const void *addr_dst, struct mm *src,
     const void *addr_src, size_t len);
+int set_uvm_perm(struct mm *mm, void *addr, size_t len, uint32_t flags);
 
 /*
  * Architecture-independent interfaces
@@ -249,6 +250,9 @@ struct vma {
 #define VMA_EXEC	0x01
 #define VMA_WRITE	0x02
 #define VMA_READ	0x04
+#define VMA_RW		(VMA_READ | VMA_WRITE)
+#define VMA_RWX		(VMA_RW | VMA_EXEC)
+#define VMA_RX		(VMA_READ | VMA_EXEC)
 	/* More flags */
 #define VMA_FILE	0x100		/* For mmap(2) */
 	struct mm	*mm;

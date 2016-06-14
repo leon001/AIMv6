@@ -45,17 +45,14 @@ void spin_lock(lock_t *lock)
 		"	beqz	%[reg], 1b;"
 		: [reg]"=&r"(reg), [mem]"+m"(*lock)
 	);
+	smp_mb();
 }
 
 void spin_unlock(lock_t *lock)
 {
-	uint32_t reg;
-	asm volatile (
-		"1:	ll	%[reg], %[mem];"
-		"	and	%[reg], ~1;"
-		"	sc	%[reg], %[mem];"
-		"	beqz	%[reg], 1b;"
-		: [reg]"=&r"(reg), [mem]"+m"(*lock)
-	);
+	if (*lock == UNLOCKED)
+		panic("Unlocking not-owned lock at %p\n", lock);
+	*lock = UNLOCKED;
+	smp_mb();
 }
 

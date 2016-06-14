@@ -38,7 +38,8 @@
  * Loongson 3A is fine with such situation but results in undefined behavior.
  * Other MIPS CPUs may shutdown TLB, or, in the extreme, HCF(?).
  */
-#define ENTRYHI_DUMMY(idx) ((idx) << (PAGE_SHIFT + 1))
+#define ASID_INVALID	0xff
+#define ENTRYHI_DUMMY(idx) (((idx) << (PAGE_SHIFT + 1)) | ASID_INVALID)
 
 void tlb_flush(void);
 void tlb_remove(addr_t vaddr);
