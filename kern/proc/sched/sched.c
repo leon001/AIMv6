@@ -48,9 +48,7 @@ void schedule(void)
 {
 	struct proc *oldproc = current_proc, *newproc;
 
-	//kprintf("DEBUG: CPU %d Entering scheduler\n", cpuid());
 	sched_enter_critical();
-	//kprintf("DEBUG: CPU %d Entered scheduler\n", cpuid());
 
 	assert(!((oldproc->kpid == 0) ^ (oldproc == cpu_idleproc)));
 	if (oldproc->state == PS_ONPROC)
@@ -62,12 +60,9 @@ void schedule(void)
 
 	__update_proc(newproc);
 
-	//kprintf("DEBUG: CPU %d Switching from PID %d to PID %d\n", cpuid(), oldproc->kpid, newproc->kpid);
 	switch_context(newproc);
 
-	//kprintf("DEBUG: CPU %d Exiting scheduler\n", cpuid());
 	sched_exit_critical();
-	//kprintf("DEBUG: CPU %d Exited scheduler\n", cpuid());
 }
 
 void proc_add(struct proc *proc)
