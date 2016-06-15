@@ -19,7 +19,17 @@
 #ifndef _PGTABLE_H
 #define _PGTABLE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <mmu.h>
+
+#ifdef PAGESIZE_16K
+#define PGTABLE_LEVEL	3
+#else
+#define PGTABLE_LEVEL	4
+#endif
 
 #define PTE_LOWMASK		0xfff
 /* These bits match the mode bits in TLB entries */
@@ -67,15 +77,30 @@ typedef uint32_t pgindex_t;
  */
 
 #ifndef __ASSEMBLER__
+
+#if PGTABLE_LEVEL == 3
+typedef uint64_t pte_t, pmd_t, pgd_t;
+#else	/* 4-level */
 typedef uint64_t pte_t, pmd_t, pud_t, pgd_t;
+#endif	/* PGTABLE_LEVEL */
 
 typedef uint64_t pgindex_t;
 #endif	/* !__ASSEMBLER__ */
+
+#if PGTABLE_LEVEL == 3
+
+#define PTXSHIFT	PAGE_SHIFT
+#define PMXSHIFT	(PTXSHIFT + PAGE_SHIFT - WORD_SHIFT)
+#define PGXSHIFT	(PMXSHIFT + PAGE_SHIFT - WORD_SHIFT)
+
+#else	/* 4-level */
 
 #define PTXSHIFT	PAGE_SHIFT
 #define PMXSHIFT	(PTXSHIFT + PAGE_SHIFT - WORD_SHIFT)
 #define PUXSHIFT	(PMXSHIFT + PAGE_SHIFT - WORD_SHIFT)
 #define PGXSHIFT	(PUXSHIFT + PAGE_SHIFT - WORD_SHIFT)
+
+#endif	/* PGTABLE_LEVEL */
 
 #define PGX(va)		(((ULCAST(va)) >> PGXSHIFT) & PTXMASK)
 #define PUX(va)		(((ULCAST(va)) >> PUXSHIFT) & PTXMASK)

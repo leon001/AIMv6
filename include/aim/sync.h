@@ -21,22 +21,19 @@
 
 #include <sys/types.h>
 
-#include <arch-sync.h>
+#include <arch-sync.h>	/* lock_t */
 #include <irq.h>	/* local_irq_XXX */
 
 #ifndef __ASSEMBLER__
 
 /* Spinlocks. Implemented by architectures. */
 
-typedef unsigned int lock_t;
-#define UNLOCKED	0
-#define LOCKED		1
-
 /* By initializing a lock, caller assumes no code is holding it. */
 void spinlock_init(lock_t *lock);
 void spin_lock(lock_t *lock);
 /* spin_unlock may contain instructions to send event */
 void spin_unlock(lock_t *lock);
+bool spin_is_locked(lock_t *lock);
 
 #define spin_lock_irq_save(lock, flags) \
 	do { \

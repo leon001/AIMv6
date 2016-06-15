@@ -73,11 +73,11 @@
  * bitmap_find_first_bit(addr, nbits)		Position first set bit in *addr
  * bitmap_find_next_zero_bit(addr, nbits, bit)	Position next zero bit in *addr >= bit
  * bitmap_find_next_bit(addr, nbits, bit)	Position next set bit in *addr >= bit
- * bitmap_test_bit(i, dst)			Whether i-th bit is set
+ * bitmap_test_bit(i, dst)			Whether i-th bit (1-based) is set
  *
  * The following from atomic.h also applies for bitmaps:
- * atomic_set_bit(i, dst)			Set i-th bit
- * atomic_clear_bit(i, dst)			Clear i-th bit
+ * atomic_set_bit(i, dst)			Set i-th (1-based) bit
+ * atomic_clear_bit(i, dst)			Clear i-th (1-based) bit
  */
 
 extern int __bitmap_empty(const unsigned long *bitmap, int bits);

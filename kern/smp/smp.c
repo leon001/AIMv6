@@ -23,6 +23,7 @@
 #include <mp.h>
 #include <percpu.h>
 
+/* Saves the *physical* address of slave stacks */
 void *slave_stacks[MAX_CPUS];
 struct percpu cpus[MAX_CPUS];
 
@@ -40,7 +41,8 @@ static void alloc_slave_stacks(void)
 	for (i = 1; i < nr_cpus(); ++i) {
 		if (alloc_pages(&p) < 0)
 			panic("smp_startup: not enough memory for stacks\n");
-		slave_stacks[i] = pa2kva(p.paddr);
+		slave_stacks[i] = p.paddr;
+		kprintf("DEBUG: allocated stack at %p\n", slave_stacks[i]);
 	}
 }
 

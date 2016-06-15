@@ -79,7 +79,7 @@ static inline void atomic_dec(atomic_t *counter)
 static inline void atomic_set_bit(unsigned long nr,
 				  volatile unsigned long *addr)
 {
-	unsigned long *m = ((unsigned long *)addr) + (nr >> BITS_PER_LONG_LOG);
+	unsigned long *m = ((unsigned long *)addr) + ((--nr) >> BITS_PER_LONG_LOG);
 	int bit = nr & BITS_PER_LONG_MASK;
 	unsigned long temp;
 
@@ -98,7 +98,7 @@ static inline void atomic_set_bit(unsigned long nr,
 static inline void atomic_clear_bit(unsigned long nr,
 				    volatile unsigned long *addr)
 {
-	unsigned long *m = ((unsigned long *)addr) + (nr >> BITS_PER_LONG_LOG);
+	unsigned long *m = ((unsigned long *)addr) + ((--nr) >> BITS_PER_LONG_LOG);
 	int bit = nr & BITS_PER_LONG_MASK;
 	unsigned long temp;
 

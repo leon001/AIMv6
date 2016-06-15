@@ -86,7 +86,6 @@ AIM_SUPPORT_MACH([msim loongson3a zynq pc generic unknown])
 # It is usually meaningless to compile a secondary implementation into the
 # firmware or the bootloader, so implementations should check corresponding
 # macros.
-AS_VAR_SET([with_kstacksize], [4096])
 
 AS_CASE([$ARCH],
 	[arm*], [
@@ -157,6 +156,8 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([with_max_cpus], [4])
 		AS_VAR_SET([enable_uart_ns16550], [yes])
+		AS_VAR_SET([enable_loongson3a_ram_detection], [yes])
+		AS_VAR_SET([enable_pagesize_16k], [yes])
 		AS_VAR_SET([with_primary_console], [uart-ns16550])
 	],
 	[generic], [],
@@ -191,6 +192,8 @@ AIM_ARG_WITH([highram-size], [HIGHRAM_SIZE],
 # Loongson 3A
 AIM_ARG_ENABLE([loongson3a-ram-detection], [LOONGSON3A_RAM_DETECTION],
 	[RAM space detection on Loongson 3A port (EXPERIMENTAL)])
+AIM_ARG_ENABLE([pagesize-16k], [PAGESIZE_16K],
+	[16K pages (for Loongson 3A)])
 
 # target details
 AIM_ARG_WITH([ram-physbase], [RAM_PHYSBASE], [physical memory start point],
@@ -216,19 +219,19 @@ AIM_ARG_WITH([mips-pgdir-slot-base], [MIPS_PGDIR_SLOT_BASE],
 	[base virtual address for array storing per CPU page directories])
 
 # Kernel hyperparameters
-AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0x80000000])
+AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0xffffffff80000000])
 AC_SUBST([KERN_BASE], [$with_kern_base])
 
 AIM_ARG_WITH([kmmap-base], [KMMAP_BASE], [start of kernel dynamic mapping],
-	[0xf0000000])
+	[0xfffffffff0000000])
 AC_SUBST([KMMAP_BASE], [$with_kmmap_base])
 
 AIM_ARG_WITH([reserved-base], [RESERVED_BASE], [start of reserved high address],
-	[0xfffff000])
+	[0xfffffffffffff000])
 AC_SUBST([RESERVED_BASE], [$with_reserved_base])
 
 AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
-	[size of kernel stack])
+	[size of kernel stack], [4096])
 
 AIM_ARG_WITH([max-processes], [MAX_PROCESSES], [maximum number of processes],
 	[65536])

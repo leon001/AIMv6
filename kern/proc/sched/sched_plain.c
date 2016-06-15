@@ -27,6 +27,7 @@
 #include <aim/sync.h>
 #include <aim/initcalls.h>
 #include <list.h>
+#include <mp.h>
 
 /*
  * Plain round-robin scheduler implementation.
@@ -40,7 +41,6 @@ struct proclist {
 struct plain_scheduler {
 	struct scheduler;
 	struct proclist proclist;
-	struct proc *current;
 };
 
 static struct proc *__sched_plain_pick(void);
@@ -54,37 +54,31 @@ static struct plain_scheduler plain_scheduler = {
 static struct proc *__sched_plain_pick(void)
 {
 	struct list_head *node;
-	struct proc *proc;
+	struct proc *proc, *picked_proc;
 	unsigned long flags;
 	spin_lock_irq_save(&(plain_scheduler.proclist.lock), flags);
 
 	if (list_empty(&(plain_scheduler.proclist.head))) {
-		spin_unlock_irq_restore(&(plain_scheduler.proclist.lock),
-		    flags);
-		return NULL;
+		picked_proc = NULL;
+		goto finalize;
 	}
 
-	/* Involved a trick that we directly start iterating at
-	 * plain_scheduler.current, skipping the sentry node. */
-	for_each (node,
-	    !plain_scheduler.current ?
-	    &(plain_scheduler.proclist.head) :
-	    &(plain_scheduler.current->sched_node)) {
-		if (node == &(plain_scheduler.proclist.head))
-			continue;
-		proc = list_entry(node, struct proc, sched_node);
+	for_each_entry (proc, &(plain_scheduler.proclist.head), sched_node) {
 		if (proc->state == PS_RUNNABLE) {
-			plain_scheduler.current = proc;
-			spin_unlock_irq_restore(
-			    &(plain_scheduler.proclist.lock),
-			    flags
-			);
-			return proc;
+			/* Move the picked proc to list tail */
+			list_del_init(&(proc->sched_node));
+			list_add_tail(&(proc->sched_node),
+			    &(plain_scheduler.proclist.head));
+			picked_proc = proc;
+			goto finalize;
 		}
 	}
 
+	picked_proc = NULL;
+
+finalize:
 	spin_unlock_irq_restore(&(plain_scheduler.proclist.lock), flags);
-	return NULL;
+	return picked_proc;
 }
 
 static int __sched_plain_add(struct proc *proc)
@@ -101,7 +95,6 @@ static int __sched_plain_init(void)
 {
 	list_init(&(plain_scheduler.proclist.head));
 	spinlock_init(&(plain_scheduler.proclist.lock));
-	plain_scheduler.current = NULL;
 	return 0;
 }
 INITCALL_SCHED(__sched_plain_init);

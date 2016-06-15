@@ -43,37 +43,10 @@ void proc_test(void)
 	 */
 	for (i = 0; i < 5; ++i) {
 		kthreads[i] = proc_new(NULL);
+		kprintf("KTHREAD %d: PID %d\n", i, kthreads[i]->kpid);
 		proc_ksetup(kthreads[i], kthread, (void *)i);
 		kthreads[i]->state = PS_RUNNABLE;
 		proc_add(kthreads[i]);
 	}
-
-	schedule();
-
-	/*
-	 * Correct output:
-	 *
-	 * THREAD0: congratulations!
-	 * KTHREAD0: running here
-	 * KTHREAD1: congratulations!
-	 * KTHREAD1: running here
-	 * KTHREAD2: congratulations!
-	 * KTHREAD2: running here
-	 * KTHREAD3: congratulations!
-	 * KTHREAD3: running here
-	 * KTHREAD4: congratulations!
-	 * KTHREAD4: running here
-	 * KTHREAD0: running here
-	 * KTHREAD1: running here
-	 * KTHREAD2: running here
-	 * KTHREAD3: running here
-	 * KTHREAD4: running here
-	 * KTHREAD0: running here
-	 * KTHREAD1: running here
-	 * KTHREAD2: running here
-	 * KTHREAD3: running here
-	 * KTHREAD4: running here
-	 * ...
-	 */
 }
 
