@@ -39,6 +39,7 @@ int page_index_early_map(pgindex_t * index,
 
 int mmu_init(pgindex_t *boot_page_index)
 {
+	tlb_flush();
 	return 0;
 }
 
@@ -73,12 +74,14 @@ void tlb_flush(void)
 		write_c0_entryhi(ENTRYHI_DUMMY(i));
 		write_c0_entrylo0(0);
 		write_c0_entrylo1(0);
+		write_c0_pagemask(PAGEMASK_VALUE);
 		tlbwi();
 	}
+	/* Clear ASID */
+	write_c0_entryhi(0);
 }
 
 void arch_mm_init(void)
 {
-	tlb_flush();
 }
 

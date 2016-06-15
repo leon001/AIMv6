@@ -21,6 +21,7 @@
 #include <cp0regdef.h>
 #include <smp.h>
 #include <util.h>
+#include <addrspace.h>
 
 /*
  * IMPORTANT NOTE:
@@ -141,6 +142,7 @@ BEGIN(slave_entry)
 	MFC032	a0, CP0_STATUS
 	or	a0, ST_EXCM
 	xor	a0, ST_EXCM
+	#and	a0, ~ST_BEV
 	MTC032	a0, CP0_STATUS
 	bal	load_slave_sp
 	jal	slave_early_init
@@ -163,6 +165,7 @@ BEGIN(load_slave_sp)
 	SLL	t1, WORD_SHIFT
 	ADDU	t0, t1
 	LOAD	sp, (t0)
+	ADDU	sp, IO_CAC_BASE
 	jr	ra
 END(load_slave_sp)
 

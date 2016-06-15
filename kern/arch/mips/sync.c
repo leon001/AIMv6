@@ -26,7 +26,7 @@
 
 void spinlock_init(lock_t *lock)
 {
-	*lock = UNLOCKED;
+	lock->lock = 0;
 	/* Currently as Loongson 3A automatically handles hazards and
 	 * consistency, and MSIM is deterministic, we don't care about
 	 * barriers here. */
@@ -34,28 +34,45 @@ void spinlock_init(lock_t *lock)
 
 void spin_lock(lock_t *lock)
 {
-	uint32_t reg;
+	uint32_t inc = 0x10000;
+	uint32_t lock_val, new_lock, my_tail, head;
+
+	/*
+	 * Locking a ticket lock:
+	 * 1. Atomically increment the tail by one.
+	 * 2. Wait until the head becomes equal to initial value of the tail.
+	 */
 	asm volatile (
-		"1:	ll	%[reg], %[mem];"
-		"	beqz	%[reg], 2f;"
-		"	sc	%[reg], %[mem];"
-		"	b	1b;"
-		"2:	or	%[reg], 1;"
-		"	sc	%[reg], %[mem];"
-		"	beqz	%[reg], 1b;"
-		: [reg]"=&r"(reg), [mem]"+m"(*lock)
+		"1:	.set	push;"
+		"	.set	noreorder;"
+		"	ll	%[lock], %[lock_ptr];"
+		"	addu	%[new_lock], %[lock], %[inc];"
+		"	sc	%[new_lock], %[lock_ptr];"
+		"	beqz	%[new_lock], 1b;"
+		"	 srl	%[my_tail], %[lock], 16;"
+		"	andi	%[head], %[lock], 0xffff;"
+		"	beq	%[head], %[my_tail], 9f;"
+		"	 nop;"
+		"2:	lhu	%[head], %[lock_head_ptr];"
+		"	bne	%[head], %[my_tail], 2b;"
+		"	 nop;"
+		"9:	.set	pop;"
+		: [lock_ptr] "+m" (lock->lock),
+		  [lock_head_ptr] "+m" (lock->head),
+		  [lock] "=&r" (lock_val),
+		  [new_lock] "=&r" (new_lock),
+		  [my_tail] "=&r" (my_tail),
+		  [head] "=&r" (head)
+		: [inc] "r" (inc)
 	);
+	smp_mb();
 }
 
 void spin_unlock(lock_t *lock)
 {
-	uint32_t reg;
-	asm volatile (
-		"1:	ll	%[reg], %[mem];"
-		"	and	%[reg], ~1;"
-		"	sc	%[reg], %[mem];"
-		"	beqz	%[reg], 1b;"
-		: [reg]"=&r"(reg), [mem]"+m"(*lock)
-	);
+	unsigned int head = lock->head + 1;
+	smp_mb();
+	lock->head = (uint16_t)head;
+	smp_mb();
 }
 

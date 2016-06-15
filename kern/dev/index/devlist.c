@@ -36,7 +36,7 @@ struct device_entry {
 };
 
 static struct list_head __head = EMPTY_LIST(__head);
-static lock_t __lock = UNLOCKED;
+static lock_t __lock;
 
 /* comparition according to id */
 static inline int __cmp(struct device_entry *a, struct device_entry *b)
@@ -162,6 +162,8 @@ static int __init(void)
 		.from_name	= __from_name
 	};
 	set_device_index(&this);
+
+	spinlock_init(&__lock);
 
 	kputs("KERN: <devlist> Done.\n");
 	return 0;

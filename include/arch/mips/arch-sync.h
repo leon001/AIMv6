@@ -19,6 +19,18 @@
 #ifndef _ARCH_SYNC_H
 #define _ARCH_SYNC_H
 
+#include <sys/types.h>
+
+/* This is a ticket lock */
+typedef union {
+	uint32_t	lock;
+	struct {
+		/* Assumes little-endian */
+		uint16_t	head;
+		uint16_t	tail;
+	};
+} lock_t;
+
 #define smp_mb() \
 	asm volatile ("sync" : : : "memory")
 

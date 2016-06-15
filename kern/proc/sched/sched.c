@@ -50,6 +50,7 @@ void schedule(void)
 
 	sched_enter_critical();
 
+	assert(!((oldproc->kpid == 0) ^ (oldproc == cpu_idleproc)));
 	if (oldproc->state == PS_ONPROC)
 		oldproc->state = PS_RUNNABLE;
 
