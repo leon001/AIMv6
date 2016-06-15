@@ -19,10 +19,15 @@
 #ifndef _ASM_MM_TLBOPS_H
 #define _ASM_MM_TLBOPS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <addrspace.h>
 #include <mmu.h>
 #include <sys/types.h>
 #include <mipsregs.h>
+#include <cp0regdef.h>
 
 #define tlbp()		asm volatile ("tlbp")
 #define tlbr()		asm volatile ("tlbr")
@@ -40,6 +45,12 @@
  */
 #define ASID_INVALID	0xff
 #define ENTRYHI_DUMMY(idx) (((idx) << (PAGE_SHIFT + 1)) | ASID_INVALID)
+
+#ifdef PAGESIZE_16K
+#define PAGEMASK_VALUE	PM_16K
+#else
+#define PAGEMASK_VALUE	PM_4K
+#endif
 
 void tlb_flush(void);
 void tlb_remove(addr_t vaddr);

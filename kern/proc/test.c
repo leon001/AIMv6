@@ -41,7 +41,7 @@ void proc_test(void)
 	 * (3) transitions between (1) and (2) (not tested since fork() is
 	 *     unavailable yet)
 	 */
-	for (i = 0; i < 1; ++i) {
+	for (i = 0; i < 5; ++i) {
 		kthreads[i] = proc_new(NULL);
 		kprintf("KTHREAD %d: PID %d\n", i, kthreads[i]->kpid);
 		proc_ksetup(kthreads[i], kthread, (void *)i);

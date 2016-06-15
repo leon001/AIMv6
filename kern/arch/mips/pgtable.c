@@ -133,11 +133,15 @@ rollback_next_pde:
 
 struct pagedesc {
 	uint64_t	pgdv;
+#if PGTABLE_LEVEL == 4
 	uint64_t	pudv;
+#endif
 	uint64_t	pmdv;
 	uint64_t	ptev;
 	int		pgx;
+#if PGTABLE_LEVEL == 4
 	int		pux;
+#endif
 	int		pmx;
 	int		ptx;
 };
@@ -179,18 +183,27 @@ __getpagedesc(pgindex_t *pgindex,
 	      struct pagedesc *pd)
 {
 	pgd_t *pgd = (pgd_t *)pgindex;
+#if PGTABLE_LEVEL == 4
 	pud_t *pud = NULL;
+#endif
 	pmd_t *pmd = NULL;
 	pte_t *pte = NULL;
 	pd->pgdv = (uint64_t)pgd;
 	pd->pgx = PGX(addr);
+#if PGTABLE_LEVEL == 4
 	pd->pux = PUX(addr);
+#endif
 	pd->pmx = PMX(addr);
 	pd->ptx = PTX(addr);
 
 	if (!create) {
-		if (!(pud = (pud_t *)(pd->pudv = pgd[pd->pgx])) ||
+		if (
+#if PGTABLE_LEVEL == 4
+		    !(pud = (pud_t *)(pd->pudv = pgd[pd->pgx])) ||
 		    !(pmd = (pmd_t *)(pd->pmdv = pud[pd->pux])) ||
+#else
+		    !(pmd = (pmd_t *)(pd->pmdv = pgd[pd->pgx])) ||
+#endif
 		    !(pte = (pte_t *)(pd->ptev = pmd[pd->pmx])))
 			return -ENOENT;
 		else
@@ -199,10 +212,16 @@ __getpagedesc(pgindex_t *pgindex,
 
 	if (pgd[pd->pgx] == 0 && __addpgdir(pgd, pd->pgx) == NULL)
 		goto nomem;
+#if PGTABLE_LEVEL == 4
 	pud = (pud_t *)(pd->pudv = pgd[pd->pgx]);
 	if (pud[pd->pux] == 0 && __addpgdir(pud, pd->pux) == NULL)
 		goto nomem;
+#endif
+#if PGTABLE_LEVEL == 4
 	pmd = (pmd_t *)(pd->pmdv = pud[pd->pux]);
+#else
+	pmd = (pmd_t *)(pd->pmdv = pgd[pd->pgx]);
+#endif
 	if (pmd[pd->pmx] == 0 && __addpgdir(pmd, pd->pmx) == NULL)
 		goto nomem;
 	pte = (pte_t *)(pd->ptev = pmd[pd->pmx]);
@@ -211,9 +230,13 @@ __getpagedesc(pgindex_t *pgindex,
 
 nomem:
 	assert(pmd != NULL);
+#if PGTABLE_LEVEL == 4
 	assert(pud != NULL);
+#endif
 	__del_empty_pgdir(pmd, pd->pmx);
+#if PGTABLE_LEVEL == 4
 	__del_empty_pgdir(pud, pd->pux);
+#endif
 	__del_empty_pgdir(pgd, pd->pgx);
 	return -ENOMEM;
 }
@@ -223,7 +246,9 @@ __free_intermediate_pgtable(pgindex_t *pgindex, void *vaddr, size_t size)
 {
 	/* A very inefficient implementation */
 	pgd_t *pgd = (pgd_t *)pgindex;
+#if PGTABLE_LEVEL == 4
 	pud_t *pud;
+#endif
 	pmd_t *pmd;
 	pte_t *pte;
 	struct pagedesc pd;
@@ -232,9 +257,13 @@ __free_intermediate_pgtable(pgindex_t *pgindex, void *vaddr, size_t size)
 		__getpagedesc(pgindex, vaddr + sz, false, &pd);
 		pte = (pte_t *)pd.ptev;
 		pmd = (pmd_t *)pd.pmdv;
+#if PGTABLE_LEVEL == 4
 		pud = (pud_t *)pd.pudv;
+#endif
 		if (__del_empty_pgdir(pmd, pd.pmx) ||
+#if PGTABLE_LEVEL == 4
 		    __del_empty_pgdir(pud, pd.pux) ||
+#endif
 		    __del_empty_pgdir(pgd, pd.pgx))
 			continue;
 	}

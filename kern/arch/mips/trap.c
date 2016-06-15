@@ -37,6 +37,7 @@ void trap_init(void)
 	extern uint32_t generic_exception_entry;
 	extern uint32_t tlb_entry;
 	memcpy((void *)GENERIC_EXCEPT_ENTRY, &generic_exception_entry, 0x80);
+	memcpy((void *)XTLB_REFILL_ENTRY, &tlb_entry, 0x80);
 	memcpy((void *)TLB_REFILL_ENTRY, &tlb_entry, 0x80);
 
 	uint32_t status = read_c0_status();

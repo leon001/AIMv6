@@ -29,6 +29,9 @@
 void
 mm_test(void)
 {
+	unsigned long test_addr = PAGE_SIZE;
+	unsigned long i;
+
 	kprintf("==========mm_test()  started==========\n");
 	struct mm *mm = mm_new(), *new_mm;
 	kprintf("pgindex: %p\n", mm->pgindex);
@@ -37,7 +40,7 @@ mm_test(void)
 	kprintf("destroying uvm1\n");
 	assert(destroy_uvm(mm, (void *)0x100000, 2 * PAGE_SIZE) == 0);
 	kprintf("destroying uvm2\n");
-	assert(destroy_uvm(mm, (void *)0x102000, 3 * PAGE_SIZE) == 0);
+	assert(destroy_uvm(mm, (void *)0x100000 + 2 * PAGE_SIZE, 3 * PAGE_SIZE) == 0);
 	kprintf("destroying mm\n");
 	mm_destroy(mm);
 	/* The following should be tested only after kmmap subsystem has
@@ -46,14 +49,16 @@ mm_test(void)
 	kprintf("another mm\n");
 	mm = mm_new();
 	kprintf("pgindex: %p\n", mm->pgindex);
-	assert(create_uvm(mm, (void *)0x1000, 1 * PAGE_SIZE, VMA_READ | VMA_WRITE) == 0);
+	assert(create_uvm(mm, (void *)test_addr, 1 * PAGE_SIZE, VMA_READ | VMA_WRITE) == 0);
 	switch_pgindex(mm->pgindex);
-	*(unsigned long *)0x1000 = 0xdeadbeef;
+	for (i = 0; i < PAGE_SIZE; i += sizeof(unsigned int))
+		*(unsigned int *)(test_addr + i) = 0xdeadbeef;
 	new_mm = mm_new();
 	kprintf("new pgindex: %p\n", new_mm->pgindex);
 	mm_clone(new_mm, mm);
 	switch_pgindex(new_mm->pgindex);
-	assert(*(unsigned long *)0x1000 == 0xdeadbeef);
+	for (i = 0; i < PAGE_SIZE; i += sizeof(unsigned int))
+		assert(*(unsigned int *)(test_addr + i) == 0xdeadbeef);
 	mm_destroy(mm);
 	mm_destroy(new_mm);
 	kprintf("yet another mm\n");

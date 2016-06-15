@@ -20,6 +20,8 @@
 #define _ASM_TRAP_H
 
 #define TLB_REFILL_ENTRY	0xffffffff80000000
+#define XTLB_REFILL_ENTRY	0xffffffff80000080
+#define CACHE_ERROR_ENTRY	0xffffffff80000100
 #define GENERIC_EXCEPT_ENTRY	0xffffffff80000180
 
 #ifndef __ASSEMBLER__

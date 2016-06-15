@@ -68,6 +68,7 @@ BEGIN(__tlb_entry)
 	LOAD	k1, (k1)	/* k1 = PUD = PGD[PGX(va)] */
 	beqz	k1, 9f
 
+#if PGTABLE_LEVEL == 4
 	MFC0	k0, CP0_BADVADDR
 	SRL	k0, PUXSHIFT
 	AND	k0, PTXMASK
@@ -75,6 +76,7 @@ BEGIN(__tlb_entry)
 	ADDU	k1, k0
 	LOAD	k1, (k1)	/* k1 = PMD = PUD[PUX(va)] */
 	beqz	k1, 9f
+#endif
 
 	MFC0	k0, CP0_BADVADDR
 	SRL	k0, PMXSHIFT
