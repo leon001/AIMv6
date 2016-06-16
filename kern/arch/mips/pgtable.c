@@ -425,7 +425,7 @@ set_pages_perm(pgindex_t *pgindex, void *addr, size_t len, uint32_t flags)
 int
 switch_pgindex(pgindex_t *pgindex)
 {
-	pgdir_slots[cpuid()] = pgindex;
+	current_pgdir = pgindex;
 	tlb_flush();
 	return 0;
 }

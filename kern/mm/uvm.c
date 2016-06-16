@@ -435,19 +435,28 @@ finalize:
 static int
 __copy_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len, bool touser)
 {
+	struct vma *vma;
+	size_t l;
+	void *start = uvaddr, *end = uvaddr + len, *kuvaddr;
+
 	if (!is_user(uvaddr) || !is_user(uvaddr + len - 1))
 		return -EFAULT;
 
-	if (__find_continuous_vma(mm, uvaddr, len) == NULL)
+	vma = __find_continuous_vma(mm, uvaddr, len);
+	if (vma == NULL)
 		return -EFAULT;
 
-	switch_pgindex(mm->pgindex);
-	if (touser)
-		memcpy(uvaddr, kvaddr, len);
-	else
-		memcpy(kvaddr, uvaddr, len);
-	if (current_proc != NULL)
-		switch_pgindex(current_proc->mm->pgindex);
+	for (; start < end; start = PTR_ALIGN_NEXT(start, PAGE_SIZE)) {
+		kuvaddr = uva2kva(mm->pgindex, start);
+		l = min2(PTR_ALIGN_NEXT(start, PAGE_SIZE), end) - start;
+		if (kuvaddr == NULL)
+			return -EACCES;
+		if (!touser)
+			memmove(kvaddr, kuvaddr, l);
+		else
+			memmove(kuvaddr, kvaddr, l);
+		kvaddr += l;
+	}
 
 	return 0;
 }
