@@ -24,7 +24,7 @@
 #include <percpu.h>
 
 /* Saves the *physical* address of slave stacks */
-void *slave_stacks[MAX_CPUS];
+unsigned long slave_stacks[MAX_CPUS];
 struct percpu cpus[MAX_CPUS];
 
 extern void arch_smp_startup(void);
