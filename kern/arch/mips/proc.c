@@ -121,7 +121,7 @@ void switch_context(struct proc *proc)
 	current_proc = proc;
 
 	/* Switch page directory */
-	current_pgdir = proc->mm->pgindex;
+	switch_pgindex(proc->mm->pgindex);
 	/* Switch kernel stack */
 	current_kernelsp = (unsigned long)__kstacktop(proc);
 	/* Switch general registers */

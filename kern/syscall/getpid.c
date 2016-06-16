@@ -16,28 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
+#include <syscall.h>
+#include <libc/syscalls.h>
+#include <percpu.h>
+#include <proc.h>
 #include <mp.h>
-#include <smp.h>
 
-extern void slave_entry(void);
-
-int nr_cpus(void)
+int sys_getpid(int sysno, int *errno)
 {
-	return 4;
+	/* TODO: a quick test to enable printing from user space. */
+	kprintf("PID %d CPU %d\n", current_proc->pid, cpuid());
+	*errno = 0;
+	return current_proc->pid;
 }
-
-void mach_smp_startup(void)
-{
-	int i;
-
-	for (i = 1; i < nr_cpus(); ++i) {
-		write32(MSIM_ORDER_MAILBOX_BASE +
-		    (1 << MSIM_ORDER_MAILBOX_ORDER) * i,
-		    (unsigned long)slave_entry);
-	}
-}
+ADD_SYSCALL(sys_getpid, NRSYS_getpid);
 
