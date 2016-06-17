@@ -1,4 +1,5 @@
 /* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+ * Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_IRQ_H
-#define _ASM_IRQ_H
+#ifndef _ARCH_IRQ_H
+#define _ARCH_IRQ_H
 
 #define local_irq_save(flags) \
 	asm volatile ("pushf; pop %0;" : "=rm"(flags) : : "memory")
@@ -25,4 +26,5 @@
 #define local_irq_restore(flags) \
 	asm volatile ("push %0; popf;" : : "g"(flags) : "memory")
 
-#endif
+#endif /* _ARCH_IRQ_H */
+

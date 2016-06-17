@@ -23,7 +23,7 @@
 
 #include <arch-sync.h>	/* lock_t */
 #include <asm-generic/sync.h>
-#include <irq.h>	/* local_irq_XXX */
+#include <aim/irq.h>	/* local_irq_XXX */
 
 #ifndef __ASSEMBLER__
 
@@ -38,7 +38,7 @@ bool spin_is_locked(lock_t *lock);
 
 #define spin_lock_irq_save(lock, flags) \
 	do { \
-		local_irq_save(flags); \
+		(flags) = local_irq_save(); \
 		spin_lock(lock); \
 	} while (0)
 #define spin_unlock_irq_restore(lock, flags) \
