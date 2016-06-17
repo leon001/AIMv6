@@ -31,6 +31,8 @@
 #include <syscall.h>
 #include <decode.h>
 #include <panic.h>
+#include <timer.h>
+#include <errno.h>
 
 void trap_init(void)
 {
@@ -228,6 +230,7 @@ void trap_handler(struct trapframe *regs)
 {
 	switch (EXCCODE(regs->cause)) {
 	case EC_sys:
+		__skip_victim(regs);
 		handle_syscall(regs);
 		/*
 		 * After executing ERET instruction MIPS processor return to
@@ -245,7 +248,6 @@ void trap_handler(struct trapframe *regs)
 		 * and predicting the branch target, which is handled in
 		 * __skip_victim().
 		 */
-		__skip_victim(regs);
 		break;
 	case EC_bp:
 		/*
@@ -256,6 +258,10 @@ void trap_handler(struct trapframe *regs)
 		 */
 		__skip_victim(regs);
 		break;
+	case EC_int:
+		if (handle_interrupt(regs) == 0)
+			break;
+		/* else fallthru */
 	default:
 		dump_regs(regs);
 		panic("Unexpected trap\n");

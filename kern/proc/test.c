@@ -6,7 +6,7 @@
 #include <mp.h>
 
 /*
- * Temporary test since I haven't implemented scheduler and timer yet.
+ * Temporary test
  */
 
 void kthread(void *arg)
@@ -21,10 +21,12 @@ void kthread(void *arg)
 		for (j = 0; j < 100000; ++j)
 			/* nothing */;
 		kprintf("KTHREAD%d: running on CPU %d\n", id, cpuid());
+#if 0
 		/* TODO: create user threads instead of kernel threads.
 		 * Here I'm just checking whether system call framework
 		 * works. */
 		schedule();
+#endif
 	}
 }
 
@@ -45,8 +47,10 @@ void userinit(void)
 		"	bnez	$3, 2b;"
 		"	li	$2, 6;"
 		"	syscall;"
+#if 0
 		"	li	$2, 5;"
 		"	syscall;"
+#endif
 		"	b	1b;"
 	);
 #else

@@ -148,6 +148,8 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_max_cpus], [4])
 		AS_VAR_SET([with_highram_base], [0x80000000])
 		AS_VAR_SET([with_highram_size], [0x00000000])
+
+		AC_DEFINE([CPU_FREQ], [10000000], [CPU frequency])
 	], 
 	[pc], [
 		AS_VAR_SET([with_fwstack_order], [12])
@@ -159,6 +161,7 @@ AS_CASE([$MACH],
 		AS_VAR_SET([enable_loongson3a_ram_detection], [yes])
 		AS_VAR_SET([enable_pagesize_16k], [yes])
 		AS_VAR_SET([with_primary_console], [uart-ns16550])
+		AC_DEFINE([CPU_FREQ], [750000000], [CPU frequency])
 	],
 	[generic], [],
 	[unknown], [],
@@ -238,6 +241,9 @@ AIM_ARG_WITH([max-processes], [MAX_PROCESSES], [maximum number of processes],
 
 AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 	[order of firmware stack per CPU (size=1<<order)])
+
+AIM_ARG_WITH([timer-freq], [TIMER_FREQ],
+	[timer interrupt frequency], [100])
 
 # Drivers
 AIM_ARG_ENABLE([io-mem], [IO_MEM], [memory-mapped IO driver])
@@ -386,6 +392,7 @@ AC_CONFIG_FILES([
 	kern/proc/sched/Makefile
 	kern/smp/Makefile
 	kern/syscall/Makefile
+	kern/timer/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile
@@ -428,6 +435,7 @@ Kernel
   KERN_BASE:	${with_kern_base}
   KMMAP_BASE:	${with_kmmap_base}
   RESERVED:	${with_reserved_base}
+  Timer freq:	${with_timer_freq}
 
 Algorithms
 --------

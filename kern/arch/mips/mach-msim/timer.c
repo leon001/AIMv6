@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,22 +16,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TRAP_H
-#define _TRAP_H
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-struct trapframe;
+#include <sys/types.h>
+#include <timer.h>
+#include <mipsregs.h>
 
-void trap_init(void);
+uint32_t inc;
 
-__noreturn
-void trap_return(struct trapframe *regs);
+void timer_init(void)
+{
+	uint32_t count, status;
 
-void handle_syscall(struct trapframe *tf);
-int handle_interrupt(struct trapframe *tf);
+	inc = CPU_FREQ / TIMER_FREQ;
+	status = read_c0_status();
+	write_c0_status(status | ST_IMx(7));
+	count = read_c0_count();
+	write_c0_compare(count + inc);
+}
 
-#endif /* _TRAP_H */
+void pre_timer_interrupt(void)
+{
+}
+
+void post_timer_interrupt(void)
+{
+	uint32_t compare = read_c0_compare();
+	write_c0_compare(compare + inc);
+}
 

@@ -142,7 +142,6 @@ BEGIN(slave_entry)
 	MFC032	a0, CP0_STATUS
 	or	a0, ST_EXCM
 	xor	a0, ST_EXCM
-	#and	a0, ~ST_BEV
 	MTC032	a0, CP0_STATUS
 	bal	load_slave_sp
 	jal	slave_early_init
@@ -154,6 +153,9 @@ BEGIN(slave_upper_entry)
 	.cpload	t9
 	.set	reorder
 	bal	load_slave_sp
+	MFC032	a0, CP0_STATUS
+	and	a0, ~ST_BEV
+	MTC032	a0, CP0_STATUS
 	.cprestore
 	jal	slave_init
 1:	b	1b

@@ -34,6 +34,8 @@
 #include <percpu.h>
 #include <sched.h>
 #include <mp.h>
+#include <irq.h>
+#include <timer.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
 
@@ -45,8 +47,11 @@
 static void __noreturn rest_percpu_init(void)
 {
 	idle_init();
+	timer_init();
+	local_irq_enable();
+
 	for (;;)
-		schedule();
+		/* nothing */;
 }
 
 /*
