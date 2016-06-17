@@ -33,6 +33,8 @@
 #include <percpu.h>
 #include <sched.h>
 #include <mp.h>
+#include <irq.h>
+#include <timer.h>
 #include <aim/initcalls.h>
 #include <aim/kmmap.h>
 
@@ -41,13 +43,27 @@
 /*
  * Initialization routine common to master and slave at last stages.
  *
- * Will jump to scheduler here.
+ * Will jump to scheduler.
+ */
+static void __noreturn rest_percpu_init(void)
+{
+	idle_init();
+	timer_init();
+	local_irq_enable();
+
+	for (;;)
+		/* nothing */;
+}
+
+/*
+ * Initialization routine after everything before spawning initproc is done.
  */
 static void __noreturn rest_init(void)
 {
-	idle_init();
-	for (;;)
-		schedule();
+	/* TODO: temporary test, will be removed */
+	proc_test();
+	/* TODO: shall we synchronize rest_percpu_init() on different cores? */
+	rest_percpu_init();
 }
 
 void __noreturn master_init(void)
@@ -113,10 +129,11 @@ void __noreturn master_init(void)
 
 	proc_init();
 	sched_init();
-	idle_init();
+	kputs("KERN: Scheduler initialized.\n");
 
 	/* do initcalls, one by one */
 	do_initcalls();
+	kputs("KERN: Initcalls done.\n");
 
 	/* temporary tests */
 	struct allocator_cache cache = {
@@ -158,10 +175,6 @@ void __noreturn master_init(void)
 
 	/* initialize or cleanup namespace */
 
-	/* Temporary test, WILL BE REMOVED */
-	proc_test();
-
-	/* TODO: shall we synchronize rest_init() on different cores? */
 	rest_init();
 }
 
@@ -169,6 +182,6 @@ void __noreturn slave_init(void)
 {
 	kprintf("KERN CPU %d: init\n", cpuid());
 
-	rest_init();
+	rest_percpu_init();
 }
 

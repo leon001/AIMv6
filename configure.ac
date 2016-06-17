@@ -154,6 +154,8 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_max_cpus], [4])
 		AS_VAR_SET([with_highram_base], [0x80000000])
 		AS_VAR_SET([with_highram_size], [0x00000000])
+
+		AC_DEFINE([CPU_FREQ], [10000000], [CPU frequency])
 	], 
 	[pc], [
 		AS_VAR_SET([with_fwstack_order], [12])
@@ -162,7 +164,10 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([with_max_cpus], [4])
 		AS_VAR_SET([enable_uart_ns16550], [yes])
+		AS_VAR_SET([enable_loongson3a_ram_detection], [yes])
+		AS_VAR_SET([enable_pagesize_16k], [yes])
 		AS_VAR_SET([with_primary_console], [UART_NS16550])
+		AC_DEFINE([CPU_FREQ], [750000000], [CPU frequency])
 	],
 	[generic], [],
 	[unknown], [],
@@ -196,6 +201,8 @@ AIM_ARG_WITH([highram-size], [HIGHRAM_SIZE],
 # Loongson 3A
 AIM_ARG_ENABLE_FEATURE([loongson3a-ram-detection], [LOONGSON3A_RAM_DETECTION],
 	[RAM space detection on Loongson 3A port (EXPERIMENTAL)])
+AIM_ARG_ENABLE([pagesize-16k], [PAGESIZE_16K],
+	[16K pages (for Loongson 3A)])
 
 # target details
 AIM_ARG_WITH([ram-physbase], [RAM_PHYSBASE], [physical memory start point],
@@ -221,25 +228,28 @@ AIM_ARG_WITH([mips-pgdir-slot-base], [MIPS_PGDIR_SLOT_BASE],
 	[base virtual address for array storing per CPU page directories])
 
 # Kernel hyperparameters
-AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0x80000000])
+AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0xffffffff80000000])
 AC_SUBST([KERN_BASE], [$with_kern_base])
 
 AIM_ARG_WITH([kmmap-base], [KMMAP_BASE], [start of kernel dynamic mapping],
-	[0xf0000000])
+	[0xfffffffff0000000])
 AC_SUBST([KMMAP_BASE], [$with_kmmap_base])
 
 AIM_ARG_WITH([reserved-base], [RESERVED_BASE], [start of reserved high address],
-	[0xfffff000])
+	[0xfffffffffffff000])
 AC_SUBST([RESERVED_BASE], [$with_reserved_base])
 
 AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
-	[size of kernel stack])
+	[size of kernel stack], [4096])
 
 AIM_ARG_WITH([max-processes], [MAX_PROCESSES], [maximum number of processes],
 	[65536])
 
 AIM_ARG_WITH([fwstack-order], [FWSTACKORDER],
 	[order of firmware stack per CPU (size=1<<order)])
+
+AIM_ARG_WITH([timer-freq], [TIMER_FREQ],
+	[timer interrupt frequency], [100])
 
 # Drivers
 AIM_ARG_ENABLE([io-mem], [IO_MEM], [memory-mapped IO driver])
@@ -398,6 +408,7 @@ AC_CONFIG_FILES([
 	kern/proc/sched/Makefile
 	kern/smp/Makefile
 	kern/syscall/Makefile
+	kern/timer/Makefile
 	lib/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile
@@ -441,6 +452,7 @@ Kernel
   KERN_BASE:	${with_kern_base}
   KMMAP_BASE:	${with_kmmap_base}
   RESERVED:	${with_reserved_base}
+  Timer freq:	${with_timer_freq}
 
 Algorithms
 --------

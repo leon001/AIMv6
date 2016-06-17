@@ -27,6 +27,10 @@
 
 #ifndef __ASSEMBLER__
 
+typedef unsigned int lock_t
+#define UNLOCKED	0
+#define LOCKED		1
+
 #define SMP_DMB() \
 	asm volatile ("dmb")
 

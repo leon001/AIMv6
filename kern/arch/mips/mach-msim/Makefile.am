@@ -17,7 +17,11 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libmsim.la
+noinst_LTLIBRARIES = libmsim.la libmsimintr.la
+noinst_DATA = timer.o
 
 libmsim_la_SOURCES = memory.c smp.c
 libmsim_la_LIBADD = $(builddir)/../mach-generic/libmips-generic.la
+
+libmsimintr_la_SOURCES = interrupt.c
+

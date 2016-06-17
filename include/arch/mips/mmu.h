@@ -19,11 +19,20 @@
 #ifndef _MMU_H
 #define _MMU_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* premap_addr() and postmap_addr() in addrspace.h */
 #include <addrspace.h>
 #include <util.h>
 
+#ifdef PAGESIZE_16K
+#define PAGE_SHIFT	14
+#else
 #define PAGE_SHIFT	12
+#endif
+
 #define PAGE_SIZE	(1 << PAGE_SHIFT)
 #define PAGE_MASK	(PAGE_SIZE - 1)
 #define PAGE_OFFSET(a)	(ULCAST(a) & PAGE_MASK)

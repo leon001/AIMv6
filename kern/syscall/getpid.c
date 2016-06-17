@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,22 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TRAP_H
-#define _TRAP_H
+#include <syscall.h>
+#include <libc/syscalls.h>
+#include <percpu.h>
+#include <proc.h>
+#include <mp.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-struct trapframe;
-
-void trap_init(void);
-
-__noreturn
-void trap_return(struct trapframe *regs);
-
-void handle_syscall(struct trapframe *tf);
-int handle_interrupt(struct trapframe *tf);
-
-#endif /* _TRAP_H */
+int sys_getpid(int sysno, int *errno)
+{
+	/* TODO: a quick test to enable printing from user space. */
+	kprintf("PID %d CPU %d\n", current_proc->pid, cpuid());
+	*errno = 0;
+	return current_proc->pid;
+}
+ADD_SYSCALL(sys_getpid, NRSYS_getpid);
 

@@ -76,10 +76,16 @@
 #define IS_ALIGNED(x, a)	(((x) & __ALIGN_MASK(x, a)) == 0)
 #define ALIGN_ABOVE(x, a)	((((x) - 1) | __ALIGN_MASK(x, a)) + 1)
 #define ALIGN_BELOW(x, a)	((x) & ~__ALIGN_MASK(x, a))
+#define ALIGN_PREV(x, a)	ALIGN_BELOW((x) - 1, a)
+#define ALIGN_NEXT(x, a)	ALIGN_ABOVE((x) + 1, a)
 #define PTR_ALIGN_ABOVE(p, a)	\
 	((typeof(p))ALIGN_ABOVE((unsigned long)(p), (a)))
 #define PTR_ALIGN_BELOW(p, a)	\
 	((typeof(p))ALIGN_BELOW((unsigned long)(p), (a)))
+#define PTR_ALIGN_PREV(p, a)	\
+	((typeof(p))ALIGN_PREV((unsigned long)(p), (a)))
+#define PTR_ALIGN_NEXT(p, a)	\
+	((typeof(p))ALIGN_NEXT((unsigned long)(p), (a)))
 #define PTR_IS_ALIGNED(p, a)	\
 	IS_ALIGNED((unsigned long)(p), (a))
 

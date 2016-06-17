@@ -36,8 +36,7 @@ static struct trapframe *__proc_trapframe(struct proc *proc)
 	return tf;
 }
 
-/******** Kernel processes *******/
-static void __bootstrap_ktrapframe(struct trapframe *tf,
+static void __bootstrap_trapframe(struct trapframe *tf,
 				   void *entry,
 				   void *stacktop,
 				   void *args)
@@ -49,6 +48,8 @@ static void __bootstrap_ktrapframe(struct trapframe *tf,
 	 */
 	tf->status = read_c0_status();
 	tf->cause = read_c0_cause();
+	/* Enable interrupts in trap frame */
+	tf->status |= ST_IE | ST_IM;
 	tf->epc = (unsigned long)entry;
 	tf->gpr[_T9] = tf->epc;
 	tf->gpr[_SP] = (unsigned long)stacktop;
@@ -56,8 +57,7 @@ static void __bootstrap_ktrapframe(struct trapframe *tf,
 }
 
 extern void forkret(void);
-
-static void __bootstrap_kcontext(struct regs *regs, struct trapframe *tf)
+static void __bootstrap_context(struct regs *regs, struct trapframe *tf)
 {
 	/*
 	 * Some of the registers are scratch registers (i.e. caller-saved),
@@ -74,6 +74,8 @@ static void __bootstrap_kcontext(struct regs *regs, struct trapframe *tf)
 	 * Maybe I should save only callee-saved registers in future...
 	 */
 	regs->status = read_c0_status();
+	/* Enable interrupt masks in context */
+	regs->status |= ST_IM;
 	regs->cause = read_c0_cause();
 	/* t9 is the register storing function entry address in PIC */
 	regs->gpr[_T9] = regs->gpr[_RA] = (unsigned long)forkret;
@@ -81,11 +83,31 @@ static void __bootstrap_kcontext(struct regs *regs, struct trapframe *tf)
 	regs->gpr[_SP] = (unsigned long)tf;
 }
 
+static void __bootstrap_user(struct trapframe *tf)
+{
+	tf->status = (tf->status & ~ST_KSU) | KSU_USER;
+	/*
+	 * TODO: enable ST_UX only when executing MIPS64 code on MIPS64
+	 * platform.  When executing MIPS32 code, do NOT enable ST_UX.
+	 */
+#ifdef __LP64__
+	tf->status |= ST_UX;
+#endif	/* __LP64__ */
+}
+
 void __proc_ksetup(struct proc *proc, void *entry, void *args)
 {
 	struct trapframe *tf = __proc_trapframe(proc);
-	__bootstrap_ktrapframe(tf, entry, __kstacktop(proc), args);
-	__bootstrap_kcontext(&(proc->context), tf);
+	__bootstrap_trapframe(tf, entry, __kstacktop(proc), args);
+	__bootstrap_context(&(proc->context), tf);
+}
+
+void __proc_usetup(struct proc *proc, void *entry, void *stacktop, void *args)
+{
+	struct trapframe *tf = __proc_trapframe(proc);
+	__bootstrap_trapframe(tf, entry, stacktop, args);
+	__bootstrap_context(&(proc->context), tf);
+	__bootstrap_user(tf);
 }
 
 /******** User processes (TODO) *******/
@@ -103,7 +125,7 @@ void switch_context(struct proc *proc)
 	current_proc = proc;
 
 	/* Switch page directory */
-	current_pgdir = proc->mm->pgindex;
+	switch_pgindex(proc->mm->pgindex);
 	/* Switch kernel stack */
 	current_kernelsp = (unsigned long)__kstacktop(proc);
 	/* Switch general registers */

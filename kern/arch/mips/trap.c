@@ -31,12 +31,15 @@
 #include <syscall.h>
 #include <decode.h>
 #include <panic.h>
+#include <timer.h>
+#include <errno.h>
 
 void trap_init(void)
 {
 	extern uint32_t generic_exception_entry;
 	extern uint32_t tlb_entry;
 	memcpy((void *)GENERIC_EXCEPT_ENTRY, &generic_exception_entry, 0x80);
+	memcpy((void *)XTLB_REFILL_ENTRY, &tlb_entry, 0x80);
 	memcpy((void *)TLB_REFILL_ENTRY, &tlb_entry, 0x80);
 
 	uint32_t status = read_c0_status();
@@ -225,7 +228,9 @@ static void __skip_victim(struct trapframe *tf)
 
 void trap_handler(struct trapframe *regs)
 {
-	if (EXCCODE(regs->cause) == EC_sys) {
+	switch (EXCCODE(regs->cause)) {
+	case EC_sys:
+		__skip_victim(regs);
 		handle_syscall(regs);
 		/*
 		 * After executing ERET instruction MIPS processor return to
@@ -243,8 +248,8 @@ void trap_handler(struct trapframe *regs)
 		 * and predicting the branch target, which is handled in
 		 * __skip_victim().
 		 */
-		__skip_victim(regs);
-	} else if (EXCCODE(regs->cause) == EC_bp) {
+		break;
+	case EC_bp:
 		/*
 		 * As a test for __skip_victim(), we skip the victim to resume
 		 * execution when handling breakpoints.
@@ -252,7 +257,12 @@ void trap_handler(struct trapframe *regs)
 		 * backdoors) later for breakpoints.
 		 */
 		__skip_victim(regs);
-	} else {
+		break;
+	case EC_int:
+		if (handle_interrupt(regs) == 0)
+			break;
+		/* else fallthru */
+	default:
 		dump_regs(regs);
 		panic("Unexpected trap\n");
 	}
@@ -263,13 +273,18 @@ extern void trap_exit(struct trapframe *regs);
 
 __noreturn void trap_return(struct trapframe *regs)
 {
-	/* Retain interrupt masks while changing other fields according to
-	 * register set */
+	/*
+	 * Retain interrupt masks while changing other fields according to
+	 * register set.
+	 *
+	 * Also, we want to reenable ST_EXL since we cleared it before
+	 * entering C trap handler.
+	 */
 	uint32_t status = read_c0_status();
 	uint32_t im = status & ST_IM;
 	status &= ~ST_EXCM;
 	write_c0_status(status);
-	regs->status = (regs->status & ~ST_IM) | im;
+	regs->status = (regs->status & ~ST_IM) | im | ST_EXL;
 	trap_exit(regs);
 }
 

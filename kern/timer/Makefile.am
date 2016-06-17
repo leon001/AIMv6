@@ -17,11 +17,7 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libsyscall.la
-noinst_DATA = sched_yield.o \
-	      fork.o \
-	      getpid.o
+noinst_LTLIBRARIES = libtimer.la
 
-libsyscall_la_SOURCES = \
-	syscall.c
+libtimer_la_SOURCES = timer.c
 

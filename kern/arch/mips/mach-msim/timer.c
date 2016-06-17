@@ -16,40 +16,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_TRAP_H
-#define _ASM_TRAP_H
-
-#define TLB_REFILL_ENTRY	0xffffffff80000000
-#define XTLB_REFILL_ENTRY	0xffffffff80000080
-#define CACHE_ERROR_ENTRY	0xffffffff80000100
-#define GENERIC_EXCEPT_ENTRY	0xffffffff80000180
-
-#ifndef __ASSEMBLER__
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <sys/types.h>
-#include <cp0regdef.h>
+#include <timer.h>
+#include <mipsregs.h>
 
-struct trapframe {
-	/* Here I just copy from struct regs.  We can make them
-	 * different later. */
-	/* general purpose registers */
-	unsigned long	gpr[32];
+uint32_t inc;
 
-	/* coprocessor registers */
-	unsigned long	lo;
-	unsigned long	hi;
-	unsigned long	status;
-	unsigned long	cause;
-	unsigned long	epc;
-	unsigned long	badvaddr;
-};
-
-static inline bool from_kernel(struct trapframe *tf)
+void timer_init(void)
 {
-	return ((tf->status & ST_KSU) == KSU_KERNEL);
+	uint32_t count, status;
+
+	inc = CPU_FREQ / TIMER_FREQ;
+	status = read_c0_status();
+	write_c0_status(status | ST_IMx(7));
+	count = read_c0_count();
+	write_c0_compare(count + inc);
 }
 
-#endif	/* !__ASSEMBLER__ */
+void pre_timer_interrupt(void)
+{
+}
 
-#endif
+void post_timer_interrupt(void)
+{
+	uint32_t compare = read_c0_compare();
+	write_c0_compare(compare + inc);
+}
 

@@ -23,7 +23,8 @@ MODULES =
 ################
 
 MODULES += $(top_builddir)/kern/syscall/fork.o \
-	   $(top_builddir)/kern/syscall/sched_yield.o
+	   $(top_builddir)/kern/syscall/sched_yield.o \
+	   $(top_builddir)/kern/syscall/getpid.o
 
 # For each module capable for compiling into the kernel,
 # add its entry here.
@@ -62,3 +63,16 @@ endif
 if UART_NS16550
 MODULES += $(top_builddir)/drivers/serial/uart-ns16550.o
 endif
+
+#########
+# Timer #
+#########
+
+if MACH_MSIM
+MODULES += $(top_builddir)/kern/arch/$(ARCH)/mach-$(MACH)/timer.o
+endif
+
+if MACH_LOONGSON3A
+MODULES += $(top_builddir)/kern/arch/$(ARCH)/mach-$(MACH)/timer.o
+endif
+

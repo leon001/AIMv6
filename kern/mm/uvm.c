@@ -26,6 +26,7 @@
 #include <atomic.h>
 #include <errno.h>
 #include <panic.h>
+#include <percpu.h>	/* current_proc */
 #include <libc/string.h>
 #include <aim/sync.h>
 
@@ -104,6 +105,7 @@ mm_destroy(struct mm *mm)
 	kfree(mm);
 }
 
+/* Assumes that mm lock is held */
 static struct vma *
 __find_vma_before(struct mm *mm, void *addr, size_t size)
 {
@@ -119,11 +121,39 @@ __find_vma_before(struct mm *mm, void *addr, size_t size)
 	}
 
 	vma_prev = prev_entry(vma, node);
-	if (addr < vma_prev->start + vma->size)
+	if (addr < vma_prev->start + vma_prev->size)
 		/* overlap detected */
 		return NULL;
 
 	return vma_prev;
+}
+
+/* Assumes that mm lock is held */
+static struct vma *
+__find_continuous_vma(struct mm *mm, void *addr, size_t len)
+{
+	struct vma *vma, *vma_start;
+	size_t i = 0;
+
+	/* find the vma */
+	for_each_entry (vma, &(mm->vma_head), node) {
+		if (vma->start == addr)
+			break;
+	}
+	/* not found? */
+	if (&(vma->node) == &(mm->vma_head))
+		return NULL;
+
+	vma_start = vma;
+	i += PAGE_SIZE;
+	for (; i < len; i += PAGE_SIZE) {
+		vma = next_entry(vma, node);
+		if (vma->start != addr + i)
+			/* requested region contain unmapped virtual page */
+			return NULL;
+	}
+
+	return vma_start;
 }
 
 /* Unmapping takes place _at_ @vma_start */
@@ -203,8 +233,10 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 
 	spin_lock(&(mm->lock));
 
-	if (!(vma_start = __find_vma_before(mm, addr, len)))
-		return -EFAULT;
+	if (!(vma_start = __find_vma_before(mm, addr, len))) {
+		retcode = -EFAULT;
+		goto finalize;
+	}
 
 	vma_cur = vma_start;
 	for (; mapped < len; mapped += PAGE_SIZE, vcur += PAGE_SIZE) {
@@ -263,7 +295,34 @@ finalize:
 int
 destroy_uvm(struct mm *mm, void *addr, size_t len)
 {
-	struct vma *vma, *vma_start;
+	struct vma *vma;
+	int retcode;
+
+	if (!IS_ALIGNED(len, PAGE_SIZE) ||
+	    mm == NULL ||
+	    !PTR_IS_ALIGNED(addr, PAGE_SIZE))
+		return -EINVAL;
+
+	spin_lock(&(mm->lock));
+
+	vma = __find_continuous_vma(mm, addr, len);
+	if (vma == NULL) {
+		retcode = -EFAULT;
+		goto finalize;
+	}
+
+	__unmap_and_free_vma(mm, vma, len);
+	retcode = 0;
+
+finalize:
+	spin_unlock(&(mm->lock));
+	return retcode;
+}
+
+int
+set_uvm_perm(struct mm *mm, void *addr, size_t len, uint32_t flags)
+{
+	struct vma *vma;
 	size_t i = 0;
 	int retcode;
 
@@ -274,28 +333,21 @@ destroy_uvm(struct mm *mm, void *addr, size_t len)
 
 	spin_lock(&(mm->lock));
 
-	/* find the vma */
-	for_each_entry (vma, &(mm->vma_head), node) {
-		if (vma->start == addr)
-			break;
-	}
-	/* not found? */
-	if (&(vma->node) == &(mm->vma_head)) {
+	vma = __find_continuous_vma(mm, addr, len);
+	if (vma == NULL) {
 		retcode = -EFAULT;
 		goto finalize;
 	}
-	vma_start = vma;
-	i += PAGE_SIZE;
-	for (; i < len; i += PAGE_SIZE) {
-		vma = next_entry(vma, node);
-		if (vma->start != addr + i) {
-			/* requested region contain unmapped virtual page */
-			retcode = -EFAULT;
+
+	for (; i < len; i += PAGE_SIZE, addr += PAGE_SIZE) {
+		vma->flags = flags;
+		if (set_pages_perm(mm->pgindex, addr, PAGE_SIZE,
+		    flags) != 0) {
+			retcode = -ENOENT;
 			goto finalize;
 		}
 	}
 
-	__unmap_and_free_vma(mm, vma_start, len);
 	retcode = 0;
 
 finalize:
@@ -378,6 +430,47 @@ finalize:
 	spin_unlock(&(src->lock));
 	spin_unlock(&(dst->lock));
 	return retcode;
+}
+
+static int
+__copy_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len, bool touser)
+{
+	struct vma *vma;
+	size_t l;
+	void *start = uvaddr, *end = uvaddr + len, *kuvaddr;
+
+	if (!is_user(uvaddr) || !is_user(uvaddr + len - 1))
+		return -EFAULT;
+
+	vma = __find_continuous_vma(mm, uvaddr, len);
+	if (vma == NULL)
+		return -EFAULT;
+
+	for (; start < end; start = PTR_ALIGN_NEXT(start, PAGE_SIZE)) {
+		kuvaddr = uva2kva(mm->pgindex, start);
+		l = min2(PTR_ALIGN_NEXT(start, PAGE_SIZE), end) - start;
+		if (kuvaddr == NULL)
+			return -EACCES;
+		if (!touser)
+			memmove(kvaddr, kuvaddr, l);
+		else
+			memmove(kuvaddr, kvaddr, l);
+		kvaddr += l;
+	}
+
+	return 0;
+}
+
+int
+copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len)
+{
+	return __copy_uvm(mm, uvaddr, kvaddr, len, true);
+}
+
+int
+copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len)
+{
+	return __copy_uvm(mm, uvaddr, kvaddr, len, false);
 }
 
 void mm_init(void)

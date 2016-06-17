@@ -27,7 +27,7 @@ extern void slave_entry(void);
 
 int nr_cpus(void)
 {
-	return NR_CPUS;
+	return 4;
 }
 
 void mach_smp_startup(void)

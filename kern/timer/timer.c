@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,22 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TRAP_H
-#define _TRAP_H
+#include <sched.h>
+#include <timer.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+void handle_timer_interrupt(void)
+{
+	pre_timer_interrupt();
 
-struct trapframe;
+	schedule();
 
-void trap_init(void);
-
-__noreturn
-void trap_return(struct trapframe *regs);
-
-void handle_syscall(struct trapframe *tf);
-int handle_interrupt(struct trapframe *tf);
-
-#endif /* _TRAP_H */
+	post_timer_interrupt();
+}
 

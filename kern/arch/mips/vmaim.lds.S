@@ -60,9 +60,7 @@ SECTIONS {
 	 * You may notice one difference.  The reason I choose 'PROVIDE'
 	 * instead of 'HIDDEN' is somewhat complex.  We could not ensure
 	 * that BIOSes or bootloaders may set up GP and t9 registers for
-	 * us (because AFAIK current operating systems including Linux
-	 * and OpenBSD still uses a non-PIC kernel).  We have to setup GP
-	 * and t9 by our own.
+	 * us.  We have to setup GP and t9 by our own.
 	 */
 	PROVIDE(_gp = ALIGN (16) + 0x7ff0);
 	.got : {
@@ -71,13 +69,12 @@ SECTIONS {
 	.data : {
 		*(.data*);
 	}
+
 	/* Uninitialized sections comes after */
+	PROVIDE(__bss_begin__ = .);
+	PROVIDE(_bss_begin = .);
 	.bss : {
-		PROVIDE(__bss_begin__ = .);
-		PROVIDE(_bss_begin = .);
 		*(.bss*);
-		PROVIDE(__bss_end__ = .);
-		PROVIDE(_bss_end = .);
 	}
 	/*
 	 * MIPS ISA doesn't require alignment, paging or anything else
@@ -89,5 +86,7 @@ SECTIONS {
 		. += KSTACKSIZE;
 		PROVIDE(boot_stack = .);
 	}
+	PROVIDE(__bss_end__ = .);
+	PROVIDE(_bss_end = .);
 	PROVIDE(_kern_end = ALIGN(PAGE_SIZE));
 }
