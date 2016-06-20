@@ -35,9 +35,7 @@ void mach_smp_startup(void)
 	int i;
 
 	for (i = 1; i < nr_cpus(); ++i) {
-		write32(MSIM_ORDER_MAILBOX_BASE +
-		    (1 << MSIM_ORDER_MAILBOX_ORDER) * i,
-		    (unsigned long)slave_entry);
+		write_msim_mailbox(i, (unsigned long)slave_entry);
 	}
 }
 

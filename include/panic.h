@@ -24,10 +24,13 @@
 #endif
 
 __noreturn
-void __panic(void);
+void local_panic(void);
 
 __noreturn
 void panic(const char *fmt, ...);
+
+/* Arch/mach-dependent code */
+void panic_other_cpus(void);
 
 #define assert(condition) \
 	do { \
