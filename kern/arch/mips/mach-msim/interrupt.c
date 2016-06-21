@@ -32,21 +32,16 @@ static int __discard(struct trapframe *regs)
 	return 0;
 }
 
-static int handle_ipi_interrupt(unsigned long msg)
-{
-	/* Currently we discard other IPIs */
-	return 0;
-}
-
 static int __ipi_interrupt(struct trapframe *regs)
 {
-	unsigned long mailbox = read_msim_mailbox(cpuid());
+	unsigned int mailbox = read_msim_mailbox(cpuid());
 	__ack_ipi();
 	if (mailbox == -1) {
-		local_panic();
+		__local_panic();
 		/* NOTREACHED */
 		return -EINVAL;
 	} else {
+		/* TODO: convert mailbox value to arch-independent message */
 		return handle_ipi_interrupt(mailbox);
 	}
 }

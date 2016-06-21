@@ -23,8 +23,12 @@
 #include <config.h>
 #endif
 
+/*
+ * Internal arch-independent code for panicking current processor.
+ * May be called from arch code.
+ */
 __noreturn
-void local_panic(void);
+void __local_panic(void);
 
 __noreturn
 void panic(const char *fmt, ...);

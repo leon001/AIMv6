@@ -20,8 +20,7 @@ include $(top_srcdir)/env.am
 noinst_LTLIBRARIES = libloongson3a.la libloongson3aintr.la
 noinst_DATA = timer.o
 
-libloongson3a_la_SOURCES = memory.c smp.c
-libloongson3a_la_LIBADD = $(builddir)/../mach-generic/libmips-generic.la
+libloongson3a_la_SOURCES = mach-init.c memory.c smp.c
 
 libloongson3aintr_la_SOURCES = interrupt.c
 

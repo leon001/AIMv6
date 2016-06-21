@@ -54,13 +54,13 @@ static inline unsigned int __cpuid(void)
 
 #define cpuid()			__cpuid()
 
-static inline unsigned long read_msim_mailbox(unsigned int cpuid)
+static inline unsigned int read_msim_mailbox(unsigned int cpuid)
 {
 	return read32(MSIM_ORDER_MAILBOX_BASE +
 	    cpuid * MSIM_ORDER_MAILBOX_SIZE);
 }
 
-static inline void write_msim_mailbox(unsigned int cpuid, unsigned long val)
+static inline void write_msim_mailbox(unsigned int cpuid, unsigned int val)
 {
 	write32(MSIM_ORDER_MAILBOX_BASE + cpuid * MSIM_ORDER_MAILBOX_SIZE,
 	    val);

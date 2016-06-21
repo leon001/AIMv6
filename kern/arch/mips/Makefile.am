@@ -39,7 +39,8 @@ libentry_la_SOURCES = entry.S
 libmips_la_SOURCES = arch_init.c mm.c pgtable.c sync.c \
 		     tlbex.S proc.c switch.S smp.c
 libmips_la_LIBADD = \
-		    $(PREFIXED_MACH)/lib$(MACH).la
+		    $(PREFIXED_MACH)/lib$(MACH).la \
+		    mach-generic/libmips-generic.la
 
 # libsyscall.la depends on this, containing system call arguments retrieval
 # etc.

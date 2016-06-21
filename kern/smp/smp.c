@@ -53,3 +53,9 @@ void smp_startup(void)
 	arch_smp_startup();
 }
 
+int handle_ipi_interrupt(unsigned int msg)
+{
+	/* Currently we discard other IPIs */
+	return 0;
+}
+

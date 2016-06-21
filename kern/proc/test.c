@@ -22,12 +22,9 @@ void kthread(void *arg)
 			/* nothing */;
 		kprintf("KTHREAD%d: running on CPU %d\n", id, cpuid());
 		/* XXX panic/IPI test, will be removed */
-		if (++cnt == 10)
+		if ((id == 0) && (++cnt == 10))
 			panic("-------Test succeeded-------\n");
 #if 0
-		/* TODO: create user threads instead of kernel threads.
-		 * Here I'm just checking whether system call framework
-		 * works. */
 		schedule();
 #endif
 	}

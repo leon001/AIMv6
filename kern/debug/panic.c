@@ -33,10 +33,10 @@
 /*
  * The rest place for every processor during a panic.
  *
- * local_panic() is executed once per processor.
+ * __local_panic() is executed once per processor.
  */
 __noreturn
-void local_panic(void)
+void __local_panic(void)
 {
 	local_irq_disable();
 
@@ -82,6 +82,6 @@ void panic(const char *fmt, ...)
 	}
 	kputs(__buf);
 	
-	local_panic();
+	__local_panic();
 }
 

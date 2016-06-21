@@ -18,6 +18,9 @@
 
 #include <drivers/io/io-port.h>
 #include <drivers/io/io-mem.h>
+#include <io.h>
+#include <mp.h>
+#include <platform.h>
 
 void early_mach_init(void)
 {
@@ -25,5 +28,15 @@ void early_mach_init(void)
 	portio_bus_connect(&portio_bus,
 			   &early_memory_bus,
 			   LOONGSON3A_PORTIO_BASE);
+}
+
+void mach_init(void)
+{
+	int i;
+	/* Enable all IPI bits and clear the IPI bits first */
+	for (i = 0; i < nr_cpus(); ++i) {
+		write32(LOONGSON3A_COREx_IPI_CLEAR(i), 0xffffffff);
+		write32(LOONGSON3A_COREx_IPI_ENABLE(i), 0xffffffff);
+	}
 }
 
