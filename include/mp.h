@@ -23,5 +23,7 @@
 
 int nr_cpus(void);
 void smp_startup(void);
+/* Returns 0 when succeed */
+int handle_ipi_interrupt(unsigned int msg);
 
 #endif

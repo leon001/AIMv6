@@ -98,7 +98,10 @@ BEGIN(slave_hangup)
 	STORE	zero, TO_UNCAC(MSIM_ORDER_MAILBOX_BASE)(t0)
 1:	LOAD	t1, TO_UNCAC(MSIM_ORDER_MAILBOX_BASE)(t0)
 	beqz	t1, 1b
+	li	t2, 0xffffffff
+	beq	t1, t2, 2f
 	jr	t1
+2:	b	2b
 END(slave_hangup)
 
 BEGIN(master_entry)

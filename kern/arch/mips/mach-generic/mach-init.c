@@ -20,8 +20,11 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-void early_mach_init(void)
+__weak void early_mach_init(void)
 {
+}
 
+__weak void mach_init(void)
+{
 }
 

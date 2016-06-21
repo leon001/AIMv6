@@ -11,7 +11,7 @@
 
 void kthread(void *arg)
 {
-	int j;
+	volatile int j, cnt = 0;	/* Avoid optimizing busy loop */
 	int id = (int)arg;
 	kprintf("KTHREAD%d: congratulations!\n", id);
 	for (;;) {
@@ -21,10 +21,10 @@ void kthread(void *arg)
 		for (j = 0; j < 100000; ++j)
 			/* nothing */;
 		kprintf("KTHREAD%d: running on CPU %d\n", id, cpuid());
+		/* XXX panic/IPI test, will be removed */
+		if ((id == 0) && (++cnt == 10))
+			panic("-------Test succeeded-------\n");
 #if 0
-		/* TODO: create user threads instead of kernel threads.
-		 * Here I'm just checking whether system call framework
-		 * works. */
 		schedule();
 #endif
 	}

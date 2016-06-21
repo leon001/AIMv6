@@ -20,6 +20,11 @@
 #include <cp0regdef.h>
 #include <timer.h>
 #include <errno.h>
+#include <io.h>
+#include <mp.h>
+#include <platform.h>
+
+#define PANIC_MASK	0x80000000
 
 static int __discard(struct trapframe *regs)
 {
@@ -32,6 +37,23 @@ static int __timer_interrupt(struct trapframe *regs)
 	return 0;
 }
 
+static int __ipi_interrupt(struct trapframe *regs)
+{
+	unsigned int ipi_status;
+
+	ipi_status = read32(LOONGSON3A_COREx_IPI_STATUS(cpuid()));
+	write32(LOONGSON3A_COREx_IPI_CLEAR(cpuid()), ipi_status);
+
+	if (ipi_status & PANIC_MASK) {
+		__local_panic();
+		/* NOTREACHED */
+		return -EINVAL;
+	} else {
+		/* TODO: convert IPI status to arch-independent message */
+		return handle_ipi_interrupt(ipi_status);
+	}
+}
+
 static int (*__dispatch[])(struct trapframe *) = {
 	NULL,			/* Soft interrupt 0 */
 	NULL,			/* Soft interrupt 1 */
@@ -39,7 +61,7 @@ static int (*__dispatch[])(struct trapframe *) = {
 	__discard,		/* HT1 interrupt */
 	NULL,			/* Unused */
 	NULL,			/* Unused */
-	NULL,			/* IPI */
+	__ipi_interrupt,	/* IPI */
 	__timer_interrupt	/* Timer */
 };
 
@@ -58,5 +80,16 @@ int handle_interrupt(struct trapframe *regs)
 	}
 	/* NOTREACHED */
 	return -EINVAL;
+}
+
+void panic_other_cpus(void)
+{
+	int i;
+
+	for (i = 0; i < nr_cpus(); ++i) {
+		if (i == cpuid())
+			continue;
+		write32(LOONGSON3A_COREx_IPI_SET(i), PANIC_MASK);
+	}
 }
 
