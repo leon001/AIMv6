@@ -163,6 +163,7 @@ AS_CASE([$MACH],
 	[loongson3a], [
 		AS_VAR_SET([with_cpus], [4])
 		AS_VAR_SET([with_max_cpus], [4])
+		AS_VAR_SET([enable_io_port], [yes])
 		AS_VAR_SET([enable_uart_ns16550], [yes])
 		AS_VAR_SET([enable_loongson3a_ram_detection], [yes])
 		AS_VAR_SET([enable_pagesize_16k], [yes])

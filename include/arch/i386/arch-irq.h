@@ -20,11 +20,30 @@
 #ifndef _ARCH_IRQ_H
 #define _ARCH_IRQ_H
 
-#define local_irq_save(flags) \
+#include <processor-flags.h>
+
+#define local_save_flags(flags) \
 	asm volatile ("pushf; pop %0;" : "=rm"(flags) : : "memory")
 
-#define local_irq_restore(flags) \
+#define local_restore_flags(flags) \
 	asm volatile ("push %0; popf;" : : "g"(flags) : "memory")
+
+#define local_irq_enable() \
+	asm volatile ("sti;" : : : "memory")
+
+#define local_irq_disable() \
+	asm volatile ("cli;" : : : "memory")
+
+#define local_irq_save(flags) \
+	do { \
+		local_save_flags(flags); \
+		local_irq_disable(); \
+	} while (0)
+
+#define local_irq_restore(flags) \
+	do { \
+		local_restore_flags(flags); \
+	} while (0)
 
 #endif /* _ARCH_IRQ_H */
 

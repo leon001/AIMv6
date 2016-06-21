@@ -23,5 +23,6 @@ void early_arch_init(void);
 void early_mach_init(void);
 
 void arch_init(void);
+void mach_init(void);
 
 #endif

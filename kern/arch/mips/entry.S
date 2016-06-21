@@ -72,10 +72,14 @@ setup_pic:
 	SUBU	t9, ra, 8
 	lw	gp, 8(t9)
 	.set	reorder
+
 	/* Ensure that we are inside kernel mode. */
 	MFC032	a0, CP0_STATUS
 	or	a0, ST_EXCM
 	xor	a0, ST_EXCM
+#ifdef __LP64__
+	or	a0, ST_KX | ST_SX | ST_UX /* enable 64-bit address space */
+#endif
 	MTC032	a0, CP0_STATUS
 	/*
 	 * The kernel is already inside RAM, so .text section, .rodata
@@ -139,9 +143,13 @@ BEGIN(slave_entry)
 	SUBU	t9, ra, 8
 	lw	gp, 8(t9)
 	.set	reorder
+
 	MFC032	a0, CP0_STATUS
 	or	a0, ST_EXCM
 	xor	a0, ST_EXCM
+#ifdef __LP64__
+	or	a0, ST_KX | ST_SX | ST_UX /* enable 64-bit address space */
+#endif
 	MTC032	a0, CP0_STATUS
 	bal	load_slave_sp
 	jal	slave_early_init
@@ -170,4 +178,3 @@ BEGIN(load_slave_sp)
 	ADDU	sp, IO_CAC_BASE
 	jr	ra
 END(load_slave_sp)
-

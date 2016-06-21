@@ -16,27 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <drivers/io/io-port.h>
-#include <drivers/io/io-mem.h>
-#include <io.h>
-#include <mp.h>
-#include <platform.h>
+#ifndef _TIMER_H
+#define _TIMER_H
 
-void early_mach_init(void)
-{
-	/* XXX: maybe unnecessary... */
-	portio_bus_connect(&portio_bus,
-			   &early_memory_bus,
-			   LOONGSON3A_PORTIO_BASE);
-}
+/*
+ * The following interfaces are provided by timers.
+ *
+ * We define "timers" to be the devices which periodically generate
+ * interrupts on local core.
+ */
+void timer_init(void);
+void pre_timer_interrupt(void);
+void post_timer_interrupt(void);
 
-void mach_init(void)
-{
-	int i;
-	/* Enable all IPI bits and clear the IPI bits first */
-	for (i = 0; i < nr_cpus(); ++i) {
-		write32(LOONGSON3A_COREx_IPI_CLEAR(i), 0xffffffff);
-		write32(LOONGSON3A_COREx_IPI_ENABLE(i), 0xffffffff);
-	}
-}
+/*
+ * Platform-independent timer interrupt handler.
+ */
 
+void handle_timer_interrupt(void);
+
+#endif

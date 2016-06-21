@@ -23,14 +23,23 @@
 #include <sys/types.h>
 
 #include <console.h>
+#include <panic.h>
 
 #include <libc/stdarg.h>
 #include <libc/stddef.h>
 #include <libc/stdio.h>
+#include <irq.h>
 
+/*
+ * The rest place for every processor during a panic.
+ *
+ * __local_panic() is executed once per processor.
+ */
 __noreturn
-void __panic(void)
+void __local_panic(void)
 {
+	local_irq_disable();
+
 	/*
 	 * We cannot simply do tight loops at panic. Modern kernels turn down
 	 * processors and other devices to keep energy consumption and heat
@@ -38,9 +47,16 @@ void __panic(void)
 	 * Later on there will be interfaces for the targets and drivers.
 	 * We currently do a tight loop.
 	 */
-	 while (1);
+
+	for (;;)
+		/* nothing */;
 }
 
+/*
+ * The place where a panic starts.
+ *
+ * panic() is executed only on the processor throwing the panic.
+ */
 __noreturn
 void panic(const char *fmt, ...)
 {
@@ -52,7 +68,9 @@ void panic(const char *fmt, ...)
 	va_list args;
 	int result;
 
-	/* TODO: disable interrupt and stop other processors */
+	local_irq_disable();
+
+	panic_other_cpus();
 
 	va_start(args, fmt);
 	result = vsnprintf(__buf, BUFSIZ, fmt, args);
@@ -64,6 +82,6 @@ void panic(const char *fmt, ...)
 	}
 	kputs(__buf);
 	
-	__panic();
+	__local_panic();
 }
 

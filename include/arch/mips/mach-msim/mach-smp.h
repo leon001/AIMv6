@@ -27,7 +27,8 @@
 #include <addrspace.h>
 
 #define MSIM_ORDER_REG_CPUID	0x0
-#define MSIM_ORDER_REG_IPI	0x4
+#define MSIM_ORDER_REG_IPI_SEND	0x0
+#define MSIM_ORDER_REG_IPI_ACK	0x4
 #define MSIM_ORDER_MAILBOX_SIZE	(1 << MSIM_ORDER_MAILBOX_ORDER)
 
 /*
@@ -51,12 +52,24 @@ static inline unsigned int __cpuid(void)
 	return read32(MSIM_ORDER_PHYSADDR + MSIM_ORDER_REG_CPUID);
 }
 
-static inline unsigned long msim_mailbox(unsigned int cpuid)
+#define cpuid()			__cpuid()
+
+static inline unsigned int read_msim_mailbox(unsigned int cpuid)
 {
-	return MSIM_ORDER_MAILBOX_BASE + cpuid * MSIM_ORDER_MAILBOX_SIZE;
+	return read32(MSIM_ORDER_MAILBOX_BASE +
+	    cpuid * MSIM_ORDER_MAILBOX_SIZE);
 }
 
-#define cpuid()			__cpuid()
+static inline void write_msim_mailbox(unsigned int cpuid, unsigned int val)
+{
+	write32(MSIM_ORDER_MAILBOX_BASE + cpuid * MSIM_ORDER_MAILBOX_SIZE,
+	    val);
+}
+
+static inline void __ack_ipi(void)
+{
+	write32(MSIM_ORDER_PHYSADDR + MSIM_ORDER_REG_IPI_ACK, (1 << cpuid()));
+}
 
 #else	/* !__ASSEMBLER__ */
 
