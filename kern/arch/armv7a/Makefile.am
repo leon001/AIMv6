@@ -22,7 +22,8 @@ DIST_SUBDIRS = mach-zynq
 
 noinst_LTLIBRARIES = \
 	libentry.la \
-	libarmv7a.la
+	libarmv7a.la \
+	libarmv7atrap.la
 noinst_DATA = vmaim.lds
 
 CLEANFILES = vmaim.lds
@@ -34,6 +35,7 @@ libarmv7a_la_SOURCES = \
 	arch_init.c \
 	mm.c \
 	jump.c \
+	smp.c \
 	sync.c \
 	vector.S \
 	trap.c

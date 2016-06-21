@@ -38,7 +38,7 @@ bool spin_is_locked(lock_t *lock);
 
 #define spin_lock_irq_save(lock, flags) \
 	do { \
-		(flags) = local_irq_save(); \
+		local_irq_save(flags); \
 		spin_lock(lock); \
 	} while (0)
 #define spin_unlock_irq_restore(lock, flags) \

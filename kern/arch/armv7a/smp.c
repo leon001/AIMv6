@@ -16,10 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _IRQ_H
-#define _IRQ_H
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-#include <arch-irq.h>
+/*
+ * Needed to compare the NR_CPUS macro. Positive values reserved for
+ * real cpu numbers and therefore can't be used.
+ */
+#define DETECT	-1
 
-#endif /* _IRQ_H */
+static int __nr_cpus;
+
+void detect_cpus()
+{
+#if NR_CPUS == DETECT
+	/* TODO: detect is possible if MACH supports it, which is true
+	 * for A9, and can be read from the MPCore's SCU CPU Power Status
+	 * Register. Cores outside the cluster cannot be detected.
+	 * Avoid using THIS detection
+	 */
+#else
+	__nr_cpus = NR_CPUS;
+#endif
+}
+
+int nr_cpus()
+{
+	return __nr_cpus;
+}
 

@@ -39,7 +39,7 @@
 ({ \
 	register uint32_t tmp; \
 	asm ( \
-		"mrs	%[tmp], psr;" \
+		"mrs	%[tmp], " #psr ";" \
 		: [tmp] "=r" (tmp) \
 	); \
 	tmp; \
@@ -49,7 +49,7 @@
 	do { \
 		register uint32_t tmp = (val); \
 		asm ( \
-			"msr	%[tmp], psr;" \
+			"msr	" #psr ", %[tmp];" \
 			: /* no output */ \
 			: [tmp] "r" (tmp) \
 			: "cc" \
@@ -76,6 +76,8 @@ static inline void local_irq_disable()
 	do { \
 		uint32_t cpsr = arm_read_psr(cpsr); \
 		(flags) = cpsr & ARM_INTERRUPT_MASK; \
+		cpsr |= ARM_INTERRUPT_MASK; \
+		arm_write_psr(cpsr_c, cpsr); \
 	} while (0)
 
 #define local_irq_restore(flags) \
@@ -83,14 +85,6 @@ static inline void local_irq_disable()
 		uint32_t cpsr = arm_read_psr(cpsr); \
 		cpsr &= ~ARM_INTERRUPT_MASK; \
 		cpsr |= flags; \
-		arm_write_psr(cpsr_c, cpsr); \
-	} while (0)
-
-#define local_irq_save_and_disable(flags) \
-	do { \
-		uint32_t cpsr = arm_read_psr(cpsr); \
-		(flags) = cpsr & ARM_INTERRUPT_MASK; \
-		cpsr |= ARM_INTERRUPT_MASK; \
 		arm_write_psr(cpsr_c, cpsr); \
 	} while (0)
 

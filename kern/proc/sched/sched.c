@@ -24,6 +24,7 @@
 #include <sched.h>
 #include <percpu.h>
 #include <mp.h>
+#include <panic.h>
 
 static lock_t sched_lock;
 static unsigned long __sched_intrflags;
