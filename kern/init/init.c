@@ -33,9 +33,9 @@
 #include <percpu.h>
 #include <sched.h>
 #include <mp.h>
-#include <irq.h>
 #include <timer.h>
 #include <aim/initcalls.h>
+#include <aim/irq.h>
 #include <aim/kmmap.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024

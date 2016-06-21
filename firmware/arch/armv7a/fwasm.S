@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <smp.h>
+
 .arm
 
 .section .vector
@@ -43,10 +45,10 @@ fw_asm:
 	 *    into a pen.
 	 * 4. MPIDR in new format, we're core 0 in MP system. We go on to
 	 *    initialize the kernel. All other cores should be put into
-	 *    the pen in THIS FILE.
+	 *    the wait_for_release loop in THIS FILE.
 	 */
 	/* Read MPIDR */
-	mrc	p15, 0, r0, c0, c0, 5
+	arm_read_mpidr	r0
 	/* New format? */
 	mov	r1, #0x80000000
 	ands	r1, r0, r1
@@ -67,6 +69,11 @@ fw_asm:
 	bne	fw_asm_slave
 
 fw_asm_master:
+	/* release other cores from previous boot stage */
+	/* we can use the same address. */
+	ldr	r0, =#0xFFFFFFF0
+	mov	r1, #0
+	str	r1, [r0]
 	/* Clear BSS */
 	ldr	r0, =_bss_begin
 	ldr	r1, =_bss_end
@@ -91,10 +98,10 @@ fw_asm_slave:
 	mov	r1, #0
 	str	r1, [r0]
 	/* loop */
-pen_loop:
+wait_for_release:
 	wfe
 	ldr	r1, [r0]
 	cmp	r1, #0
-	beq	pen_loop
+	beq	wait_for_release
 	bx	r1
 
