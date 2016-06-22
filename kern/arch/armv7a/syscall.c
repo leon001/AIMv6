@@ -20,6 +20,8 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <sys/types.h>
+
 #include <syscall.h>
 #include <arch-trap.h>
 #include <mm.h>
@@ -48,14 +50,18 @@ int syscall_arg(struct trapframe *tf, int index, unsigned long *result)
 	return 0;
 }
 
-void syscall_return(struct trapframe *tf, unsigned long long result)
+void syscall_return(struct trapframe *tf, unsigned long long result, int errno)
 {
-	/* safe for both 32bit and 64bit return values.s */
-	tf->r0 = (unsigned long)result;
-	tf->r1 = (unsigned long)(result >> 32);
-	/*
-	 * ARM does not have error boolean register, which is true
-	 * both in EABI and in OABI.
-	 */
+	if (errno < 0) {
+		/*
+		 * ARM does not have error boolean register, which is true
+		 * both in EABI and in OABI.
+		 */
+		tf->r0 = (unsigned long)errno;
+	} else {
+		/* safe for both 32bit and 64bit return values.s */
+		tf->r0 = (unsigned long)result;
+		tf->r1 = (unsigned long)(result >> 32);
+	}
 }
 

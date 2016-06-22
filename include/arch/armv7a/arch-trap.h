@@ -19,6 +19,8 @@
 #ifndef _ARCH_TRAP_H
 #define _ARCH_TRAP_H
 
+#include <regs.h>
+
 #define ARM_RST		0
 #define ARM_UNDEF	1
 #define ARM_SVC		2
@@ -27,6 +29,20 @@
 /* reserved vector slot */
 #define	ARM_IRQ		6
 #define ARM_FIQ		7
+
+#ifndef __ASSEMBLER__
+
+struct trapframe {
+	struct regs;
+};
+
+static inline bool from_kernel(struct trapframe *tf)
+{
+	/* USR mode is user, everything else is kernel. */
+	return ((tf->psr & 0xF) != 0x0);
+}
+
+#endif	/* !__ASSEMBLER__ */
 
 #endif /* _ARCH_TRAP_H */
 
