@@ -26,14 +26,12 @@ static syscall_t __syscalls[NR_SYSCALLS] = {0};
 
 static void __syscall_nonexist(struct trapframe *tf)
 {
-	syscall_set_errno(tf, ENOSYS);
-	syscall_return(tf, -1);
+	syscall_return(tf, -1, ENOSYS);
 }
 
 static void __syscall_fail(struct trapframe *tf, int error)
 {
-	syscall_set_errno(tf, error);
-	syscall_return(tf, -1);
+	syscall_return(tf, -1, error);
 }
 
 void handle_syscall(struct trapframe *tf)
@@ -68,8 +66,7 @@ void handle_syscall(struct trapframe *tf)
 		result = __syscalls[sysno](sysno, &errno, args[0], args[1],
 					   args[2], args[3], args[4],
 					   args[5], args[6], args[7]);
-		syscall_return(tf, result);
-		syscall_set_errno(tf, errno);
+		syscall_return(tf, result, errno);
 	}
 }
 
