@@ -57,9 +57,10 @@ int syscall_arg(struct trapframe *tf, int index, unsigned long *result)
 	return 0;
 }
 
-void syscall_return(struct trapframe *tf, unsigned long long result)
+void syscall_return(struct trapframe *tf, unsigned long long result, int errno)
 {
 	tf->gpr[_V0] = result;
+	tf->gpr[_A3] = errno;
 }
 
 #else	/* 32 bit */
@@ -81,16 +82,12 @@ int syscall_arg(struct trapframe *tf, int index, unsigned long *result)
 	return 0;
 }
 
-void syscall_return(struct trapframe *tf, unsigned long long result)
+void syscall_return(struct trapframe *tf, unsigned long long result, int errno)
 {
 	tf->gpr[_V0] = (unsigned long)result;
 	tf->gpr[_V1] = (unsigned long)(result >> 32);
+	tf->gpr[_A3] = errno;
 }
 
 #endif	/* __LP64__ */
-
-void syscall_set_errno(struct trapframe *tf, int errno)
-{
-	tf->gpr[_A3] = errno;
-}
 
