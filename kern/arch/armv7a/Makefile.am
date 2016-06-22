@@ -23,7 +23,8 @@ DIST_SUBDIRS = mach-zynq
 noinst_LTLIBRARIES = \
 	libentry.la \
 	libarmv7a.la \
-	libarmv7atrap.la
+	libarmv7atrap.la \
+	libarmv7asyscall.la
 noinst_DATA = vmaim.lds
 
 CLEANFILES = vmaim.lds
@@ -36,10 +37,18 @@ libarmv7a_la_SOURCES = \
 	mm.c \
 	jump.c \
 	smp.c \
-	sync.c \
-	vector.S \
-	trap.c
+	sync.c
 libarmv7a_la_LIBADD = $(PREFIXED_MACH)/lib$(MACH).la
+
+# libsyscall.la depends on this, containing system call arguments retrieval
+# etc.
+libarmv7asyscall_la_SOURCES = syscall.c
+
+# depends on libtimer.la (handle_timer_interrupt)
+libarmv7atrap_la_SOURCES = \
+	trap.c \
+	traptest.c \
+	vector.S
 
 vmaim.lds: vmaim.lds.S
 	$(COMPILE) -E -P $^ -o $@

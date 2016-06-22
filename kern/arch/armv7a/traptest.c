@@ -16,17 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ARM_TRAP_H
-#define _ARM_TRAP_H
-
-#define ARM_RST		0
-#define ARM_UNDEF	1
-#define ARM_SVC		2
-#define ARM_PREF_ABT	3
-#define ARM_DATA_ABT	4
-/* reserved vector slot */
-#define	ARM_IRQ		6
-#define ARM_FIQ		7
-
-#endif /* _ARM_TRAP_H */
-
+void trap_test(void)
+{
+	asm volatile (
+		"svc	0x0;"
+	);
+}

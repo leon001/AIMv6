@@ -40,5 +40,9 @@ struct regs {
 	uint32_t pc;
 };
 
+struct trapframe {
+	struct regs;
+};
+
 #endif /* _ARCH_REGS_H */
 
