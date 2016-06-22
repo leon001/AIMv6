@@ -43,15 +43,15 @@ void register_syscall(syscall_t syscall, int sysno);
  * Arch-specific internal functions to obtain system call number.
  */
 int syscall_no(struct trapframe *tf);
-/*
- * Arch-specific function to set error number of system call.
- */
 void syscall_set_errno(struct trapframe *tf, int errno);
 /*
  * Arch-specific function to get the (i+1)th argument of system call.
  */
 int syscall_arg(struct trapframe *tf, int index, unsigned long *result);
-void syscall_return(struct trapframe *tf, unsigned long long result);
+/*
+ * Arch-specific function to return a value and set error number
+ */
+void syscall_return(struct trapframe *tf, unsigned long long result, int errno);
 
 #define ADD_SYSCALL(entry, sysno) \
 	static int __##entry##_init(void) \
