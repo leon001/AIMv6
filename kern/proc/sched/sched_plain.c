@@ -45,10 +45,12 @@ struct plain_scheduler {
 
 static struct proc *__sched_plain_pick(void);
 static int __sched_plain_add(struct proc *proc);
+static struct proc *__sched_plain_next(struct proc *proc);
 
 static struct plain_scheduler plain_scheduler = {
 	.pick = __sched_plain_pick,
-	.add = __sched_plain_add
+	.add = __sched_plain_add,
+	.next = __sched_plain_next
 };
 
 static struct proc *__sched_plain_pick(void)
@@ -89,6 +91,20 @@ static int __sched_plain_add(struct proc *proc)
 	list_add_before(&(proc->sched_node), &(plain_scheduler.proclist.head));
 	spin_unlock_irq_restore(&(plain_scheduler.proclist.lock), flags);
 	return 0;
+}
+
+static struct proc *__sched_plain_next(struct proc *proc)
+{
+	struct list_head *head = &(plain_scheduler.proclist.head);
+
+	if (list_empty(head))
+		return NULL;
+	else if (proc == NULL)
+		return list_first_entry(head, struct proc, sched_node);
+	else if (list_is_last(&(proc->sched_node), head))
+		return NULL;
+	else
+		return next_entry(proc, sched_node);
 }
 
 static int __sched_plain_init(void)

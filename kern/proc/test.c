@@ -9,11 +9,18 @@
  * Temporary test
  */
 
+static int tmpbed = 0;
+
 void kthread(void *arg)
 {
 	volatile int j, cnt = 0;	/* Avoid optimizing busy loop */
 	int id = (int)arg;
 	kprintf("KTHREAD%d: congratulations!\n", id);
+	/* sleep/wakeup test, will be removed */
+	if (id == 0) {
+		kprintf("KTHREAD%d: sleeping on bed 0x%p\n", id, &tmpbed);
+		sleep(&tmpbed);
+	}
 	for (;;) {
 		/* There is no unified timer interface so I implemented
 		 * suspension as busy-wait.  Change the limit if things
@@ -21,7 +28,13 @@ void kthread(void *arg)
 		for (j = 0; j < 100000; ++j)
 			/* nothing */;
 		kprintf("KTHREAD%d: running on CPU %d\n", id, cpuid());
-		/* XXX panic/IPI test, will be removed */
+		/* sleep/wakeup test, will be removed */
+		if (id == 3 && (++cnt == 4)) {
+			kprintf("KTHREAD%d: waking up processes on bed 0x%p\n",
+			    id, &tmpbed);
+			wakeup(&tmpbed);
+		}
+		/* panic/IPI test, will be removed */
 		if ((id == 0) && (++cnt == 10))
 			panic("-------Test succeeded-------\n");
 #if 0
