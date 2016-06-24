@@ -1,4 +1,4 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -17,15 +17,8 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = \
-	lib \
-	drivers \
-	firmware \
-	fs \
-	boot \
-	kern \
-	include \
-	doc \
-	user \
-	tools
+noinst_LTLIBRARIES = libext2fs.la
+
+libext2fs_la_SOURCES = \
+		       mount.c
 

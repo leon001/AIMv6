@@ -1,4 +1,4 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -17,15 +17,15 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = \
-	lib \
-	drivers \
-	firmware \
-	fs \
-	boot \
-	kern \
-	include \
-	doc \
-	user \
-	tools
+SUBDIRS = ufs
 
+noinst_LTLIBRARIES = libfs.la
+
+libfs_la_SOURCES = \
+		   spec.c \
+		   vnode.c \
+		   test.c \
+		   specdev.h \
+		   vnode.h \
+		   mount.h
+libfs_la_LIBADD = ufs/libufs.la

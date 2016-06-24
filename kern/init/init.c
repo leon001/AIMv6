@@ -159,6 +159,10 @@ void __noreturn master_init(void)
 	a = cache_alloc(&cache);
 	kprintf("DEBUG: a = 0x%08x\n", a);
 
+	/* temporary */
+	extern void fs_test(void);
+	fs_test();
+
 	/* startup smp */
 	smp_startup();
 

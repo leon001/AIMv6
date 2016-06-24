@@ -52,6 +52,7 @@ KERNEL_LIBS = \
 	arch/$(ARCH)/lib$(ARCH)trap.la \
 	timer/libtimer.la \
 	proc/sched/libsched.la \
+	$(top_builddir)/fs/libfs.la \
 	dev/libdev.la \
 	mm/libmm.la \
 	smp/libsmp.la \

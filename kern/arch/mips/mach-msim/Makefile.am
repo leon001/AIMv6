@@ -20,7 +20,7 @@ include $(top_srcdir)/env.am
 noinst_LTLIBRARIES = libmsim.la libmsimintr.la
 noinst_DATA = timer.o
 
-libmsim_la_SOURCES = memory.c smp.c
+libmsim_la_SOURCES = memory.c smp.c mach-init.c
 
 libmsimintr_la_SOURCES = interrupt.c
 

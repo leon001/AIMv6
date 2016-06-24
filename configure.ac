@@ -50,6 +50,10 @@ AX_GCC_BUILTIN(__builtin_popcount)
 AX_GCC_BUILTIN(__builtin_popcountl)
 AX_GCC_BUILTIN(__builtin_popcountll)
 
+# Builtin functions - required since we are lazy
+AX_GCC_BUILTIN(__builtin_bswap32)
+AX_GCC_BUILTIN(__builtin_bswap64)
+
 AC_SUBST([AIM_CFLAGS], [$aim_cflags])
 
 AM_PROG_AS
@@ -237,6 +241,9 @@ AC_SUBST([RESERVED_BASE], [$with_reserved_base])
 AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 	[size of kernel stack], [4096])
 
+AIM_ARG_WITH([root-partition-id], [ROOT_PARTITION_ID],
+	[root partition number], [4])
+
 AIM_ARG_WITH([max-processes], [MAX_PROCESSES], [maximum number of processes],
 	[65536])
 
@@ -371,6 +378,9 @@ AC_CONFIG_FILES([
 	firmware/arch/i386/Makefile
 	firmware/arch/mips/Makefile
 	firmware/arch/mips/mach-msim/Makefile
+	fs/Makefile
+	fs/ufs/Makefile
+	fs/ufs/ext2fs/Makefile
 	kern/Makefile
 	kern/arch/Makefile
 	kern/arch/armv7a/Makefile

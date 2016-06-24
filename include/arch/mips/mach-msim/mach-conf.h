@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,26 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ARCH_SYNC_H
-#define _ARCH_SYNC_H
+#ifndef _MACH_CONF_H
+#define _MACH_CONF_H
 
-#include <sys/types.h>
-
-/* This is a ticket lock */
-typedef union {
-	uint32_t	lock;
-	struct {
-		/* Assumes little-endian */
-		uint16_t	head;
-		uint16_t	tail;
-	};
-} lock_t;
-
-/* Convenient initialization: lock_t lock = EMPTY_LOCK(lock) */
-#define EMPTY_LOCK(lock) { .lock = 0 }
-
-#define smp_mb() \
-	asm volatile ("sync" : : : "memory")
+#define MSIM_DISK_MAJOR	1
 
 #endif
-
