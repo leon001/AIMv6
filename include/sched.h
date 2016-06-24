@@ -60,6 +60,12 @@ void sched_exit_critical(void);
 
 void sched_init(void);
 void proc_add(struct proc *proc);
+struct proc *proc_next(struct proc *proc);
 void schedule(void);
+
+/* sleep()'s and wakeup()'s */
+void sleep(void *bed);
+void sleep_with_lock(void *bed, lock_t *lock);
+void wakeup(void *bed);
 
 #endif
