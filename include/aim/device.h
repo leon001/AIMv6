@@ -27,7 +27,8 @@ struct bus_device;
 
 struct device {
 	const char * name;
-	int id_major, id_minor;
+
+	dev_t devno;
 
 	struct bus_device * bus;
 	addr_t base;
@@ -93,7 +94,7 @@ struct bus_device {
 struct device_index {
 	int (*add)(struct device *dev);
 	int (*remove)(struct device *dev);
-	struct device *(*from_id)(devid_t major, devid_t minor);
+	struct device *(*from_id)(dev_t devno);
 	struct device *(*from_name)(char *name);
 };
 
@@ -101,7 +102,7 @@ void set_device_index(struct device_index *index);
 
 int dev_add(struct device *dev);
 int dev_remove(struct device *dev);
-struct device *dev_from_id(devid_t major, devid_t minor);
+struct device *dev_from_id(dev_t devno);
 struct device *dev_from_name(char *name);
 
 #endif /* _DEVICE_H */
