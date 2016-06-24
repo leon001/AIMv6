@@ -72,10 +72,11 @@ void schedule(void)
  */
 void sleep_with_lock(void *bed, lock_t *lock)
 {
+	unsigned long flags;
 	/* Basically, sleep is also a kind of scheduling, so we need to enter
 	 * critical section of scheduler as well. */
 	assert(lock != &sched_lock);
-	sched_enter_critical();
+	spin_lock_irq_save(&sched_lock, flags);
 	if (lock != NULL)
 		spin_unlock(lock);
 
@@ -87,9 +88,9 @@ void sleep_with_lock(void *bed, lock_t *lock)
 
 	current_proc->bed = NULL;
 
+	spin_unlock_irq_restore(&sched_lock, flags);
 	if (lock != NULL)
 		spin_lock(lock);
-	sched_exit_critical();
 }
 
 void sleep(void *bed)
@@ -103,17 +104,18 @@ void sleep(void *bed)
 void wakeup(void *bed)
 {
 	struct proc *proc;
+	unsigned long flags;
 
 	/* We are changing process states.  It is better to enter critical
 	 * section. */
-	sched_enter_critical();
+	spin_lock_irq_save(&sched_lock, flags);
 
 	for (proc = proc_next(NULL); proc; proc = proc_next(proc)) {
 		if (proc->bed == bed && proc->state == PS_SLEEPING)
 			proc->state = PS_RUNNABLE;
 	}
 
-	sched_exit_critical();
+	spin_unlock_irq_restore(&sched_lock, flags);
 }
 
 void proc_add(struct proc *proc)

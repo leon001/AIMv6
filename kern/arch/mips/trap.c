@@ -33,6 +33,7 @@
 #include <panic.h>
 #include <timer.h>
 #include <errno.h>
+#include <mp.h>
 
 void trap_init(void)
 {
@@ -48,42 +49,42 @@ void trap_init(void)
 
 static void dump_regs(struct trapframe *regs)
 {
-	kprintf("zero\t%p\n", regs->gpr[_ZERO]);
-	kprintf("at\t%p\n", regs->gpr[_AT]);
-	kprintf("v0\t%p\n", regs->gpr[_V0]);
-	kprintf("v1\t%p\n", regs->gpr[_V1]);
-	kprintf("a0\t%p\n", regs->gpr[_A0]);
-	kprintf("a1\t%p\n", regs->gpr[_A1]);
-	kprintf("a2\t%p\n", regs->gpr[_A2]);
-	kprintf("a3\t%p\n", regs->gpr[_A3]);
-	kprintf("t0\t%p\n", regs->gpr[_T0]);
-	kprintf("t1\t%p\n", regs->gpr[_T1]);
-	kprintf("t2\t%p\n", regs->gpr[_T2]);
-	kprintf("t3\t%p\n", regs->gpr[_T3]);
-	kprintf("t4\t%p\n", regs->gpr[_T4]);
-	kprintf("t5\t%p\n", regs->gpr[_T5]);
-	kprintf("t6\t%p\n", regs->gpr[_T6]);
-	kprintf("t7\t%p\n", regs->gpr[_T7]);
-	kprintf("s0\t%p\n", regs->gpr[_S0]);
-	kprintf("s1\t%p\n", regs->gpr[_S1]);
-	kprintf("s2\t%p\n", regs->gpr[_S2]);
-	kprintf("s3\t%p\n", regs->gpr[_S3]);
-	kprintf("s4\t%p\n", regs->gpr[_S4]);
-	kprintf("s5\t%p\n", regs->gpr[_S5]);
-	kprintf("s6\t%p\n", regs->gpr[_S6]);
-	kprintf("s7\t%p\n", regs->gpr[_S7]);
-	kprintf("t8\t%p\n", regs->gpr[_T8]);
-	kprintf("t9\t%p\n", regs->gpr[_T9]);
-	kprintf("gp\t%p\n", regs->gpr[_GP]);
-	kprintf("sp\t%p\n", regs->gpr[_SP]);
-	kprintf("s8\t%p\n", regs->gpr[_S8]);
-	kprintf("ra\t%p\n", regs->gpr[_RA]);
-	kprintf("LO\t%p\n", regs->lo);
-	kprintf("HI\t%p\n", regs->hi);
-	kprintf("STATUS\t%p\n", regs->status);
-	kprintf("CAUSE\t%p\n", regs->cause);
-	kprintf("EPC\t%p\n", regs->epc);
-	kprintf("BVA\t%p\n", regs->badvaddr);
+	kprintf("%d\tzero\t%p\n", cpuid(), regs->gpr[_ZERO]);
+	kprintf("%d\tat\t%p\n", cpuid(), regs->gpr[_AT]);
+	kprintf("%d\tv0\t%p\n", cpuid(), regs->gpr[_V0]);
+	kprintf("%d\tv1\t%p\n", cpuid(), regs->gpr[_V1]);
+	kprintf("%d\ta0\t%p\n", cpuid(), regs->gpr[_A0]);
+	kprintf("%d\ta1\t%p\n", cpuid(), regs->gpr[_A1]);
+	kprintf("%d\ta2\t%p\n", cpuid(), regs->gpr[_A2]);
+	kprintf("%d\ta3\t%p\n", cpuid(), regs->gpr[_A3]);
+	kprintf("%d\tt0\t%p\n", cpuid(), regs->gpr[_T0]);
+	kprintf("%d\tt1\t%p\n", cpuid(), regs->gpr[_T1]);
+	kprintf("%d\tt2\t%p\n", cpuid(), regs->gpr[_T2]);
+	kprintf("%d\tt3\t%p\n", cpuid(), regs->gpr[_T3]);
+	kprintf("%d\tt4\t%p\n", cpuid(), regs->gpr[_T4]);
+	kprintf("%d\tt5\t%p\n", cpuid(), regs->gpr[_T5]);
+	kprintf("%d\tt6\t%p\n", cpuid(), regs->gpr[_T6]);
+	kprintf("%d\tt7\t%p\n", cpuid(), regs->gpr[_T7]);
+	kprintf("%d\ts0\t%p\n", cpuid(), regs->gpr[_S0]);
+	kprintf("%d\ts1\t%p\n", cpuid(), regs->gpr[_S1]);
+	kprintf("%d\ts2\t%p\n", cpuid(), regs->gpr[_S2]);
+	kprintf("%d\ts3\t%p\n", cpuid(), regs->gpr[_S3]);
+	kprintf("%d\ts4\t%p\n", cpuid(), regs->gpr[_S4]);
+	kprintf("%d\ts5\t%p\n", cpuid(), regs->gpr[_S5]);
+	kprintf("%d\ts6\t%p\n", cpuid(), regs->gpr[_S6]);
+	kprintf("%d\ts7\t%p\n", cpuid(), regs->gpr[_S7]);
+	kprintf("%d\tt8\t%p\n", cpuid(), regs->gpr[_T8]);
+	kprintf("%d\tt9\t%p\n", cpuid(), regs->gpr[_T9]);
+	kprintf("%d\tgp\t%p\n", cpuid(), regs->gpr[_GP]);
+	kprintf("%d\tsp\t%p\n", cpuid(), regs->gpr[_SP]);
+	kprintf("%d\ts8\t%p\n", cpuid(), regs->gpr[_S8]);
+	kprintf("%d\tra\t%p\n", cpuid(), regs->gpr[_RA]);
+	kprintf("%d\tLO\t%p\n", cpuid(), regs->lo);
+	kprintf("%d\tHI\t%p\n", cpuid(), regs->hi);
+	kprintf("%d\tSTATUS\t%p\n", cpuid(), regs->status);
+	kprintf("%d\tCAUSE\t%p\n", cpuid(), regs->cause);
+	kprintf("%d\tEPC\t%p\n", cpuid(), regs->epc);
+	kprintf("%d\tBVA\t%p\n", cpuid(), regs->badvaddr);
 }
 
 /*
@@ -231,6 +232,7 @@ void trap_handler(struct trapframe *regs)
 	switch (EXCCODE(regs->cause)) {
 	case EC_sys:
 		__skip_victim(regs);
+		local_irq_enable();
 		handle_syscall(regs);
 		/*
 		 * After executing ERET instruction MIPS processor return to
@@ -284,7 +286,7 @@ __noreturn void trap_return(struct trapframe *regs)
 	uint32_t im = status & ST_IM;
 	status &= ~ST_EXCM;
 	write_c0_status(status);
-	regs->status = (regs->status & ~ST_IM) | im | ST_EXL;
+	regs->status = (regs->status & ~ST_IM) | im;
 	trap_exit(regs);
 }
 
