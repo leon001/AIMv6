@@ -89,9 +89,6 @@
  * guarantees that:
  * 1. The processor runs in kernel mode.
  * 2. The processor is safe from interrupts.
- * 3. The processor rewrites EPC when a nested exception occur.
- * 4. The processor can safely return to previous handler after dealing
- *    with nested ones.
  */
 #define ST_EXCM	0x0000001f	/* Status Register EXception Clear Mask */
 /* Kernel/Supervisor/User mode switch */
