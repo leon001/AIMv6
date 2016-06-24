@@ -49,7 +49,7 @@ static void __bootstrap_trapframe(struct trapframe *tf,
 	tf->status = read_c0_status();
 	tf->cause = read_c0_cause();
 	/* Enable interrupts in trap frame */
-	tf->status |= ST_IE | ST_IM;
+	tf->status |= ST_IE | ST_IM | ST_EXL;
 	tf->epc = (unsigned long)entry;
 	tf->gpr[_T9] = tf->epc;
 	tf->gpr[_SP] = (unsigned long)stacktop;
