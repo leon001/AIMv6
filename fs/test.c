@@ -21,4 +21,6 @@ fs_test(void)
 	assert(major(rootvp->specinfo->devno) == MSIM_DISK_MAJOR);
 	assert(minor(rootvp->specinfo->devno) == ROOT_PARTITION_ID);
 	assert(rootvp->specinfo->vnode == rootvp);
+	kprintf("rootdev lock 0x%p\n", &(rootvp->lock));
 }
+

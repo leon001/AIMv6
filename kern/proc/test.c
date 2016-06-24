@@ -5,11 +5,13 @@
 #include <libc/unistd.h>
 #include <mp.h>
 
+#include <fs/vnode.h>
+
+extern struct vnode *rootvp;
+
 /*
  * Temporary test
  */
-
-static int tmpbed = 0;
 
 void kthread(void *arg)
 {
@@ -17,10 +19,9 @@ void kthread(void *arg)
 	int id = (int)arg;
 	kprintf("KTHREAD%d: congratulations!\n", id);
 	/* sleep/wakeup test, will be removed */
-	if (id == 0) {
-		kprintf("KTHREAD%d: sleeping on bed 0x%p\n", id, &tmpbed);
-		sleep(&tmpbed);
-	}
+	kprintf("KTHREAD%d: trying to lock rootdev\n", id);
+	vlock(rootvp);
+	kprintf("KTHREAD%d: locked rootdev\n", id);
 	for (;;) {
 		/* There is no unified timer interface so I implemented
 		 * suspension as busy-wait.  Change the limit if things
@@ -28,14 +29,13 @@ void kthread(void *arg)
 		for (j = 0; j < 100000; ++j)
 			/* nothing */;
 		kprintf("KTHREAD%d: running on CPU %d\n", id, cpuid());
-		/* sleep/wakeup test, will be removed */
-		if (id == 3 && (++cnt == 4)) {
-			kprintf("KTHREAD%d: waking up processes on bed 0x%p\n",
-			    id, &tmpbed);
-			wakeup(&tmpbed);
-		}
 		/* panic/IPI test, will be removed */
-		if ((id == 0) && (++cnt == 10))
+		if (++cnt == 5) {
+			kprintf("KTHREAD%d: unlocking rootdev\n", id);
+			vunlock(rootvp);
+			kprintf("KTHREAD%d: unlocked rootdev\n", id);
+		}
+		if ((id == 3) && (++cnt == 10))
 			panic("-------Test succeeded-------\n");
 #if 0
 		schedule();

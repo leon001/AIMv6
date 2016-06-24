@@ -3,6 +3,7 @@
 #define _FS_VNODE_H
 
 #include <sys/types.h>
+#include <aim/sync.h>
 
 struct specinfo;	/* fs/specdev.h */
 struct mount;		/* fs/mount.h */
@@ -21,6 +22,9 @@ struct vnode {
 	enum vtype	type;
 	struct vops	*ops;
 	atomic_t	refs;
+	lock_t		lock;
+	uint32_t	flags;
+#define VXLOCK		0x1
 	union {
 		struct specinfo *specinfo;
 		void *typedata;
@@ -33,7 +37,8 @@ struct vops {
 	int dummy;
 };
 
-int bdevvp(dev_t, struct vnode **);
 int getnewvnode(struct mount *, struct vops *, struct vnode **);
+void vlock(struct vnode *);
+void vunlock(struct vnode *);
 
 #endif

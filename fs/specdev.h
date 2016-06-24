@@ -14,6 +14,7 @@ struct specinfo {
 	struct list_head	spec_node;
 };
 
+int bdevvp(dev_t, struct vnode **);
 int getdevvp(dev_t, struct vnode **, enum vtype);
 
 #endif

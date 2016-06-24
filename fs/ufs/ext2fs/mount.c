@@ -1,5 +1,6 @@
 
 #include <fs/vnode.h>
+#include <fs/specdev.h>
 #include <panic.h>
 
 extern dev_t rootdev;	/* initialized in mach_init() or arch_init() */

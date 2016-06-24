@@ -5,6 +5,9 @@
 #include <vmm.h>
 #include <errno.h>
 #include <libc/string.h>
+#include <aim/sync.h>
+#include <sched.h>
+#include <panic.h>
 
 /* FIXME */
 struct vnode *rootvp;
@@ -29,5 +32,29 @@ getnewvnode(struct mount *mp, struct vops *ops, struct vnode **vpp)
 
 	*vpp = vp;
 	return 0;
+}
+
+/* Lock a vnode for exclusive access */
+void
+vlock(struct vnode *vp)
+{
+	spin_lock(&(vp->lock));
+	while (vp->flags & VXLOCK)
+		sleep_with_lock(vp, &(vp->lock));
+	vp->flags |= VXLOCK;
+	spin_unlock(&(vp->lock));
+}
+
+/* Unlock a vnode */
+void
+vunlock(struct vnode *vp)
+{
+	assert(vp->refs > 0);
+	assert(vp->flags & VXLOCK);
+
+	spin_lock(&(vp->lock));
+	vp->flags &= ~VXLOCK;
+	wakeup(vp);
+	spin_unlock(&(vp->lock));
 }
 
