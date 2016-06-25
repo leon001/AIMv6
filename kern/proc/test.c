@@ -90,8 +90,7 @@ void proc_test(void)
 	 */
 	for (i = 0; i < 5; ++i) {
 		kthreads[i] = proc_new(NULL);
-		kthreads[i]->mm = kernel_mm;
-		proc_ksetup(kthreads[i], kthread, kstacktop(kthreads[i]), (void *)i);
+		proc_ksetup(kthreads[i], kthread, (void *)i);
 		kthreads[i]->state = PS_RUNNABLE;
 		proc_add(kthreads[i]);
 	}

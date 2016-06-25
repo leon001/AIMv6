@@ -90,10 +90,10 @@ static void __bootstrap_user(struct trapframe *tf)
 #endif	/* __LP64__ */
 }
 
-void __proc_ksetup(struct proc *proc, void *entry, void *stacktop, void *args)
+void __proc_ksetup(struct proc *proc, void *entry, void *args)
 {
 	struct trapframe *tf = __proc_trapframe(proc);
-	__bootstrap_trapframe(tf, entry, stacktop, args);
+	__bootstrap_trapframe(tf, entry, kstacktop(proc), args);
 	__bootstrap_context(&(proc->context), tf);
 }
 

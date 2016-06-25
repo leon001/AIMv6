@@ -108,7 +108,8 @@ void proc_test(void);		/* temporary */
 
 /*
  * Setup a kernel process with entry and arguments.
- * You can set up a kernel process to work on its kernel stack.
+ * A kernel process always works on its kernel stack and with default
+ * kernel memory mapping.
  *
  * Only sets up process trap frame and context.
  *
@@ -116,7 +117,7 @@ void proc_test(void);		/* temporary */
  * proc_ksetup().  You only need to provide arch-dependent code
  * __proc_ksetup() (see kern/proc/proc.c)
  */
-void proc_ksetup(struct proc *proc, void *entry, void *stacktop, void *args);
+void proc_ksetup(struct proc *proc, void *entry, void *args);
 /*
  * Setup a user process with entry, stack top, and arguments.
  *
@@ -124,8 +125,6 @@ void proc_ksetup(struct proc *proc, void *entry, void *stacktop, void *args);
  *
  * For architecture developers: You only need to provide arch-dependent
  * code __proc_usetup().
- *
- * TODO: merge proc_ksetup and proc_usetup together
  */
 void proc_usetup(struct proc *proc, void *entry, void *stacktop, void *args);
 void switch_context(struct proc *proc);
