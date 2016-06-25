@@ -20,17 +20,27 @@
 #include <io.h>
 #include <config.h>
 #include <libc/string.h>
-#include <drivers/block/hd.h>
+#include <drivers/hd/hd.h>
 #include <drivers/block/msim-ddisk.h>
 
 unsigned char msim_dd_dma[SECTOR_SIZE];
 
-void msim_dd_init(unsigned long paddr)
+static int __msim_dd_check_interrupt(unsigned long paddr)
+{
+	return !!(read32(MSIM_DD_REG(paddr, MSIM_DD_STAT)) & STAT_INTR);
+}
+
+static void __msim_dd_ack_interrupt(unsigned long paddr)
+{
+	write32(MSIM_DD_REG(paddr, MSIM_DD_COMMAND), CMD_ACK);
+}
+
+static void __msim_dd_init(unsigned long paddr)
 {
 	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
 }
 
-size_t msim_dd_get_sector_count(unsigned long paddr)
+static size_t __msim_dd_get_sector_count(unsigned long paddr)
 {
 	return read32(MSIM_DD_REG(paddr, MSIM_DD_SIZE));
 }
@@ -38,16 +48,16 @@ size_t msim_dd_get_sector_count(unsigned long paddr)
 /*
  * Read sector, returns 0 if successful.
  */
-int msim_dd_read_sector(unsigned long paddr, size_t sect, void *buf, bool poll)
+static int __msim_dd_read_sector(unsigned long paddr, size_t sect, void *buf, bool poll)
 {
 	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
 	write32(MSIM_DD_REG(paddr, MSIM_DD_SECTOR), sect);
 	write32(MSIM_DD_REG(paddr, MSIM_DD_COMMAND), CMD_READ);
 	if (poll) {
-		while (!msim_dd_check_interrupt(paddr))
+		while (!__msim_dd_check_interrupt(paddr))
 			/* nothing */;
 		/* Clear interrupt */
-		msim_dd_ack_interrupt(paddr);
+		__msim_dd_ack_interrupt(paddr);
 		if (read32(MSIM_DD_REG(paddr, MSIM_DD_STAT)) & STAT_ERROR) {
 			return -1;
 		} else {
@@ -59,17 +69,17 @@ int msim_dd_read_sector(unsigned long paddr, size_t sect, void *buf, bool poll)
 	}
 }
 
-int msim_dd_write_sector(unsigned long paddr, size_t sect, void *buf, bool poll)
+static int __msim_dd_write_sector(unsigned long paddr, size_t sect, void *buf, bool poll)
 {
 	memcpy(msim_dd_dma, buf, SECTOR_SIZE);
 	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
 	write32(MSIM_DD_REG(paddr, MSIM_DD_SECTOR), sect);
 	write32(MSIM_DD_REG(paddr, MSIM_DD_COMMAND), CMD_WRITE);
 	if (poll) {
-		while (!msim_dd_check_interrupt(paddr))
+		while (!__msim_dd_check_interrupt(paddr))
 			/* nothing */;
 		/* Clear interrupt */
-		msim_dd_ack_interrupt(paddr);
+		__msim_dd_ack_interrupt(paddr);
 		if (read32(MSIM_DD_REG(paddr, MSIM_DD_STAT)) & STAT_ERROR)
 			return -1;
 		else
@@ -79,13 +89,9 @@ int msim_dd_write_sector(unsigned long paddr, size_t sect, void *buf, bool poll)
 	}
 }
 
-int msim_dd_check_interrupt(unsigned long paddr)
-{
-	return !!(read32(MSIM_DD_REG(paddr, MSIM_DD_STAT)) & STAT_INTR);
-}
-
-void msim_dd_ack_interrupt(unsigned long paddr)
-{
-	write32(MSIM_DD_REG(paddr, MSIM_DD_COMMAND), CMD_ACK);
-}
+#ifdef RAW
+#include "msim-ddisk-raw.c"
+#else
+#include "msim-ddisk-kernel.c"
+#endif
 

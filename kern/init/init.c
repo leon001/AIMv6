@@ -40,29 +40,18 @@
 #define BOOTSTRAP_POOL_SIZE	1024
 
 /*
- * Initialization routine common to master and slave at last stages.
+ * Initialization routine after everything before spawning initproc.
  *
- * Will jump to scheduler.
- */
-static void __noreturn rest_percpu_init(void)
-{
-	idle_init();
-	timer_init();
-	local_irq_enable();
-
-	for (;;)
-		/* nothing */;
-}
-
-/*
- * Initialization routine after everything before spawning initproc is done.
+ * rest_init() spawns processes and enables scheduling.
  */
 static void __noreturn rest_init(void)
 {
-	/* TODO: temporary test, will be removed */
+	/* TODO: temporary test, will be removed.  Will spawn initproc here. */
 	proc_test();
-	/* TODO: shall we synchronize rest_percpu_init() on different cores? */
-	rest_percpu_init();
+	local_irq_enable();	/* enable scheduling */
+
+	for (;;)
+		/* nothing */;
 }
 
 void __noreturn master_init(void)
@@ -131,6 +120,9 @@ void __noreturn master_init(void)
 	do_initcalls();
 	kputs("KERN: Initcalls done.\n");
 
+	extern void fs_test(void);
+	fs_test();
+
 	/* temporary tests */
 	struct allocator_cache cache = {
 		.size = 1024,
@@ -159,10 +151,6 @@ void __noreturn master_init(void)
 	a = cache_alloc(&cache);
 	kprintf("DEBUG: a = 0x%08x\n", a);
 
-	/* temporary */
-	extern void fs_test(void);
-	fs_test();
-
 	/* startup smp */
 	smp_startup();
 
@@ -175,6 +163,9 @@ void __noreturn master_init(void)
 
 	/* initialize or cleanup namespace */
 
+	idle_init();
+	timer_init();
+
 	rest_init();
 }
 
@@ -182,6 +173,11 @@ void __noreturn slave_init(void)
 {
 	kprintf("KERN CPU %d: init\n", cpuid());
 
-	rest_percpu_init();
+	idle_init();
+	timer_init();
+	local_irq_enable();
+
+	for (;;)
+		/* nothing */;
 }
 

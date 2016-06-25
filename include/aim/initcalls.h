@@ -50,6 +50,7 @@ typedef int (*initcall_t)(void);
 
 #define INITCALL_SYSCALLS(fn)	INITCALL_SUBSYS(fn)
 #define INITCALL_SCHED(fn)	INITCALL_SUBSYS(fn)
+#define INITCALL_DRIVER(fn)	INITCALL_SUBSYS(fn)
 
 int do_early_initcalls();
 int do_initcalls();

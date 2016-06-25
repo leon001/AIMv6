@@ -368,6 +368,7 @@ AC_CONFIG_FILES([
 	doc/Makefile
 	drivers/Makefile
 	drivers/block/Makefile
+	drivers/common/Makefile
 	drivers/io/Makefile
 	drivers/sd/Makefile
 	drivers/serial/Makefile

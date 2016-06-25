@@ -4,6 +4,9 @@
 #include <fs/specdev.h>
 #include <vmm.h>
 #include <errno.h>
+#include <aim/device.h>
+#include <sys/types.h>
+#include <sys/param.h>
 
 static struct list_head specinfo_list = EMPTY_LIST(specinfo_list);
 static struct vops spec_vops;	/* forward declaration */
@@ -19,12 +22,15 @@ spec_inactive(struct vnode *vp, struct proc *p)
 int
 spec_open(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
 {
+	struct driver *drv;
+
 	switch (vp->type) {
 	case VCHR:
 		/* TODO, currently fallthru */
 	case VBLK:
 		/* TODO: find and invoke driver */
-		return 0;
+		drv = devsw[major(vdev(vp))];
+		return (drv->open)(vdev(vp), mode, p);
 	default:
 		return -ENODEV;
 	}

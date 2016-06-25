@@ -16,34 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVERS_HD_MSIM_DDISK_H
-#define _DRIVERS_HD_MSIM_DDISK_H
+/*
+ * This is the code for kernel driver.
+ * It is separated from msim-ddisk.c for clarity and is included as is in
+ * msim-ddisk.c by #include.
+ * The internal routines are already provided in msim-ddisk.c
+ */
 
-#define MSIM_DD_MAX	256
+#include <sys/types.h>
+#include <proc.h>
+#include <aim/device.h>
+#include <mach-conf.h>
+#include <aim/initcalls.h>
 
-#define MSIM_DD_REG(paddr, reg)	((paddr) + (reg))
+static int __open(dev_t dev, int mode, struct proc *p)
+{
+	kprintf("opened\n");
+	return 0;
+}
 
-#define MSIM_DD_DMAADDR	0x0
-#define MSIM_DD_SECTOR	0x4
-#define MSIM_DD_STAT	0x8
-#define MSIM_DD_COMMAND	0x8
-#define MSIM_DD_SIZE	0xc
+static struct blk_driver drv = {
+	.open = __open
+};
 
-#define STAT_ERROR	0x8
-#define STAT_INTR	0x4
+static int __driver_init(void)
+{
+	register_driver(MSIM_DISK_MAJOR, &drv);
+	return 0;
+}
+INITCALL_DRIVER(__driver_init);
 
-#define CMD_ACK		0x4
-#define CMD_WRITE	0x2
-#define CMD_READ	0x1
-
-#ifdef RAW
-void	msim_dd_init(unsigned long paddr);
-
-size_t	msim_dd_get_sector_count(unsigned long);
-int	msim_dd_read_sector(unsigned long, off_t, void *, bool);
-int	msim_dd_write_sector(unsigned long, off_t, void *, bool);
-int	msim_dd_check_interrupt(unsigned long);
-void	msim_dd_ack_interrupt(unsigned long);
-#endif
-
-#endif

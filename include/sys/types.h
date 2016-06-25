@@ -65,6 +65,8 @@ typedef unsigned int bool;
 typedef unsigned long size_t;
 typedef signed long ssize_t;
 
+typedef unsigned long off_t;
+
 typedef void *uintptr_t;
 #define	NULL	0
 
@@ -83,7 +85,6 @@ typedef signed long long saddr_t;
  * This is only a design pattern.
  */
 typedef ulong	dev_t;
-#define NODEV	((dev_t)-1)
 /* dev_t, major, minor conversions */
 static inline unsigned int major(dev_t dev)
 {

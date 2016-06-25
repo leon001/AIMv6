@@ -20,23 +20,45 @@
 #define _DEVICE_H
 
 #include <sys/types.h>
-#include <file.h>
 
 /* forward */
 struct bus_device;
+struct proc;	/* include/proc.h */
+
+/* Drivers */
+struct driver {
+	int type;
+	int (*open)(dev_t dev, int oflags, struct proc *p);
+};
+
+struct chr_driver {
+	struct driver;
+};
+
+struct blk_driver {
+	struct driver;
+
+	int (*read_blk)(dev_t dev, off_t off);
+	int (*read_blk_poll)(dev_t dev, off_t off);
+};
+
+struct net_driver {
+	struct driver;
+};
+
+extern struct driver *devsw[];
+
+void register_driver(unsigned int major, struct driver *drv);
+
+/* Devices */
 
 struct device {
-	const char * name;
+	const char *name;
 
 	dev_t devno;
 
-	struct bus_device * bus;
+	struct bus_device *bus;
 	addr_t base;
-	//struct device * parent;
-
-	struct file_ops file_ops;
-
-	struct device_driver * driver;
 };
 
 struct chr_device {
@@ -48,7 +70,7 @@ struct chr_device {
 struct blk_device {
 	struct device;
 
-	struct blk_ops blk_ops;
+	/* Reserved for later use */
 };
 
 struct net_device {
