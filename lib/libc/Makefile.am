@@ -30,6 +30,7 @@ SRCS = \
 	memset.c \
 	snprintf.c \
 	strcmp.c \
+	strlcpy.c \
 	$(top_srcdir)/include/sys/types.h \
 	stdarg.h \
 	stddef.h \

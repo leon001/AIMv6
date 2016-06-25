@@ -132,5 +132,10 @@ void switch_context(struct proc *proc);
 /* Return to trap frame in @proc.  Usually called once by fork child */
 void proc_trap_return(struct proc *proc);
 
+/*
+ * Process tree maintenance
+ */
+void proctree_add_child(struct proc *child, struct proc *parent);
+
 #endif /* _PROC_H */
 

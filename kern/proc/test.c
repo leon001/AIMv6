@@ -16,11 +16,6 @@ void kthread(void *arg)
 	volatile int j, cnt = 0;	/* Avoid optimizing busy loop */
 	int id = (int)arg;
 	kprintf("KTHREAD%d: congratulations!\n", id);
-	/* sleep/wakeup test, will be removed */
-	if (id == 0) {
-		kprintf("KTHREAD%d: sleeping on bed 0x%p\n", id, &tmpbed);
-		sleep(&tmpbed);
-	}
 	for (;;) {
 		/* There is no unified timer interface so I implemented
 		 * suspension as busy-wait.  Change the limit if things
@@ -28,12 +23,6 @@ void kthread(void *arg)
 		for (j = 0; j < 100000; ++j)
 			/* nothing */;
 		kprintf("KTHREAD%d: running on CPU %d\n", id, cpuid());
-		/* sleep/wakeup test, will be removed */
-		if (id == 3 && (++cnt == 4)) {
-			kprintf("KTHREAD%d: waking up processes on bed 0x%p\n",
-			    id, &tmpbed);
-			wakeup(&tmpbed);
-		}
 		/* panic/IPI test, will be removed */
 		if ((id == 0) && (++cnt == 10))
 			panic("-------Test succeeded-------\n");
@@ -55,15 +44,17 @@ void userinit(void)
 	 */
 #if 1
 	asm volatile (
+		"	li	$2, 1;"		/* fork() */
+		"	syscall;"
+		"	li	$2, 1;"		/* fork() */
+		"	syscall;"
+		"	li	$2, 1;"		/* fork() */
+		"	syscall;"
 		"1:	li	$3, 100000;"
 		"2:	subu	$3, 1;"
 		"	bnez	$3, 2b;"
-		"	li	$2, 6;"
+		"	li	$2, 6;"		/* getpid() */
 		"	syscall;"
-#if 0
-		"	li	$2, 5;"
-		"	syscall;"
-#endif
 		"	b	1b;"
 	);
 #else
@@ -93,7 +84,7 @@ void proc_test(void)
 		kthreads[i]->state = PS_RUNNABLE;
 		proc_add(kthreads[i]);
 	}
-	for (i = 0; i < 5; ++i) {
+	for (i = 0; i < 1; ++i) {
 		uthreads[i] = proc_new(NULL);
 		uthreads[i]->mm = mm_new();
 		assert(uthreads[i]->mm != NULL);

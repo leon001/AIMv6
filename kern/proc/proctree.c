@@ -16,13 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _UNISTD_H
-#define _UNISTD_H
+#include <proc.h>
 
-#include <sys/types.h>
+void proctree_add_child(struct proc *child, struct proc *parent)
+{
+	child->parent = parent;
+	child->next_sibling = parent->first_child;
+	if (parent->first_child != NULL)
+		parent->first_child->prev_sibling = child;
+	parent->first_child = child;
+}
 
-pid_t fork(void);
-int sched_yield(void);
-pid_t getpid(void);
-
-#endif
