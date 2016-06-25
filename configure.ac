@@ -50,6 +50,10 @@ AX_GCC_BUILTIN(__builtin_popcount)
 AX_GCC_BUILTIN(__builtin_popcountl)
 AX_GCC_BUILTIN(__builtin_popcountll)
 
+# Builtin functions - required since we are lazy
+AX_GCC_BUILTIN(__builtin_bswap32)
+AX_GCC_BUILTIN(__builtin_bswap64)
+
 AC_SUBST([AIM_CFLAGS], [$aim_cflags])
 
 AM_PROG_AS
