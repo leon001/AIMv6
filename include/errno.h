@@ -72,5 +72,7 @@
 #define	ENAMETOOLONG	63		/* File name too long */
 #define	ENOSYS		78		/* Function not implemented */
 #define	EILSEQ		84		/* Illegal byte sequence */
+#define	ECANCELED	88		/* Operation canceled */
+#define	ENOTSUP		91		/* Not supported */
 
 #endif

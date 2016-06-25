@@ -2,12 +2,17 @@
 #include <sys/types.h>
 #include <fs/vnode.h>
 #include <fs/specdev.h>
+#include <fs/mount.h>
+#include <fs/VOP.h>
 #include <vmm.h>
 #include <errno.h>
 #include <libc/string.h>
 #include <aim/sync.h>
 #include <sched.h>
 #include <panic.h>
+#include <proc.h>
+#include <percpu.h>
+#include <atomic.h>
 
 /* FIXME */
 struct vnode *rootvp;
@@ -29,6 +34,9 @@ getnewvnode(struct mount *mp, struct vops *ops, struct vnode **vpp)
 	vp->refs = 1;
 	vp->type = VNON;
 	vp->data = NULL;
+	vp->mount = NULL;
+
+	insmntque(vp, mp);
 
 	*vpp = vp;
 	return 0;
@@ -56,5 +64,18 @@ vunlock(struct vnode *vp)
 	vp->flags &= ~VXLOCK;
 	wakeup(vp);
 	spin_unlock(&(vp->lock));
+}
+
+int
+vrele(struct vnode *vp)
+{
+	atomic_dec(&(vp->refs));
+	if (vp->refs > 0)
+		return 0;
+	vlock(vp);
+	VOP_INACTIVE(vp, current_proc);	/* unlocked, sync'ed and cleaned up */
+	if (vp->refs == 0)
+		kfree(vp);
+	return 0;
 }
 

@@ -3,12 +3,33 @@
 #include <fs/vnode.h>
 #include <fs/specdev.h>
 #include <vmm.h>
+#include <errno.h>
 
 static struct list_head specinfo_list = EMPTY_LIST(specinfo_list);
+static struct vops spec_vops;	/* forward declaration */
 
-static struct vops spec_vops = {
-	0
-};
+int
+spec_inactive(struct vnode *vp, struct proc *p)
+{
+	/* For a special vnode we just unlock it */
+	vunlock(vp);
+	return 0;
+}
+
+int
+spec_open(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
+{
+	switch (vp->type) {
+	case VCHR:
+		/* TODO, currently fallthru */
+	case VBLK:
+		/* TODO: find and invoke driver */
+		return 0;
+	default:
+		return -ENODEV;
+	}
+	return -EINVAL;
+}
 
 /*
  * Get or create the vnode corresponding to the device @devno.
@@ -52,4 +73,18 @@ bdevvp(dev_t devno, struct vnode **vpp)
 {
 	return getdevvp(devno, vpp, VBLK);
 }
+
+dev_t
+vdev(struct vnode *vp)
+{
+	if (vp->type != VCHR && vp->type != VBLK)
+		return NODEV;
+	else
+		return vp->specinfo->devno;
+}
+
+static struct vops spec_vops = {
+	.open = spec_open,
+	.inactive = spec_inactive,
+};
 

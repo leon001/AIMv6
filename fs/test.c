@@ -14,7 +14,8 @@ extern struct vnode *rootvp;
 void
 fs_test(void)
 {
-	ext2fs_mountroot();
+	int err;
+	assert((err = ext2fs_mountroot()) == 0);
 	assert(rootvp != NULL);
 	assert(rootvp->type == VBLK);
 	assert(rootvp->specinfo != NULL);

@@ -4,9 +4,12 @@
 
 #include <sys/types.h>
 #include <aim/sync.h>
+#include <list.h>
 
 struct specinfo;	/* fs/specdev.h */
 struct mount;		/* fs/mount.h */
+struct ucred;		/* include/ucred.h */
+struct proc;		/* include/proc.h */
 
 enum vtype {
 	VNON,	/* no-type */
@@ -25,6 +28,9 @@ struct vnode {
 	lock_t		lock;
 	uint32_t	flags;
 #define VXLOCK		0x1
+	/* members for mount */
+	struct mount	*mount;
+	struct list_head mount_node;
 	union {
 		struct specinfo *specinfo;
 		void *typedata;
@@ -34,11 +40,22 @@ struct vnode {
 };
 
 struct vops {
-	int dummy;
+	/*
+	 * open:
+	 */
+	int (*open)(struct vnode *, int, struct ucred *, struct proc *);
+	/*
+	 * inactive:
+	 * Truncate, update, unlock, and clean up the data.  Usually called when
+	 * a kernel is no longer using the vnode.
+	 * xv6 equivalent is iput().
+	 */
+	int (*inactive)(struct vnode *, struct proc *);
 };
 
 int getnewvnode(struct mount *, struct vops *, struct vnode **);
 void vlock(struct vnode *);
 void vunlock(struct vnode *);
+int vrele(struct vnode *);
 
 #endif
