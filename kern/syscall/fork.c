@@ -19,6 +19,12 @@
 #include <percpu.h>
 #include <proc.h>
 #include <sched.h>
+#include <mm.h>
+#include <errno.h>
+#include <libc/string.h>
+#include <libc/syscalls.h>
+#include <syscall.h>
+#include <mp.h>
 
 void forkret(void)
 {
@@ -34,3 +40,57 @@ void forkret(void)
 	proc_trap_return(current_proc);
 }
 
+extern void __arch_fork(struct proc *child, struct proc *parent);
+int sys_fork(int sysno, int *errno)
+{
+	struct proc *child;
+	int err;
+
+	int pid;
+	unsigned long flags;
+
+	local_irq_save(flags);
+
+	child = proc_new(current_proc->namespace);
+
+	if (child == NULL) {
+		*errno = ENOMEM;
+		goto fail;
+	}
+
+	if ((child->mm = mm_new()) == NULL) {
+		*errno = ENOMEM;
+		goto rollback_child;
+	}
+
+	if ((err = mm_clone(child->mm, current_proc->mm)) < 0) {
+		*errno = err;
+		goto rollback_mm;
+	}
+
+	__arch_fork(child, current_proc);
+
+	strlcpy(child->name, current_proc->name, PROC_NAME_LEN_MAX);
+
+	/* TODO: duplicate more necessary stuff */
+
+	pid = child->pid;
+	child->state = PS_RUNNABLE;
+
+	proctree_add_child(child, current_proc);
+
+	proc_add(child);
+
+	local_irq_restore(flags);
+
+	return pid;
+
+rollback_mm:
+	mm_destroy(child->mm);
+rollback_child:
+	proc_destroy(child);
+fail:
+	local_irq_restore(flags);
+	return -1;
+}
+ADD_SYSCALL(sys_fork, NRSYS_fork);

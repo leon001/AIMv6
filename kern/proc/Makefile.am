@@ -23,6 +23,7 @@ noinst_LTLIBRARIES = libproc.la
 
 libproc_la_SOURCES = \
 	proc.c \
+	proctree.c \
 	test.c \
 	namespace.c
 

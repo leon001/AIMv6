@@ -114,6 +114,18 @@ void proc_trap_return(struct proc *proc)
 	trap_return(tf);
 }
 
+void __arch_fork(struct proc *child, struct proc *parent)
+{
+	struct trapframe *tf_child = __proc_trapframe(child);
+	struct trapframe *tf_parent = __proc_trapframe(parent);
+
+	*tf_child = *tf_parent;
+	tf_child->gpr[_V0] = 0;
+	tf_child->gpr[_V1] = 0;
+
+	__bootstrap_context(&(child->context), tf_child);
+}
+
 void switch_context(struct proc *proc)
 {
 	struct proc *current = current_proc;
