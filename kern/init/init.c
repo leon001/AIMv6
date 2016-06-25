@@ -39,6 +39,16 @@
 
 #define BOOTSTRAP_POOL_SIZE	1024
 
+static volatile bool percpu_blocked = true;
+
+static void __noreturn rest_percpu_init(void)
+{
+	local_irq_enable();
+
+	for (;;)
+		/* nothing */;
+}
+
 /*
  * Initialization routine after everything before spawning initproc.
  *
@@ -48,10 +58,8 @@ static void __noreturn rest_init(void)
 {
 	/* TODO: temporary test, will be removed.  Will spawn initproc here. */
 	proc_test();
-	local_irq_enable();	/* enable scheduling */
-
-	for (;;)
-		/* nothing */;
+	percpu_blocked = false;
+	rest_percpu_init();
 }
 
 void __noreturn master_init(void)
@@ -175,9 +183,10 @@ void __noreturn slave_init(void)
 
 	idle_init();
 	timer_init();
-	local_irq_enable();
 
-	for (;;)
+	while (percpu_blocked)
 		/* nothing */;
+
+	rest_percpu_init();
 }
 
