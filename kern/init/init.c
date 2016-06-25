@@ -39,15 +39,10 @@
 
 #define BOOTSTRAP_POOL_SIZE	1024
 
-/*
- * Initialization routine common to master and slave at last stages.
- *
- * Will jump to scheduler.
- */
+static volatile bool percpu_blocked = true;
+
 static void __noreturn rest_percpu_init(void)
 {
-	idle_init();
-	timer_init();
 	local_irq_enable();
 
 	for (;;)
@@ -55,13 +50,15 @@ static void __noreturn rest_percpu_init(void)
 }
 
 /*
- * Initialization routine after everything before spawning initproc is done.
+ * Initialization routine after everything before spawning initproc.
+ *
+ * rest_init() spawns processes and enables scheduling.
  */
 static void __noreturn rest_init(void)
 {
-	/* TODO: temporary test, will be removed */
+	/* TODO: temporary test, will be removed.  Will spawn initproc here. */
 	proc_test();
-	/* TODO: shall we synchronize rest_percpu_init() on different cores? */
+	percpu_blocked = false;
 	rest_percpu_init();
 }
 
@@ -171,12 +168,21 @@ void __noreturn master_init(void)
 
 	/* initialize or cleanup namespace */
 
+	idle_init();
+	timer_init();
+
 	rest_init();
 }
 
 void __noreturn slave_init(void)
 {
 	kprintf("KERN CPU %d: init\n", cpuid());
+
+	idle_init();
+	timer_init();
+
+	while (percpu_blocked)
+		/* nothing */;
 
 	rest_percpu_init();
 }
