@@ -141,11 +141,11 @@ void proc_destroy(struct proc *proc)
 }
 
 /* Arch-portion code there */
-extern void __proc_ksetup(struct proc *proc, void *entry, void *args);
-void proc_ksetup(struct proc *proc, void *entry, void *args)
+extern void __proc_ksetup(struct proc *proc, void *entry, void *stacktop,
+    void *args);
+void proc_ksetup(struct proc *proc, void *entry, void *stacktop, void *args)
 {
-	proc->mm = kernel_mm;
-	__proc_ksetup(proc, entry, args);
+	__proc_ksetup(proc, entry, stacktop, args);
 }
 
 /* Arch-portion code there */
