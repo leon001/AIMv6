@@ -55,15 +55,17 @@ void userinit(void)
 	 */
 #if 1
 	asm volatile (
+		"	li	$2, 1;"		/* fork() */
+		"	syscall;"
+		"	li	$2, 1;"		/* fork() */
+		"	syscall;"
+		"	li	$2, 1;"		/* fork() */
+		"	syscall;"
 		"1:	li	$3, 100000;"
 		"2:	subu	$3, 1;"
 		"	bnez	$3, 2b;"
-		"	li	$2, 6;"
+		"	li	$2, 6;"		/* getpid() */
 		"	syscall;"
-#if 0
-		"	li	$2, 5;"
-		"	syscall;"
-#endif
 		"	b	1b;"
 	);
 #else
@@ -88,11 +90,12 @@ void proc_test(void)
 	 */
 	for (i = 0; i < 5; ++i) {
 		kthreads[i] = proc_new(NULL);
-		proc_ksetup(kthreads[i], kthread, (void *)i);
+		kthreads[i]->mm = kernel_mm;
+		proc_ksetup(kthreads[i], kthread, kstacktop(kthreads[i]), (void *)i);
 		kthreads[i]->state = PS_RUNNABLE;
 		proc_add(kthreads[i]);
 	}
-	for (i = 0; i < 5; ++i) {
+	for (i = 0; i < 1; ++i) {
 		uthreads[i] = proc_new(NULL);
 		uthreads[i]->mm = mm_new();
 		assert(uthreads[i]->mm != NULL);

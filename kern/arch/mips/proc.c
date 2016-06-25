@@ -23,16 +23,11 @@
 #include <percpu.h>
 #include <smp.h>
 
-static void *__kstacktop(struct proc *proc)
-{
-	return proc->kstack + proc->kstack_size;
-}
-
 static struct trapframe *__proc_trapframe(struct proc *proc)
 {
 	struct trapframe *tf;
 
-	tf = (struct trapframe *)(__kstacktop(proc) - sizeof(*tf));
+	tf = (struct trapframe *)(kstacktop(proc) - sizeof(*tf));
 	return tf;
 }
 
@@ -95,10 +90,10 @@ static void __bootstrap_user(struct trapframe *tf)
 #endif	/* __LP64__ */
 }
 
-void __proc_ksetup(struct proc *proc, void *entry, void *args)
+void __proc_ksetup(struct proc *proc, void *entry, void *stacktop, void *args)
 {
 	struct trapframe *tf = __proc_trapframe(proc);
-	__bootstrap_trapframe(tf, entry, __kstacktop(proc), args);
+	__bootstrap_trapframe(tf, entry, stacktop, args);
 	__bootstrap_context(&(proc->context), tf);
 }
 
@@ -119,6 +114,18 @@ void proc_trap_return(struct proc *proc)
 	trap_return(tf);
 }
 
+void __arch_fork(struct proc *child, struct proc *parent)
+{
+	struct trapframe *tf_child = __proc_trapframe(child);
+	struct trapframe *tf_parent = __proc_trapframe(parent);
+
+	*tf_child = *tf_parent;
+	tf_child->gpr[_V0] = 0;
+	tf_child->gpr[_V1] = 0;
+
+	__bootstrap_context(&(child->context), tf_child);
+}
+
 void switch_context(struct proc *proc)
 {
 	struct proc *current = current_proc;
@@ -127,7 +134,7 @@ void switch_context(struct proc *proc)
 	/* Switch page directory */
 	switch_pgindex(proc->mm->pgindex);
 	/* Switch kernel stack */
-	current_kernelsp = (unsigned long)__kstacktop(proc);
+	current_kernelsp = (unsigned long)kstacktop(proc);
 	/* Switch general registers */
 	switch_regs(&(current->context), &(proc->context));
 }

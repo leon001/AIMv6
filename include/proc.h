@@ -86,6 +86,11 @@ struct proc {
 	struct list_head sched_node;	/* List node in scheduler */
 };
 
+static inline void *kstacktop(struct proc *proc)
+{
+	return proc->kstack + proc->kstack_size;
+}
+
 /* Create a struct proc inside namespace @ns and initialize everything if we
  * can by default. */
 struct proc *proc_new(struct namespace *ns);
@@ -103,7 +108,7 @@ void proc_test(void);		/* temporary */
 
 /*
  * Setup a kernel process with entry and arguments.
- * A kernel process works on its kernel stack.
+ * You can set up a kernel process to work on its kernel stack.
  *
  * Only sets up process trap frame and context.
  *
@@ -111,7 +116,7 @@ void proc_test(void);		/* temporary */
  * proc_ksetup().  You only need to provide arch-dependent code
  * __proc_ksetup() (see kern/proc/proc.c)
  */
-void proc_ksetup(struct proc *proc, void *entry, void *args);
+void proc_ksetup(struct proc *proc, void *entry, void *stacktop, void *args);
 /*
  * Setup a user process with entry, stack top, and arguments.
  *
@@ -119,11 +124,18 @@ void proc_ksetup(struct proc *proc, void *entry, void *args);
  *
  * For architecture developers: You only need to provide arch-dependent
  * code __proc_usetup().
+ *
+ * TODO: merge proc_ksetup and proc_usetup together
  */
 void proc_usetup(struct proc *proc, void *entry, void *stacktop, void *args);
 void switch_context(struct proc *proc);
 /* Return to trap frame in @proc.  Usually called once by fork child */
 void proc_trap_return(struct proc *proc);
+
+/*
+ * Process tree maintenance
+ */
+void proctree_add_child(struct proc *child, struct proc *parent);
 
 #endif /* _PROC_H */
 
