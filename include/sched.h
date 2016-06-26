@@ -59,9 +59,11 @@ void sched_enter_critical(void);
 void sched_exit_critical(void);
 
 void sched_init(void);
-void proc_add(struct proc *proc);
-struct proc *proc_next(struct proc *proc);
 void schedule(void);
+
+void proc_add(struct proc *proc);
+void proc_remove(struct proc *proc);
+struct proc *proc_next(struct proc *proc);
 
 /* sleep()'s and wakeup()'s */
 void sleep(void *bed);

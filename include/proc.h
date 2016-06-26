@@ -56,6 +56,7 @@ struct proc {
 	/* TODO: may have more...? */
 #define PF_EXITING	0x00000004	/* getting shut down */
 #define PF_SIGNALED	0x00000400	/* killed by a signal */
+#define PF_KTHREAD	0x00200000	/* I am a kernel thread */
 	int		oncpu;		/* CPU ID being running on */
 #define CPU_NONE	-1
 	uintptr_t	bed;		/* object we are sleeping on */
