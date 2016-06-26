@@ -20,15 +20,19 @@
 #define _DEVICE_H
 
 #include <sys/types.h>
+#include <aim/sync.h>
+#include <list.h>
 
 /* forward */
 struct bus_device;
 struct proc;	/* include/proc.h */
+struct buf;	/* include/buf.h */
 
 /* Drivers */
 struct driver {
 	int type;
 	int (*open)(dev_t dev, int oflags, struct proc *p);
+	int (*strategy)(struct buf *bp);
 };
 
 struct chr_driver {
@@ -37,9 +41,6 @@ struct chr_driver {
 
 struct blk_driver {
 	struct driver;
-
-	int (*read_blk)(dev_t dev, off_t off);
-	int (*read_blk_poll)(dev_t dev, off_t off);
 };
 
 struct net_driver {
@@ -51,14 +52,16 @@ extern struct driver *devsw[];
 void register_driver(unsigned int major, struct driver *drv);
 
 /* Devices */
-
+#define DEV_NAME_MAX	64
 struct device {
-	const char *name;
+	char name[DEV_NAME_MAX];
 
 	dev_t devno;
 
 	struct bus_device *bus;
 	addr_t base;
+
+	lock_t lock;
 };
 
 struct chr_device {
@@ -70,6 +73,7 @@ struct chr_device {
 struct blk_device {
 	struct device;
 
+	struct list_head bufqueue;
 	/* Reserved for later use */
 };
 

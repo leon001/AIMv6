@@ -19,6 +19,40 @@
 #ifndef _DRIVERS_BLOCK_HD_H
 #define _DRIVERS_BLOCK_HD_H
 
+#include <sys/types.h>
+#include <aim/device.h>
+
 #define SECTOR_SIZE	512
 
+#define HD_PART_BITS		4
+#define HD_PART_MASK		((1 << HD_PART_BITS) - 1)
+#define HD_INSTANCE_BITS	12
+#define MAX_PARTITIONS		((1 << HD_PART_BITS) - 1)
+
+#define hdbasedev(dev)	makedev(major(dev), minor(dev) & ~HD_PART_MASK)
+#define hdpartno(dev)	(minor(dev) & HD_PART_MASK)
+
+struct hdpartition {
+	off_t	offset;
+	size_t	len;
+};
+
+struct hd_device {
+	struct blk_device;
+
+	/* Partitions are 1-based */
+	struct hdpartition part[MAX_PARTITIONS + 1];
+
+	/* Only valid for whole hd's */
+	uint32_t	openmask;
+	uint32_t	flags;
+#define HD_LOADED	0x1
+};
+
+int register_partition_table(int (*register_func)(struct hd_device *));
+int detect_hd_partitions(struct hd_device *);
+
+#define MAX_PARTITION_TABLE_TYPES	5
+
 #endif
+

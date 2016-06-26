@@ -35,6 +35,8 @@ getnewvnode(struct mount *mp, struct vops *ops, struct vnode **vpp)
 	vp->type = VNON;
 	vp->data = NULL;
 	vp->mount = NULL;
+	list_init(&vp->buf_head);
+	spinlock_init(&vp->buf_lock);
 
 	insmntque(vp, mp);
 

@@ -17,21 +17,8 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = ufs
+noinst_LTLIBRARIES = libhd.la
+noinst_DATA = dos.o
 
-noinst_LTLIBRARIES = libfs.la
+libhd_la_SOURCES = partition.c hd.h
 
-libfs_la_SOURCES = \
-		   bio.c \
-		   spec.c \
-		   vnode.c \
-		   test.c \
-		   mount.c \
-		   vfs.c \
-		   VOP.c \
-		   specdev.h \
-		   vnode.h \
-		   mount.h \
-		   VOP.h \
-		   vfs.h
-libfs_la_LIBADD = ufs/libufs.la

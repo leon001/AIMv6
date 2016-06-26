@@ -11,7 +11,8 @@ struct vnode;	/* fs/vnode.h */
 struct specinfo {
 	dev_t		devno;
 	struct vnode	*vnode;
-	struct list_head	spec_node;
+
+	struct list_head spec_node;
 };
 
 int bdevvp(dev_t, struct vnode **);

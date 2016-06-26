@@ -25,18 +25,112 @@
 
 #include <sys/types.h>
 #include <proc.h>
+#include <buf.h>
 #include <aim/device.h>
 #include <mach-conf.h>
 #include <aim/initcalls.h>
+#include <drivers/io/io-mem.h>
+#include <errno.h>
+#include <panic.h>
+#include <drivers/hd/hd.h>
+
+static void __init(struct hd_device *hd)
+{
+	kprintf("DEBUG: initializing MSIM hard disk\n");
+	__msim_dd_init(hd->base);
+	kprintf("DEBUG: initialization done\n");
+}
 
 static int __open(dev_t dev, int mode, struct proc *p)
 {
-	kprintf("opened\n");
+	struct hd_device *hdpart;
+	struct hd_device *hd;
+
+	kprintf("DEBUG: __open: %d, %d\n", major(dev), minor(dev));
+
+	hdpart = (struct hd_device *)dev_from_id(dev);
+	hd = (struct hd_device *)dev_from_id(hdbasedev(dev));
+
+	/* Create a device for whole hard disk if the device structure does
+	 * not exist. */
+	if (hd == NULL) {
+		hd = kmalloc(sizeof(*hd), 0);
+		if (hd == NULL)
+			return -ENOMEM;
+
+		memset(hd, 0, sizeof(*hd));
+		strlcpy(hd->name, "Md", DEV_NAME_MAX);
+		hd->devno = hdbasedev(dev);
+		/*
+		 * XXX
+		 * For now we hardwire the disk bus to memory bus.
+		 */
+		hd->bus = &early_memory_bus;
+		hd->base = MSIM_DISK_PHYSADDR;
+		list_init(&(hd->bufqueue));
+		spinlock_init(&hd->lock);
+		dev_add(hd);
+
+		__init(hd);
+	}
+
+	/* Detect all partitions if we could not find the partition device
+	 * structure. */
+	if (hdpart == NULL) {
+		detect_hd_partitions(hd);
+	}
+	return 0;
+}
+
+/* The real place where struct buf's are turned into disk commands */
+static void __start(struct hd_device *dev)
+{
+	struct buf *bp;
+	off_t blkno, partoff;
+	int partno;
+
+	assert(!list_empty(&dev->bufqueue));
+	bp = list_first_entry(&dev->bufqueue, struct buf, ionode);
+	assert(bp->nblksrem != 0);
+	assert(bp->flags & (B_DIRTY | B_INVALID));
+	assert(bp->flags & B_BUSY);
+	partno = hdpartno(bp->devno);
+	assert((partno == 0) || (dev->part[partno].len != 0));
+	partoff = (partno == 0) ? 0 : dev->part[partno].offset;
+	blkno = bp->blkno + bp->nblks - bp->nblksrem + partoff;
+
+	if (bp->flags & B_DIRTY)
+		__msim_dd_write_sector(dev->base, blkno, bp->data, false);
+	else if (bp->flags & B_INVALID)
+		__msim_dd_read_sector(dev->base, blkno, bp->data, false);
+	/* TODO NEXT: deal with interrupt callbacks */
+	panic("done");
+}
+
+static int __strategy(struct buf *bp)
+{
+	struct hd_device *hd;
+
+	assert(bp->flags & B_BUSY);
+	if (!(bp->flags & (B_DIRTY | B_INVALID)))
+		return 0;
+
+	hd = (struct hd_device *)dev_from_id(hdbasedev(bp->devno));
+
+	spin_lock(&hd->lock);
+	if (list_empty(&hd->bufqueue)) {
+		list_add_tail(&bp->ionode, &hd->bufqueue);
+		__start(hd);
+	} else {
+		list_add_tail(&bp->ionode, &hd->bufqueue);
+	}
+	spin_unlock(&hd->lock);
 	return 0;
 }
 
 static struct blk_driver drv = {
-	.open = __open
+	.open = __open,
+	.strategy = __strategy
 };
 
 static int __driver_init(void)

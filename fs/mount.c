@@ -19,7 +19,6 @@ insmntque(struct vnode *vp, struct mount *mp)
 		list_add_tail(&(vp->mount_node), &(mp->vnode_head));
 }
 
-/* TODO NEXT */
 int
 vfs_rootmountalloc(const char *fsname, struct mount **mpp)
 {

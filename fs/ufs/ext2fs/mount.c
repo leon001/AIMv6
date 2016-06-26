@@ -48,7 +48,6 @@ int
 ext2fs_mountfs(struct vnode *devvp, struct mount *mp, struct proc *p)
 {
 	int err;
-	dev_t dev = vdev(devvp);
 
 	/*
 	 * TODO:

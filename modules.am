@@ -72,6 +72,12 @@ if MACH_LOONGSON3A
 MODULES += $(top_builddir)/kern/arch/$(ARCH)/mach-$(MACH)/timer.o
 endif
 
+###################
+# Disk partitions #
+###################
+
+MODULES += $(top_builddir)/drivers/hd/dos.o
+
 ###########
 # Storage #
 ###########

@@ -2,11 +2,13 @@
 #include <list.h>
 #include <fs/vnode.h>
 #include <fs/specdev.h>
+#include <buf.h>
 #include <vmm.h>
 #include <errno.h>
 #include <aim/device.h>
 #include <sys/types.h>
 #include <sys/param.h>
+#include <panic.h>
 
 static struct list_head specinfo_list = EMPTY_LIST(specinfo_list);
 static struct vops spec_vops;	/* forward declaration */
@@ -35,6 +37,18 @@ spec_open(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
 		return -ENODEV;
 	}
 	return -EINVAL;
+}
+
+int
+spec_strategy(struct buf *bp)
+{
+	struct driver *drv;
+
+	assert(bp->devno == vdev(bp->vnode));
+	drv = devsw[major(bp->devno)];
+	assert(drv != NULL);
+
+	return (drv->strategy)(bp);
 }
 
 /*
@@ -92,5 +106,6 @@ vdev(struct vnode *vp)
 static struct vops spec_vops = {
 	.open = spec_open,
 	.inactive = spec_inactive,
+	.strategy = spec_strategy,
 };
 

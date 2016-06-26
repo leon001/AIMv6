@@ -19,6 +19,10 @@
 #ifndef _AIM_INIT_H
 #define _AIM_INIT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 typedef int (*initcall_t)(void);
 
 #ifndef __ASSEMBLER__

@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <aim/sync.h>
 #include <list.h>
+#include <buf.h>
 
 struct specinfo;	/* fs/specdev.h */
 struct mount;		/* fs/mount.h */
@@ -31,9 +32,16 @@ struct vnode {
 	/* members for mount */
 	struct mount	*mount;
 	struct list_head mount_node;
+
+	/* Block vnode only: maintains a list of struct buf's.
+	 * One can later make all kinds of vnodes maintain separate lists of
+	 * struct buf's */
+	struct list_head buf_head;
+	lock_t		buf_lock;
+
 	union {
 		struct specinfo *specinfo;
-		void *typedata;
+		void	*typedata;
 	};
 	/* FS-specific data.  For UFS-like filesystems this points to inode. */
 	void		*data;
@@ -51,6 +59,11 @@ struct vops {
 	 * xv6 equivalent is iput().
 	 */
 	int (*inactive)(struct vnode *, struct proc *);
+	/*
+	 * strategy:
+	 * Initiate a block I/O.
+	 */
+	int (*strategy)(struct buf *);
 };
 
 int getnewvnode(struct mount *, struct vops *, struct vnode **);
