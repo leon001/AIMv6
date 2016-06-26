@@ -56,8 +56,7 @@ static void __noreturn rest_percpu_init(void)
  */
 static void __noreturn rest_init(void)
 {
-	/* TODO: temporary test, will be removed.  Will spawn initproc here. */
-	proc_test();
+	spawn_initproc();
 	percpu_blocked = false;
 	rest_percpu_init();
 }
@@ -127,9 +126,6 @@ void __noreturn master_init(void)
 	/* do initcalls, one by one */
 	do_initcalls();
 	kputs("KERN: Initcalls done.\n");
-
-	extern void fs_test(void);
-	fs_test();
 
 	/* temporary tests */
 	struct allocator_cache cache = {
