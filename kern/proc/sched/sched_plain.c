@@ -45,11 +45,13 @@ struct plain_scheduler {
 
 static struct proc *__sched_plain_pick(void);
 static int __sched_plain_add(struct proc *proc);
+static int __sched_plain_remove(struct proc *proc);
 static struct proc *__sched_plain_next(struct proc *proc);
 
 static struct plain_scheduler plain_scheduler = {
 	.pick = __sched_plain_pick,
 	.add = __sched_plain_add,
+	.remove = __sched_plain_remove,
 	.next = __sched_plain_next
 };
 
@@ -90,6 +92,17 @@ static int __sched_plain_add(struct proc *proc)
 	spin_lock_irq_save(&(plain_scheduler.proclist.lock), flags);
 	list_add_before(&(proc->sched_node), &(plain_scheduler.proclist.head));
 	spin_unlock_irq_restore(&(plain_scheduler.proclist.lock), flags);
+	return 0;
+}
+
+static int __sched_plain_remove(struct proc *proc)
+{
+	unsigned long flags;
+
+	spin_lock_irq_save(&(plain_scheduler.proclist.lock), flags);
+	list_del(&(proc->sched_node));
+	spin_unlock_irq_restore(&(plain_scheduler.proclist.lock), flags);
+
 	return 0;
 }
 
