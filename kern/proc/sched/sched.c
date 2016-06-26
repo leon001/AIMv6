@@ -123,6 +123,11 @@ void proc_add(struct proc *proc)
 	scheduler->add(proc);
 }
 
+void proc_remove(struct proc *proc)
+{
+	scheduler->remove(proc);
+}
+
 struct proc *proc_next(struct proc *proc)
 {
 	return scheduler->next(proc);
