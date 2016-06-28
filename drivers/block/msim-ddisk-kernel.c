@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <panic.h>
 #include <drivers/hd/hd.h>
+#include <trap.h>
 
 static void __init(struct hd_device *hd)
 {
@@ -110,8 +111,12 @@ static void __start(struct hd_device *dev)
 		kprintf("DEBUG: reading from %d to %p\n", blkno, bp->data);
 		__msim_dd_read_sector(dev, blkno, bp->data, false);
 	}
-	/* TODO NEXT: deal with interrupt callbacks */
-	panic("done\n");
+}
+
+static void __startnext(struct hd_device *dev)
+{
+	if (!list_empty(&dev->bufqueue))
+		__start(dev);
 }
 
 static int __intr(void)
@@ -128,18 +133,25 @@ static int __intr(void)
 	void *dst;
 
 	hd = (struct hd_device *)dev_from_id(hdbasedev(rootdev));
+	kprintf("DEBUG: msim disk intr handler\n");
 	if (!__msim_dd_check_interrupt(hd)) {
 		panic("entering interrupt handler without rootdev interrupt?\n");
 		/* return 0; */
 	}
 	__msim_dd_ack_interrupt(hd);
+
+	assert(!list_empty(&hd->bufqueue));
+	bp = list_first_entry(&hd->bufqueue, struct buf, ionode);
+	assert(bp->flags & B_BUSY);
+	assert(bp->flags & (B_INVALID | B_DIRTY));
 	if (__msim_dd_check_error(hd)) {
 		bp->errno = -EIO;
 		bp->flags |= B_ERROR;
 		kprintf("DEBUG: fail buf %p\n", bp);
 		list_del(&(bp->ionode));
 		biodone(bp);
-		goto next;
+		__startnext(hd);
+		return 0;
 	}
 
 	spin_lock_irq_save(&hd->lock, flags);
@@ -148,9 +160,6 @@ static int __intr(void)
 		kprintf("DEBUG: spurious interrupt?\n");
 		return 0;
 	}
-	bp = list_first_entry(&hd->bufqueue, struct buf, ionode);
-	assert(bp->flags & B_BUSY);
-	assert(bp->flags & (B_INVALID | B_DIRTY));
 	dst = bp->data + (bp->nblks - bp->nblksrem) * BLOCK_SIZE;
 	if (!(bp->flags & B_DIRTY) && (bp->flags & B_INVALID))
 		__msim_dd_fetch(hd, dst);
@@ -160,15 +169,13 @@ static int __intr(void)
 	if (bp->nblksrem == 0) {
 		kprintf("DEBUG: done buf %p\n", bp);
 		bp->flags &= ~(B_DIRTY | B_INVALID);
+		list_del(&(bp->ionode));
 		biodone(bp);
-		goto next;
+		__startnext(hd);
 	}
 
-next:
-	if (!list_empty(&hd->bufqueue))
-		__start(hd);
-
 	spin_unlock_irq_restore(&hd->lock, flags);
+	return 0;
 }
 
 static int __strategy(struct buf *bp)
@@ -206,6 +213,7 @@ static struct blk_driver drv = {
 static int __driver_init(void)
 {
 	register_driver(MSIM_DISK_MAJOR, &drv);
+	add_interrupt_handler(__intr, 2);
 	return 0;
 }
 INITCALL_DRIVER(__driver_init);

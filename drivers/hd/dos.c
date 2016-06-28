@@ -34,6 +34,9 @@ static int detect_dos_partitions(struct hd_device *dev)
 	buf->blkno = 0;
 	buf->devno = dev->devno;
 	drv->strategy(buf);
+	biowait(buf);
+
+	kprintf("DEBUG: biowait done\n");
 
 	memcpy(&mbr, buf->data, SECTOR_SIZE);
 	if (mbr.signature[0] != 0x55 ||
@@ -49,6 +52,7 @@ static int detect_dos_partitions(struct hd_device *dev)
 		} else {
 			dev->part[i].offset = dev->part[i].len = 0;
 		}
+		kprintf("DEBUG: Partition detected: %d %d %d\n", i, dev->part[i].offset, dev->part[i].len);
 	}
 
 	brelse(buf);

@@ -26,9 +26,26 @@
 #include <errno.h>
 #include <panic.h>
 #include <mp.h>
+#include <sys/param.h>
+
+static int (*__disk_dispatch[MAJOR_MAX])(void) = {0};
+static int __disk_dispatch_count = 0;
+static int (*__kbd_dispatch[MAJOR_MAX])(void) = {0};
+static int __kbd_dispatch_count = 0;
 
 static int __discard(struct trapframe *regs)
 {
+	return 0;
+}
+
+static int __disk_interrupt(struct trapframe *regs)
+{
+	int i;
+
+	for (i = 0; i < MAJOR_MAX; ++i) {
+		if (__disk_dispatch[i] != NULL)
+			__disk_dispatch[i]();
+	}
 	return 0;
 }
 
@@ -55,7 +72,7 @@ static int __timer_interrupt(struct trapframe *regs)
 static int (*__dispatch[])(struct trapframe *) = {
 	NULL,			/* Soft interrupt 0 */
 	NULL,			/* Soft interrupt 1 */
-	__discard,		/* Disk interrupt */
+	__disk_interrupt,	/* Disk interrupt */
 	__discard,		/* Keyboard interrupt */
 	NULL,			/* Unused */
 	NULL,			/* Unused */
@@ -78,6 +95,18 @@ int handle_interrupt(struct trapframe *regs)
 	}
 	/* NOTREACHED */
 	return -EINVAL;
+}
+
+void add_interrupt_handler(int (*handler)(void), int intno)
+{
+	switch (intno) {
+	case 2:
+		__disk_dispatch[__disk_dispatch_count++] = handler;
+		break;
+	case 3:
+		__kbd_dispatch[__kbd_dispatch_count++] = handler;
+		break;
+	}
 }
 
 void panic_other_cpus(void)

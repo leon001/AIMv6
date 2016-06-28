@@ -168,7 +168,7 @@ brelse(struct buf *bp)
 	 * calls, and in that case, biowait() should be called manually.
 	 */
 
-	kprintf("brelse() releasing %snode %p\n", standalone ? "standalone " : "", bp);
+	kprintf("DEBUG: brelse() releasing %snode %p\n", standalone ? "standalone " : "", bp);
 
 	if (!standalone)
 		spin_lock_irq_save(&bp->vnode->buf_lock, flags);
