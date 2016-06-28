@@ -9,12 +9,9 @@
 
 struct buf {
 	dev_t		devno;
-	off_t		blkno;		/* physical block number on dev */
-	off_t		lblkno;		/* logical block number in vnode
-					 * Note that blkno == lblkno on
-					 * non-special vnode means that we
-					 * need to perform a bmap() to find
-					 * the true physical block number */
+	soff_t		blkno;		/* physical block number on dev */
+#define BLKNO_INVALID	((soff_t)(-1))	/* need bmap() to find the true number */
+	off_t		lblkno;		/* logical block number in vnode */
 	size_t		nblks;
 	uint32_t	flags;
 #define B_DIRTY		0x1		/* need to write */
@@ -28,7 +25,7 @@ struct buf {
 	char		*data;
 	struct vnode	*vnode;		/* associate vnode, NULL means
 					 * allocated by bgetempty() */
-	struct list_head node;		/* buf cache list node */
+	struct list_head node;		/* vnode buf cache list node */
 	struct list_head ionode;	/* device io list node */
 	size_t		nblksrem;	/* # of blocks not finished */
 };

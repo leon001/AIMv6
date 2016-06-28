@@ -37,6 +37,15 @@ static int __msim_dd_check_interrupt(struct blk_device *dev)
 	return !!(result & STAT_INTR);
 }
 
+static int __msim_dd_check_error(struct blk_device *dev)
+{
+	uint64_t result;
+	struct bus_device *bus = dev->bus;
+	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
+	bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_STAT), &result);
+	return !!(result & STAT_ERROR);
+}
+
 static void __msim_dd_ack_interrupt(struct blk_device *dev)
 {
 	struct bus_device *bus = dev->bus;

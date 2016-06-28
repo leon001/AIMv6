@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <proc.h>
 #include <buf.h>
+#include <fs/bio.h>
 #include <aim/device.h>
 #include <mach-conf.h>
 #include <aim/initcalls.h>
@@ -131,6 +132,15 @@ static int __intr(void)
 		panic("entering interrupt handler without rootdev interrupt?\n");
 		/* return 0; */
 	}
+	__msim_dd_ack_interrupt(hd);
+	if (__msim_dd_check_error(hd)) {
+		bp->errno = -EIO;
+		bp->flags |= B_ERROR;
+		kprintf("DEBUG: fail buf %p\n", bp);
+		list_del(&(bp->ionode));
+		biodone(bp);
+		goto next;
+	}
 
 	spin_lock_irq_save(&hd->lock, flags);
 
@@ -139,13 +149,24 @@ static int __intr(void)
 		return 0;
 	}
 	bp = list_first_entry(&hd->bufqueue, struct buf, ionode);
+	assert(bp->flags & B_BUSY);
+	assert(bp->flags & (B_INVALID | B_DIRTY));
 	dst = bp->data + (bp->nblks - bp->nblksrem) * BLOCK_SIZE;
-	list_del(&bp->ionode);
-	if (!(bp->flags & B_DIRTY)) {
+	if (!(bp->flags & B_DIRTY) && (bp->flags & B_INVALID))
 		__msim_dd_fetch(hd, dst);
+	bp->nblksrem--;
+	kprintf("DEBUG: buf %p remain %d\n", bp, bp->nblksrem);
+
+	if (bp->nblksrem == 0) {
+		kprintf("DEBUG: done buf %p\n", bp);
+		bp->flags &= ~(B_DIRTY | B_INVALID);
+		biodone(bp);
+		goto next;
 	}
 
-	/* TODO: biodone() */
+next:
+	if (!list_empty(&hd->bufqueue))
+		__start(hd);
 
 	spin_unlock_irq_restore(&hd->lock, flags);
 }

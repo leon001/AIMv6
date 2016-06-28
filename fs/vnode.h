@@ -32,10 +32,7 @@ struct vnode {
 	/* members for mount */
 	struct mount	*mount;
 	struct list_head mount_node;
-
-	/* Block vnode only: maintains a list of struct buf's.
-	 * One can later make all kinds of vnodes maintain separate lists of
-	 * struct buf's */
+	/* buffer queue per vnode */
 	struct list_head buf_head;
 	lock_t		buf_lock;
 

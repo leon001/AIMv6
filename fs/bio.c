@@ -14,9 +14,6 @@
 #include <libc/string.h>
 #include <aim/initcalls.h>
 
-static struct list_head bufcache;
-static lock_t bufcache_lock;
-
 struct buf *buf_get(struct vnode *vp, off_t lblkno, size_t nblks);
 
 /*
@@ -32,25 +29,25 @@ bget(struct vnode *vp, off_t lblkno, size_t nblks)
 	struct buf *bp;
 	unsigned long flags;
 
-	spin_lock_irq_save(&bufcache_lock, flags);
+	spin_lock_irq_save(&vp->buf_lock, flags);
 
 restart:
-	for_each_entry (bp, &bufcache, node) {
-		assert(bp->vnode != NULL);
-		if (bp->vnode == vp && bp->lblkno == lblkno) {
+	for_each_entry (bp, &vp->buf_head, node) {
+		assert(bp->vnode == vp);
+		if (bp->lblkno == lblkno) {
 			assert(bp->nblks == nblks);
 			if (!(bp->flags & B_BUSY)) {
 				bp->flags |= B_BUSY;
-				spin_unlock(&bufcache_lock);
+				spin_unlock(&vp->buf_lock);
 				return bp;
 			}
-			sleep_with_lock(bp, &bufcache_lock);
+			sleep_with_lock(bp, &vp->buf_lock);	/* brelse() */
 			goto restart;
 		}
 	}
 
 	bp = buf_get(vp, lblkno, nblks);
-	spin_unlock_irq_restore(&bufcache_lock, flags);
+	spin_unlock_irq_restore(&vp->buf_lock, flags);
 
 	return bp;
 }
@@ -58,7 +55,7 @@ restart:
 struct buf *
 bgetempty(size_t nblks)
 {
-	kprintf("bgetempty() getting %d blocks\n", nblks);
+	kprintf("DEBUG: bgetempty() getting %d blocks\n", nblks);
 	return buf_get(NULL, 0, nblks);
 }
 
@@ -71,21 +68,24 @@ buf_get(struct vnode *vp, off_t lblkno, size_t nblks)
 {
 	struct buf *bp;
 
-	for_each_entry_reverse (bp, &bufcache, node) {
+	if (vp == NULL)
+		goto create;	/* standalone buf */
+	for_each_entry_reverse (bp, &vp->buf_head, node) {
 		if (!(bp->flags & (B_BUSY | B_DIRTY))) {
 			kfree(bp->data);
 			goto initbp;
 		}
 	}
 
+create:
 	bp = kmalloc(sizeof(*bp), 0);
 	memset(bp, 0, sizeof(*bp));
 initbp:
 	bp->flags |= B_BUSY | B_INVALID;
 	bp->nblks = nblks;
 	if (vp != NULL) {
-		list_add_tail(&(bp->node), &bufcache);
-		bp->lblkno = bp->blkno = lblkno;
+		bp->lblkno = lblkno;
+		bp->blkno = BLKNO_INVALID;
 		bgetvp(vp, bp);
 	}
 	bp->data = kmalloc(BLOCK_SIZE * nblks, 0);
@@ -102,6 +102,14 @@ bgetvp(struct vnode *vp, struct buf *bp)
 	bp->vnode = vp;
 	if (vp->type == VCHR || vp->type == VBLK)
 		bp->devno = vp->specinfo->devno;
+	list_add_tail(&(bp->node), &(vp->buf_head));
+}
+
+void
+brelvp(struct buf *bp)
+{
+	kprintf("DEBUG: brelvp() releasing %p\n", bp);
+	/* currently we do nothing */
 }
 
 static struct buf *
@@ -121,7 +129,7 @@ int
 biowait(struct buf *bp)
 {
 	while (!(bp->flags & B_DONE))
-		sleep(bp);
+		sleep(bp);	/* biodone() */
 	if (bp->flags & B_EINTR) {
 		bp->flags &= ~B_EINTR;
 		return -EINTR;
@@ -132,13 +140,13 @@ biowait(struct buf *bp)
 }
 
 int
-binit(void)
+biodone(struct buf *bp)
 {
-	list_init(&bufcache);
-	spinlock_init(&bufcache_lock);
+	assert(!(bp->flags & B_DONE));
+	bp->flags |= B_DONE;
+	wakeup(bp);	/* biowait() */
 	return 0;
 }
-INITCALL_SUBSYS(binit);
 
 /*
  * Release a buffer and make it available in buf cache, or free the buf if
@@ -162,34 +170,19 @@ brelse(struct buf *bp)
 
 	kprintf("brelse() releasing %snode %p\n", standalone ? "standalone " : "", bp);
 
-	spin_lock_irq_save(&bufcache_lock, flags);
+	if (!standalone)
+		spin_lock_irq_save(&bp->vnode->buf_lock, flags);
 
 	bp->flags &= ~B_BUSY;
-
 	if (standalone) {
 		kfree(bp->data);
 		kfree(bp);
+	} else {
+		brelvp(bp);
 	}
+	wakeup(bp);	/* bget() */
 
-	spin_unlock_irq_restore(&bufcache_lock, flags);
-}
-
-/*
- * Helper function called when destroying @vp.  Removes all buf's with vnode
- * @vp.
- */
-void
-bufcache_remove_vnode(struct vnode *vp)
-{
-	struct buf *bp, *bnext;
-	for_each_entry_safe (bp, bnext, &bufcache, node) {
-		if (bp->vnode == vp) {
-			assert(bp->data != NULL);
-			assert(!(bp->flags & B_BUSY));
-			kfree(bp->data);
-			list_del(&(bp->node));
-			kfree(bp);
-		}
-	}
+	if (!standalone)
+		spin_unlock_irq_restore(&bp->vnode->buf_lock, flags);
 }
 
