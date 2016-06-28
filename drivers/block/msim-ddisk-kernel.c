@@ -99,10 +99,13 @@ static void __start(struct hd_device *dev)
 	partoff = (partno == 0) ? 0 : dev->part[partno].offset;
 	blkno = bp->blkno + bp->nblks - bp->nblksrem + partoff;
 
-	if (bp->flags & B_DIRTY)
+	if (bp->flags & B_DIRTY) {
+		kprintf("DEBUG: writing to %d from %p\n", blkno, bp->data);
 		__msim_dd_write_sector(dev->base, blkno, bp->data, false);
-	else if (bp->flags & B_INVALID)
+	} else if (bp->flags & B_INVALID) {
+		kprintf("DEBUG: reading from %d to %p\n", blkno, bp->data);
 		__msim_dd_read_sector(dev->base, blkno, bp->data, false);
+	}
 	/* TODO NEXT: deal with interrupt callbacks */
 	panic("done");
 }
@@ -112,8 +115,13 @@ static int __strategy(struct buf *bp)
 	struct hd_device *hd;
 
 	assert(bp->flags & B_BUSY);
-	if (!(bp->flags & (B_DIRTY | B_INVALID)))
+	if (!(bp->flags & (B_DIRTY | B_INVALID))) {
+		kprintf("DEBUG: msim-ddisk: nothing to do\n");
 		return 0;
+	}
+	kprintf("DEBUG: msim-ddisk: queuing buf %p with %d blocks at %p\n", bp, bp->nblks, bp->data);
+
+	bp->nblksrem = bp->nblks;
 
 	hd = (struct hd_device *)dev_from_id(hdbasedev(bp->devno));
 

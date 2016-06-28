@@ -69,15 +69,20 @@ vunlock(struct vnode *vp)
 }
 
 int
+vgone(struct vnode *vp)
+{
+	panic("vgone NYI\n");
+	return 0;
+}
+
+int
 vrele(struct vnode *vp)
 {
 	atomic_dec(&(vp->refs));
 	if (vp->refs > 0)
 		return 0;
-	vlock(vp);
-	VOP_INACTIVE(vp, current_proc);	/* unlocked, sync'ed and cleaned up */
-	if (vp->refs == 0)
-		kfree(vp);
+	vgone(vp);
+	kfree(vp);
 	return 0;
 }
 

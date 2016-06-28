@@ -25,12 +25,15 @@ static int detect_dos_partitions(struct hd_device *dev)
 	int i, j = 0;
 	struct vnode *vnode;
 	struct buf *buf;
+	struct blk_driver *drv;
 
 	kprintf("DEBUG: detecting DOS partitions\n");
 
-	/* TODO: we probably should not depend on FS-calls here */
-	bdevvp(dev->devno, &vnode);
-	bread(vnode, 0, 1, &buf);
+	drv = (struct blk_driver *)devsw[major(dev->devno)];
+	buf = bgetempty(1);
+	buf->blkno = 0;
+	buf->devno = dev->devno;
+	drv->strategy(buf);
 
 	memcpy(&mbr, buf->data, SECTOR_SIZE);
 	if (mbr.signature[0] != 0x55 ||
@@ -47,6 +50,8 @@ static int detect_dos_partitions(struct hd_device *dev)
 			dev->part[i].offset = dev->part[i].len = 0;
 		}
 	}
+
+	brelse(buf);
 
 	return 0;
 }

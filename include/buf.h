@@ -26,8 +26,9 @@ struct buf {
 #define B_ERROR		0x20		/* failed */
 	int		errno;		/* valid if B_ERROR, 0 if unsure */
 	char		*data;
-	struct vnode	*vnode;
-	struct list_head node;		/* vnode buf list node */
+	struct vnode	*vnode;		/* associate vnode, NULL means
+					 * allocated by bgetempty() */
+	struct list_head node;		/* buf cache list node */
 	struct list_head ionode;	/* device io list node */
 	size_t		nblksrem;	/* # of blocks not finished */
 };
