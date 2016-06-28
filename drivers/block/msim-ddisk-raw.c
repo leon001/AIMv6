@@ -23,33 +23,50 @@
  * The internal routines are already provided in msim-ddisk.c
  */
 
+#include <drivers/io/io-mem.h>
+
+static struct blk_device __raw_disk = {
+	.base = MSIM_DISK_PHYSADDR
+};
+
 void msim_dd_init(unsigned long paddr)
 {
-	__msim_dd_init(paddr);
+	__raw_disk.bus = &early_memory_bus;
+
+	__msim_dd_init(&__raw_disk);
 }
 
 size_t msim_dd_get_sector_count(unsigned long paddr)
 {
-	return __msim_dd_get_sector_count(paddr);
+	/*
+	 * Dirty hack, as paddr's never change throughout firmware.
+	 * The following __raw_disk.paddr statements base on the same rationale.
+	 */
+	__raw_disk.base = paddr;
+	return __msim_dd_get_sector_count(&__raw_disk);
 }
 
 int msim_dd_read_sector(unsigned long paddr, off_t off, void *buf, bool poll)
 {
-	return __msim_dd_read_sector(paddr, off, buf, poll);
+	__raw_disk.base = paddr;
+	return __msim_dd_read_sector(&__raw_disk, off, buf, poll);
 }
 
 int msim_dd_write_sector(unsigned long paddr, off_t off, void *buf, bool poll)
 {
-	return __msim_dd_write_sector(paddr, off, buf, poll);
+	__raw_disk.base = paddr;
+	return __msim_dd_write_sector(&__raw_disk, off, buf, poll);
 }
 
 int msim_dd_check_interrupt(unsigned long paddr)
 {
-	return __msim_dd_check_interrupt(paddr);
+	__raw_disk.base = paddr;
+	return __msim_dd_check_interrupt(&__raw_disk);
 }
 
 void msim_dd_ack_interrupt(unsigned long paddr)
 {
-	return __msim_dd_ack_interrupt(paddr);
+	__raw_disk.base = paddr;
+	return __msim_dd_ack_interrupt(&__raw_disk);
 }
 

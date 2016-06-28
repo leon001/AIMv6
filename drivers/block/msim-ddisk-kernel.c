@@ -37,7 +37,7 @@
 static void __init(struct hd_device *hd)
 {
 	kprintf("DEBUG: initializing MSIM hard disk\n");
-	__msim_dd_init(hd->base);
+	__msim_dd_init(hd);
 	kprintf("DEBUG: initialization done\n");
 }
 
@@ -82,7 +82,10 @@ static int __open(dev_t dev, int mode, struct proc *p)
 	return 0;
 }
 
-/* The real place where struct buf's are turned into disk commands */
+/*
+ * The real place where struct buf's are turned into disk commands.
+ * Assumes that the buf queue lock is held.
+ */
 static void __start(struct hd_device *dev)
 {
 	struct buf *bp;
@@ -101,18 +104,56 @@ static void __start(struct hd_device *dev)
 
 	if (bp->flags & B_DIRTY) {
 		kprintf("DEBUG: writing to %d from %p\n", blkno, bp->data);
-		__msim_dd_write_sector(dev->base, blkno, bp->data, false);
+		__msim_dd_write_sector(dev, blkno, bp->data, false);
 	} else if (bp->flags & B_INVALID) {
 		kprintf("DEBUG: reading from %d to %p\n", blkno, bp->data);
-		__msim_dd_read_sector(dev->base, blkno, bp->data, false);
+		__msim_dd_read_sector(dev, blkno, bp->data, false);
 	}
 	/* TODO NEXT: deal with interrupt callbacks */
-	panic("done");
+	panic("done\n");
+}
+
+static int __intr(void)
+{
+	/*
+	 * Theoretically we need to enumerate all hard disks to check
+	 * if an interrupt is asserted.  Here we assumes that we only
+	 * have one device: rootdev.
+	 */
+	struct hd_device *hd;
+	extern dev_t rootdev;	/* mach_init() or arch_init() */
+	unsigned long flags;
+	struct buf *bp;
+	void *dst;
+
+	hd = (struct hd_device *)dev_from_id(hdbasedev(rootdev));
+	if (!__msim_dd_check_interrupt(hd)) {
+		panic("entering interrupt handler without rootdev interrupt?\n");
+		/* return 0; */
+	}
+
+	spin_lock_irq_save(&hd->lock, flags);
+
+	if (list_empty(&hd->bufqueue)) {
+		kprintf("DEBUG: spurious interrupt?\n");
+		return 0;
+	}
+	bp = list_first_entry(&hd->bufqueue, struct buf, ionode);
+	dst = bp->data + (bp->nblks - bp->nblksrem) * BLOCK_SIZE;
+	list_del(&bp->ionode);
+	if (!(bp->flags & B_DIRTY)) {
+		__msim_dd_fetch(hd, dst);
+	}
+
+	/* TODO: biodone() */
+
+	spin_unlock_irq_restore(&hd->lock, flags);
 }
 
 static int __strategy(struct buf *bp)
 {
 	struct hd_device *hd;
+	unsigned long flags;
 
 	assert(bp->flags & B_BUSY);
 	if (!(bp->flags & (B_DIRTY | B_INVALID))) {
@@ -125,14 +166,14 @@ static int __strategy(struct buf *bp)
 
 	hd = (struct hd_device *)dev_from_id(hdbasedev(bp->devno));
 
-	spin_lock(&hd->lock);
+	spin_lock_irq_save(&hd->lock, flags);
 	if (list_empty(&hd->bufqueue)) {
 		list_add_tail(&bp->ionode, &hd->bufqueue);
 		__start(hd);
 	} else {
 		list_add_tail(&bp->ionode, &hd->bufqueue);
 	}
-	spin_unlock(&hd->lock);
+	spin_unlock_irq_restore(&hd->lock, flags);
 	return 0;
 }
 

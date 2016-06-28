@@ -22,43 +22,64 @@
 #include <libc/string.h>
 #include <drivers/hd/hd.h>
 #include <drivers/block/msim-ddisk.h>
+#include <aim/device.h>
 
+/* NOTE: we are assuming only one disk device.  In reality, we need one
+ * DMA buffer *per* device. */
 unsigned char msim_dd_dma[SECTOR_SIZE];
 
-static int __msim_dd_check_interrupt(unsigned long paddr)
+static int __msim_dd_check_interrupt(struct blk_device *dev)
 {
-	return !!(read32(MSIM_DD_REG(paddr, MSIM_DD_STAT)) & STAT_INTR);
+	uint64_t result;
+	struct bus_device *bus = dev->bus;
+	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
+	bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_STAT), &result);
+	return !!(result & STAT_INTR);
 }
 
-static void __msim_dd_ack_interrupt(unsigned long paddr)
+static void __msim_dd_ack_interrupt(struct blk_device *dev)
 {
-	write32(MSIM_DD_REG(paddr, MSIM_DD_COMMAND), CMD_ACK);
+	struct bus_device *bus = dev->bus;
+	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_COMMAND), CMD_ACK);
 }
 
-static void __msim_dd_init(unsigned long paddr)
+static void __msim_dd_init(struct blk_device *dev)
 {
-	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
+	struct bus_device *bus = dev->bus;
+	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
 }
 
-static size_t __msim_dd_get_sector_count(unsigned long paddr)
+static size_t __msim_dd_get_sector_count(struct blk_device *dev)
 {
-	return read32(MSIM_DD_REG(paddr, MSIM_DD_SIZE));
+	struct bus_device *bus = dev->bus;
+	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
+	uint64_t result;
+	bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_SIZE), &result);
+	return (size_t)result;
 }
 
 /*
  * Read sector, returns 0 if successful.
  */
-static int __msim_dd_read_sector(unsigned long paddr, size_t sect, void *buf, bool poll)
+static int __msim_dd_read_sector(struct blk_device *dev, size_t sect, void *buf, bool poll)
 {
-	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
-	write32(MSIM_DD_REG(paddr, MSIM_DD_SECTOR), sect);
-	write32(MSIM_DD_REG(paddr, MSIM_DD_COMMAND), CMD_READ);
+	struct bus_device *bus = dev->bus;
+	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
+	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+	uint64_t result;
+
+	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
+	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_SECTOR), sect);
+	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_COMMAND), CMD_READ);
 	if (poll) {
-		while (!__msim_dd_check_interrupt(paddr))
+		while (!__msim_dd_check_interrupt(dev))
 			/* nothing */;
 		/* Clear interrupt */
-		__msim_dd_ack_interrupt(paddr);
-		if (read32(MSIM_DD_REG(paddr, MSIM_DD_STAT)) & STAT_ERROR) {
+		__msim_dd_ack_interrupt(dev);
+		bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_STAT), &result);
+		if (result & STAT_ERROR) {
 			return -1;
 		} else {
 			memcpy(buf, msim_dd_dma, SECTOR_SIZE);
@@ -69,24 +90,35 @@ static int __msim_dd_read_sector(unsigned long paddr, size_t sect, void *buf, bo
 	}
 }
 
-static int __msim_dd_write_sector(unsigned long paddr, size_t sect, void *buf, bool poll)
+static int __msim_dd_write_sector(struct blk_device *dev, size_t sect, void *buf, bool poll)
 {
+	struct bus_device *bus = dev->bus;
+	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
+	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+	uint64_t result;
+
 	memcpy(msim_dd_dma, buf, SECTOR_SIZE);
-	write32(MSIM_DD_REG(paddr, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
-	write32(MSIM_DD_REG(paddr, MSIM_DD_SECTOR), sect);
-	write32(MSIM_DD_REG(paddr, MSIM_DD_COMMAND), CMD_WRITE);
+	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
+	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_SECTOR), sect);
+	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_COMMAND), CMD_WRITE);
 	if (poll) {
-		while (!__msim_dd_check_interrupt(paddr))
+		while (!__msim_dd_check_interrupt(dev))
 			/* nothing */;
 		/* Clear interrupt */
-		__msim_dd_ack_interrupt(paddr);
-		if (read32(MSIM_DD_REG(paddr, MSIM_DD_STAT)) & STAT_ERROR)
+		__msim_dd_ack_interrupt(dev);
+		bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_STAT), &result);
+		if (result & STAT_ERROR)
 			return -1;
 		else
 			return 0;
 	} else {
 		return 0;
 	}
+}
+
+static void __msim_dd_fetch(struct blk_device *dev, void *buf)
+{
+	memcpy(buf, msim_dd_dma, SECTOR_SIZE);
 }
 
 #ifdef RAW
