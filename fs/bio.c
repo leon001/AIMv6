@@ -31,6 +31,8 @@ bget(struct vnode *vp, off_t lblkno, size_t nblks)
 
 	spin_lock_irq_save(&vp->buf_lock, flags);
 
+	kprintf("DEBUG: bget %p %d %d\n", vp, lblkno, nblks);
+
 restart:
 	for_each_entry (bp, &vp->buf_head, node) {
 		assert(bp->vnode == vp);
@@ -38,6 +40,7 @@ restart:
 			assert(bp->nblks == nblks);
 			if (!(bp->flags & B_BUSY)) {
 				bp->flags |= B_BUSY;
+				kprintf("DEBUG: bget found cached %p\n", bp);
 				spin_unlock(&vp->buf_lock);
 				return bp;
 			}
@@ -73,19 +76,23 @@ buf_get(struct vnode *vp, off_t lblkno, size_t nblks)
 	for_each_entry_reverse (bp, &vp->buf_head, node) {
 		if (!(bp->flags & (B_BUSY | B_DIRTY))) {
 			kfree(bp->data);
+			kprintf("DEBUG: buf_get() recycle %p\n", bp);
 			goto initbp;
 		}
 	}
 
 create:
 	bp = kmalloc(sizeof(*bp), 0);
+	if (bp == NULL)
+		return NULL;
 	memset(bp, 0, sizeof(*bp));
+	kprintf("DEBUG: buf_get() creating new %p\n", bp);
 initbp:
 	bp->flags |= B_BUSY | B_INVALID;
 	bp->nblks = nblks;
+	bp->blkno = BLKNO_INVALID;
 	if (vp != NULL) {
 		bp->lblkno = lblkno;
-		bp->blkno = BLKNO_INVALID;
 		bgetvp(vp, bp);
 	}
 	bp->data = kmalloc(BLOCK_SIZE * nblks, 0);
@@ -115,14 +122,25 @@ brelvp(struct buf *bp)
 static struct buf *
 bio_doread(struct vnode *vp, off_t blkno, size_t nblks, uint32_t flags)
 {
-	panic("bio_doread() NYI\n");
-	return NULL;
+	struct buf *bp;
+
+	bp = bget(vp, blkno, nblks);
+	if ((bp->flags & B_INVALID) && !(bp->flags & B_DIRTY))
+		VOP_STRATEGY(bp);
+
+	return bp;
 }
 
+/*
+ * Construct a buf and read the contents
+ */
 int
 bread(struct vnode *vp, off_t blkno, size_t nblks, struct buf **bpp)
 {
-	panic("bread() NYI\n");
+	struct buf *bp;
+
+	bp = *bpp = bio_doread(vp, blkno, nblks, 0);
+	return biowait(bp);
 }
 
 int

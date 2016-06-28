@@ -29,11 +29,15 @@ ext2fs_mountroot(void)
 	if (bdevvp(rootdev, &rootvp))
 		panic("ext2fs_mountroot: can't setup bdevvp's\n");
 
-	if ((err = vfs_rootmountalloc("ext2fs", &mp)) != 0)
+	if ((err = vfs_rootmountalloc("ext2fs", &mp)) != 0) {
+		kprintf("DEBUG: rolling back rootvp\n");
 		goto rollback_rootvp;
+	}
 
-	if ((err = ext2fs_mountfs(rootvp, mp, current_proc)) != 0)
+	if ((err = ext2fs_mountfs(rootvp, mp, current_proc)) != 0) {
+		kprintf("DEBUG: rolling back mountalloc\n");
 		goto rollback_mountalloc;
+	}
 
 	return 0;
 
@@ -56,6 +60,9 @@ ext2fs_mountfs(struct vnode *devvp, struct mount *mp, struct proc *p)
 	 */
 
 	err = VOP_OPEN(devvp, FREAD | FWRITE, NOCRED, p);
+	if (err != 0) {
+		kprintf("DEBUG: err code %d\n");
+	}
 	return err;
 }
 

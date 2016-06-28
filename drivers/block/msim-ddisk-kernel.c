@@ -99,6 +99,7 @@ static void __start(struct hd_device *dev)
 	assert(bp->nblksrem != 0);
 	assert(bp->flags & (B_DIRTY | B_INVALID));
 	assert(bp->flags & B_BUSY);
+	assert(bp->blkno != BLKNO_INVALID);
 	partno = hdpartno(bp->devno);
 	assert((partno == 0) || (dev->part[partno].len != 0));
 	partoff = (partno == 0) ? 0 : dev->part[partno].offset;
@@ -171,8 +172,10 @@ static int __intr(void)
 		bp->flags &= ~(B_DIRTY | B_INVALID);
 		list_del(&(bp->ionode));
 		biodone(bp);
-		__startnext(hd);
 	}
+
+	/* Continue current request if nblksrem != 0, or next one otherwise */
+	__startnext(hd);
 
 	spin_unlock_irq_restore(&hd->lock, flags);
 	return 0;

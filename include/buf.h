@@ -7,10 +7,12 @@
 
 #define BLOCK_SIZE	512
 
+struct vnode;	/* fs/vnode.h */
+
 struct buf {
 	dev_t		devno;
-	soff_t		blkno;		/* physical block number on dev */
-#define BLKNO_INVALID	((soff_t)(-1))	/* need bmap() to find the true number */
+	soff_t		blkno;		/* physical block number on *device* */
+#define BLKNO_INVALID	((soff_t)(-1))	/* need bmap() to find the number */
 	off_t		lblkno;		/* logical block number in vnode */
 	size_t		nblks;
 	uint32_t	flags;

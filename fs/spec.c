@@ -47,6 +47,8 @@ spec_strategy(struct buf *bp)
 	assert(bp->devno == vdev(bp->vnode));
 	drv = devsw[major(bp->devno)];
 	assert(drv != NULL);
+	if (bp->blkno == BLKNO_INVALID)
+		bp->blkno = bp->lblkno;
 
 	return (drv->strategy)(bp);
 }
