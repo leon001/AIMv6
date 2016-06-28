@@ -20,5 +20,6 @@ include $(top_srcdir)/env.am
 noinst_LTLIBRARIES = libext2fs.la
 
 libext2fs_la_SOURCES = \
-		       mount.c
+		       mount.c \
+		       ext2fs.h
 

@@ -4,12 +4,15 @@
 #include <fs/VOP.h>
 #include <fs/mount.h>
 #include <fs/vfs.h>
+#include <fs/bio.h>
+#include <fs/ufs/ext2fs/ext2fs.h>
 #include <aim/initcalls.h>
 #include <panic.h>
 #include <ucred.h>
 #include <fcntl.h>
 #include <proc.h>
 #include <percpu.h>
+#include <libc/string.h>
 
 extern dev_t rootdev;	/* initialized in mach_init() or arch_init() */
 extern struct vnode *rootvp;
@@ -52,6 +55,8 @@ int
 ext2fs_mountfs(struct vnode *devvp, struct mount *mp, struct proc *p)
 {
 	int err;
+	struct buf *bp;
+	struct ext2fs fs;
 
 	/*
 	 * TODO:
@@ -60,10 +65,17 @@ ext2fs_mountfs(struct vnode *devvp, struct mount *mp, struct proc *p)
 	 */
 
 	err = VOP_OPEN(devvp, FREAD | FWRITE, NOCRED, p);
-	if (err != 0) {
-		kprintf("DEBUG: err code %d\n");
-	}
-	return err;
+	if (err != 0)
+		return err;
+
+	err = bread(devvp, SBOFF / BLOCK_SIZE, SBSIZE / BLOCK_SIZE, &bp);
+	if (err != 0)
+		return err;
+	memcpy(&fs, bp->data, min2(sizeof(fs), SBSIZE));
+	brelse(bp);
+	assert(fs.e2fs_magic == E2FS_MAGIC);
+	kprintf("DEBUG: ext2fs revision %d.%d\n", fs.e2fs_rev, fs.e2fs_minrev);
+	return 0;
 }
 
 int

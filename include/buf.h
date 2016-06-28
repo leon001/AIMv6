@@ -4,8 +4,7 @@
 
 #include <sys/types.h>
 #include <list.h>
-
-#define BLOCK_SIZE	512
+#include <sys/param.h>
 
 struct vnode;	/* fs/vnode.h */
 
