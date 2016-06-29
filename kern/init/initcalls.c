@@ -24,6 +24,7 @@
 #include <aim/export.h>
 #include <aim/initcalls.h>
 #include <console.h>
+#include <panic.h>
 
 int do_early_initcalls()
 {
@@ -35,7 +36,7 @@ int do_early_initcalls()
 	initcall_t *this;
 	bool failed = false;
 
-	kprintf("DEBUG: early initcalls 0x%08x to 0x%08x\n", start, end);
+	kpdebug("early initcalls 0x%08x to 0x%08x\n", start, end);
 	for (this = start; this < end; this += 1) {
 		int ret = (*this)();
 		if (ret < 0) {
@@ -58,9 +59,9 @@ int do_initcalls()
 	initcall_t *this;
 	bool failed = false;
 
-	kprintf("DEBUG: initcalls 0x%08x to 0x%08x\n", start, end);
+	kpdebug("initcalls 0x%08x to 0x%08x\n", start, end);
 	for (this = start; this < end; this += 1) {
-		kprintf("DEBUG: executing 0x%p\n", *this);
+		kpdebug("executing 0x%p\n", *this);
 		int ret = (*this)();
 		if (ret < 0) {
 			/* don't panic */

@@ -260,6 +260,9 @@ AIM_ARG_ENABLE([block-msim], [BLOCK_MSIM], [MSIM block device driver])
 AIM_ARG_ENABLE([sd-zynq], [SD_ZYNQ], [zynq SD driver])
 AIM_ARG_ENABLE([timer-a9], [TIMER_A9], [Cortex-A9 MPCore timer driver])
 
+# Debug
+AIM_ARG_ENABLE([debug], [DEBUG], [Debugging (kpdebug)])
+
 AM_CONDITIONAL([IO_MEM], [test x$enable_io_mem = xyes])
 AM_CONDITIONAL([IO_PORT], [test x$enable_io_port = xyes])
 
