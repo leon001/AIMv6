@@ -139,22 +139,22 @@ void __noreturn master_init(void)
 	cache_create(&cache);
 	void *a, *b, *c;
 	a = cache_alloc(&cache);
-	kprintf("DEBUG: a = 0x%08x\n", a);
+	kpdebug("a = 0x%08x\n", a);
 	b = cache_alloc(&cache);
-	kprintf("DEBUG: b = 0x%08x\n", b);
+	kpdebug("b = 0x%08x\n", b);
 	c = cache_alloc(&cache);
-	kprintf("DEBUG: c = 0x%08x\n", c);
+	kpdebug("c = 0x%08x\n", c);
 	cache_free(&cache, a);
 	cache_free(&cache, b);
 	cache_free(&cache, c);
 	a = cache_alloc(&cache);
-	kprintf("DEBUG: a = 0x%08x\n", a);
+	kpdebug("a = 0x%08x\n", a);
 	cache_free(&cache, a);
 	int ret = cache_destroy(&cache);
-	kprintf("DEBUG: cache_destroy returned %d.\n", ret);
+	kpdebug("cache_destroy returned %d.\n", ret);
 	cache_create(&cache);
 	a = cache_alloc(&cache);
-	kprintf("DEBUG: a = 0x%08x\n", a);
+	kpdebug("a = 0x%08x\n", a);
 
 	/* startup smp */
 	smp_startup();
