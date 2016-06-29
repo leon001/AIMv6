@@ -115,24 +115,24 @@ void arm_handle_trap(struct regs *regs, uint32_t type)
 	 * you are RECOMMENDED to store regs on stack and not on heap.
 	 * see trap_return for details.
 	 */
-	kprintf("DEBUG: Enter vector slot %d handler!\n", type);
-	kprintf("DEBUG: r0 = 0x%08x\n", regs->r0);
-	kprintf("DEBUG: r1 = 0x%08x\n", regs->r1);
-	kprintf("DEBUG: r2 = 0x%08x\n", regs->r2);
-	kprintf("DEBUG: r3 = 0x%08x\n", regs->r3);
-	kprintf("DEBUG: r4 = 0x%08x\n", regs->r4);
-	kprintf("DEBUG: r5 = 0x%08x\n", regs->r5);
-	kprintf("DEBUG: r6 = 0x%08x\n", regs->r6);
-	kprintf("DEBUG: r7 = 0x%08x\n", regs->r7);
-	kprintf("DEBUG: r8 = 0x%08x\n", regs->r8);
-	kprintf("DEBUG: r9 = 0x%08x\n", regs->r9);
-	kprintf("DEBUG: r10 = 0x%08x\n", regs->r10);
-	kprintf("DEBUG: r11 = 0x%08x\n", regs->r11);
-	kprintf("DEBUG: r12 = 0x%08x\n", regs->r12);
-	kprintf("DEBUG: pc = 0x%08x\n", regs->pc);
-	kprintf("DEBUG: psr = 0x%08x\n", regs->psr);
-	kprintf("DEBUG: sp = 0x%08x\n", regs->sp);
-	kprintf("DEBUG: lr = 0x%08x\n", regs->lr);
+	kpdebug("Enter vector slot %d handler!\n", type);
+	kpdebug("r0 = 0x%08x\n", regs->r0);
+	kpdebug("r1 = 0x%08x\n", regs->r1);
+	kpdebug("r2 = 0x%08x\n", regs->r2);
+	kpdebug("r3 = 0x%08x\n", regs->r3);
+	kpdebug("r4 = 0x%08x\n", regs->r4);
+	kpdebug("r5 = 0x%08x\n", regs->r5);
+	kpdebug("r6 = 0x%08x\n", regs->r6);
+	kpdebug("r7 = 0x%08x\n", regs->r7);
+	kpdebug("r8 = 0x%08x\n", regs->r8);
+	kpdebug("r9 = 0x%08x\n", regs->r9);
+	kpdebug("r10 = 0x%08x\n", regs->r10);
+	kpdebug("r11 = 0x%08x\n", regs->r11);
+	kpdebug("r12 = 0x%08x\n", regs->r12);
+	kpdebug("pc = 0x%08x\n", regs->pc);
+	kpdebug("psr = 0x%08x\n", regs->psr);
+	kpdebug("sp = 0x%08x\n", regs->sp);
+	kpdebug("lr = 0x%08x\n", regs->lr);
 
 	trap_return(regs);
 }

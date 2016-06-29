@@ -42,5 +42,11 @@ void panic_other_cpus(void);
 			panic("Assertation failed: %s\n", #condition); \
 	} while (0)
 
+#ifdef DEBUG
+#define kpdebug(fmt, ...) kprintf("DEBUG: " fmt, __VA_ARGS__)
+#else
+#define kpdebug(fmt, ...)
+#endif
+
 #endif
 
