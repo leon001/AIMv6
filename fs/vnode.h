@@ -34,7 +34,6 @@ struct vnode {
 	struct list_head mount_node;
 	/* buffer queue per vnode */
 	struct list_head buf_head;
-	lock_t		buf_lock;
 
 	union {
 		struct specinfo *specinfo;

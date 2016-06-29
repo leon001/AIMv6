@@ -29,7 +29,7 @@ bget(struct vnode *vp, off_t lblkno, size_t nblks)
 	struct buf *bp;
 	unsigned long flags;
 
-	spin_lock_irq_save(&vp->buf_lock, flags);
+	assert(vp->flags & VXLOCK);
 
 	kprintf("DEBUG: bget %p %d %d\n", vp, lblkno, nblks);
 
@@ -41,16 +41,14 @@ restart:
 			if (!(bp->flags & B_BUSY)) {
 				bp->flags |= B_BUSY;
 				kprintf("DEBUG: bget found cached %p\n", bp);
-				spin_unlock(&vp->buf_lock);
 				return bp;
 			}
-			sleep_with_lock(bp, &vp->buf_lock);	/* brelse() */
+			sleep(bp);	/* brelse() */
 			goto restart;
 		}
 	}
 
 	bp = buf_get(vp, lblkno, nblks);
-	spin_unlock_irq_restore(&vp->buf_lock, flags);
 
 	return bp;
 }
@@ -187,9 +185,7 @@ brelse(struct buf *bp)
 	 */
 
 	kprintf("DEBUG: brelse() releasing %snode %p\n", standalone ? "standalone " : "", bp);
-
-	if (!standalone)
-		spin_lock_irq_save(&bp->vnode->buf_lock, flags);
+	assert(bp->vnode == NULL || (bp->vnode->flags & VXLOCK));
 
 	bp->flags &= ~B_BUSY;
 	if (standalone) {
@@ -199,8 +195,5 @@ brelse(struct buf *bp)
 		brelvp(bp);
 	}
 	wakeup(bp);	/* bget() */
-
-	if (!standalone)
-		spin_unlock_irq_restore(&bp->vnode->buf_lock, flags);
 }
 
