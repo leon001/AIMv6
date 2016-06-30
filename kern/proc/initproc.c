@@ -22,6 +22,7 @@
 
 #include <proc.h>
 #include <sched.h>
+#include <panic.h>
 
 static struct proc *initproc;
 
@@ -37,7 +38,8 @@ void initproc_entry(void)
 	 * requires a working scheduler and interrupts enabled.
 	 */
 
-	fs_test();
+	fsinit();
+	kpdebug("FS initialized\n");
 
 	for (;;)
 		/* nothing */;

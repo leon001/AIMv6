@@ -30,13 +30,54 @@ spec_open(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
 	case VCHR:
 		/* TODO, currently fallthru */
 	case VBLK:
-		/* TODO: find and invoke driver */
 		drv = devsw[major(vdev(vp))];
 		return (drv->open)(vdev(vp), mode, p);
 	default:
 		return -ENODEV;
 	}
 	return -EINVAL;
+}
+
+int
+spec_close(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
+{
+	bool lock = !!(vp->flags & VXLOCK);
+	int err;
+	struct driver *drv;
+
+        kpdebug("closing spec vnode %p, lock: %d\n", vp, lock);
+	switch (vp->type) {
+	case VCHR:
+		panic("spec_close: VCHR NYI\n");
+		break;
+	case VBLK:
+		/* Invalidate all buffers, which requires that the vnode is
+		 * locked. */
+		if (!lock)
+			vlock(vp);
+		err = vinvalbuf(vp, cred, p);
+		if (err) {
+			if (!lock)
+				vunlock(vp);
+			return err;
+		}
+		/* We really close the device only if (1) we are on last close
+		 * (the ref count is 1), or (2) we are forcibly closing (the
+		 * vnode is locked). */
+		if (vp->refs > 1 && !lock) {
+			vunlock(vp);
+			return 0;
+		}
+		drv = devsw[major(vdev(vp))];
+		err = (drv->close)(vdev(vp), mode, p);
+		if (!lock)
+			vunlock(vp);
+		return err;
+	default:
+		panic("spec_close: not spec\n");
+	}
+	/* NOTREACHED */
+	return 0;
 }
 
 int
@@ -107,6 +148,7 @@ vdev(struct vnode *vp)
 
 static struct vops spec_vops = {
 	.open = spec_open,
+	.close = spec_close,
 	.inactive = spec_inactive,
 	.strategy = spec_strategy,
 };

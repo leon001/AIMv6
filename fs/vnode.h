@@ -32,8 +32,15 @@ struct vnode {
 	/* members for mount */
 	struct mount	*mount;
 	struct list_head mount_node;
-	/* buffer queue per vnode */
+
+	/*
+	 * Buffer queue for the vnode.
+	 * To simplify buf management, we ensure that the lock is held
+	 * (VXLOCK is set in flags) whenever we are manipulating the
+	 * buf queue.
+	 */
 	struct list_head buf_head;
+	int		noutputs;	/* # of writing buf's */
 
 	union {
 		struct specinfo *specinfo;
@@ -48,6 +55,10 @@ struct vops {
 	 * open:
 	 */
 	int (*open)(struct vnode *, int, struct ucred *, struct proc *);
+	/*
+	 * close:
+	 */
+	int (*close)(struct vnode *, int, struct ucred *, struct proc *);
 	/*
 	 * inactive:
 	 * Truncate, update, unlock, and clean up the data.  Usually called when
@@ -66,5 +77,7 @@ int getnewvnode(struct mount *, struct vops *, struct vnode **);
 void vlock(struct vnode *);
 void vunlock(struct vnode *);
 int vrele(struct vnode *);
+int vwaitforio(struct vnode *);
+int vinvalbuf(struct vnode *, struct ucred *, struct proc *);
 
 #endif

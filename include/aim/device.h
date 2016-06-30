@@ -32,6 +32,7 @@ struct buf;	/* include/buf.h */
 struct driver {
 	int type;
 	int (*open)(dev_t dev, int oflags, struct proc *p);
+	int (*close)(dev_t dev, int oflags, struct proc *p);
 	int (*strategy)(struct buf *bp);
 };
 

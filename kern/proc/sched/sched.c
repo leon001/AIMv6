@@ -76,6 +76,7 @@ void sleep_with_lock(void *bed, lock_t *lock)
 	/* Basically, sleep is also a kind of scheduling, so we need to enter
 	 * critical section of scheduler as well. */
 	assert(lock != &sched_lock);
+	kpdebug("sleeping on %p with lock %p\n", bed, lock);
 	spin_lock_irq_save(&sched_lock, flags);
 	if (lock != NULL)
 		spin_unlock(lock);
@@ -91,6 +92,7 @@ void sleep_with_lock(void *bed, lock_t *lock)
 	spin_unlock_irq_restore(&sched_lock, flags);
 	if (lock != NULL)
 		spin_lock(lock);
+	kpdebug("slept on %p with lock %p\n", bed, lock);
 }
 
 void sleep(void *bed)
@@ -114,6 +116,7 @@ void wakeup(void *bed)
 		if (proc->bed == bed && proc->state == PS_SLEEPING)
 			proc->state = PS_RUNNABLE;
 	}
+	kpdebug("woke up %p\n", bed);
 
 	spin_unlock_irq_restore(&sched_lock, flags);
 }

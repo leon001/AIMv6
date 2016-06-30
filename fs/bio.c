@@ -26,12 +26,17 @@ struct buf *buf_get(struct vnode *vp, off_t lblkno, size_t nblks);
 struct buf *
 bget(struct vnode *vp, off_t lblkno, size_t nblks)
 {
+	bool lock;
 	struct buf *bp;
 	unsigned long flags;
 
-	assert(vp->flags & VXLOCK);
+	assert(vp != NULL);
+	lock = !!(vp->flags & VXLOCK);
+	if (!lock)
+		vlock(vp);
+	local_irq_save(flags);
 
-	kprintf("DEBUG: bget %p %d %d\n", vp, lblkno, nblks);
+	kpdebug("bget %p %d %d\n", vp, lblkno, nblks);
 
 restart:
 	for_each_entry (bp, &vp->buf_head, node) {
@@ -40,7 +45,8 @@ restart:
 			assert(bp->nblks == nblks);
 			if (!(bp->flags & B_BUSY)) {
 				bp->flags |= B_BUSY;
-				kprintf("DEBUG: bget found cached %p\n", bp);
+				kpdebug("bget found cached %p\n", bp);
+				local_irq_restore(flags);
 				return bp;
 			}
 			sleep(bp);	/* brelse() */
@@ -50,13 +56,17 @@ restart:
 
 	bp = buf_get(vp, lblkno, nblks);
 
+	local_irq_restore(flags);
+	if (!lock)
+		vunlock(vp);
+
 	return bp;
 }
 
 struct buf *
 bgetempty(size_t nblks)
 {
-	kprintf("DEBUG: bgetempty() getting %d blocks\n", nblks);
+	kpdebug("bgetempty() getting %d blocks\n", nblks);
 	return buf_get(NULL, 0, nblks);
 }
 
@@ -67,26 +77,34 @@ bgetempty(size_t nblks)
 struct buf *
 buf_get(struct vnode *vp, off_t lblkno, size_t nblks)
 {
+	unsigned long flags;
 	struct buf *bp;
+	assert(vp == NULL || (vp->flags & VXLOCK));
+
+	local_irq_save(flags);
 
 	if (vp == NULL)
 		goto create;	/* standalone buf */
 	for_each_entry_reverse (bp, &vp->buf_head, node) {
 		if (!(bp->flags & (B_BUSY | B_DIRTY))) {
 			kfree(bp->data);
-			kprintf("DEBUG: buf_get() recycle %p\n", bp);
+			kpdebug("buf_get() recycle %p\n", bp);
 			goto initbp;
 		}
 	}
 
 create:
 	bp = kmalloc(sizeof(*bp), 0);
-	if (bp == NULL)
+	if (bp == NULL) {
+		local_irq_restore(flags);
 		return NULL;
+	}
 	memset(bp, 0, sizeof(*bp));
-	kprintf("DEBUG: buf_get() creating new %p\n", bp);
+	if (vp != NULL)
+		list_add_tail(&(bp->node), &(vp->buf_head));
+	kpdebug("buf_get() creating new %p\n", bp);
 initbp:
-	bp->flags |= B_BUSY | B_INVALID;
+	bp->flags = B_BUSY | B_INVALID;
 	bp->nblks = nblks;
 	bp->blkno = BLKNO_INVALID;
 	if (vp != NULL) {
@@ -95,6 +113,7 @@ initbp:
 	}
 	bp->data = kmalloc(BLOCK_SIZE * nblks, 0);
 
+	local_irq_restore(flags);
 	return bp;
 }
 
@@ -107,13 +126,12 @@ bgetvp(struct vnode *vp, struct buf *bp)
 	bp->vnode = vp;
 	if (vp->type == VCHR || vp->type == VBLK)
 		bp->devno = vp->specinfo->devno;
-	list_add_tail(&(bp->node), &(vp->buf_head));
 }
 
 void
 brelvp(struct buf *bp)
 {
-	kprintf("DEBUG: brelvp() releasing %p\n", bp);
+	kpdebug("brelvp() releasing %p\n", bp);
 	/* currently we do nothing */
 }
 
@@ -121,16 +139,21 @@ static struct buf *
 bio_doread(struct vnode *vp, off_t blkno, size_t nblks, uint32_t flags)
 {
 	struct buf *bp;
+	unsigned long intr_flags;
 
+	local_irq_save(intr_flags);
 	bp = bget(vp, blkno, nblks);
 	if ((bp->flags & B_INVALID) && !(bp->flags & B_DIRTY))
 		VOP_STRATEGY(bp);
+	local_irq_restore(intr_flags);
 
 	return bp;
 }
 
 /*
- * Construct a buf and read the contents
+ * Construct a buf and read the contents.
+ *
+ * Should be released by brelse() after use.
  */
 int
 bread(struct vnode *vp, off_t blkno, size_t nblks, struct buf **bpp)
@@ -144,23 +167,33 @@ bread(struct vnode *vp, off_t blkno, size_t nblks, struct buf **bpp)
 int
 biowait(struct buf *bp)
 {
+	unsigned long flags;
+	int err = 0;
+
+	local_irq_save(flags);
 	while (!(bp->flags & B_DONE))
 		sleep(bp);	/* biodone() */
 	if (bp->flags & B_EINTR) {
 		bp->flags &= ~B_EINTR;
-		return -EINTR;
+		err = -EINTR;
 	}
-	if (bp->flags & B_ERROR)
-		return bp->errno ? bp->errno : -EIO;
-	return 0;
+	if (bp->flags & B_ERROR) {
+		err = bp->errno ? bp->errno : -EIO;
+	}
+	local_irq_restore(flags);
+	return err;
 }
 
 int
 biodone(struct buf *bp)
 {
+	unsigned long flags;
+
+	local_irq_save(flags);
 	assert(!(bp->flags & B_DONE));
 	bp->flags |= B_DONE;
 	wakeup(bp);	/* biowait() */
+	local_irq_restore(flags);
 	return 0;
 }
 
@@ -173,7 +206,8 @@ brelse(struct buf *bp)
 {
 	unsigned long flags;
 	bool standalone = (bp->vnode == NULL);
-	assert(bp->flags & B_BUSY);
+
+	local_irq_save(flags);
 
 	/*
 	 * brelse() does *NOT* check whether the I/O is truly finished.  It is
@@ -183,17 +217,24 @@ brelse(struct buf *bp)
 	 * biowait()).  But some drivers may directly call the xxstrategy()
 	 * calls, and in that case, biowait() should be called manually.
 	 */
-
-	kprintf("DEBUG: brelse() releasing %snode %p\n", standalone ? "standalone " : "", bp);
-	assert(bp->vnode == NULL || (bp->vnode->flags & VXLOCK));
+	kpdebug("brelse() releasing %snode %p\n", standalone ? "standalone " : "", bp);
+	assert(bp->flags & B_BUSY);
 
 	bp->flags &= ~B_BUSY;
-	if (standalone) {
-		kfree(bp->data);
-		kfree(bp);
-	} else {
+	if (standalone)
+		bdestroy(bp);
+	else
 		brelvp(bp);
-	}
 	wakeup(bp);	/* bget() */
+
+	local_irq_restore(flags);
+}
+
+void
+bdestroy(struct buf *bp)
+{
+	kpdebug("bdestroy %p\n", bp);
+	kfree(bp->data);
+	kfree(bp);
 }
 

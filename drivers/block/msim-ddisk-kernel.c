@@ -38,9 +38,9 @@
 
 static void __init(struct hd_device *hd)
 {
-	kprintf("DEBUG: initializing MSIM hard disk\n");
+	kpdebug("initializing MSIM hard disk\n");
 	__msim_dd_init(hd);
-	kprintf("DEBUG: initialization done\n");
+	kpdebug("initialization done\n");
 }
 
 static int __open(dev_t dev, int mode, struct proc *p)
@@ -48,7 +48,7 @@ static int __open(dev_t dev, int mode, struct proc *p)
 	struct hd_device *hdpart;
 	struct hd_device *hd;
 
-	kprintf("DEBUG: __open: %d, %d\n", major(dev), minor(dev));
+	kpdebug("__open: %d, %d\n", major(dev), minor(dev));
 
 	hdpart = (struct hd_device *)dev_from_id(dev);
 	hd = (struct hd_device *)dev_from_id(hdbasedev(dev));
@@ -84,9 +84,20 @@ static int __open(dev_t dev, int mode, struct proc *p)
 	return 0;
 }
 
+static int __close(dev_t dev, int oflags, struct proc *p)
+{
+	/*
+	 * Since we only have one hard disk (which is root), do we really
+	 * want to "close" it? (FIXME)
+	 */
+	kpdebug("msim-ddisk: closing\n");
+	return 0;
+}
+
 /*
  * The real place where struct buf's are turned into disk commands.
  * Assumes that the buf queue lock is held.
+ * Modifies buf flags, should be called with interrupts disabled.
  */
 static void __start(struct hd_device *dev)
 {
@@ -106,10 +117,10 @@ static void __start(struct hd_device *dev)
 	blkno = bp->blkno + bp->nblks - bp->nblksrem + partoff;
 
 	if (bp->flags & B_DIRTY) {
-		kprintf("DEBUG: writing to %d from %p\n", blkno, bp->data);
+		kpdebug("writing to %d from %p\n", blkno, bp->data);
 		__msim_dd_write_sector(dev, blkno, bp->data, false);
 	} else if (bp->flags & B_INVALID) {
-		kprintf("DEBUG: reading from %d to %p\n", blkno, bp->data);
+		kpdebug("reading from %d to %p\n", blkno, bp->data);
 		__msim_dd_read_sector(dev, blkno, bp->data, false);
 	}
 }
@@ -120,6 +131,10 @@ static void __startnext(struct hd_device *dev)
 		__start(dev);
 }
 
+/*
+ * Modifies buf flags, should be called with interrupts disabled.  But since
+ * this is an interrupt handler, interrupts must be disabled already.
+ */
 static int __intr(void)
 {
 	/*
@@ -134,7 +149,7 @@ static int __intr(void)
 	void *dst;
 
 	hd = (struct hd_device *)dev_from_id(hdbasedev(rootdev));
-	kprintf("DEBUG: msim disk intr handler\n");
+	kpdebug("msim disk intr handler\n");
 	if (!__msim_dd_check_interrupt(hd)) {
 		panic("entering interrupt handler without rootdev interrupt?\n");
 		/* return 0; */
@@ -148,7 +163,7 @@ static int __intr(void)
 	if (__msim_dd_check_error(hd)) {
 		bp->errno = -EIO;
 		bp->flags |= B_ERROR;
-		kprintf("DEBUG: fail buf %p\n", bp);
+		kpdebug("fail buf %p\n", bp);
 		list_del(&(bp->ionode));
 		biodone(bp);
 		__startnext(hd);
@@ -158,17 +173,17 @@ static int __intr(void)
 	spin_lock_irq_save(&hd->lock, flags);
 
 	if (list_empty(&hd->bufqueue)) {
-		kprintf("DEBUG: spurious interrupt?\n");
+		kpdebug("spurious interrupt?\n");
 		return 0;
 	}
 	dst = bp->data + (bp->nblks - bp->nblksrem) * BLOCK_SIZE;
 	if (!(bp->flags & B_DIRTY) && (bp->flags & B_INVALID))
 		__msim_dd_fetch(hd, dst);
 	bp->nblksrem--;
-	kprintf("DEBUG: buf %p remain %d\n", bp, bp->nblksrem);
+	kpdebug("buf %p remain %d\n", bp, bp->nblksrem);
 
 	if (bp->nblksrem == 0) {
-		kprintf("DEBUG: done buf %p\n", bp);
+		kpdebug("done buf %p\n", bp);
 		bp->flags &= ~(B_DIRTY | B_INVALID);
 		list_del(&(bp->ionode));
 		biodone(bp);
@@ -186,18 +201,19 @@ static int __strategy(struct buf *bp)
 	struct hd_device *hd;
 	unsigned long flags;
 
+	hd = (struct hd_device *)dev_from_id(hdbasedev(bp->devno));
+	spin_lock_irq_save(&hd->lock, flags);
+
 	assert(bp->flags & B_BUSY);
 	if (!(bp->flags & (B_DIRTY | B_INVALID))) {
-		kprintf("DEBUG: msim-ddisk: nothing to do\n");
+		kpdebug("msim-ddisk: nothing to do\n");
+		spin_unlock_irq_restore(&hd->lock, flags);
 		return 0;
 	}
-	kprintf("DEBUG: msim-ddisk: queuing buf %p with %d blocks at %p\n", bp, bp->nblks, bp->data);
+	kpdebug("msim-ddisk: queuing buf %p with %d blocks at %p\n", bp, bp->nblks, bp->data);
 
 	bp->nblksrem = bp->nblks;
 
-	hd = (struct hd_device *)dev_from_id(hdbasedev(bp->devno));
-
-	spin_lock_irq_save(&hd->lock, flags);
 	if (list_empty(&hd->bufqueue)) {
 		list_add_tail(&bp->ionode, &hd->bufqueue);
 		__start(hd);
@@ -210,6 +226,7 @@ static int __strategy(struct buf *bp)
 
 static struct blk_driver drv = {
 	.open = __open,
+	.close = __close,
 	.strategy = __strategy
 };
 

@@ -7,6 +7,7 @@
 #include <buf.h>
 #include <aim/initcalls.h>
 #include <libc/string.h>
+#include <panic.h>
 
 /*
  * How to detect if a DOS partition is unused:
@@ -27,7 +28,7 @@ static int detect_dos_partitions(struct hd_device *dev)
 	struct buf *buf;
 	struct blk_driver *drv;
 
-	kprintf("DEBUG: detecting DOS partitions\n");
+	kpdebug("detecting DOS partitions\n");
 
 	drv = (struct blk_driver *)devsw[major(dev->devno)];
 	buf = bgetempty(1);
@@ -36,7 +37,7 @@ static int detect_dos_partitions(struct hd_device *dev)
 	drv->strategy(buf);
 	biowait(buf);
 
-	kprintf("DEBUG: biowait done\n");
+	kpdebug("biowait done\n");
 
 	memcpy(&mbr, buf->data, SECTOR_SIZE);
 	if (mbr.signature[0] != 0x55 ||
@@ -52,7 +53,7 @@ static int detect_dos_partitions(struct hd_device *dev)
 		} else {
 			dev->part[i].offset = dev->part[i].len = 0;
 		}
-		kprintf("DEBUG: Partition detected: %d %d %d\n", i, dev->part[i].offset, dev->part[i].len);
+		kpdebug("Partition detected: %d %d %d\n", i, dev->part[i].offset, dev->part[i].len);
 	}
 
 	brelse(buf);

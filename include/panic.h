@@ -23,6 +23,8 @@
 #include <config.h>
 #endif
 
+#include <console.h>
+
 /*
  * Internal arch-independent code for panicking current processor.
  * May be called from arch code.
@@ -43,9 +45,9 @@ void panic_other_cpus(void);
 	} while (0)
 
 #ifdef DEBUG
-#define kpdebug(fmt, ...) kprintf("DEBUG: " fmt, __VA_ARGS__)
+#define kpdebug(...) kprintf("DEBUG: " __VA_ARGS__)
 #else
-#define kpdebug(fmt, ...)
+#define kpdebug(...)
 #endif
 
 #endif
