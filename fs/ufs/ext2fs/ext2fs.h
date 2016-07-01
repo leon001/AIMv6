@@ -216,5 +216,7 @@ void e2fs_cg_bswap(struct ext2_gd *, struct ext2_gd *, int);
 #define e2fs_cgsave(old, new, size) e2fs_cg_bswap((old), (new), (size));
 #endif
 
+#define NINDIR(fs)	((fs)->bsize / sizeof(uint32_t))
+
 #endif
 

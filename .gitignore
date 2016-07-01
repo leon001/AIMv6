@@ -76,3 +76,6 @@ Makefile
 
 # Msim
 msim.conf
+
+# Vi swap files
+*.sw?

@@ -5,6 +5,7 @@
 #include <fs/mount.h>
 #include <fs/vfs.h>
 #include <fs/bio.h>
+#include <fs/ufs/ufsmount.h>
 #include <fs/ufs/ext2fs/ext2fs.h>
 #include <fs/ufs/ext2fs/dinode.h>
 #include <aim/initcalls.h>
@@ -142,11 +143,12 @@ ext2fs_sbinit(struct vnode *devvp, struct ext2fs *ondiskfs, struct m_ext2fs *sb)
 		bp = NULL;
 	}
 
+	sb->maxfilesize = INT_MAX;	/* Rev. 0 */
+
 	/* temporary, will be removed in release */
 	extern void __ext2fs_dump(struct vnode *, struct m_ext2fs *);
 	__ext2fs_dump(devvp, sb);
 
-	sb->maxfilesize = INT_MAX;	/* Rev. 0 */
 	return 0;
 }
 
@@ -154,9 +156,10 @@ int
 ext2fs_mountfs(struct vnode *devvp, struct mount *mp, struct proc *p)
 {
 	int err;
-	struct buf *bp;
-	struct ext2fs *fs;
-	struct m_ext2fs *sb;
+	struct buf *bp = NULL;
+	struct ext2fs *fs = NULL;
+	struct m_ext2fs *sb = NULL;
+	struct ufsmount *ump = NULL;
 
 	/*
 	 * TODO:
@@ -176,20 +179,35 @@ ext2fs_mountfs(struct vnode *devvp, struct mount *mp, struct proc *p)
 		goto rollback_open;
 
 	sb = kmalloc(sizeof(*sb), 0);
+	ump = kmalloc(sizeof(*ump), 0);
+	if (sb == NULL || ump == NULL)
+		goto rollback_buf;
 	fs = bp->data;
 	err = ext2fs_sbinit(devvp, fs, sb);
 	if (err != 0)
 		goto rollback_alloc;
 
-	brelse(bp);
+	ump->mount = mp;
+	ump->devno = vdev(devvp);
+	ump->devvp = devvp;
+	ump->type = UM_EXT2;
+	ump->nindir = NINDIR(sb);
+	ump->bptrtodb = sb->fsbtodb;
+	ump->seqinc = 1;	/* no frags */
+	ump->sb = sb;
+	mp->data = ump;
+	devvp->specinfo->mountpoint = mp;
 
 	/* TODO: temporary test */
 	__fs_test();
 
+	brelse(bp);
 	return 0;
 
 rollback_alloc:
 	kfree(sb);
+	kfree(ump);
+rollback_buf:
 	brelse(bp);
 rollback_open:
 	VOP_CLOSE(devvp, FREAD | FWRITE, NOCRED, p);

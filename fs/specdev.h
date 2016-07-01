@@ -11,6 +11,7 @@ struct vnode;	/* fs/vnode.h */
 struct specinfo {
 	dev_t		devno;
 	struct vnode	*vnode;
+	struct mount	*mountpoint;
 
 	struct list_head spec_node;
 };
