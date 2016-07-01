@@ -31,11 +31,11 @@ __weak unsigned long bitmap_find_first_bit(const unsigned long *addr,
 		size -= BITS_PER_LONG;
 	}
 	if (!size)
-		return result;
+		return 0;
 
 	tmp = (*p) & (~0UL >> (BITS_PER_LONG - size));
 	if (tmp == 0UL)		/* Are any bits set? */
-		return result + size;	/* Nope. */
+		return 0;	/* Nope. */
 found:
 	return result + ffs(tmp);
 }
