@@ -23,7 +23,7 @@ struct buf {
 #define B_EINTR		0x10		/* interrupted */
 #define B_ERROR		0x20		/* failed */
 	int		errno;		/* valid if B_ERROR, 0 if unsure */
-	char		*data;
+	void		*data;
 	struct vnode	*vnode;		/* associate vnode, NULL means
 					 * allocated by bgetempty() */
 	struct list_head node;		/* vnode buf cache list node */

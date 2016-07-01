@@ -21,6 +21,7 @@
 
 #include <sys/types.h>
 #include <aim/sync.h>
+#include <libc/string.h>
 
 /*
  * Two kinds of memory object allocators (may) exist inside a running kernel.
@@ -76,6 +77,13 @@ struct caching_allocator {
 void set_caching_allocator(struct caching_allocator *allocator);
 
 void *kmalloc(size_t size, gfp_t flags);
+static inline void *kcalloc(size_t nmemb, size_t size, gfp_t flags)
+{
+	/* vulnerable to heap overflow or something */
+	void *result = kmalloc(nmemb * size, flags);
+	memset(result, 0, nmemb * size);
+	return result;
+}
 void kfree(void *obj);
 size_t ksize(void *obj);
 

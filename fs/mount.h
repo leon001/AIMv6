@@ -12,7 +12,7 @@ struct mount {
 	lock_t		lock;
 	uint32_t	flags;
 #define MOUNT_BUSY	0x1
-	void		*data;
+	void		*data;	/* fs-specific mount data */
 };
 
 void insmntque(struct vnode *vp, struct mount *mp);

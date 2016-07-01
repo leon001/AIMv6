@@ -37,7 +37,6 @@ void initproc_entry(void)
 	 * interacting with disks involves sleep() and wakeup(), which
 	 * requires a working scheduler and interrupts enabled.
 	 */
-
 	fsinit();
 	kpdebug("FS initialized\n");
 
