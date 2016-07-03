@@ -14,6 +14,7 @@
 #include <proc.h>
 #include <percpu.h>
 #include <atomic.h>
+#include <ucred.h>
 
 /* FIXME */
 struct vnode *rootvp;
@@ -60,7 +61,6 @@ vlock(struct vnode *vp)
 void
 vunlock(struct vnode *vp)
 {
-	assert(vp->refs > 0);
 	assert(vp->flags & VXLOCK);
 
 	spin_lock(&(vp->lock));
@@ -69,19 +69,68 @@ vunlock(struct vnode *vp)
 	spin_unlock(&(vp->lock));
 }
 
-int
+/*
+ * Destroy a vnode.
+ * Must be inactivated (FS-data cleaned up) before calling.
+ */
+void
 vgone(struct vnode *vp)
 {
-	panic("vgone NYI\n");
-	return 0;
+	unsigned long flags;
+
+	kpdebug("destroying vnode %p\n", vp);
+	/*
+	 * vgone() is executed only if refs goes down to 0.  So if vgone()
+	 * found that the vnode is locked, there must be another vgone()
+	 * going on.
+	 * FIXME: do we need to wait for vgone() to finish here?
+	 */
+	spin_lock_irq_save(&(vp->lock), flags);
+	if (vp->flags & VXLOCK) {
+		assert(vp->refs == 0);
+		spin_unlock_irq_restore(&(vp->lock), flags);
+		return;
+	}
+	vp->flags |= VXLOCK;
+	spin_unlock_irq_restore(&(vp->lock), flags);
+
+	/* FIXME: replace with suitable ucred and proc */
+	vinvalbuf(vp, NOCRED, current_proc);
+	if (vp->mount != NULL)
+		insmntque(vp, NULL);
+	/* Clean up specinfo */
+	if ((vp->type == VBLK || vp->type == VCHR) && vp->specinfo != NULL) {
+		list_del(&vp->specinfo->spec_node);
+		kfree(vp->specinfo);
+	}
+	/* Free vnode */
+	kfree(vp);
+}
+
+/*
+ * vput() - unlock and release.  Of course, assumes the vnode to be locked.
+ */
+void
+vput(struct vnode *vp)
+{
+	atomic_dec(&(vp->refs));
+	if (vp->refs > 0) {
+		vunlock(vp);
+		return;
+	}
+	VOP_INACTIVE(vp, current_proc);	/* unlock */
+	vgone(vp);
 }
 
 int
 vrele(struct vnode *vp)
 {
+	kpdebug("vrele %p\n", vp);
 	atomic_dec(&(vp->refs));
 	if (vp->refs > 0)
 		return 0;
+	vlock(vp);
+	VOP_INACTIVE(vp, current_proc);	/* unlock */
 	vgone(vp);
 	return 0;
 }
