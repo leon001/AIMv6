@@ -41,15 +41,6 @@ int snprintf(char *str, size_t size, const char *fmt, ...)
 
 int vsnprintf(char *str, size_t size, const char *fmt, va_list ap)
 {
-#define set_ch(ch) \
-	do { \
-		str[pos++] = ch; \
-		if (pos == size) { \
-			str[size - 1] = '\0'; \
-			return size; \
-		} \
-	} while (0)
-
 #define is_digit(ch)	(((ch) >= '0') && ((ch) <= '9'))
 #define digits(x)	(((char)(x) <= 9) ? ('0' + (char)(x)) : ('a' + (char)(x) - 10))
 
@@ -59,7 +50,24 @@ int vsnprintf(char *str, size_t size, const char *fmt, va_list ap)
 	int base;
 	int flag = 0;
 	ssize_t pos = 0;
+#define set_ch(ch) \
+	do { \
+		str[pos++] = ch; \
+		if (pos == size) { \
+			str[size - 1] = '\0'; \
+			return size; \
+		} \
+	} while (0)
+#define getint(ap) \
+	((longflag == 0) ? va_arg(ap, int) : \
+	 (longflag == 1) ? va_arg(ap, long) : va_arg(ap, long long))
+#define getuint(ap) \
+	((longflag == 0) ? va_arg(ap, unsigned int) : \
+	 (longflag == 1) ? va_arg(ap, unsigned long) : \
+	 va_arg(ap, unsigned long long))
+
 	int len;
+	int longflag = 0;
 
 	int buf_pos;
 	char buf[25];
@@ -69,9 +77,14 @@ int vsnprintf(char *str, size_t size, const char *fmt, va_list ap)
 		if (*fmt == '%') {
 			++fmt;
 fmt_loop:		switch (*fmt) {
+			case 'l':
+				longflag++;
+				++fmt;
+				goto fmt_loop;
 			case 'd':
 				base = 10;
-				val = va_arg(ap, long);
+				val = getint(ap);
+				longflag = 0;
 				if (val < 0) {
 					flag |= FLAG_NEG;
 					uval = -val;
@@ -97,7 +110,8 @@ fmt_loop:		switch (*fmt) {
 				goto get_uint;
 			case 'u':
 				base = 10;
-get_uint:			uval = va_arg(ap, unsigned long);
+get_uint:			uval = getuint(ap);
+				longflag = 0;
 print_uint:			buf_pos = 0;
 				while (uval > 0) {
 					buf[buf_pos++] = digits(uval % base);
