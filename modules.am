@@ -78,6 +78,12 @@ endif
 
 MODULES += $(top_builddir)/drivers/hd/dos.o
 
+################
+# File systems #
+################
+
+MODULES += $(top_builddir)/fs/ufs/ext2fs/ext2fs.o
+
 ###########
 # Storage #
 ###########

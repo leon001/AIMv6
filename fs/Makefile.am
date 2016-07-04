@@ -25,7 +25,7 @@ libfs_la_SOURCES = \
 		   bio.c \
 		   spec.c \
 		   vnode.c \
-		   test.c \
+		   init.c \
 		   mount.c \
 		   vfs.c \
 		   VOP.c \

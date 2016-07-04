@@ -80,4 +80,7 @@ int vrele(struct vnode *);
 int vwaitforio(struct vnode *);
 int vinvalbuf(struct vnode *, struct ucred *, struct proc *);
 
+extern dev_t rootdev;	/* initialized in mach_init() or arch_init() */
+extern struct vnode *rootvp;
+
 #endif

@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <proc.h>
 #include <buf.h>
+#include <fs/vnode.h>
 #include <fs/bio.h>
 #include <aim/device.h>
 #include <mach-conf.h>
@@ -143,7 +144,6 @@ static int __intr(void)
 	 * have one device: rootdev.
 	 */
 	struct hd_device *hd;
-	extern dev_t rootdev;	/* mach_init() or arch_init() */
 	unsigned long flags;
 	struct buf *bp;
 	void *dst;

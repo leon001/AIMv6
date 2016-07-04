@@ -8,6 +8,9 @@
 #include <aim/sync.h>
 #include <errno.h>
 #include <sched.h>
+#include <panic.h>
+
+struct list_head mountlist = EMPTY_LIST(mountlist);
 
 void
 insmntque(struct vnode *vp, struct mount *mp)
@@ -17,6 +20,12 @@ insmntque(struct vnode *vp, struct mount *mp)
 	vp->mount = mp;
 	if (mp != NULL)
 		list_add_tail(&(vp->mount_node), &(mp->vnode_head));
+}
+
+void
+addmount(struct mount *mp)
+{
+	list_add_tail(&(mp->node), &mountlist);
 }
 
 int
@@ -32,7 +41,7 @@ vfs_rootmountalloc(const char *fsname, struct mount **mpp)
 	mp = kmalloc(sizeof(*mp), 0);
 	memset(mp, 0, sizeof(*mp));
 
-	vfs_busy(mp, false, false);
+	vfs_busy(mp, true, false);
 	list_init(&(mp->vnode_head));
 	mp->ops = vfsc->ops;
 
@@ -74,5 +83,26 @@ vfs_unbusy(struct mount *mp)
 	mp->flags &= ~MOUNT_BUSY;
 	wakeup(mp);
 	spin_unlock(&(mp->lock));
+}
+
+int (*mountroot_func[FS_MAX])(void) = {0};
+int mountroot_count = 0;
+
+void
+register_mountroot(int (*mountroot)(void))
+{
+	mountroot_func[mountroot_count++] = mountroot;
+}
+
+void
+mountroot(void)
+{
+	for (int i = 0; i < mountroot_count; ++i) {
+		if (mountroot_func[i] == NULL)
+			continue;
+		if (mountroot_func[i]() == 0)
+			return;
+	}
+	panic("failed to mount any root fs\n");
 }
 

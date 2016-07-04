@@ -29,6 +29,7 @@ int strcmp(const char *s1, const char *s2);
 size_t strlcat(char *dst, const char *src, size_t dsize);
 size_t strlcpy(char *dst, const char *src, size_t dsize);
 size_t strlen(const char *str);
+size_t strnlen(const char *str, size_t maxlen);
 
 #endif
 

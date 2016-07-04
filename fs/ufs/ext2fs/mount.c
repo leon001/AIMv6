@@ -19,10 +19,7 @@
 #include <limits.h>
 #include <errno.h>
 
-extern dev_t rootdev;	/* initialized in mach_init() or arch_init() */
-extern struct vnode *rootvp;
-
-static struct vfsops ext2fs_vfsops = {
+struct vfsops ext2fs_vfsops = {
 	0
 };
 
@@ -46,6 +43,8 @@ ext2fs_mountroot(void)
 		kpdebug("rolling back mountalloc\n");
 		goto rollback_mountalloc;
 	}
+
+	addmount(mp);
 
 	return 0;
 
@@ -215,12 +214,4 @@ rollback_open:
 
 	return err;
 }
-
-int
-ext2fs_register(void)
-{
-	registerfs("ext2fs", &ext2fs_vfsops);
-	return 0;
-}
-INITCALL_FS(ext2fs_register);
 

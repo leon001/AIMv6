@@ -18,6 +18,7 @@
 include $(top_srcdir)/env.am
 
 noinst_LTLIBRARIES = libext2fs.la
+noinst_DATA = ext2fs.o
 
 libext2fs_la_SOURCES = \
 		       dump.c \
