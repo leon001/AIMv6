@@ -44,27 +44,58 @@ make install
 
 Run `ct-ng` to see usage.
 
+#### Read this if developing with multiple ABI
+
+Currently, Crosstool-NG on
+[master branch](https://github.com/crosstool-ng/crosstool-ng)
+does not support `multilib`, which is necessary for developing
+on multiple ABIs (a typical example being developing on MSIM with o32 ABI
+and Loongson 3A with n64 ABI).  We need to manually merge a pull request
+to enable `multilib` support on Crosstool-NG.
+
+First, fetch the latest Crosstool-NG source.
+
+```
+git clone https://github.com/crosstool-ng/crosstool-ng
+cd crosstool-ng
+```
+
+Then, merge pull request
+[#383](https://github.com/crosstool-ng/crosstool-ng/pull/383).
+
+```
+git fetch origin pull/383/head:multilib
+git checkout multilib
+```
+
+Run
+
+```
+./bootstrap
+```
+
+to generate a `configure` script.  Then,
+
+```
+./configure
+make
+make install
+```
+
+to install Crosstool-NG with `multilib` support.
+
 #### MIPS developers
 
-Crosstool-NG already ships a MIPS cross toolchain
-configuration.  I tried `mips64el-n64-linux-uclibc` and it works for our purpose.
-Other configurations are not tested.
+**First, read the previous section to ensure that you can compile with
+multiple ABIs by one toolchain.**
 
 Run
 
 ```
-ct-ng list-samples
+ct-ng mips64el-multilib-linux-uclibc
 ```
 
-to see other available default configurations.
-
-Run
-
-```
-ct-ng mips64el-n64-linux-uclibc
-```
-
-to select such configuration.
+to select the MIPS64 little endian toolchain.
 
 Run
 
@@ -72,8 +103,11 @@ Run
 ct-ng menuconfig
 ```
 
-and go into **Debug facilities**, select **gdb**, get in there and select
-**Build a static cross gdb**.  Save your configuration and exit.
+to review and select new features if you want to, e.g.
+
+1. Build a cross GDB
+2. Disable C++ support
+3. Select the default ABI to be `n64`
 
 Run
 
@@ -81,19 +115,15 @@ Run
 ct-ng build
 ```
 
-and everything will be set up at `~/x-tools/mips64el-n64-linux-uclibc`.
+and make yourself a coffee.
 
-Your host machine triplet for our project will be then `mips64el-n64-linux-uclibc`.
-
-Add the `bin` directory there to your `PATH` variable, either via
+Remember to add `$HOME/x-tools/mips64-multilib-linux-uclibc/bin` to variable
+`$PATH`.  You can do this by adding the following line to `.bashrc` in your
+home directory:
 
 ```
-export PATH=$PATH:$HOME/x-tools/mipes64el-n64-linux-uclibc
+export PATH=$PATH:$HOME/x-tools/mips64-multilib-linux-uclibc/bin
 ```
-
-or via configuration files such as `~/.bashrc` or `~/.profile`.
-
-You are done.
 
 #### ARM developers
 
