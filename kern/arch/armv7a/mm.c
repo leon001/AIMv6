@@ -222,7 +222,7 @@ void add_memory_pages(void)
 		.paddr = (addr_t)premap_addr((size_t)&SYMBOL(kern_end)),
 		.size = get_mem_size() -
 			((addr_t)(size_t)(&SYMBOL(kern_end)) - KERN_BASE),
-		.flags = 0
+		.flags = GFP_UNSAFE
 	};
 	free_pages(&pages);
 }

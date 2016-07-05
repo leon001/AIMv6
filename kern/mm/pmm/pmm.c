@@ -21,7 +21,9 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
+#include <sys/param.h>
 
+#include <mm.h>
 #include <pmm.h>
 
 #include <libc/string.h>
@@ -51,6 +53,8 @@ int alloc_pages(struct pages *pages)
 
 void free_pages(struct pages *pages)
 {
+	if (!(pages->flags & GFP_UNSAFE))
+		memset(pa2kva(pages->paddr), JUNKBYTE, pages->size);
 	__allocator.free(pages);
 }
 

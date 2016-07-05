@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,18 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SYS_PARAM_H
-#define _SYS_PARAM_H
+#ifndef _GFP_H
+#define _GFP_H
 
-#include <sys/types.h>
+typedef uint32_t gfp_t;
 
-/*
- * Kernel hyper-parameters which probably should not reside in configure script
- */
-
-#define NODEV	((dev_t)(-1))
-#define MAJOR_MAX	16
-#define BLOCK_SIZE	512
-#define JUNKBYTE	0x20
+#define GFP_UNSAFE	0x1	/* Do not fill in junk before freeing */
 
 #endif

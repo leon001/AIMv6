@@ -104,7 +104,7 @@ static void __init_free_pages(addr_t start, addr_t end)
 	struct pages *p = kmalloc(sizeof(*p), 0);
 	p->paddr = start;
 	p->size = span;
-	p->flags = 0;
+	p->flags = GFP_UNSAFE;
 
 	free_pages(p);
 }
