@@ -21,11 +21,8 @@
 
 #include <sys/types.h>
 #include <aim/sync.h>
-<<<<<<< HEAD
 #include <libc/string.h>
-=======
 #include <gfp.h>
->>>>>>> mips-msim
 
 /*
  * Two kinds of memory object allocators (may) exist inside a running kernel.
