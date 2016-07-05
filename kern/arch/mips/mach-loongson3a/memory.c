@@ -112,7 +112,7 @@ void mips_add_memory_pages(void)
 	/* filter out spaces lower than _kern_end */
 	p->paddr = rambase + reserved_space;
 	p->size = ramsize - reserved_space;
-	p->flags = 0;
+	p->flags = GFP_UNSAFE;
 
 	free_pages(p);
 #else	/* LOONGSON3A_RAM_DETECTION == no */

@@ -21,6 +21,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
+#include <sys/param.h>
 #include <list.h>
 
 /*
@@ -33,11 +34,13 @@
 #include <vmm.h>
 #include <panic.h>
 
+#include <libc/string.h>
+
 #define ALLOC_ALIGN 16
 
 /* This header directly leads the payload */
 struct blockhdr {
-	size_t size;
+	size_t size;	/* size of header AND payload */
 	bool free;
 	gfp_t flags;
 	struct list_head node;
@@ -115,6 +118,10 @@ static inline void __free(struct list_head *head, void *obj)
 	struct blockhdr *this, *tmp;
 
 	this = HEADER(obj);
+	/* Fill the object with junk */
+	if (!(this->flags & GFP_UNSAFE))
+		memset(obj, JUNKBYTE, this->size - sizeof(*this));
+
 	this->free = true;
 
 	/* insert to list */
