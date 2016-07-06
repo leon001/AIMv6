@@ -18,8 +18,6 @@ fsinit(void)
 	kpdebug("rootmp at %p\n", rootmp);
 	if (VFS_ROOT(rootmp, &rootvnode) != 0)
 		panic("root vnode not found\n");
-	if (ext2fs_vget(rootmp, 13890, &devvnode) != 0)
-		panic("get root device on device failed\n");
 	kprintf("==============fs test succeeded===============\n");
 }
 
