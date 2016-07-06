@@ -243,6 +243,7 @@ extern struct vops ext2fs_specvops;
 int ext2fs_vget(struct mount *mp, ino_t ino, struct vnode **vpp);
 
 int ext2fs_inactive(struct vnode *vp, struct proc *p);
+int ext2fs_reclaim(struct vnode *vp);
 
 #endif
 

@@ -20,7 +20,6 @@ ext2fs_vinit(struct mount *mp, struct vops *specvops,
 	struct vnode *vp = *vpp;
 	struct inode *ip = VTOI(vp);
 	struct ext2fs_dinode *dp = ip->dinode;
-	struct specinfo *si;
 
 	vp->type = EXT2_IFTOVT(dp->mode);
 
@@ -28,20 +27,8 @@ ext2fs_vinit(struct mount *mp, struct vops *specvops,
 	case VCHR:
 	case VBLK:
 		vp->ops = specvops;
-		si = findspec(dp->rdev);
-		if (si != NULL) {
-			/*
-			 * Discard unneeded vnode but keep the inode.
-			 * Note that the lock is carried over in the inode
-			 * to the replacement vnode.
-			 */
-			si->vnode->data = vp->data;	/* pass specinfo */
-			vp->data = NULL;
-			vp->ops = &spec_vops;
-			vrele(vp);	/* get rid of the old vnode */
-			vp = si->vnode;
-			ip->vnode = vp;
-		}
+		kpdebug("ext2fs vinit ino %llu %x %d, %d\n",
+		    (ino_t)(ip->ino), dp->rdev, major(dp->rdev), minor(dp->rdev));
 		break;
 	default:
 		break;
@@ -156,9 +143,12 @@ retry:
 		return err;
 	}
 
+	vunlock(vp);
 	vunlock(ump->devvp);
 
 	kpdebug("ext2fs vget %llu vnode %p\n", ino, vp);
+	kpdebug("\ttype %d\n", vp->type);
+	kpdebug("\tmode %o\n", ndp->mode);
 
 	*vpp = vp;
 	return 0;

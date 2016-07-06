@@ -85,6 +85,7 @@ struct vops {
 
 int getnewvnode(struct mount *, struct vops *, struct vnode **);
 void vlock(struct vnode *);
+bool vtrylock(struct vnode *);
 void vunlock(struct vnode *);
 int vrele(struct vnode *);
 void vref(struct vnode *);

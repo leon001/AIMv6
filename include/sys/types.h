@@ -86,18 +86,32 @@ typedef signed long long saddr_t;
  * This is only a design pattern.
  */
 typedef ulong	dev_t;
-/* dev_t, major, minor conversions */
+/*
+ * dev_t, major, minor conversions
+ *
+ * dev_t used to be 16-bit, and major number takes the higher 8 bits, while
+ * minor takes the lower ones.
+ *
+ * On Linux and BSD's dev_t was extended to 32-bit, and to comply with old
+ * Unix behavior, Linux and BSD's used higher 16 bits in a very twisted
+ * manner (for Linux, see /usr/include/sys/sysmacros.h).  The difference
+ * of such usage between Linux and BSD's further made things worse.
+ *
+ * In AIMv6, we do not consider major and minor numbers exceeding 255, to
+ * comply with both Linux and BSD while keeping logics cleaner.  Note that
+ * we do NOT enforce range checks over the numbers (yet).
+ */
 static inline unsigned int major(dev_t dev)
 {
-	return ((dev >> 16) & 0xffff);
+	return ((dev >> 8) & 0xff);
 }
 static inline unsigned int minor(dev_t dev)
 {
-	return (dev & 0xffff);
+	return (dev & 0xff);
 }
 static inline dev_t makedev(unsigned int major, unsigned int minor)
 {
-	return ((major << 16) | (minor & 0xffff));
+	return ((major << 8) | (minor & 0xff));
 }
 
 typedef uint64_t ino_t;

@@ -13,7 +13,8 @@ struct vfsops ext2fs_vfsops = {
 };
 
 struct vops ext2fs_vops = {
-	.inactive = ext2fs_inactive
+	.inactive = ext2fs_inactive,
+	.reclaim = ext2fs_reclaim
 };
 
 int

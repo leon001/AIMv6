@@ -13,6 +13,7 @@ ext2fs_inactive(struct vnode *vp, struct proc *p)
 {
 	/* TODO */
 	kpdebug("ext2 deactivating vnode %p\n", vp);
+	vunlock(vp);
 	return 0;
 }
 

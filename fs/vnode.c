@@ -50,12 +50,10 @@ getnewvnode(struct mount *mp, struct vops *ops, struct vnode **vpp)
 	}
 	memset(vp, 0, sizeof(*vp));
 
+	spinlock_init(&vp->lock);
 	vp->ops = ops;
 	vp->refs = 1;
 	vp->type = VNON;
-	vp->data = NULL;
-	vp->mount = NULL;
-	vp->noutputs = 0;
 	list_init(&vp->buf_head);
 	list_init(&vp->mount_node);
 
@@ -69,11 +67,29 @@ getnewvnode(struct mount *mp, struct vops *ops, struct vnode **vpp)
 void
 vlock(struct vnode *vp)
 {
+	kpdebug("vlock %p\n", vp);
 	spin_lock(&(vp->lock));
 	while (vp->flags & VXLOCK)
 		sleep_with_lock(vp, &(vp->lock));
 	vp->flags |= VXLOCK;
 	spin_unlock(&(vp->lock));
+	kpdebug("vlocked %p\n", vp);
+}
+
+/* Try locking a vnode */
+bool
+vtrylock(struct vnode *vp)
+{
+	kpdebug("vtrylock %p\n", vp);
+	spin_lock(&(vp->lock));
+	if (!(vp->flags & VXLOCK)) {
+		vp->flags |= VXLOCK;
+		kpdebug("vtrylocked %p\n", vp);
+		return true;
+	} else {
+		kpdebug("vtrylock fail %p\n", vp);
+		return false;
+	}
 }
 
 /* Unlock a vnode */
@@ -86,6 +102,7 @@ vunlock(struct vnode *vp)
 	vp->flags &= ~VXLOCK;
 	wakeup(vp);
 	spin_unlock(&(vp->lock));
+	kpdebug("vunlocked %p\n", vp);
 }
 
 /*
@@ -122,6 +139,7 @@ vgone(struct vnode *vp)
 		insmntque(vp, NULL);
 	/* Clean up specinfo */
 	if ((vp->type == VBLK || vp->type == VCHR) && vp->specinfo != NULL) {
+		kpdebug("vp->specinfo: %p\n", vp->specinfo);
 		list_del(&vp->specinfo->spec_node);
 		cache_free(&specinfopool, vp->specinfo);
 	}
@@ -151,6 +169,7 @@ vget(struct vnode *vp)
 void
 vput(struct vnode *vp)
 {
+	kpdebug("vput %p refs %d\n", vp, vp->refs);
 	atomic_dec(&(vp->refs));
 	if (vp->refs > 0) {
 		vunlock(vp);
@@ -163,7 +182,7 @@ vput(struct vnode *vp)
 int
 vrele(struct vnode *vp)
 {
-	kpdebug("vrele %p\n", vp);
+	kpdebug("vrele %p refs %d\n", vp, vp->refs);
 	atomic_dec(&(vp->refs));
 	if (vp->refs > 0)
 		return 0;
