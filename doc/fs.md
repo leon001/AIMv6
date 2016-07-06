@@ -34,7 +34,7 @@ refactoring.
 1. While OpenBSD has implemented reader-writer locks on vnodes, in AIMv6, we
   only have *exclusive* locks.
 2. There is at most one vnode corresponding to each file on each file system.
-  However, a vnode can correspond to no file, but a device.
+  Moreover, there is at most one vnode corresponding to a device.
 3. Any operation on a vnode requires the vnode to be locked, in order to
   prevent any possible race conditions and ensure serialization in a simple but
   brutal way.  This is accomplished via `vlock()` and `vunlock()` routines.

@@ -139,7 +139,6 @@ vgone(struct vnode *vp)
 		insmntque(vp, NULL);
 	/* Clean up specinfo */
 	if ((vp->type == VBLK || vp->type == VCHR) && vp->specinfo != NULL) {
-		kpdebug("vp->specinfo: %p\n", vp->specinfo);
 		list_del(&vp->specinfo->spec_node);
 		cache_free(&specinfopool, vp->specinfo);
 	}
@@ -177,6 +176,7 @@ vput(struct vnode *vp)
 	}
 	VOP_INACTIVE(vp, current_proc);	/* unlock */
 	vgone(vp);
+	kpdebug("vput %p done\n", vp);
 }
 
 int

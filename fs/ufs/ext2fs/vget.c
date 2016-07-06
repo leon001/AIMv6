@@ -17,6 +17,7 @@ int
 ext2fs_vinit(struct mount *mp, struct vops *specvops,
     struct vops *fifovops, struct vnode **vpp)
 {
+	struct specinfo *si;
 	struct vnode *vp = *vpp;
 	struct inode *ip = VTOI(vp);
 	struct ext2fs_dinode *dp = ip->dinode;
@@ -29,6 +30,26 @@ ext2fs_vinit(struct mount *mp, struct vops *specvops,
 		vp->ops = specvops;
 		kpdebug("ext2fs vinit ino %llu %x %d, %d\n",
 		    (ino_t)(ip->ino), dp->rdev, major(dp->rdev), minor(dp->rdev));
+		si = findspec(dp->rdev);
+		if (si != NULL) {
+			/*
+			 * Discard unneeded vnode but keep the inode.
+			 * Note that the lock is carried over in the inode
+			 * to the replacement vnode.
+			 * This code is a dirty hack to preserve inode and
+			 * everything else while freeing the vnode only.
+			 */
+			/* XXX shall we make an assertation here? */
+			assert(si->vnode->data == NULL);
+			si->vnode->data = vp->data;     /* pass inode */
+			vp->data = NULL;
+			vp->ops = &spec_vops;
+			assert(vp->typedata == NULL);
+			vput(vp);      /* get rid of the old vnode */
+			vp = si->vnode;
+			ip->vnode = vp;
+		}
+		kpdebug("ext2fs vinit ino %llu done\n", (ino_t)(ip->ino));
 		break;
 	default:
 		break;
@@ -143,7 +164,13 @@ retry:
 		return err;
 	}
 
-	vunlock(vp);
+	/*
+	 * If we are getting a device file corresponding to the device
+	 * the file system is located on, we only need to unlock it
+	 * once.
+	 */
+	if (vp != ump->devvp)
+		vunlock(vp);
 	vunlock(ump->devvp);
 
 	kpdebug("ext2fs vget %llu vnode %p\n", ino, vp);
