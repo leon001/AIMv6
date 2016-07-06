@@ -16,6 +16,44 @@
 
 struct buf *buf_get(struct vnode *vp, off_t lblkno, size_t nblks);
 
+struct allocator_cache bufpool = {
+	.size = sizeof(struct buf),
+	.align = 1,
+	.flags = 0,
+	.create_obj = NULL,
+	.destroy_obj = NULL
+};
+
+int
+binit(void)
+{
+	spinlock_init(&bufpool.lock);
+	assert(cache_create(&bufpool) == 0);
+	return 0;
+}
+INITCALL_FS(binit);
+
+void
+ballocdata(struct buf *bp)
+{
+	struct pages p;
+	p.paddr = 0;
+	p.size = ALIGN_ABOVE(BLOCK_SIZE * bp->nblks, PAGE_SIZE);
+	p.flags = 0;
+	alloc_pages(&p);
+	bp->data = pa2kva(p.paddr);
+}
+
+void
+bfreedata(struct buf *bp)
+{
+	struct pages p;
+	p.paddr = kva2pa(bp->data);
+	p.size = ALIGN_ABOVE(BLOCK_SIZE * bp->nblks, PAGE_SIZE);
+	p.flags = 0;
+	free_pages(&p);
+}
+
 /*
  * Find a struct buf in vnode @vp whose starting block is @blkno, spanning
  * @nblks blocks.  Mark the buf BUSY.
@@ -87,14 +125,14 @@ buf_get(struct vnode *vp, off_t lblkno, size_t nblks)
 		goto create;	/* standalone buf */
 	for_each_entry_reverse (bp, &vp->buf_head, node) {
 		if (!(bp->flags & (B_BUSY | B_DIRTY))) {
-			kfree(bp->data);
+			bfreedata(bp);
 			kpdebug("buf_get() recycle %p\n", bp);
 			goto initbp;
 		}
 	}
 
 create:
-	bp = kmalloc(sizeof(*bp), 0);
+	bp = cache_alloc(&bufpool);
 	if (bp == NULL) {
 		local_irq_restore(flags);
 		return NULL;
@@ -111,7 +149,8 @@ initbp:
 		bp->lblkno = lblkno;
 		bgetvp(vp, bp);
 	}
-	bp->data = kmalloc(BLOCK_SIZE * nblks, 0);
+
+	ballocdata(bp);
 
 	local_irq_restore(flags);
 	return bp;
@@ -234,7 +273,7 @@ void
 bdestroy(struct buf *bp)
 {
 	kpdebug("bdestroy %p\n", bp);
-	kfree(bp->data);
-	kfree(bp);
+	bfreedata(bp);
+	cache_free(&bufpool, bp);
 }
 

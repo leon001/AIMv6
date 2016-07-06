@@ -168,6 +168,7 @@ struct m_ext2fs {
 	int8_t	fmod;		/* super block modified flag */
 	int32_t fsize;		/* fragment size */
 	int32_t	bsize;		/* block size */
+	int32_t bsects;		/* # of sectors per logical block */
 	int32_t bshift;		/* ``lblkno'' calc of logical blkno */
 	int32_t bmask;		/* ``blkoff'' calc of blk offsets */
 	int64_t qbmask;		/* ~fs_bmask - for use with quad size */
@@ -198,6 +199,15 @@ struct ext2_gd {
 #define fsbtodb(fs, b)		((b) << (fs)->fsbtodb)
 #define dbtofsb(fs, b)		((b) >> (fs)->fsbtodb)
 
+/* inode # to cylinder group # */
+#define ino_to_cg(fs, ino)	(((ino) - 1) / (fs)->e2fs.ipg)
+/* inode # to file system block # */
+#define ino_to_fsba(fs, ino) \
+	((fs)->gd[ino_to_cg(fs, ino)].i_tables + \
+	 (((ino) - 1) % (fs)->e2fs.ipg) / (fs)->ipb)
+/* inode # to file system block offset in that file system block */
+#define ino_to_fsbo(fs, ino)	(((ino) - 1) % (fs)->ipb)
+
 /*
  * Ext2 metadata is stored in little-endian byte order.
  * JBD2 journal used in ext3 and ext4 is big-endian!
@@ -217,6 +227,22 @@ void e2fs_cg_bswap(struct ext2_gd *, struct ext2_gd *, int);
 #endif
 
 #define NINDIR(fs)	((fs)->bsize / sizeof(uint32_t))
+
+struct proc;	/* include/proc.h */
+struct mount;	/* fs/mount.h */
+struct vnode;	/* fs/vnode.h */
+struct vfsops;	/* fs/vfs.h */
+struct vops;	/* fs/vnode.h */
+
+int ext2fs_mountroot(void);
+
+extern struct vfsops ext2fs_vfsops;
+extern struct vops ext2fs_vops;
+extern struct vops ext2fs_specvops;
+
+int ext2fs_vget(struct mount *mp, ino_t ino, struct vnode **vpp);
+
+int ext2fs_inactive(struct vnode *vp, struct proc *p);
 
 #endif
 

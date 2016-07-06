@@ -17,7 +17,7 @@ struct ufsmount {
 #define UM_EXT2		0x1
 	/* In-memory super block.  This is NOT identical to the on-disk
 	 * counterpart as it may contain more information. */
-	void		*sb;
+	void		*superblock;
 	unsigned long	nindir;		/* indirect pointers per block */
 	unsigned long	bptrtodb;	/* indirect pointer to disk block */
 	unsigned long	seqinc;		/* increment between sequential blks */

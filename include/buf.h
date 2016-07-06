@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <list.h>
 #include <sys/param.h>
+#include <vmm.h>
 
 struct vnode;	/* fs/vnode.h */
 
@@ -30,5 +31,7 @@ struct buf {
 	struct list_head ionode;	/* device io list node */
 	size_t		nblksrem;	/* # of blocks not finished */
 };
+
+extern struct allocator_cache bufpool;
 
 #endif

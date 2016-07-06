@@ -2,9 +2,19 @@
 #include <aim/initcalls.h>
 #include <fs/vfs.h>
 #include <fs/mount.h>
+#include <fs/vnode.h>
+#include <fs/ufs/ufs.h>
+#include <fs/ufs/ext2fs/ext2fs.h>
+#include <panic.h>
 
-extern struct vfsops ext2fs_vfsops;
-extern int ext2fs_mountroot(void);
+struct vfsops ext2fs_vfsops = {
+	.root = ufs_root,
+	.vget = ext2fs_vget
+};
+
+struct vops ext2fs_vops = {
+	.inactive = ext2fs_inactive
+};
 
 int
 ext2fs_register(void)

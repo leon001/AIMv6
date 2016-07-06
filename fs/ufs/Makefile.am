@@ -21,6 +21,10 @@ SUBDIRS = ext2fs
 
 noinst_LTLIBRARIES = libufs.la
 
-libufs_la_SOURCES = dinode.h
+libufs_la_SOURCES = dinode.h \
+		    inode.h \
+		    ufs.h \
+		    hash.c \
+		    vfsops.c
 libufs_la_LIBADD = ext2fs/libext2fs.la
 

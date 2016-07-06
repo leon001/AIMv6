@@ -23,6 +23,10 @@ noinst_DATA = ext2fs.o
 libext2fs_la_SOURCES = \
 		       dump.c \
 		       mount.c \
+		       vget.c \
+		       inode.c \
+		       reclaim.c \
+		       spec.c \
 		       ext2fs.h \
 		       dinode.h
 

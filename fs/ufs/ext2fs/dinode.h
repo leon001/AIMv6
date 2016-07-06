@@ -42,6 +42,10 @@
 #include <sys/types.h>
 #include <fs/ufs/dinode.h>	/* for ufsino_t */
 #include <fs/ufs/ext2fs/ext2fs.h>
+#include <fs/vnode.h>		/* enum vtype */
+#include <util.h>
+
+struct inode;	/* fs/ufs/inode.h */
 
 /*
  * The root inode is the root of the file system.  Inode 0 can't be used for
@@ -78,7 +82,18 @@ struct ext2fs_dinode {
 	uint32_t	nblock;		/*  28: blocks count */
 	uint32_t	flags;		/*  32: status flags (chflags) */
 	uint32_t	version_lo;	/* 36: inode version, bits 31:0 */
-	uint32_t	blocks[NDADDR+NIADDR]; /* 40: disk blocks */
+	/*
+	 * The blocks fields may be overlaid with other information for
+	 * file types that do not have associated disk storage. Block
+	 * and character devices overlay the first data block with their
+	 * dev_t value. Short symbolic links place their path in the
+	 * di_db area.
+	 */
+	union {
+		uint32_t blocks[NDADDR+NIADDR]; /* 40: disk blocks */
+		uint32_t rdev;
+		uint32_t shortlink[NDADDR+NIADDR];
+	};
 	uint32_t	gen;		/* 100: generation number */
 	uint32_t	facl;		/* 104: file ACL, bits 31:0 */
 	uint32_t	size_hi;	/* 108: file size (bytes), bits 63:32 */
@@ -148,28 +163,28 @@ struct ext2fs_dinode {
 				    (fs)->e2fs.inode_size : \
 				    EXT2_REV0_DINODE_SIZE)
 
-/*
- * The e2di_blocks fields may be overlaid with other information for
- * file types that do not have associated disk storage. Block
- * and character devices overlay the first data block with their
- * dev_t value. Short symbolic links place their path in the
- * di_db area.
- */
-
-#define di_rdev		blocks[0]
-#define shortlink	blocks
-
 /* e2fs needs byte swapping on big-endian systems */
 #ifdef LITTLE_ENDIAN
 #define e2fs_iload(fs, old, new)	\
-	memcpy((new),(old), MIN(EXT2_DINODE_SIZE(fs), sizeof(*new)))
+	memcpy((new),(old), min2(EXT2_DINODE_SIZE(fs), sizeof(*new)))
 #define e2fs_isave(fs, old, new) \
-	memcpy((new),(old), MIN(EXT2_DINODE_SIZE(fs), sizeof(*new)))
+	memcpy((new),(old), min2(EXT2_DINODE_SIZE(fs), sizeof(*new)))
 #else
 struct m_ext2fs;
 void e2fs_i_bswap(struct m_ext2fs *, struct ext2fs_dinode *, struct ext2fs_dinode *);
 #define e2fs_iload(fs, old, new) e2fs_i_bswap((fs), (old), (new))
 #define e2fs_isave(fs, old, new) e2fs_i_bswap((fs), (old), (new))
 #endif
+
+static inline enum vtype EXT2_IFTOVT(uint16_t mode)
+{
+	static enum vtype tbl[] = {
+		VNON, VBAD/* VFIFO */, VCHR, VBAD, VDIR, VBAD, VBLK, VBAD,
+		VREG, VBAD, VLNK, VBAD, VBAD/* VSOCK */, VBAD, VBAD, VBAD
+	};
+	return tbl[(mode & EXT2_IFMT) >> 12];
+}
+
+int ext2fs_setsize(struct inode *ip, uint64_t size);
 
 #endif

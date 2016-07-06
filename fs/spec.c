@@ -6,12 +6,29 @@
 #include <vmm.h>
 #include <errno.h>
 #include <aim/device.h>
+#include <aim/initcalls.h>
 #include <sys/types.h>
 #include <sys/param.h>
 #include <panic.h>
 
 static struct list_head specinfo_list = EMPTY_LIST(specinfo_list);
-static struct vops spec_vops;	/* forward declaration */
+
+struct allocator_cache specinfopool = {
+	.size = sizeof(struct specinfo),
+	.align = 1,
+	.flags = 0,
+	.create_obj = NULL,
+	.destroy_obj = NULL
+};
+
+int
+specinit(void)
+{
+	spinlock_init(&specinfopool.lock);
+	assert(cache_create(&specinfopool) == 0);
+	return 0;
+}
+INITCALL_FS(specinit);
 
 int
 spec_inactive(struct vnode *vp, struct proc *p)
@@ -81,6 +98,12 @@ spec_close(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
 }
 
 int
+spec_reclaim(struct vnode *vp)
+{
+	return 0;
+}
+
+int
 spec_strategy(struct buf *bp)
 {
 	struct driver *drv;
@@ -94,6 +117,19 @@ spec_strategy(struct buf *bp)
 	return (drv->strategy)(bp);
 }
 
+struct specinfo *
+findspec(dev_t devno)
+{
+	struct specinfo *si;
+
+	for_each_entry (si, &specinfo_list, spec_node) {
+		if (si->devno == devno)
+			return si;
+	}
+
+	return NULL;
+}
+
 /*
  * Get or create the vnode corresponding to the device @devno.
  * Currently we require that each device is matched exactly by one vnode.
@@ -105,11 +141,10 @@ getdevvp(dev_t devno, struct vnode **vpp, enum vtype type)
 	struct vnode *vp;
 	int err;
 
-	for_each_entry (si, &specinfo_list, spec_node) {
-		if (si->devno == devno) {
-			*vpp = si->vnode;
-			return 0;
-		}
+	si = findspec(devno);
+	if (si != NULL) {
+		*vpp = si->vnode;
+		return 0;
 	}
 
 	err = getnewvnode(NULL, &spec_vops, &vp);
@@ -120,7 +155,7 @@ getdevvp(dev_t devno, struct vnode **vpp, enum vtype type)
 
 	vp->type = type;
 	/* Allocate and fill in a specinfo structure */
-	si = kmalloc(sizeof(*si), 0);
+	si = cache_alloc(&specinfopool);
 	si->devno = devno;
 	si->vnode = vp;
 	list_add_tail(&(si->spec_node), &specinfo_list);
@@ -146,10 +181,11 @@ vdev(struct vnode *vp)
 		return vp->specinfo->devno;
 }
 
-static struct vops spec_vops = {
+struct vops spec_vops = {
 	.open = spec_open,
 	.close = spec_close,
 	.inactive = spec_inactive,
+	.reclaim = spec_reclaim,
 	.strategy = spec_strategy,
 };
 

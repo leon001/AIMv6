@@ -48,8 +48,8 @@ __ext2fs_dump(struct vnode *devvp, struct m_ext2fs *fs)
 		kprintf("\t# directories: %d\n", fs->gd[i].ndirs);
 
 		/* Process ext2fs block bitmap: 0 - available, 1 - used */
-		err = bread(devvp, fsbtodb(fs, fs->gd[i].b_bitmap),
-		    fs->bsize / BLOCK_SIZE, &bp);
+		err = bread(devvp, fsbtodb(fs, fs->gd[i].b_bitmap), fs->bsects,
+		    &bp);
 		if (err != 0) {
 			kprintf("\tbread error\n");
 			brelse(bp);
@@ -70,8 +70,8 @@ __ext2fs_dump(struct vnode *devvp, struct m_ext2fs *fs)
 		} while (n_zero != 0);
 		brelse(bp);
 
-		err = bread(devvp, fsbtodb(fs, fs->gd[i].i_bitmap),
-		    fs->bsize / BLOCK_SIZE, &bp);
+		err = bread(devvp, fsbtodb(fs, fs->gd[i].i_bitmap), fs->bsects,
+		    &bp);
 		if (err != 0) {
 			kprintf("\tbread error\n");
 			brelse(bp);

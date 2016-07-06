@@ -100,6 +100,8 @@ static inline dev_t makedev(unsigned int major, unsigned int minor)
 	return ((major << 16) | (minor & 0xffff));
 }
 
+typedef uint64_t ino_t;
+
 /* A generic void function pointer type, allow any number of arguments */
 typedef void (*generic_fp)();
 typedef void (*callback_fp)();

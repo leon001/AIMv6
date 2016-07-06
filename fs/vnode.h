@@ -43,8 +43,12 @@ struct vnode {
 	int		noutputs;	/* # of writing buf's */
 
 	union {
-		struct specinfo *specinfo;
+		/* vnode type-specific data */
 		void	*typedata;
+		/* if a directory, point to mount structure mounted here */
+		struct mount *mountedhere;
+		/* if a device, point to device info descriptor */
+		struct specinfo *specinfo;
 	};
 	/* FS-specific data.  For UFS-like filesystems this points to inode. */
 	void		*data;
@@ -61,11 +65,17 @@ struct vops {
 	int (*close)(struct vnode *, int, struct ucred *, struct proc *);
 	/*
 	 * inactive:
-	 * Truncate, update, unlock, and clean up the data.  Usually called when
-	 * a kernel is no longer using the vnode.
+	 * Truncate, update, unlock.  Usually called when a kernel is no
+	 * longer using the vnode.
 	 * xv6 equivalent is iput().
+	 * NOTE: this primitive is different from OpenBSD.
 	 */
 	int (*inactive)(struct vnode *, struct proc *);
+	/*
+	 * reclaim:
+	 * Free up the FS-specific resource.
+	 */
+	int (*reclaim)(struct vnode *);
 	/*
 	 * strategy:
 	 * Initiate a block I/O.
@@ -77,10 +87,14 @@ int getnewvnode(struct mount *, struct vops *, struct vnode **);
 void vlock(struct vnode *);
 void vunlock(struct vnode *);
 int vrele(struct vnode *);
+void vref(struct vnode *);
+void vget(struct vnode *);
+void vput(struct vnode *);
 int vwaitforio(struct vnode *);
 int vinvalbuf(struct vnode *, struct ucred *, struct proc *);
 
 extern dev_t rootdev;	/* initialized in mach_init() or arch_init() */
-extern struct vnode *rootvp;
+extern struct vnode *rootvp;	/* root disk device vnode */
+extern struct vnode *rootvnode;	/* / */
 
 #endif

@@ -11,6 +11,7 @@ int VOP_OPEN(struct vnode *, int, struct ucred *, struct proc *);
 int VOP_CLOSE(struct vnode *, int, struct ucred *, struct proc *);
 int VOP_FSYNC(struct vnode *, struct ucred *, struct proc *);
 int VOP_INACTIVE(struct vnode *, struct proc *);
+int VOP_RECLAIM(struct vnode *);
 int VOP_STRATEGY(struct buf *);
 
 #endif

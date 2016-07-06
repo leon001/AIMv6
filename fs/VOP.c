@@ -30,6 +30,13 @@ int VOP_INACTIVE(struct vnode *vp, struct proc *p)
 	return (vp->ops->inactive)(vp, p);
 }
 
+int VOP_RECLAIM(struct vnode *vp)
+{
+	if (vp->ops->reclaim == NULL)
+		return -ENOTSUP;
+	return (vp->ops->reclaim)(vp);
+}
+
 int VOP_STRATEGY(struct buf *bp)
 {
 	if (bp->vnode->ops->strategy == NULL)

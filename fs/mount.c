@@ -6,17 +6,35 @@
 #include <vmm.h>
 #include <libc/string.h>
 #include <aim/sync.h>
+#include <aim/initcalls.h>
 #include <errno.h>
 #include <sched.h>
 #include <panic.h>
 
+struct allocator_cache mountpool = {
+	.size = sizeof(struct mount),
+	.align = 1,
+	.flags = 0,
+	.create_obj = NULL,
+	.destroy_obj = NULL
+};
+
 struct list_head mountlist = EMPTY_LIST(mountlist);
+
+int
+mountinit(void)
+{
+	spinlock_init(&mountpool.lock);
+	assert(cache_create(&mountpool) == 0);
+	return 0;
+}
+INITCALL_FS(mountinit);
 
 void
 insmntque(struct vnode *vp, struct mount *mp)
 {
 	if (vp->mount != NULL)
-		list_del(&(vp->mount_node));
+		list_del_init(&(vp->mount_node));
 	vp->mount = mp;
 	if (mp != NULL)
 		list_add_tail(&(vp->mount_node), &(mp->vnode_head));
@@ -38,7 +56,7 @@ vfs_rootmountalloc(const char *fsname, struct mount **mpp)
 	if (vfsc == NULL)
 		return -ENODEV;
 
-	mp = kmalloc(sizeof(*mp), 0);
+	mp = cache_alloc(&mountpool);
 	memset(mp, 0, sizeof(*mp));
 
 	vfs_busy(mp, true, false);
@@ -53,7 +71,7 @@ void
 vfs_mountfree(struct mount **mp)
 {
 	vfs_unbusy(*mp);
-	kfree(*mp);
+	cache_free(&mountpool, *mp);
 	*mp = NULL;
 }
 

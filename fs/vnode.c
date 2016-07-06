@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <libc/string.h>
 #include <aim/sync.h>
+#include <aim/initcalls.h>
 #include <sched.h>
 #include <panic.h>
 #include <proc.h>
@@ -16,16 +17,33 @@
 #include <atomic.h>
 #include <ucred.h>
 
-/* FIXME */
-struct vnode *rootvp;
+struct allocator_cache vnodepool = {
+	.size = sizeof(struct vnode),
+	.align = 1,
+	.flags = 0,
+	.create_obj = NULL,
+	.destroy_obj = NULL
+};
 
-/* Allocate a vnode mounted on @mp (unused now) with operations @ops. */
+struct vnode *rootvp;
+struct vnode *rootvnode;
+
+int
+vnodeinit(void)
+{
+	spinlock_init(&vnodepool.lock);
+	assert(cache_create(&vnodepool) == 0);
+	return 0;
+}
+INITCALL_FS(vnodeinit);
+
+/* Allocate a vnode mounted on @mp with operations @ops. */
 int
 getnewvnode(struct mount *mp, struct vops *ops, struct vnode **vpp)
 {
 	struct vnode *vp;
 
-	vp = kmalloc(sizeof(*vp), 0);
+	vp = cache_alloc(&vnodepool);
 	if (vp == NULL) {
 		*vpp = NULL;
 		return -ENOMEM;
@@ -39,6 +57,7 @@ getnewvnode(struct mount *mp, struct vops *ops, struct vnode **vpp)
 	vp->mount = NULL;
 	vp->noutputs = 0;
 	list_init(&vp->buf_head);
+	list_init(&vp->mount_node);
 
 	insmntque(vp, mp);
 
@@ -71,7 +90,7 @@ vunlock(struct vnode *vp)
 
 /*
  * Destroy a vnode.
- * Must be inactivated (FS-data cleaned up) before calling.
+ * Must be inactivated before calling.
  */
 void
 vgone(struct vnode *vp)
@@ -96,15 +115,34 @@ vgone(struct vnode *vp)
 
 	/* FIXME: replace with suitable ucred and proc */
 	vinvalbuf(vp, NOCRED, current_proc);
+
+	assert(VOP_RECLAIM(vp) == 0);
+
 	if (vp->mount != NULL)
 		insmntque(vp, NULL);
 	/* Clean up specinfo */
 	if ((vp->type == VBLK || vp->type == VCHR) && vp->specinfo != NULL) {
 		list_del(&vp->specinfo->spec_node);
-		kfree(vp->specinfo);
+		cache_free(&specinfopool, vp->specinfo);
 	}
 	/* Free vnode */
-	kfree(vp);
+	cache_free(&vnodepool, vp);
+}
+
+/*
+ * vref() - increment reference count
+ */
+void
+vref(struct vnode *vp)
+{
+	atomic_inc(&(vp->refs));
+}
+
+void
+vget(struct vnode *vp)
+{
+	vlock(vp);
+	atomic_inc(&(vp->refs));
 }
 
 /*
