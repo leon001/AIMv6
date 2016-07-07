@@ -14,5 +14,6 @@ int VOP_INACTIVE(struct vnode *, struct proc *);
 int VOP_RECLAIM(struct vnode *);
 int VOP_STRATEGY(struct buf *);
 int VOP_LOOKUP(struct vnode *, char *, struct vnode **);
+int VOP_BMAP(struct vnode *, off_t, struct vnode **, soff_t *, int *);
 
 #endif

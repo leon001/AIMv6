@@ -14,7 +14,8 @@ struct vfsops ext2fs_vfsops = {
 
 struct vops ext2fs_vops = {
 	.inactive = ext2fs_inactive,
-	.reclaim = ext2fs_reclaim
+	.reclaim = ext2fs_reclaim,
+	.bmap = ext2fs_bmap
 };
 
 int

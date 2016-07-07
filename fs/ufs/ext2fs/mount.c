@@ -51,8 +51,11 @@ rollback_rootvp:
 	return err;
 }
 
+/*
+ * TODO: remove
+ */
 static void
-__fs_test(void)
+__ext2fs_mounttest(void)
 {
 	struct buf *bp;
 	int err;
@@ -195,7 +198,7 @@ ext2fs_mountfs(struct vnode *devvp, struct mount *mp, struct proc *p)
 	devvp->specinfo->mountpoint = mp;
 
 	/* TODO: temporary test */
-	__fs_test();
+	__ext2fs_mounttest();
 
 	brelse(bp);
 	vunlock(devvp);

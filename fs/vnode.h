@@ -86,6 +86,12 @@ struct vops {
 	 * lookup:
 	 */
 	int (*lookup)(struct vnode *, char *, struct vnode **);
+	/*
+	 * bmap:
+	 * Translate a logical block number of a file to a disk sector
+	 * number on the partition the file system is mounted on.
+	 */
+	int (*bmap)(struct vnode *, off_t, struct vnode **, soff_t *, int *);
 };
 
 int getnewvnode(struct mount *, struct vops *, struct vnode **);

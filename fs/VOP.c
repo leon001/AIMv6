@@ -50,3 +50,12 @@ int VOP_LOOKUP(struct vnode *dvp, char *name, struct vnode **vpp)
 		return -ENOTSUP;
 	return (dvp->ops->lookup)(dvp, name, vpp);
 }
+
+int VOP_BMAP(struct vnode *vp, off_t lblkno, struct vnode **vpp, soff_t *blkno,
+    int *runp)
+{
+	if (vp->ops->bmap == NULL)
+		return -ENOTSUP;
+	return (vp->ops->bmap)(vp, lblkno, vpp, blkno, runp);
+}
+
