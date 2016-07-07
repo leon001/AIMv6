@@ -60,7 +60,7 @@ ext2fs_vinit(struct mount *mp, struct vops *specvops,
 }
 
 /*
- * Retrieve a vnode corresponding to inode @ino on mount @mp.
+ * Retrieve a locked vnode corresponding to inode @ino on mount @mp.
  */
 int
 ext2fs_vget(struct mount *mp, ino_t ino, struct vnode **vpp)
@@ -166,12 +166,10 @@ retry:
 
 	/*
 	 * If we are getting a device file corresponding to the device
-	 * the file system is located on, we only need to unlock it
-	 * once.
+	 * the file system is located on, we do not unlock it.
 	 */
 	if (vp != ump->devvp)
-		vunlock(vp);
-	vunlock(ump->devvp);
+		vunlock(ump->devvp);
 
 	kpdebug("ext2fs vget %llu vnode %p\n", ino, vp);
 	kpdebug("\ttype %d\n", vp->type);

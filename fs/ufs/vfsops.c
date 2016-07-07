@@ -3,6 +3,7 @@
 #include <fs/vnode.h>
 #include <fs/vfs.h>
 #include <fs/ufs/ufs.h>
+#include <panic.h>
 
 int
 ufs_root(struct mount *mp, struct vnode **vpp)
@@ -13,6 +14,7 @@ ufs_root(struct mount *mp, struct vnode **vpp)
 	if ((err = VFS_VGET(mp, ROOTINO, &vp)) != 0)
 		return err;
 	vp->flags |= VROOT;
+	vunlock(vp);
 	*vpp = vp;
 	return 0;
 }

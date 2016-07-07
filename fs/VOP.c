@@ -44,3 +44,9 @@ int VOP_STRATEGY(struct buf *bp)
 	return (bp->vnode->ops->strategy)(bp);
 }
 
+int VOP_LOOKUP(struct vnode *dvp, char *name, struct vnode **vpp)
+{
+	if (dvp->ops->lookup == NULL)
+		return -ENOTSUP;
+	return (dvp->ops->lookup)(dvp, name, vpp);
+}

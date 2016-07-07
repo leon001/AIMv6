@@ -82,6 +82,10 @@ struct vops {
 	 * Initiate a block I/O.
 	 */
 	int (*strategy)(struct buf *);
+	/*
+	 * lookup:
+	 */
+	int (*lookup)(struct vnode *, char *, struct vnode **);
 };
 
 int getnewvnode(struct mount *, struct vops *, struct vnode **);
