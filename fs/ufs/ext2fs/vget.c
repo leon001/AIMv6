@@ -48,6 +48,7 @@ ext2fs_vinit(struct mount *mp, struct vops *specvops,
 			vput(vp);      /* get rid of the old vnode */
 			vp = si->vnode;
 			ip->vnode = vp;
+			vref(vp);
 		}
 		kpdebug("ext2fs vinit ino %llu done\n", (ino_t)(ip->ino));
 		break;
@@ -170,6 +171,8 @@ retry:
 	 */
 	if (vp != ump->devvp)
 		vunlock(ump->devvp);
+	/* Release the device vnode since we referred to it before */
+	vrele(ump->devvp);
 
 	kpdebug("ext2fs vget %llu vnode %p\n", ino, vp);
 	kpdebug("\ttype %d\n", vp->type);

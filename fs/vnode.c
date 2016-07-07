@@ -152,12 +152,14 @@ vgone(struct vnode *vp)
 void
 vref(struct vnode *vp)
 {
+	kpdebug("vref %p\n", vp);
 	atomic_inc(&(vp->refs));
 }
 
 void
 vget(struct vnode *vp)
 {
+	kpdebug("vget %p\n", vp);
 	vlock(vp);
 	atomic_inc(&(vp->refs));
 }
