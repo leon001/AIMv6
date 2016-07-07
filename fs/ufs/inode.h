@@ -19,8 +19,9 @@ struct inode {
 	lock_t		lock;
 	uint32_t	uid;
 	uint32_t	gid;
-	uint64_t	nblock;
+	uint64_t	nsect;		/* number of disk sectors */
 	uint64_t	filesize;
+	uint64_t	ndatablock;	/* number of data logical blocks */
 	void		*dinode;	/* on-disk inode (dinode) */
 };
 
