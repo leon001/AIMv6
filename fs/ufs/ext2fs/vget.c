@@ -129,7 +129,7 @@ retry:
 	kpdebug("ext2fs reading on-disk inode %llu\n", ino);
 	vlock(ump->devvp);
 	vlock(vp);
-	err = bread(ump->devvp, fsbtodb(fs, ino_to_fsba(fs, ino)), fs->bsects,
+	err = bread(ump->devvp, fsbtodb(fs, ino_to_fsba(fs, ino)), fs->bsize,
 	    &bp);
 	if (err) {
 		kpdebug("ext2fs vget failed to read on-disk inode\n");

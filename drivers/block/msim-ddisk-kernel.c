@@ -108,14 +108,16 @@ static void __start(struct hd_device *dev)
 
 	assert(!list_empty(&dev->bufqueue));
 	bp = list_first_entry(&dev->bufqueue, struct buf, ionode);
-	assert(bp->nblksrem != 0);
+	assert(bp->nbytesrem != 0);
+	assert(IS_ALIGNED(bp->nbytes, BLOCK_SIZE));
+	assert(IS_ALIGNED(bp->nbytesrem, BLOCK_SIZE));
 	assert(bp->flags & (B_DIRTY | B_INVALID));
 	assert(bp->flags & B_BUSY);
 	assert(bp->blkno != BLKNO_INVALID);
 	partno = hdpartno(bp->devno);
 	assert((partno == 0) || (dev->part[partno].len != 0));
 	partoff = (partno == 0) ? 0 : dev->part[partno].offset;
-	blkno = bp->blkno + bp->nblks - bp->nblksrem + partoff;
+	blkno = bp->blkno + (bp->nbytes - bp->nbytesrem) / BLOCK_SIZE + partoff;
 
 	if (bp->flags & B_DIRTY) {
 		kpdebug("writing to %d from %p\n", blkno, bp->data);
@@ -176,20 +178,20 @@ static int __intr(void)
 		kpdebug("spurious interrupt?\n");
 		return 0;
 	}
-	dst = bp->data + (bp->nblks - bp->nblksrem) * BLOCK_SIZE;
+	dst = bp->data + (bp->nbytes - bp->nbytesrem);
 	if (!(bp->flags & B_DIRTY) && (bp->flags & B_INVALID))
 		__msim_dd_fetch(hd, dst);
-	bp->nblksrem--;
-	kpdebug("buf %p remain %d\n", bp, bp->nblksrem);
+	bp->nbytesrem -= BLOCK_SIZE;
+	kpdebug("buf %p remain %d\n", bp, bp->nbytesrem);
 
-	if (bp->nblksrem == 0) {
+	if (bp->nbytesrem == 0) {
 		kpdebug("done buf %p\n", bp);
 		bp->flags &= ~(B_DIRTY | B_INVALID);
 		list_del(&(bp->ionode));
 		biodone(bp);
 	}
 
-	/* Continue current request if nblksrem != 0, or next one otherwise */
+	/* Continue current request if nbytesrem != 0, or next one otherwise */
 	__startnext(hd);
 
 	spin_unlock_irq_restore(&hd->lock, flags);
@@ -210,9 +212,9 @@ static int __strategy(struct buf *bp)
 		spin_unlock_irq_restore(&hd->lock, flags);
 		return 0;
 	}
-	kpdebug("msim-ddisk: queuing buf %p with %d blocks at %p\n", bp, bp->nblks, bp->data);
+	kpdebug("msim-ddisk: queuing buf %p with %d bytes at %p\n", bp, bp->nbytes, bp->data);
 
-	bp->nblksrem = bp->nblks;
+	bp->nbytesrem = bp->nbytes;
 
 	if (list_empty(&hd->bufqueue)) {
 		list_add_tail(&bp->ionode, &hd->bufqueue);

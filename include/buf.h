@@ -14,7 +14,7 @@ struct buf {
 	soff_t		blkno;		/* physical block number on *device* */
 #define BLKNO_INVALID	((soff_t)(-1))	/* need bmap() to find the number */
 	off_t		lblkno;		/* logical block number in vnode */
-	size_t		nblks;
+	size_t		nbytes;
 	uint32_t	flags;
 #define B_DIRTY		0x1		/* need to write */
 #define B_BUSY		0x2		/* in use */
@@ -29,7 +29,7 @@ struct buf {
 					 * allocated by bgetempty() */
 	struct list_head node;		/* vnode buf cache list node */
 	struct list_head ionode;	/* device io list node */
-	size_t		nblksrem;	/* # of blocks not finished */
+	size_t		nbytesrem;	/* # of bytes not finished */
 };
 
 extern struct allocator_cache bufpool;

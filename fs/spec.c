@@ -103,16 +103,27 @@ spec_reclaim(struct vnode *vp)
 	return 0;
 }
 
+/*
+ * strategy() operation on spec vnodes require that only the following members
+ * could be modified, as regular files may invoke this operation to interact
+ * with low-level drivers (see ufs_strategy() for one example):
+ * 1. nbytesrem
+ * 2. blkno (only if bp->vnode is a spec vnode)
+ * 3. data
+ * 4. flags
+ * 5. ionode
+ */
 int
 spec_strategy(struct buf *bp)
 {
 	struct driver *drv;
 
-	assert(bp->devno == vdev(bp->vnode));
 	drv = devsw[major(bp->devno)];
 	assert(drv != NULL);
-	if (bp->blkno == BLKNO_INVALID)
+	if (bp->blkno == BLKNO_INVALID) {
+		assert(bp->vnode->type == VCHR || bp->vnode->type == VBLK);
 		bp->blkno = bp->lblkno;
+	}
 
 	return (drv->strategy)(bp);
 }

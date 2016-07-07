@@ -27,7 +27,7 @@ __ext2fs_bmap(struct inode *ip, off_t lblkno, int level, soff_t *fsblkno)
 		base *= NINDIR(fs);
 	vlock(devvp);
 	for (i = 0; i < level; ++i) {
-		err = bread(devvp, fsbtodb(fs, root), fs->bsects, &bp);
+		err = bread(devvp, fsbtodb(fs, root), fs->bsize, &bp);
 		if (err) {
 			vunlock(devvp);
 			return err;

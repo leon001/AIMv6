@@ -31,7 +31,7 @@ static int detect_dos_partitions(struct hd_device *dev)
 	kpdebug("detecting DOS partitions\n");
 
 	drv = (struct blk_driver *)devsw[major(dev->devno)];
-	buf = bgetempty(1);
+	buf = bgetempty(BLOCK_SIZE);
 	buf->blkno = 0;
 	buf->devno = dev->devno;
 	drv->strategy(buf);

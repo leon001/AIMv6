@@ -14,7 +14,7 @@
 #include <libc/string.h>
 #include <aim/initcalls.h>
 
-struct buf *buf_get(struct vnode *vp, off_t lblkno, size_t nblks);
+struct buf *buf_get(struct vnode *vp, off_t lblkno, size_t nbytes);
 
 struct allocator_cache bufpool = {
 	.size = sizeof(struct buf),
@@ -38,7 +38,7 @@ ballocdata(struct buf *bp)
 {
 	struct pages p;
 	p.paddr = 0;
-	p.size = ALIGN_ABOVE(BLOCK_SIZE * bp->nblks, PAGE_SIZE);
+	p.size = ALIGN_ABOVE(bp->nbytes, PAGE_SIZE);
 	p.flags = 0;
 	alloc_pages(&p);
 	bp->data = pa2kva(p.paddr);
@@ -49,20 +49,20 @@ bfreedata(struct buf *bp)
 {
 	struct pages p;
 	p.paddr = kva2pa(bp->data);
-	p.size = ALIGN_ABOVE(BLOCK_SIZE * bp->nblks, PAGE_SIZE);
+	p.size = ALIGN_ABOVE(bp->nbytes, PAGE_SIZE);
 	p.flags = 0;
 	free_pages(&p);
 }
 
 /*
  * Find a struct buf in vnode @vp whose starting block is @blkno, spanning
- * @nblks blocks.  Mark the buf BUSY.
+ * @nbytes bytes.  Mark the buf BUSY.
  *
  * bget() does not check for inconsistencies of number of blocks, overlaps
  * of cached buf's etc.
  */
 struct buf *
-bget(struct vnode *vp, off_t lblkno, size_t nblks)
+bget(struct vnode *vp, off_t lblkno, size_t nbytes)
 {
 	bool lock;
 	struct buf *bp;
@@ -74,13 +74,13 @@ bget(struct vnode *vp, off_t lblkno, size_t nblks)
 		vlock(vp);
 	local_irq_save(flags);
 
-	kpdebug("bget %p %d %d\n", vp, lblkno, nblks);
+	kpdebug("bget %p %d %d\n", vp, lblkno, nbytes);
 
 restart:
 	for_each_entry (bp, &vp->buf_head, node) {
 		assert(bp->vnode == vp);
 		if (bp->lblkno == lblkno) {
-			assert(bp->nblks == nblks);
+			assert(bp->nbytes == nbytes);
 			if (!(bp->flags & B_BUSY)) {
 				bp->flags |= B_BUSY;
 				kpdebug("bget found cached %p\n", bp);
@@ -92,7 +92,7 @@ restart:
 		}
 	}
 
-	bp = buf_get(vp, lblkno, nblks);
+	bp = buf_get(vp, lblkno, nbytes);
 
 	local_irq_restore(flags);
 	if (!lock)
@@ -102,10 +102,10 @@ restart:
 }
 
 struct buf *
-bgetempty(size_t nblks)
+bgetempty(size_t nbytes)
 {
-	kpdebug("bgetempty() getting %d blocks\n", nblks);
-	return buf_get(NULL, 0, nblks);
+	kpdebug("bgetempty() getting %d bytes\n", nbytes);
+	return buf_get(NULL, 0, nbytes);
 }
 
 /*
@@ -113,7 +113,7 @@ bgetempty(size_t nblks)
  * Assumes that the lock is held.
  */
 struct buf *
-buf_get(struct vnode *vp, off_t lblkno, size_t nblks)
+buf_get(struct vnode *vp, off_t lblkno, size_t nbytes)
 {
 	unsigned long flags;
 	struct buf *bp;
@@ -143,7 +143,7 @@ create:
 	kpdebug("buf_get() creating new %p\n", bp);
 initbp:
 	bp->flags = B_BUSY | B_INVALID;
-	bp->nblks = nblks;
+	bp->nbytes = nbytes;
 	bp->blkno = BLKNO_INVALID;
 	if (vp != NULL) {
 		bp->lblkno = lblkno;
@@ -175,13 +175,13 @@ brelvp(struct buf *bp)
 }
 
 static struct buf *
-bio_doread(struct vnode *vp, off_t blkno, size_t nblks, uint32_t flags)
+bio_doread(struct vnode *vp, off_t blkno, size_t nbytes, uint32_t flags)
 {
 	struct buf *bp;
 	unsigned long intr_flags;
 
 	local_irq_save(intr_flags);
-	bp = bget(vp, blkno, nblks);
+	bp = bget(vp, blkno, nbytes);
 	if ((bp->flags & B_INVALID) && !(bp->flags & B_DIRTY))
 		VOP_STRATEGY(bp);
 	local_irq_restore(intr_flags);
@@ -195,11 +195,11 @@ bio_doread(struct vnode *vp, off_t blkno, size_t nblks, uint32_t flags)
  * Should be released by brelse() after use.
  */
 int
-bread(struct vnode *vp, off_t blkno, size_t nblks, struct buf **bpp)
+bread(struct vnode *vp, off_t blkno, size_t nbytes, struct buf **bpp)
 {
 	struct buf *bp;
 
-	bp = *bpp = bio_doread(vp, blkno, nblks, 0);
+	bp = *bpp = bio_doread(vp, blkno, nbytes, 0);
 	return biowait(bp);
 }
 

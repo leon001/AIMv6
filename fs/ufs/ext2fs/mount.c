@@ -67,10 +67,10 @@ __ext2fs_mounttest(void)
 	assert(major(rootvp->specinfo->devno) == MSIM_DISK_MAJOR);
 	assert(minor(rootvp->specinfo->devno) == ROOT_PARTITION_ID);
 	assert(rootvp->specinfo->vnode == rootvp);
-	assert((err = bread(rootvp, 3, 2, &bp)) == 0);
+	assert((err = bread(rootvp, 3, SBSIZE, &bp)) == 0);
 	memcpy(buf1, bp->data, 1024);
 	brelse(bp);
-	assert((err = bread(rootvp, 3, 2, &bp)) == 0);
+	assert((err = bread(rootvp, 3, SBSIZE, &bp)) == 0);
 	memcpy(buf2, bp->data, 1024);
 	brelse(bp);
 	assert(memcmp(buf1, buf2, 1024) == 0);
@@ -129,7 +129,7 @@ ext2fs_sbinit(struct vnode *devvp, struct ext2fs *ondiskfs, struct m_ext2fs *sb)
 		size_t gdesc = i * sb->bsize / sizeof(struct ext2_gd);
 		struct ext2_gd *gd;
 
-		err = bread(devvp, fsbtodb(sb, dblk), sb->bsects, &bp);
+		err = bread(devvp, fsbtodb(sb, dblk), sb->bsize, &bp);
 		if (err) {
 			kfree(sb->gd);
 			sb->gd = NULL;
@@ -173,7 +173,7 @@ ext2fs_mountfs(struct vnode *devvp, struct mount *mp, struct proc *p)
 
 	vlock(devvp);
 	kpdebug("reading ext2fs super block\n");
-	err = bread(devvp, SBOFF / BLOCK_SIZE, SBSIZE / BLOCK_SIZE, &bp);
+	err = bread(devvp, SBOFF / BLOCK_SIZE, SBSIZE, &bp);
 	if (err != 0)
 		goto rollback_open;
 
