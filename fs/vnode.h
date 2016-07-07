@@ -28,7 +28,8 @@ struct vnode {
 	atomic_t	refs;
 	lock_t		lock;
 	uint32_t	flags;
-#define VXLOCK		0x1
+#define VXLOCK		0x1	/* locked */
+#define VROOT		0x2	/* root of a file system */
 	/* members for mount */
 	struct mount	*mount;
 	struct list_head mount_node;

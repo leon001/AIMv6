@@ -24,8 +24,8 @@
 #include <mm.h>
 #include <list.h>
 #include <regs.h>
-
-#define PROC_NAME_LEN_MAX	256
+#include <fs/vnode.h>
+#include <limits.h>
 
 typedef int pid_t;
 
@@ -75,6 +75,11 @@ struct proc {
 	uintptr_t	progtop; /* Top of all segments (page-aligned) */
 
 	char		name[PROC_NAME_LEN_MAX];
+
+	/* File system related */
+	struct vnode	*cwd;		/* current working directory */
+	struct vnode	*rootd;		/* root directory (chroot) */
+	struct vnode	*fd[OPEN_MAX];	/* opened files */
 
 	/* Process tree related */
 	struct proc	*leader;	/* Main thread of the same process */

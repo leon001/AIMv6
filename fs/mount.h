@@ -11,6 +11,7 @@ struct vfsops;	/* fs/vfs.h */
 
 struct mount {
 	struct list_head vnode_head;
+	struct vnode	*covered;	/* vnode we mounted on */
 	struct vfsops	*ops;
 	/* Mount lock */
 	lock_t		lock;
