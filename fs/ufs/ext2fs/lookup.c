@@ -1,17 +1,20 @@
 
 #include <fs/vnode.h>
 #include <fs/bio.h>
+#include <fs/vfs.h>
 #include <fs/ufs/inode.h>
 #include <fs/ufs/ext2fs/dinode.h>
 #include <fs/ufs/ext2fs/ext2fs.h>
 #include <fs/ufs/ext2fs/dir.h>
 #include <panic.h>
 #include <libc/string.h>
+#include <errno.h>
 
 int
 ext2fs_lookup(struct vnode *dvp, char *name, struct vnode **vpp)
 {
 	unsigned int i;
+	struct vnode *vp;
 	struct buf *bp;
 	struct inode *ip = VTOI(dvp);
 	struct m_ext2fs *fs = ip->superblock;
@@ -21,8 +24,14 @@ ext2fs_lookup(struct vnode *dvp, char *name, struct vnode **vpp)
 	char *entry_name;
 
 	assert(dvp->type == VDIR);
-	kpdebug("ext2fs lookup %p(%llu) %s\n", dvp, ip->ino, name);
+	kpdebug("%s\n", name);
+	kpdebug("ext2fs lookup %p(%d) %s\n", dvp, ip->ino, name);
 
+	/*
+	 * TODO:
+	 * Now I only implement the LOOKUP operation.
+	 * Will implement CREATE, RENAME and DELETE operations later.
+	 */
 	vlock(dvp);
 	/* Do a linear search in the directory content: we read the data
 	 * blocks one by one, look up the name, and return the vnode. */
@@ -37,15 +46,19 @@ ext2fs_lookup(struct vnode *dvp, char *name, struct vnode **vpp)
 		     (cur < bp->data + fs->bsize) && (dh.reclen != 0);
 		     e2fs_load_dirhdr((cur += EXT2FS_DIRSIZ(dh.namelen)), &dh)) {
 			entry_name = cur + sizeof(dh);
+			/* Found? */
 			if (memcmp(entry_name, name, dh.namelen) == 0) {
-				/* TODO NEXT */
-				panic("ext2fs_lookup found %u\n", dh.ino);
+				err = VFS_VGET(dvp->mount, dh.ino, &vp);
+				*vpp = (err == 0) ? vp : NULL;
+				brelse(bp);
+				vunlock(dvp);
+				return err;
 			}
 		}
 		brelse(bp);
 	}
-	/* TODO NEXT */
-	panic("ext2fs_lookup not found\n");
+	*vpp = NULL;
 	vunlock(dvp);
+	return -ENOENT;
 }
 

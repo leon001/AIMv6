@@ -61,6 +61,8 @@ fsinit(void)
 	assert(devvnode->refs == 2);
 	/* Test LOOKUP (TODO: replace this with namei()) */
 	assert(VOP_LOOKUP(rootvnode, "lost+found", &lf_vnode) == 0);
+	assert(VTOI(lf_vnode)->ino == 11);
+	assert(lf_vnode->type == VDIR);
 
 	kprintf("==============fs test succeeded===============\n");
 }
