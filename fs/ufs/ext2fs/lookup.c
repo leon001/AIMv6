@@ -7,6 +7,7 @@
 #include <fs/ufs/ext2fs/ext2fs.h>
 #include <fs/ufs/ext2fs/dir.h>
 #include <panic.h>
+#include <limits.h>
 #include <libc/string.h>
 #include <errno.h>
 
@@ -22,6 +23,7 @@ ext2fs_lookup(struct vnode *dvp, char *name, struct vnode **vpp)
 	void *cur;
 	int err;
 	char *entry_name;
+	size_t namelen = strnlen(name, PATH_MAX);
 
 	assert(dvp->type == VDIR);
 	assert(dvp->flags & VXLOCK);
@@ -47,7 +49,8 @@ ext2fs_lookup(struct vnode *dvp, char *name, struct vnode **vpp)
 		     e2fs_load_dirhdr(cur, &dh)) {
 			entry_name = cur + sizeof(dh);
 			/* Found? */
-			if (memcmp(entry_name, name, dh.namelen) == 0) {
+			if (dh.namelen == namelen &&
+			    memcmp(entry_name, name, dh.namelen) == 0) {
 				brelse(bp);
 				if (dh.ino == VTOI(dvp)->ino) {
 					/*

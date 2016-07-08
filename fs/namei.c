@@ -92,6 +92,7 @@ namei(struct nameidata *nd, struct proc *p)
 			/* TODO */
 			kprintf("KERN: symlink lookup NYI\n");
 			nd->vp = NULL;
+			vput(vp);
 			err = -ENOTSUP;
 			goto finish;
 		}
@@ -106,7 +107,13 @@ namei(struct nameidata *nd, struct proc *p)
 			 * we don't need to vget() it again. */
 			startdir = vp;
 		} else {
+			/* trying to get directory entry inside a file...
+			 * put the vnode we just vget'd back */
+			assert(vp != NULL);
+			assert(vp->type != VDIR);
+			assert(vp->type != VNON && vp->type != VBAD);
 			nd->vp = NULL;
+			vput(vp);
 			err = -ENOTDIR;
 			goto finish;
 		}
