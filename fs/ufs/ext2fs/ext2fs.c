@@ -3,6 +3,7 @@
 #include <fs/vfs.h>
 #include <fs/mount.h>
 #include <fs/vnode.h>
+#include <fs/specdev.h>
 #include <fs/ufs/ufs.h>
 #include <fs/ufs/ext2fs/ext2fs.h>
 #include <panic.h>
@@ -15,7 +16,20 @@ struct vfsops ext2fs_vfsops = {
 struct vops ext2fs_vops = {
 	.inactive = ext2fs_inactive,
 	.reclaim = ext2fs_reclaim,
-	.bmap = ext2fs_bmap
+	.strategy = ufs_strategy,
+	.bmap = ext2fs_bmap,
+};
+
+/*
+ * Special file operations on an ext2 file system.
+ * This is a combination of the ordinal spec ops and ext2 ops.
+ */
+struct vops ext2fs_specvops = {
+	.open = spec_open,
+	.close = spec_close,	/* TODO: clean inode etc in a wrapper */
+	.inactive = ext2fs_inactive,
+	.reclaim = ext2fs_reclaim,
+	.strategy = spec_strategy,
 };
 
 int

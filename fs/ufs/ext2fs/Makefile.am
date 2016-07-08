@@ -27,7 +27,6 @@ libext2fs_la_SOURCES = \
 		       vget.c \
 		       inode.c \
 		       reclaim.c \
-		       spec.c \
 		       ext2fs.h \
 		       dinode.h
 

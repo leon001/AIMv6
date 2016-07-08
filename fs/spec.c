@@ -141,6 +141,16 @@ findspec(dev_t devno)
 	return NULL;
 }
 
+struct specinfo *
+newspec(dev_t devno)
+{
+	struct specinfo *si = cache_alloc(&specinfopool);
+	si->devno = devno;
+	list_add_tail(&(si->spec_node), &specinfo_list);
+
+	return si;
+}
+
 /*
  * Get or create the vnode corresponding to the device @devno.
  * Currently we require that each device is matched exactly by one vnode.
@@ -166,10 +176,8 @@ getdevvp(dev_t devno, struct vnode **vpp, enum vtype type)
 
 	vp->type = type;
 	/* Allocate and fill in a specinfo structure */
-	si = cache_alloc(&specinfopool);
-	si->devno = devno;
+	si = newspec(devno);
 	si->vnode = vp;
-	list_add_tail(&(si->spec_node), &specinfo_list);
 	vp->specinfo = si;
 
 	*vpp = vp;

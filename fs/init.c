@@ -8,6 +8,7 @@
 #include <fs/ufs/inode.h>
 #include <fs/ufs/ufsmount.h>
 #include <fs/ufs/ext2fs/ext2fs.h>
+#include <fs/bio.h>
 
 void
 fsinit(void)
@@ -17,6 +18,7 @@ fsinit(void)
 	struct vnode *tgz_vnode;
 	struct inode *tgz_inode;
 	struct m_ext2fs *fs;
+	struct buf *bp;
 	soff_t blkno;
 
 	mountroot();
@@ -29,13 +31,16 @@ fsinit(void)
 	/*
 	 * Replace this with your own test code...
 	 */
+	assert(rootvp->refs == 2);	/* one for device and one for / */
 	fs = ((struct ufsmount *)rootmp->data)->superblock;
 	assert(VFS_VGET(rootmp, 13890, &devvnode) == 0);
-	assert(devvnode->refs == 2);
+	assert(rootvp == devvnode);
+	assert(devvnode->refs == 3);	/* another one for 13890 ref to same device */
 	vput(devvnode);
-	assert(devvnode->refs == 1);
+	assert(devvnode->refs == 2);
 	assert(!(devvnode->flags & VXLOCK));
 	assert(VFS_VGET(rootmp, 12, &tgz_vnode) == 0);
+	assert(devvnode->refs == 3);	/* another one for 12 ref ON dev */
 	tgz_inode = tgz_vnode->data;
 	for (int i = 0; i < tgz_inode->ndatablock; ++i) {
 		assert(VOP_BMAP(tgz_vnode, i, NULL, &blkno, NULL) == 0);
@@ -43,6 +48,11 @@ fsinit(void)
 		    dbtofsb(fs, blkno));
 	}
 	assert(VOP_BMAP(tgz_vnode, tgz_inode->ndatablock, NULL, &blkno, NULL) != 0);
+	assert(bread(tgz_vnode, 0, 4096, &bp) == 0);
+	kpdebug("Data read in: %08x\n", *(uint32_t *)bp->data);
+	brelse(bp);
+	vput(tgz_vnode);
+	assert(devvnode->refs == 2);
 
 	kprintf("==============fs test succeeded===============\n");
 }

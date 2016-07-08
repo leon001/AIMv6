@@ -27,7 +27,6 @@ ext2fs_vinit(struct mount *mp, struct vops *specvops,
 	switch (vp->type) {
 	case VCHR:
 	case VBLK:
-		vp->ops = specvops;
 		kpdebug("ext2fs vinit ino %llu %x %d, %d\n",
 		    (ino_t)(ip->ino), dp->rdev, major(dp->rdev), minor(dp->rdev));
 		si = findspec(dp->rdev);
@@ -36,20 +35,36 @@ ext2fs_vinit(struct mount *mp, struct vops *specvops,
 			 * Discard unneeded vnode but keep the inode.
 			 * Note that the lock is carried over in the inode
 			 * to the replacement vnode.
-			 * This code is a dirty hack to preserve inode and
-			 * everything else while freeing the vnode only.
 			 */
 			/* XXX shall we make an assertation here? */
 			assert(si->vnode->data == NULL);
-			si->vnode->data = vp->data;     /* pass inode */
+			si->vnode->data = vp->data;	/* pass inode */
 			vp->data = NULL;
 			vp->ops = &spec_vops;
 			assert(vp->typedata == NULL);
-			vput(vp);      /* get rid of the old vnode */
+			vput(vp);	/* get rid of the old vnode */
+
+			/* Update the old vnode associated to found specinfo
+			 * with file system information */
 			vp = si->vnode;
 			ip->vnode = vp;
-			vref(vp);
+			insmntque(vp, mp);
+			/*
+			 * For other special files, both the file's vnode and
+			 * the mount device vnode should be ref'd, but if we
+			 * are initializing the inode of the mount device
+			 * itself, we only ref it once (which is done outside)
+			 */
+			if (vp != VFSTOUFS(mp)->devvp)
+				vref(vp);
+		} else {
+			si = newspec(dp->rdev);
+			si->vnode = vp;
+			vp->specinfo = si;
 		}
+		/* Switch the spec file ops to file system's specvops since we
+		 * have an inode to deal with. */
+		vp->ops = specvops;
 		kpdebug("ext2fs vinit ino %llu done\n", (ino_t)(ip->ino));
 		break;
 	default:
@@ -174,8 +189,6 @@ retry:
 	 */
 	if (vp != ump->devvp)
 		vunlock(ump->devvp);
-	/* Release the device vnode since we referred to it before */
-	vrele(ump->devvp);
 
 	kpdebug("ext2fs vget %llu vnode %p\n", ino, vp);
 	kpdebug("\ttype %d\n", vp->type);

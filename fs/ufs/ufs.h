@@ -7,8 +7,11 @@
 struct mount;	/* fs/mount.h */
 struct vnode;	/* fs/vnode.h */
 struct inode;	/* fs/ufs/inode.h */
+struct buf;	/* include/buf.h */
 
 int ufs_root(struct mount *mp, struct vnode **vpp);
+
+int ufs_strategy(struct buf *bp);
 
 struct vnode *ufs_ihashget(dev_t devno, ino_t ino);
 int ufs_ihashins(struct inode *ip);

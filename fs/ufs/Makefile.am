@@ -25,6 +25,7 @@ libufs_la_SOURCES = dinode.h \
 		    inode.h \
 		    ufs.h \
 		    hash.c \
-		    vfsops.c
+		    vfsops.c \
+		    vop.c
 libufs_la_LIBADD = ext2fs/libext2fs.la
 
