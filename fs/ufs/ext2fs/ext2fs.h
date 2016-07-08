@@ -245,6 +245,7 @@ int ext2fs_vget(struct mount *mp, ino_t ino, struct vnode **vpp);
 int ext2fs_inactive(struct vnode *vp, struct proc *p);
 int ext2fs_reclaim(struct vnode *vp);
 int ext2fs_bmap(struct vnode *, off_t, struct vnode **, soff_t *, int *);
+int ext2fs_lookup(struct vnode *, char *, struct vnode **);
 
 #endif
 

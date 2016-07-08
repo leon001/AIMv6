@@ -16,6 +16,7 @@ fsinit(void)
 	struct mount *rootmp;
 	struct vnode *devvnode;
 	struct vnode *tgz_vnode;
+	struct vnode *lf_vnode;
 	struct inode *tgz_inode;
 	struct m_ext2fs *fs;
 	struct buf *bp;
@@ -32,27 +33,34 @@ fsinit(void)
 	 * Replace this with your own test code...
 	 */
 	assert(rootvp->refs == 2);	/* one for device and one for / */
-	fs = ((struct ufsmount *)rootmp->data)->superblock;
+	fs = VFSTOUFS(rootmp)->superblock;
+	/* Test VGET */
 	assert(VFS_VGET(rootmp, 13890, &devvnode) == 0);
 	assert(rootvp == devvnode);
 	assert(devvnode->refs == 3);	/* another one for 13890 ref to same device */
+	assert(rootvnode->refs == 1);
 	vput(devvnode);
 	assert(devvnode->refs == 2);
 	assert(!(devvnode->flags & VXLOCK));
 	assert(VFS_VGET(rootmp, 12, &tgz_vnode) == 0);
 	assert(devvnode->refs == 3);	/* another one for 12 ref ON dev */
-	tgz_inode = tgz_vnode->data;
+	assert(rootvnode->refs == 1);
+	tgz_inode = VTOI(tgz_vnode);
+	/* Test BMAP */
 	for (int i = 0; i < tgz_inode->ndatablock; ++i) {
 		assert(VOP_BMAP(tgz_vnode, i, NULL, &blkno, NULL) == 0);
 		kpdebug("VOP_BMAP result: %d - %d (%d)\n", i, blkno,
 		    dbtofsb(fs, blkno));
 	}
 	assert(VOP_BMAP(tgz_vnode, tgz_inode->ndatablock, NULL, &blkno, NULL) != 0);
-	assert(bread(tgz_vnode, 0, 4096, &bp) == 0);
+	/* Test bread on ext2fs files */
+	assert(bread(tgz_vnode, 0, fs->bsize, &bp) == 0);
 	kpdebug("Data read in: %08x\n", *(uint32_t *)bp->data);
 	brelse(bp);
 	vput(tgz_vnode);
 	assert(devvnode->refs == 2);
+	/* Test LOOKUP (TODO: replace this with namei()) */
+	assert(VOP_LOOKUP(rootvnode, "lost+found", &lf_vnode) == 0);
 
 	kprintf("==============fs test succeeded===============\n");
 }

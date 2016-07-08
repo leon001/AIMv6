@@ -18,6 +18,7 @@ struct vops ext2fs_vops = {
 	.reclaim = ext2fs_reclaim,
 	.strategy = ufs_strategy,
 	.bmap = ext2fs_bmap,
+	.lookup = ext2fs_lookup
 };
 
 /*

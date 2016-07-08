@@ -29,6 +29,10 @@ ext2fs_vinit(struct mount *mp, struct vops *specvops,
 	case VBLK:
 		kpdebug("ext2fs vinit ino %llu %x %d, %d\n",
 		    (ino_t)(ip->ino), dp->rdev, major(dp->rdev), minor(dp->rdev));
+		/*
+		 * This piece of code relates specinfo, inode and vnode
+		 * structures together.
+		 */
 		si = findspec(dp->rdev);
 		if (si != NULL) {
 			/*
@@ -63,7 +67,7 @@ ext2fs_vinit(struct mount *mp, struct vops *specvops,
 			vp->specinfo = si;
 		}
 		/* Switch the spec file ops to file system's specvops since we
-		 * have an inode to deal with. */
+		 * have an inode and a specinfo to deal with. */
 		vp->ops = specvops;
 		kpdebug("ext2fs vinit ino %llu done\n", (ino_t)(ip->ino));
 		break;

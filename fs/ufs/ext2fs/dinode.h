@@ -44,6 +44,7 @@
 #include <fs/ufs/ext2fs/ext2fs.h>
 #include <fs/vnode.h>		/* enum vtype */
 #include <util.h>
+#include <libc/dirent.h>
 
 struct inode;	/* fs/ufs/inode.h */
 
@@ -179,10 +180,15 @@ void e2fs_i_bswap(struct m_ext2fs *, struct ext2fs_dinode *, struct ext2fs_dinod
 static inline enum vtype EXT2_IFTOVT(uint16_t mode)
 {
 	static enum vtype tbl[] = {
-		VNON, VBAD/* VFIFO */, VCHR, VBAD, VDIR, VBAD, VBLK, VBAD,
-		VREG, VBAD, VLNK, VBAD, VBAD/* VSOCK */, VBAD, VBAD, VBAD
+		[DT_FIFO] = VBAD,	/* VFIFO */
+		[DT_CHR] = VCHR,
+		[DT_DIR] = VDIR,
+		[DT_BLK] = VBLK,
+		[DT_REG] = VREG,
+		[DT_LNK] = VLNK,
+		[DT_SOCK] = VBAD,	/* VSOCK */
 	};
-	return tbl[(mode & EXT2_IFMT) >> 12];
+	return tbl[IFTODT(mode)];
 }
 
 int ext2fs_setsize(struct inode *ip, uint64_t size);
