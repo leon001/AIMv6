@@ -117,6 +117,8 @@ struct proc *proc_new(struct namespace *ns)
 	proc->ustacktop = 0;
 	proc->progtop = 0;
 	memset(&(proc->name), 0, sizeof(proc->name));
+	proc->cwd = proc->rootd = NULL;
+	memset(proc->fd, 0, sizeof(proc->fd));
 
 	proc->leader = NULL;
 	proc->parent = NULL;

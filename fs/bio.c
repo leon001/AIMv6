@@ -36,22 +36,13 @@ INITCALL_FS(binit);
 void
 ballocdata(struct buf *bp)
 {
-	struct pages p;
-	p.paddr = 0;
-	p.size = ALIGN_ABOVE(bp->nbytes, PAGE_SIZE);
-	p.flags = 0;
-	alloc_pages(&p);
-	bp->data = pa2kva(p.paddr);
+	bp->data = kmalloc(bp->nbytes, 0);
 }
 
 void
 bfreedata(struct buf *bp)
 {
-	struct pages p;
-	p.paddr = kva2pa(bp->data);
-	p.size = ALIGN_ABOVE(bp->nbytes, PAGE_SIZE);
-	p.flags = 0;
-	free_pages(&p);
+	kfree(bp->data);
 }
 
 /*

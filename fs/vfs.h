@@ -16,11 +16,13 @@ struct vfsops {
 	/*
 	 * root() - get root vnode.
 	 * On UFS-like file systems, get the vnode for '/' directory.
+	 * Returns a locked vnode.
 	 */
 	int (*root)(struct mount *mp, struct vnode **vpp);
 	/*
 	 * vget() - get vnode according to inode # (or file ID #)
-	 * Not every file system has a file ID (e.g. FAT)
+	 * Not every file system has a file ID (e.g. FAT).
+	 * Returns a locked vnode.
 	 */
 	int (*vget)(struct mount *mp, ino_t ino, struct vnode **vpp);
 };

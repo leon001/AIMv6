@@ -27,11 +27,13 @@ libfs_la_SOURCES = \
 		   vnode.c \
 		   init.c \
 		   mount.c \
+		   namei.c \
 		   vfs.c \
 		   VOP.c \
 		   specdev.h \
 		   vnode.h \
 		   mount.h \
+		   namei.h \
 		   VOP.h \
 		   vfs.h
 libfs_la_LIBADD = ufs/libufs.la

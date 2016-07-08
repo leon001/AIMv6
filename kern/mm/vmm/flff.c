@@ -67,6 +67,11 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 	size = ALIGN_ABOVE(size, ALLOC_ALIGN);
 	allocsize = size + sizeof(struct blockhdr);
 
+	struct list_head *h;
+	for_each (h, head) {
+		assert(h != NULL);
+	}
+
 	/* Search for a first fit */
 	for_each_entry(this, head, node) {
 		if (this->size >= allocsize) { break; }

@@ -35,8 +35,9 @@ ext2fs_reclaim(struct vnode *vp)
 		atomic_dec(&ip->ufsmount->devvp->refs);
 	}
 
-	if (ip->dinode != NULL)
+	if (ip->dinode != NULL) {
 		kfree(ip->dinode);
+	}
 
 	kfree(ip);
 	vp->data = NULL;

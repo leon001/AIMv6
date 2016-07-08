@@ -84,6 +84,9 @@ struct vops {
 	int (*strategy)(struct buf *);
 	/*
 	 * lookup:
+	 * Finds a directory entry by name.
+	 * The directory should be locked.
+	 * The returned vnode is retrieved via vget() hence locked.
 	 */
 	int (*lookup)(struct vnode *, char *, struct vnode **);
 	/*

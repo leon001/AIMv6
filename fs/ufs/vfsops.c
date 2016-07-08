@@ -14,7 +14,6 @@ ufs_root(struct mount *mp, struct vnode **vpp)
 	if ((err = VFS_VGET(mp, ROOTINO, &vp)) != 0)
 		return err;
 	vp->flags |= VROOT;
-	vunlock(vp);
 	*vpp = vp;
 	return 0;
 }
