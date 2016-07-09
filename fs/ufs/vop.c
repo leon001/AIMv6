@@ -4,6 +4,7 @@
 #include <fs/vnode.h>
 #include <fs/VOP.h>
 #include <fs/specdev.h>
+#include <fs/mount.h>
 #include <fs/ufs/inode.h>
 #include <fs/ufs/ufsmount.h>
 #include <panic.h>
@@ -26,8 +27,24 @@ ufs_strategy(struct buf *bp)
 
 	assert(vp->type != VBLK && vp->type != VCHR);
 
-	/* NOTE: We only support reading one logical block at a time here, and
-	 * we are NOT going to check it here */
+	/*
+	 * NOTE: We only support reading one logical block at a time here.
+	 * If we are going to support reading multiple logical blocks, we
+	 * will have to deal with physically incontiguous sectors.
+	 *
+	 * VOP_BMAP has an additional return value, @runp, to indicate how many
+	 * physically contiguous sectors are there starting from physical
+	 * address of logical block @lblkno.
+	 *
+	 * So, a VOP_STRATEGY supporting multiple logical block I/O should
+	 * repeatedly probe for the longest physically contiguous sectors,
+	 * bread() them, and advance to the next one.  But such implementation
+	 * would introduce additional complexity to the already-hellish
+	 * file system framework, so I didn't do that (it's for teaching
+	 * purpose after all).
+	 */
+	assert(bp->nbytes == (BLOCK_SIZE << VFSTOUFS(vp->mount)->fsbtodb));
+
 	if (bp->blkno == BLKNO_INVALID) {
 		err = VOP_BMAP(vp, bp->lblkno, NULL, &(bp->blkno), NULL);
 		if (err) {
@@ -40,6 +57,18 @@ ufs_strategy(struct buf *bp)
 		}
 	}
 	assert(bp->blkno != BLKNO_INVALID);
+	if (bp->blkno == 0) {
+		/*
+		 * We have a hole here, zero the buffer and return.
+		 * NOTE: when writing, be very sure that the logical block #
+		 * has a physical sector # mapped.
+		 */
+		local_irq_save(flags);
+		memset(bp->data, 0, bp->nbytes);
+		biodone(bp);
+		local_irq_restore(flags);
+		return 0;
+	}
 	vp = ip->ufsmount->devvp;
 	bp->devno = vp->specinfo->devno;
 	/* Here, we are actually calling spec_strategy() */

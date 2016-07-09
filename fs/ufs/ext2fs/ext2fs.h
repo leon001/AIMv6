@@ -208,6 +208,15 @@ struct ext2_gd {
 /* inode # to file system block offset in that file system block */
 #define ino_to_fsbo(fs, ino)	(((ino) - 1) % (fs)->ipb)
 
+/* Computes bytes offset in a logical block (loc % fs->bsize) */
+#define lblkoff(fs, loc)	((loc) & (fs)->qbmask)
+/* Logical block # to byte offset on the partition */
+#define lblktosize(fs, lblkno)	((lblkno) << (fs)->bshift)
+/* Computes logical block # given a byte offset */
+#define lblkno(fs, loc)		((loc) >> (fs)->bshift)
+/* Round up the size to logical blocks */
+#define lblkroundup(fs, size)	ALIGN_ABOVE((size), (fs)->bsize)
+
 /*
  * Ext2 metadata is stored in little-endian byte order.
  * JBD2 journal used in ext3 and ext4 is big-endian!

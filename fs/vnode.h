@@ -11,6 +11,7 @@ struct specinfo;	/* fs/specdev.h */
 struct mount;		/* fs/mount.h */
 struct ucred;		/* include/ucred.h */
 struct proc;		/* include/proc.h */
+struct uio;		/* fs/uio.h */
 
 enum vtype {
 	VNON,	/* no-type */
@@ -64,6 +65,11 @@ struct vops {
 	 * close:
 	 */
 	int (*close)(struct vnode *, int, struct ucred *, struct proc *);
+	/*
+	 * read:
+	 * Read from a vnode as specified by the uio structure.
+	 */
+	int (*read)(struct vnode *, struct uio *, int, struct ucred *);
 	/*
 	 * inactive:
 	 * Truncate, update, unlock.  Usually called when a kernel is no

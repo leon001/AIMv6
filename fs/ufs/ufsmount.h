@@ -19,7 +19,8 @@ struct ufsmount {
 	 * counterpart as it may contain more information. */
 	void		*superblock;
 	unsigned long	nindir;		/* indirect pointers per block */
-	unsigned long	bptrtodb;	/* indirect pointer to disk block */
+	unsigned long	bptrtodb;	/* indirect pointer to disk blocks */
+	unsigned long	fsbtodb;	/* file system block to disk blocks */
 	unsigned long	seqinc;		/* increment between sequential blks */
 };
 

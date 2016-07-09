@@ -2,6 +2,7 @@
 #include <list.h>
 #include <fs/vnode.h>
 #include <fs/specdev.h>
+#include <fs/VOP.h>
 #include <buf.h>
 #include <vmm.h>
 #include <errno.h>
@@ -94,12 +95,6 @@ spec_close(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
 		panic("spec_close: not spec\n");
 	}
 	/* NOTREACHED */
-	return 0;
-}
-
-int
-spec_reclaim(struct vnode *vp)
-{
 	return 0;
 }
 
@@ -204,7 +199,7 @@ struct vops spec_vops = {
 	.open = spec_open,
 	.close = spec_close,
 	.inactive = spec_inactive,
-	.reclaim = spec_reclaim,
+	.reclaim = VOP_NOP,
 	.strategy = spec_strategy,
 };
 

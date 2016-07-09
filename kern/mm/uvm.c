@@ -432,6 +432,11 @@ finalize:
 	return retcode;
 }
 
+/*
+ * NOTE:
+ * The following implementation of copy_to_uvm() and copy_from_uvm() does NOT
+ * support page faults.
+ */
 static int
 __copy_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len, bool touser)
 {

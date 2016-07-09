@@ -191,7 +191,7 @@ ext2fs_mountfs(struct vnode *devvp, struct mount *mp, struct proc *p)
 	ump->devvp = devvp;
 	ump->type = UM_EXT2;
 	ump->nindir = NINDIR(sb);
-	ump->bptrtodb = sb->fsbtodb;
+	ump->fsbtodb = ump->bptrtodb = sb->fsbtodb;
 	ump->seqinc = 1;	/* no frags */
 	ump->superblock = sb;
 	mp->data = ump;

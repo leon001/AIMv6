@@ -22,6 +22,10 @@ __ext2fs_bmap(struct inode *ip, off_t lblkno, int level, soff_t *fsblkno)
 	uint32_t *indices;
 	uint32_t base = 1;
 	off_t root = dip->blocks[NDADDR + level - 1];
+	if (root == 0) {
+		*fsblkno = 0;
+		return 0;
+	}
 
 	for (i = 1; i < level; ++i)
 		base *= NINDIR(fs);
@@ -37,7 +41,8 @@ __ext2fs_bmap(struct inode *ip, off_t lblkno, int level, soff_t *fsblkno)
 		lblkno %= base;
 		root = indices[index];
 		brelse(bp);
-		assert(root != 0);
+		if (root == 0)
+			break;
 	}
 	*fsblkno = root;
 	vunlock(devvp);
