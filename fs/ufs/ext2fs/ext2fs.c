@@ -14,6 +14,7 @@ struct vfsops ext2fs_vfsops = {
 };
 
 struct vops ext2fs_vops = {
+	.read = ext2fs_read,
 	.inactive = ext2fs_inactive,
 	.reclaim = ext2fs_reclaim,
 	.strategy = ufs_strategy,

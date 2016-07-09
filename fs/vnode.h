@@ -68,6 +68,7 @@ struct vops {
 	/*
 	 * read:
 	 * Read from a vnode as specified by the uio structure.
+	 * Assumes that the vnode is locked.
 	 */
 	int (*read)(struct vnode *, struct uio *, int, struct ucred *);
 	/*
@@ -99,6 +100,10 @@ struct vops {
 	 * bmap:
 	 * Translate a logical block number of a file to a disk sector
 	 * number on the partition the file system is mounted on.
+	 * Error code:
+	 * -E2BIG: the logical block # is not less than # of data blocks
+	 * -ENXIO: the logical block # is not less than the maximum # the
+	 *         direct + indirect blocks can handle
 	 */
 	int (*bmap)(struct vnode *, off_t, struct vnode **, soff_t *, int *);
 };

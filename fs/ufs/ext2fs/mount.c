@@ -86,7 +86,7 @@ ext2fs_sbinit(struct vnode *devvp, struct ext2fs *ondiskfs, struct m_ext2fs *sb)
 {
 	struct ext2fs *fs = &sb->e2fs;
 	int err, i;
-	struct buf *bp;
+	struct buf *bp = NULL;
 
 	e2fs_sbload(ondiskfs, fs);
 
@@ -133,7 +133,8 @@ ext2fs_sbinit(struct vnode *devvp, struct ext2fs *ondiskfs, struct m_ext2fs *sb)
 		if (err) {
 			kfree(sb->gd);
 			sb->gd = NULL;
-			brelse(bp);
+			if (bp != NULL)
+				brelse(bp);
 			return err;
 		}
 		gd = bp->data;
@@ -208,8 +209,9 @@ rollback_alloc:
 	kfree(sb);
 	kfree(ump);
 rollback_buf:
-	brelse(bp);
 rollback_open:
+	if (bp != NULL)
+		brelse(bp);
 	VOP_CLOSE(devvp, FREAD | FWRITE, NOCRED, p);
 	vunlock(devvp);
 

@@ -13,7 +13,7 @@
 static int
 __ext2fs_bmap(struct inode *ip, off_t lblkno, int level, soff_t *fsblkno)
 {
-	struct buf *bp;
+	struct buf *bp = NULL;
 	struct vnode *devvp = ip->ufsmount->devvp;
 	struct ext2fs_dinode *dip = ip->dinode;
 	struct m_ext2fs *fs = ip->superblock;
@@ -34,6 +34,8 @@ __ext2fs_bmap(struct inode *ip, off_t lblkno, int level, soff_t *fsblkno)
 		err = bread(devvp, fsbtodb(fs, root), fs->bsize, &bp);
 		if (err) {
 			vunlock(devvp);
+			if (bp != NULL)
+				brelse(bp);
 			return err;
 		}
 		indices = bp->data;
@@ -41,6 +43,7 @@ __ext2fs_bmap(struct inode *ip, off_t lblkno, int level, soff_t *fsblkno)
 		lblkno %= base;
 		root = indices[index];
 		brelse(bp);
+		bp = NULL;
 		if (root == 0)
 			break;
 	}
@@ -74,7 +77,7 @@ ext2fs_bmap(struct vnode *vp, off_t lblkno, struct vnode **vpp,
 	 */
 	if (lblkno >= ip->ndatablock) {
 		fsblkno = BLKNO_INVALID;
-		err = -ENXIO;
+		err = -E2BIG;
 		goto finish;
 	} else if (lblkno < NDADDR) {
 		fsblkno = dip->blocks[lblkno];

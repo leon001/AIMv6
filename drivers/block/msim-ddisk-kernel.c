@@ -105,6 +105,7 @@ static void __start(struct hd_device *dev)
 	struct buf *bp;
 	off_t blkno, partoff;
 	int partno;
+	void *data;
 
 	assert(!list_empty(&dev->bufqueue));
 	bp = list_first_entry(&dev->bufqueue, struct buf, ionode);
@@ -118,13 +119,14 @@ static void __start(struct hd_device *dev)
 	assert((partno == 0) || (dev->part[partno].len != 0));
 	partoff = (partno == 0) ? 0 : dev->part[partno].offset;
 	blkno = bp->blkno + (bp->nbytes - bp->nbytesrem) / BLOCK_SIZE + partoff;
+	data = bp->data + (bp->nbytes - bp->nbytesrem);
 
 	if (bp->flags & B_DIRTY) {
-		kpdebug("writing to %d from %p\n", blkno, bp->data);
-		__msim_dd_write_sector(dev, blkno, bp->data, false);
+		kpdebug("writing to %d from %p\n", blkno, data);
+		__msim_dd_write_sector(dev, blkno, data, false);
 	} else if (bp->flags & B_INVALID) {
-		kpdebug("reading from %d to %p\n", blkno, bp->data);
-		__msim_dd_read_sector(dev, blkno, bp->data, false);
+		kpdebug("reading from %d to %p\n", blkno, data);
+		__msim_dd_read_sector(dev, blkno, data, false);
 	}
 }
 
@@ -179,8 +181,10 @@ static int __intr(void)
 		return 0;
 	}
 	dst = bp->data + (bp->nbytes - bp->nbytesrem);
-	if (!(bp->flags & B_DIRTY) && (bp->flags & B_INVALID))
+	if (!(bp->flags & B_DIRTY) && (bp->flags & B_INVALID)) {
+		kpdebug("fetching to %p\n", dst);
 		__msim_dd_fetch(hd, dst);
+	}
 	bp->nbytesrem -= BLOCK_SIZE;
 	kpdebug("buf %p remain %d\n", bp, bp->nbytesrem);
 

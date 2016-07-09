@@ -242,6 +242,8 @@ struct mount;	/* fs/mount.h */
 struct vnode;	/* fs/vnode.h */
 struct vfsops;	/* fs/vfs.h */
 struct vops;	/* fs/vnode.h */
+struct uio;	/* fs/uio.h */
+struct ucred;	/* include/ucred.h */
 
 int ext2fs_mountroot(void);
 
@@ -249,8 +251,11 @@ extern struct vfsops ext2fs_vfsops;
 extern struct vops ext2fs_vops;
 extern struct vops ext2fs_specvops;
 
+/* VFS operations */
 int ext2fs_vget(struct mount *mp, ino_t ino, struct vnode **vpp);
 
+/* vnode operations */
+int ext2fs_read(struct vnode *, struct uio *, int, struct ucred *);
 int ext2fs_inactive(struct vnode *vp, struct proc *p);
 int ext2fs_reclaim(struct vnode *vp);
 int ext2fs_bmap(struct vnode *, off_t, struct vnode **, soff_t *, int *);

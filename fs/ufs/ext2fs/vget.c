@@ -89,7 +89,7 @@ ext2fs_vget(struct mount *mp, ino_t ino, struct vnode **vpp)
 	struct inode *ip;
 	struct ufsmount *ump;
 	struct m_ext2fs *fs;
-	struct buf *bp;
+	struct buf *bp = NULL;
 	struct ext2fs_dinode *dp, *ndp;
 	dev_t devno;
 	int err;
@@ -152,7 +152,8 @@ retry:
 	    &bp);
 	if (err) {
 		kpdebug("ext2fs vget failed to read on-disk inode\n");
-		brelse(bp);
+		if (bp != NULL)
+			brelse(bp);
 		vput(vp);
 		vunlock(ump->devvp);
 		*vpp = NULL;

@@ -16,7 +16,7 @@ ext2fs_lookup(struct vnode *dvp, char *name, struct vnode **vpp)
 {
 	unsigned int i;
 	struct vnode *vp;
-	struct buf *bp;
+	struct buf *bp = NULL;
 	struct inode *ip = VTOI(dvp);
 	struct m_ext2fs *fs = ip->superblock;
 	struct ext2fs_dirhdr dh;
@@ -39,6 +39,8 @@ ext2fs_lookup(struct vnode *dvp, char *name, struct vnode **vpp)
 	for (i = 0; i < ip->ndatablock; ++i) {
 		err = bread(dvp, i, fs->bsize, &bp);
 		if (err) {
+			if (bp != NULL)
+				brelse(bp);
 			return err;
 		}
 		/* Iterate over the list of directory entries */
@@ -68,6 +70,7 @@ ext2fs_lookup(struct vnode *dvp, char *name, struct vnode **vpp)
 			cur += EXT2FS_DIRSIZ(dh.namelen);
 		}
 		brelse(bp);
+		bp = NULL;
 	}
 	*vpp = NULL;
 	return -ENOENT;

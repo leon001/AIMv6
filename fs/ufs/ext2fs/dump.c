@@ -10,7 +10,7 @@ void
 __ext2fs_dump(struct vnode *devvp, struct m_ext2fs *fs)
 {
 	int i, err, n_zero, n_one;
-	struct buf *bp;
+	struct buf *bp = NULL;
 	/*
 	 * Please, do check the following dumps with the ones from dumpe2fs(8).
 	 */
@@ -52,7 +52,8 @@ __ext2fs_dump(struct vnode *devvp, struct m_ext2fs *fs)
 		    &bp);
 		if (err != 0) {
 			kprintf("\tbread error\n");
-			brelse(bp);
+			if (bp != NULL)
+				brelse(bp);
 			return;
 		}
 		/* XXX this piece of code is twisted: bitmap_find_first() and
@@ -69,12 +70,14 @@ __ext2fs_dump(struct vnode *devvp, struct m_ext2fs *fs)
 			n_zero = bitmap_find_next_zero_bit(bp->data, fs->e2fs.bpg, n_one);
 		} while (n_zero != 0);
 		brelse(bp);
+		bp = NULL;
 
 		err = bread(devvp, fsbtodb(fs, fs->gd[i].i_bitmap), fs->bsize,
 		    &bp);
 		if (err != 0) {
 			kprintf("\tbread error\n");
-			brelse(bp);
+			if (bp != NULL)
+				brelse(bp);
 			return;
 		}
 		/* XXX note that inodes are 1-based */

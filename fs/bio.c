@@ -173,6 +173,8 @@ bio_doread(struct vnode *vp, off_t blkno, size_t nbytes, uint32_t flags)
 
 	local_irq_save(intr_flags);
 	bp = bget(vp, blkno, nbytes);
+	if (bp == NULL)
+		return NULL;
 	if ((bp->flags & B_INVALID) && !(bp->flags & B_DIRTY))
 		VOP_STRATEGY(bp);
 	local_irq_restore(intr_flags);
