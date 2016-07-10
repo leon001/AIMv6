@@ -142,7 +142,7 @@ int cache_free(struct allocator_cache *cache, void *obj)
 {
 	unsigned long flags;
 	if (cache == NULL)
-		return NULL;
+		return EOF;
 	spin_lock_irq_save(&cache->lock, flags);
 	int retval = __caching_allocator.free(cache, obj);
 	spin_unlock_irq_restore(&cache->lock, flags);

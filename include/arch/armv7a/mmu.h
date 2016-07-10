@@ -34,8 +34,8 @@
 #define __premap_addr(kva)	((kva) + RAM_PHYSBASE - KERN_BASE)
 #define __postmap_addr(pa)	((pa) - RAM_PHYSBASE + KERN_BASE)
 
-#define kva2pa(kva)	((kva) + RAM_PHYSBASE - KERN_BASE)
-#define pa2kva(pa)	((pa) - RAM_PHYSBASE + KERN_BASE)
+#define kva2pa(kva)	((ULCAST(kva)) + RAM_PHYSBASE - KERN_BASE)
+#define pa2kva(pa)	(ULCAST((pa) - RAM_PHYSBASE + KERN_BASE))
 
 #define ARM_SECT_SHIFT	20
 #define ARM_SECT_SIZE	(1 << ARM_SECT_SHIFT)
@@ -101,8 +101,10 @@ typedef uint32_t arm_pte_l2_t;
 typedef arm_pte_l1_t pgindex_t;
 
 void page_index_clear(pgindex_t * index);
-int page_index_early_map(pgindex_t * index, addr_t paddr, size_t vaddr,
+int page_index_early_map(pgindex_t * index, addr_t paddr, void *vaddr,
 	size_t length);
+
+#define is_user(x)	((ULCAST(x) > NULL) && (ULCAST(x) < KERN_BASE))
 
 #endif
 

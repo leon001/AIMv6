@@ -86,7 +86,7 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 		}
 
 		/* make a block out of the new page */
-		this = (struct blockhdr *)pa2kva((size_t)pages.paddr);
+		this = (struct blockhdr *)(size_t)pa2kva((size_t)pages.paddr);
 		this->size = pages.size;
 		this->free = true;
 		this->flags = flags;

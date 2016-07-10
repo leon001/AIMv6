@@ -21,3 +21,4 @@ noinst_LTLIBRARIES = libc-mips.la
 
 libc_mips_la_SOURCES = syscall.S
 libc_mips_la_DEPENDENCIES = ../../syscall-list.S
+

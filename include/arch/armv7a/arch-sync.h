@@ -27,7 +27,7 @@
 
 #ifndef __ASSEMBLER__
 
-typedef unsigned int lock_t
+typedef unsigned int lock_t;
 #define UNLOCKED	0
 #define LOCKED		1
 
@@ -41,9 +41,6 @@ typedef unsigned int lock_t
 	asm volatile ("isb")
 
 #endif /* __ASSEMBLER__ */
-
-/* provide some default implementations */
-#include <asm-generic/sync.h>
 
 #endif /* _ARCH_SYNC_H */
 

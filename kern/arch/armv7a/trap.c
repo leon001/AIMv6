@@ -25,23 +25,24 @@
 #include <panic.h>
 #include <console.h>
 #include <regs.h>
+#include <trap.h>
 
-#include <arm-trap.h>
+#include <arch-trap.h>
 
 static void arm_init_mode(uint32_t psr_c, char *name)
 {
-	struct regs * regs;
+	struct trapframe * tf;
 
-	regs = kmalloc(sizeof(struct regs), 0);
-	if (regs == NULL)
+	tf = kmalloc(sizeof(*tf), 0);
+	if (tf == NULL)
 		panic("Failed to allocate %s context storage.\n", name);
-	kprintf("KERN: %s context at 0x%08x.\n", name, regs);
+	kprintf("KERN: %s context at 0x%08x.\n", name, tf);
 	asm volatile (
 		"msr	cpsr_c, %[state1];"
 		"mov	sp, %[top];"
 		"msr	cpsr_c, %[state2];"
 	: /* no output */
-	: [top] "r" (regs + 1),
+	: [top] "r" (tf + 1),
 	  [state1] "r" (psr_c),
 	  [state2] "r" (0xDF)
 	);
@@ -74,14 +75,14 @@ void trap_init(void)
 }
 
 __noreturn
-void trap_return(struct regs *regs)
+void trap_return(struct trapframe *tf)
 {
 	/*
 	 * You MUST be in SYS mode to call this routine.
-	 * regs MUST NOT be on the heap UNLESS it IS exactly the one passed
+	 * tf MUST NOT be on the heap UNLESS it IS exactly the one passed
 	 * in arm_handle_trap and IRQ is never enabled. This routine will not
 	 * free the pointer.
-	 * This routine returns to the execution state in regs and all further
+	 * This routine returns to the execution state in tf and all further
 	 * stack use are discarded.
 	 * If this current exception interrupts a kernel control flow, the
 	 * previous stack state is fully recovered.
@@ -102,45 +103,55 @@ void trap_return(struct regs *regs)
 	panic("Control flow went beyond trap_return().");
 }
 
+static void dump_regs(struct trapframe *tf)
+{
+	kprintf("DEBUG: r0 = 0x%08x\n", tf->r0);
+	kprintf("DEBUG: r1 = 0x%08x\n", tf->r1);
+	kprintf("DEBUG: r2 = 0x%08x\n", tf->r2);
+	kprintf("DEBUG: r3 = 0x%08x\n", tf->r3);
+	kprintf("DEBUG: r4 = 0x%08x\n", tf->r4);
+	kprintf("DEBUG: r5 = 0x%08x\n", tf->r5);
+	kprintf("DEBUG: r6 = 0x%08x\n", tf->r6);
+	kprintf("DEBUG: r7 = 0x%08x\n", tf->r7);
+	kprintf("DEBUG: r8 = 0x%08x\n", tf->r8);
+	kprintf("DEBUG: r9 = 0x%08x\n", tf->r9);
+	kprintf("DEBUG: r10 = 0x%08x\n", tf->r10);
+	kprintf("DEBUG: r11 = 0x%08x\n", tf->r11);
+	kprintf("DEBUG: r12 = 0x%08x\n", tf->r12);
+	kprintf("DEBUG: pc = 0x%08x\n", tf->pc);
+	kprintf("DEBUG: psr = 0x%08x\n", tf->psr);
+	kprintf("DEBUG: sp = 0x%08x\n", tf->sp);
+	kprintf("DEBUG: lr = 0x%08x\n", tf->lr);
+}
+
 __noreturn
-void arm_handle_trap(struct regs *regs, uint32_t type)
+void arm_handle_trap(struct trapframe *tf, uint32_t type)
 {
 	/*
 	 * We're here in SYS mode with IRQ disabled.
 	 * type contains the trap type, see arm-trap.h for details
-	 * regs is stored in per-CPU per-MODE storage.
+	 * tf is stored in per-CPU per-MODE storage.
 	 * you MUST store it somewhere else before you can turn on
 	 * IRQ again - a further exception will reuse that.
 	 * you MUST NOT try to free that memory.
-	 * you are RECOMMENDED to store regs on stack and not on heap.
+	 * you are RECOMMENDED to store tf on stack and not on heap.
 	 * see trap_return for details.
 	 */
-	kpdebug("Enter vector slot %d handler!\n", type);
-	kpdebug("r0 = 0x%08x\n", regs->r0);
-	kpdebug("r1 = 0x%08x\n", regs->r1);
-	kpdebug("r2 = 0x%08x\n", regs->r2);
-	kpdebug("r3 = 0x%08x\n", regs->r3);
-	kpdebug("r4 = 0x%08x\n", regs->r4);
-	kpdebug("r5 = 0x%08x\n", regs->r5);
-	kpdebug("r6 = 0x%08x\n", regs->r6);
-	kpdebug("r7 = 0x%08x\n", regs->r7);
-	kpdebug("r8 = 0x%08x\n", regs->r8);
-	kpdebug("r9 = 0x%08x\n", regs->r9);
-	kpdebug("r10 = 0x%08x\n", regs->r10);
-	kpdebug("r11 = 0x%08x\n", regs->r11);
-	kpdebug("r12 = 0x%08x\n", regs->r12);
-	kpdebug("pc = 0x%08x\n", regs->pc);
-	kpdebug("psr = 0x%08x\n", regs->psr);
-	kpdebug("sp = 0x%08x\n", regs->sp);
-	kpdebug("lr = 0x%08x\n", regs->lr);
+	struct trapframe saved_tf = *tf;
 
-	trap_return(regs);
-}
+	kprintf("DEBUG: Enter vector slot %d handler!\n", type);
+	dump_regs(&saved_tf);
 
-void trap_test(void)
-{
-	asm volatile (
-		"svc	0x0;"
-	);
+	switch (type) {
+	case ARM_SVC:
+		handle_syscall(&saved_tf);
+		break;
+	case ARM_IRQ:
+		handle_interrupt(&saved_tf);
+		break;
+	default:
+		panic("Unexpected trap\n");
+	}
+	trap_return(&saved_tf);
 }
 

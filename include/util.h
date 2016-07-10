@@ -105,6 +105,10 @@
 	i; \
 })
 
+#define OVERLAP(st1, len1, st2, len2) \
+	(((st1) > (st2) && (st1) < (st2) + (len2)) || \
+	((st2) > (st1) && (st2) < (st1) + (len1)))
+
 #define ADDR_CAST(x)		((size_t)(x))
 #define ULCAST(x)		((size_t)(x))
 #define PTRCAST(x)		((void *)ULCAST(x))

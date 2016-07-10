@@ -396,8 +396,11 @@ mm_clone(struct mm *dst, struct mm *src)
 			goto rollback_pgalloc;
 		}
 
-		memmove(pa2kva(p->paddr), pa2kva(vma->pages->paddr),
-		    vma_new->size);
+		memmove(
+			(void *)(size_t)pa2kva(p->paddr), 
+			(void *)(size_t)pa2kva(vma->pages->paddr),
+			vma_new->size
+		);
 
 		vma_new->pages = p;
 		__ref_upages(p);

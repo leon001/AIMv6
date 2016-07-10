@@ -27,11 +27,15 @@
 
 #include <aim/device.h>
 #include <aim/initcalls.h>
+#include <aim/early_kmmap.h>
 #include <console.h>
 #include <mm.h>
 #include <panic.h>
 
 #include <drivers/io/io-mem.h>
+
+/* we need macro comparision */
+#define UART_ZYNQ	1
 
 /* FIXME zedboard uses UART1 only */
 #define UART_BASE	UART1_PHYSBASE
@@ -129,6 +133,7 @@ static inline int __uart_zynq_putchar(struct chr_device * inst, unsigned char c)
 
 void uart_init(void)
 {
+	__early_uart_zynq.base = UART_BASE;
 	__early_uart_zynq.bus = &early_memory_bus;
 	__uart_zynq_init(&__early_uart_zynq);
 }
@@ -166,9 +171,9 @@ static int __init(void)
 
 INITCALL_DEV(__init)
 
-#if PRIMARY_CONSOLE == uart_zynq
+#if PRIMARY_CONSOLE == UART_ZYNQ
 
-static size_t __early_mapped_base;
+static void *__early_mapped_base;
 
 /* Meant to register to kernel, so this interface routine is static */
 static int __early_console_putchar(unsigned char c)
@@ -179,7 +184,7 @@ static int __early_console_putchar(unsigned char c)
 
 static void __mmu_handler(void)
 {
-	__early_uart_zynq.base = __early_mapped_base;
+	__early_uart_zynq.base = (size_t)__early_mapped_base;
 }
 
 static void __jump_handler(void)
@@ -207,7 +212,7 @@ int early_console_init(void)
 	__early_mapped_base += UART_BASE - UART0_PHYSBASE;
 	if (mmu_handlers_add(__mmu_handler) != 0)
 		panic("Zynq UART driver cannot register MMU handler.\n");
-	if (jump_handlers_add((generic_fp)postmap_addr(__jump_handler)) != 0)
+	if (jump_handlers_add((generic_fp)(size_t)postmap_addr(__jump_handler)) != 0)
 		panic("Zynq UART driver cannot register JUMP handler.\n");
 	return 0;
 }

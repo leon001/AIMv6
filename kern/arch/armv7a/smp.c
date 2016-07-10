@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,32 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ASM_IRQ_H
-#define _ASM_IRQ_H
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-#include <processor-flags.h>
+/*
+ * Needed to compare the NR_CPUS macro. Positive values reserved for
+ * real cpu numbers and therefore can't be used.
+ */
+#define DETECT	-1
 
-#define local_save_flags(flags) \
-	asm volatile ("pushf; pop %0;" : "=rm"(flags) : : "memory")
+static int __nr_cpus;
 
-#define local_restore_flags(flags) \
-	asm volatile ("push %0; popf;" : : "g"(flags) : "memory")
-
-#define local_irq_enable() \
-	asm volatile ("sti;" : : : "memory")
-
-#define local_irq_disable() \
-	asm volatile ("cli;" : : : "memory")
-
-#define local_irq_save(flags) \
-	do { \
-		local_save_flags(flags); \
-		local_irq_disable(); \
-	} while (0)
-
-#define local_irq_restore(flags) \
-	do { \
-		local_restore_flags(flags); \
-	} while (0)
-
+void detect_cpus()
+{
+#if NR_CPUS == DETECT
+	/* TODO: detect is possible if MACH supports it, which is true
+	 * for A9, and can be read from the MPCore's SCU CPU Power Status
+	 * Register. Cores outside the cluster cannot be detected.
+	 * Avoid using THIS detection
+	 */
+#else
+	__nr_cpus = NR_CPUS;
 #endif
+}
+
+int nr_cpus()
+{
+	return __nr_cpus;
+}
+

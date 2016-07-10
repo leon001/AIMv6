@@ -22,6 +22,8 @@
 
 #include <mp.h>
 #include <percpu.h>
+#include <panic.h>
+#include <console.h>
 
 /* Saves the *physical* address of slave stacks */
 unsigned long slave_stacks[MAX_CPUS];

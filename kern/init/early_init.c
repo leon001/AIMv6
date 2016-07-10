@@ -20,8 +20,8 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-/* from kernel */
 #include <sys/types.h>
+#include <aim/early_kmmap.h>
 #include <init.h>
 #include <console.h>
 #include <mm.h>
@@ -47,8 +47,8 @@ void early_mm_init(void)
 	/* [Gan] i386 is retrieving relative address here */
 	extern pgindex_t boot_page_index;
 
-	page_index_init((pgindex_t *)premap_addr((void *)&boot_page_index));
-	mmu_init((pgindex_t *)kva2pa(postmap_addr((void *)&boot_page_index)));
+	page_index_init((pgindex_t *)(size_t)premap_addr((void *)&boot_page_index));
+	mmu_init((pgindex_t *)(size_t)kva2pa(postmap_addr((void *)&boot_page_index)));
 	mmu_handlers_apply();
 	kputs("KERN: MMU is now on!\n");
 }
@@ -56,7 +56,7 @@ void early_mm_init(void)
 void early_slave_mm_init(void)
 {
 	extern pgindex_t boot_page_index;
-	mmu_init((pgindex_t *)kva2pa(postmap_addr((void *)&boot_page_index)));
+	mmu_init((pgindex_t *)(size_t)kva2pa(postmap_addr((void *)&boot_page_index)));
 	kprintf("KERN CPU %d: MMU is now on!\n", cpuid());
 }
 
@@ -71,7 +71,7 @@ void __noreturn master_early_init(void)
 
 	/* [Gan] i386 is retrieving relative address here */
 	extern uint32_t master_upper_entry;
-	abs_jump((void *)postmap_addr(&master_upper_entry));
+	abs_jump((void *)(size_t)postmap_addr(&master_upper_entry));
 }
 
 void __noreturn slave_early_init(void)
@@ -79,7 +79,7 @@ void __noreturn slave_early_init(void)
 	kprintf("KERN CPU %d: early init\n", cpuid());
 	early_slave_mm_init();
 	extern uint32_t slave_upper_entry;
-	abs_jump((void *)postmap_addr(&slave_upper_entry));
+	abs_jump((void *)(size_t)postmap_addr(&slave_upper_entry));
 }
 
 

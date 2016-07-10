@@ -20,8 +20,8 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-/* from kernel */
 #include <sys/types.h>
+#include <aim/early_kmmap.h>
 #include <init.h>
 #include <mm.h>
 #include <drivers/io/io-mem.h>
@@ -36,7 +36,7 @@ void early_arch_init(void)
 	addr_t mem_size = get_mem_size();
 	struct early_mapping desc = {
 		.paddr = mem_base,
-		.vaddr = (size_t)mem_base,
+		.vaddr = (void *)(size_t)mem_base,
 		.size = (size_t)mem_size,
 		.type = EARLY_MAPPING_TEMP
 	};
