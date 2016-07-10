@@ -17,3 +17,8 @@
 
 include $(top_srcdir)/env.am
 
+noinst_LTLIBRARIES = libc-armv7a.la
+
+libc_armv7a_la_SOURCES = syscall.S
+libc_armv7a_la_DEPENDENCIES = ../../syscall-list.S
+

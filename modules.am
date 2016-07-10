@@ -41,6 +41,10 @@ if ALGO_SLAB
 MODULES += $(top_builddir)/kern/mm/vmm/slab.o
 endif
 
+if ALGO_KMLIST
+MODULES += $(top_builddir)/kern/mm/kmmap/kmlist.o
+endif
+
 # TODO: allow options
 MODULES += $(top_builddir)/kern/proc/sched/sched_plain.o
 

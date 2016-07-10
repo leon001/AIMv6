@@ -22,7 +22,9 @@
 
 /* from kernel */
 #include <sys/types.h>
+#include <aim/early_kmmap.h>
 #include <aim/export.h>
+#include <aim/kmmap.h>
 #include <list.h>
 #include <util.h>
 #include <console.h>
@@ -34,6 +36,17 @@
 #include <libc/string.h>
 
 static struct allocator_cache *pt_l1_cache = NULL, *pt_l2_cache = NULL;
+
+bool early_mapping_valid(struct early_mapping *entry)
+{
+	if (!IS_ALIGNED(entry->paddr, ARM_SECT_SIZE))
+		return false;
+	if (!IS_ALIGNED((size_t)entry->vaddr, ARM_SECT_SIZE))
+		return false;
+	if (!IS_ALIGNED(entry->size, ARM_SECT_SIZE))
+		return false;
+	return true;
+}
 
 addr_t get_mem_physbase()
 {
@@ -85,20 +98,20 @@ static void __pt_l2_clear(void *pt)
 
 /* internal routines does not check for bad parameters */
 /* does nothing if not mapped */
-static inline void __arm_unmap_l1(arm_pte_l1_t *page_table, size_t vaddr)
+static inline void __arm_unmap_l1(arm_pte_l1_t *page_table, void *vaddr)
 {
 	arm_pte_l1_t entry;
 
-	entry = page_table[vaddr >> ARM_SECT_SHIFT];
+	entry = page_table[(size_t)vaddr >> ARM_SECT_SHIFT];
 	if ((entry & ARM_PT_L1_TYPE_MASK) == ARM_PT_L1_TABLE) {
 		entry &= ARM_PT_L1_TABLE_BASE_MASK;
 		cache_free(pt_l2_cache, (void *)entry);
 	}
-	page_table[vaddr >> ARM_SECT_SHIFT] = 0;
+	page_table[(size_t)vaddr >> ARM_SECT_SHIFT] = 0;
 }
 
 static inline void __arm_map_sect(arm_pte_l1_t *page_table, addr_t paddr,
-	size_t vaddr, uint32_t flags)
+	void *vaddr, uint32_t flags)
 {
 	uint32_t ap, tex, c, b, s, xn;
 	arm_pte_l1_t entry;
@@ -118,16 +131,16 @@ static inline void __arm_map_sect(arm_pte_l1_t *page_table, addr_t paddr,
 	entry |= xn << 4;
 	entry |= c << 3;
 	entry |= b << 2;
-	page_table[vaddr >> ARM_SECT_SHIFT] = entry;
+	page_table[(size_t)vaddr >> ARM_SECT_SHIFT] = entry;
 }
 
 /* does nothing if there's a table mapped already. */
-static inline void __arm_map_table(arm_pte_l1_t *page_table, size_t vaddr)
+static inline void __arm_map_table(arm_pte_l1_t *page_table, void *vaddr)
 {
 	arm_pte_l1_t entry;
 
 	/* check whether we map at all */
-	entry = page_table[vaddr >> ARM_SECT_SHIFT];
+	entry = page_table[(size_t)vaddr >> ARM_SECT_SHIFT];
 	if ((entry & ARM_PT_L1_TYPE_MASK) == ARM_PT_L1_TABLE)
 		return;
 	/* allocate a L2 table */
@@ -136,11 +149,11 @@ static inline void __arm_map_table(arm_pte_l1_t *page_table, size_t vaddr)
 	/* apply map */
 	entry = ARM_PT_L1_TABLE;
 	entry |= kva2pa((uint32_t)l2);
-	page_table[vaddr >> ARM_SECT_SHIFT] = entry;
+	page_table[(size_t)vaddr >> ARM_SECT_SHIFT] = entry;
 }
 
 static inline void __arm_map_page(arm_pte_l1_t *page_table, addr_t paddr,
-	size_t vaddr, uint32_t flags)
+	void *vaddr, uint32_t flags)
 {
 	uint32_t ap, tex, c, b, s, xn;
 	arm_pte_l1_t *t1, e1;
@@ -151,10 +164,10 @@ static inline void __arm_map_page(arm_pte_l1_t *page_table, addr_t paddr,
 	/* process flags */
 	convert_flags(flags, ap, tex, c, b, s, xn);
 	/* make sure a table is mapped */
-	__arm_map_table(page_table, ALIGN_BELOW(vaddr, ARM_SECT_SIZE));
+	__arm_map_table(page_table, (void *)ALIGN_BELOW((size_t)vaddr, ARM_SECT_SIZE));
 	/* get the L2 table */
 	t1 = page_table;
-	e1 = t1[vaddr >> ARM_SECT_SHIFT];
+	e1 = t1[(size_t)vaddr >> ARM_SECT_SHIFT];
 	t2 = (arm_pte_l2_t *)(e1 & ARM_PT_L1_TABLE_BASE_MASK);
 	/* apply map */
 	e2 = ARM_PT_L2_PAGE;
@@ -165,23 +178,23 @@ static inline void __arm_map_page(arm_pte_l1_t *page_table, addr_t paddr,
 	e2 |= c << 3;
 	e2 |= b << 2;
 	e2 |= xn;
-	t2[(vaddr >> ARM_PAGE_SHIFT) & 0xFF] = e2;
+	t2[((size_t)vaddr >> ARM_PAGE_SHIFT) & 0xFF] = e2;
 }
 
 /*
  * Early map routine does not try to allocate memory.
  */
-int page_index_early_map(pgindex_t *index, addr_t paddr, size_t vaddr,
+int page_index_early_map(pgindex_t *index, addr_t paddr, void *vaddr,
 	size_t length)
 {
 	/* alignment check */
 	if (IS_ALIGNED(paddr, ARM_SECT_SIZE) &&
-	    IS_ALIGNED(vaddr, ARM_SECT_SIZE) &&
+	    IS_ALIGNED((size_t)vaddr, ARM_SECT_SIZE) &&
 	    IS_ALIGNED(length, ARM_SECT_SIZE) != 1) {
 		return EOF;
 	}
 	/* map each ARM SECT */
-	size_t vend = vaddr + length;
+	void *vend = vaddr + length;
 	while (vaddr < vend) {
 		/* Failsafe attributes for early mappings */
 		__arm_map_sect(index, paddr, vaddr, MAP_SHARED_DEV | VMA_EXEC);
@@ -312,13 +325,13 @@ int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
 			size >= ARM_SECT_SIZE
 		) {
 			/* allowed and possible, map a section */
-			__arm_map_sect(pgindex, paddr, (size_t)vaddr, flags);
+			__arm_map_sect(pgindex, paddr, vaddr, flags);
 			vaddr += ARM_SECT_SIZE;
 			paddr += ARM_SECT_SIZE;
 			size -= ARM_SECT_SIZE;
 		} else {
 			/* allowed and possible, map a section */
-			__arm_map_page(pgindex, paddr, (size_t)vaddr, flags);
+			__arm_map_page(pgindex, paddr, vaddr, flags);
 			vaddr += ARM_PAGE_SIZE;
 			paddr += ARM_PAGE_SIZE;
 			size -= ARM_PAGE_SIZE;
@@ -357,6 +370,8 @@ ssize_t unmap_pages(pgindex_t *pgindex, void *vaddr, size_t size, addr_t *paddr)
 	if (this_size == 0) return 0;
 	head_paddr = this_paddr;
 	block_size = this_size;
+	if (paddr != NULL)
+		*paddr = head_paddr;
 	while (block_size < size) {
 		/* unmap */
 		/* increment address */

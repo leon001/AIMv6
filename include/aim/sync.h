@@ -22,7 +22,8 @@
 #include <sys/types.h>
 
 #include <arch-sync.h>	/* lock_t */
-#include <irq.h>	/* local_irq_XXX */
+#include <asm-generic/sync.h>
+#include <aim/irq.h>	/* local_irq_XXX */
 
 #ifndef __ASSEMBLER__
 

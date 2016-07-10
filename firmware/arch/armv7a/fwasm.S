@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <smp.h>
+
 .arm
 
 .section .vector
@@ -33,6 +35,45 @@ fw_asm:
 	/* Set state and disable interrupts, but do not touch endianness. */
 	msr	cpsr_c, 0xDF
 
+	/* 
+	 * Read MPIDR for the multiprocessor ID. Possible results are:
+	 * 1. MPIDR is in old format, may indicate old uniprocessor or a MP
+	 *    system with those old processors. We currently treat this as
+	 *    uniprocessor system.
+	 * 2. MPIDR in new format, uniprocessor. We jump to clear BSS.
+	 * 3. MPIDR in new format, we're in MP system but not core 0. We go
+	 *    into a pen.
+	 * 4. MPIDR in new format, we're core 0 in MP system. We go on to
+	 *    initialize the kernel. All other cores should be put into
+	 *    the wait_for_release loop in THIS FILE.
+	 */
+	/* Read MPIDR */
+	arm_read_mpidr	r0
+	/* New format? */
+	mov	r1, #0x80000000
+	ands	r1, r0, r1
+	/* 0 for old format */
+	beq	fw_asm_master
+	/* MP system? */
+	mov	r1, #0x40000000
+	ands	r1, r0, r1
+	/* 1 for uniprocessor */
+	bne	fw_asm_master
+	/* In MPCore cluster 0? */
+	mov	r1, #0x00000F00
+	ands	r1, r0, r1
+	bne	fw_asm_slave
+	/* Core 0 in MPCore cluster? */
+	mov	r1, #0x00000003
+	ands	r1, r0, r1
+	bne	fw_asm_slave
+
+fw_asm_master:
+	/* release other cores from previous boot stage */
+	/* we can use the same address. */
+	ldr	r0, =#0xFFFFFFF0
+	mov	r1, #0
+	str	r1, [r0]
 	/* Clear BSS */
 	ldr	r0, =_bss_begin
 	ldr	r1, =_bss_end
@@ -50,4 +91,17 @@ clbss_l:
 
 	/* And call into firmware code */
 	bl	fw_main
+
+fw_asm_slave:
+	/* prepare pen */
+	ldr	r0, =#0xFFFFFFF0
+	mov	r1, #0
+	str	r1, [r0]
+	/* loop */
+wait_for_release:
+	wfe
+	ldr	r1, [r0]
+	cmp	r1, #0
+	beq	wait_for_release
+	bx	r1
 

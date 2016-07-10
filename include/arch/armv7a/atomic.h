@@ -33,9 +33,9 @@ static inline void atomic_add(atomic_t *counter, uint32_t val)
 	while (ret == ARM_STREX_FAIL) {
 		SMP_DMB();
 		asm volatile (
-			"ldrex		%[reg], [%[addr]];"
-			"add		%[reg], %[reg], %[val];"
-			"strex		%[ret], %[reg], [%[addr]];"
+			"ldrex	%[reg], [%[addr]];"
+			"add	%[reg], %[reg], %[val];"
+			"strex	%[ret], %[reg], [%[addr]];"
 			/* STREX happens only at signed less or equal. */
 			: [reg] "=r" (reg),
 			  [ret] "=r" (ret)
@@ -55,14 +55,62 @@ static inline void atomic_sub(atomic_t *counter, uint32_t val)
 	while (ret == ARM_STREX_FAIL) {
 		SMP_DMB();
 		asm volatile (
-			"ldrex		%[reg], [%[addr]];"
-			"sub		%[reg], %[reg], %[val];"
-			"strex		%[ret], %[reg], [%[addr]];"
+			"ldrex	%[reg], [%[addr]];"
+			"sub	%[reg], %[reg], %[val];"
+			"strex	%[ret], %[reg], [%[addr]];"
 			/* STREX happens only at signed less or equal. */
 			: [reg] "=r" (reg),
 			  [ret] "=r" (ret)
 			: [val] "i" (val),
 			  [addr] "r" (counter)
+		);
+	}
+	SMP_DMB();
+}
+
+static inline void atomic_set_bit(unsigned long nr,
+				  volatile unsigned long *addr)
+{
+	unsigned long *m = ((unsigned long *)addr) + ((--nr) >> BITS_PER_LONG_LOG);
+	int bit = nr & BITS_PER_LONG_MASK;
+	int ret = ARM_STREX_FAIL;
+	register int reg;
+
+	while (ret == ARM_STREX_FAIL) {
+		SMP_DMB();
+		asm volatile (
+			"ldrex	%[reg], [%[addr]];"
+			"orr	%[reg], %[reg], %[val];"
+			"strex	%[ret], %[reg], [%[addr]];"
+			/* STREX happens only at signed less or equal. */
+			: [reg] "=r" (reg),
+			  [ret] "=r" (ret)
+			: [val] "r" (1UL << bit),
+			  [addr] "r" (m)
+		);
+	}
+	SMP_DMB();
+}
+
+static inline void atomic_clear_bit(unsigned long nr,
+				  volatile unsigned long *addr)
+{
+	unsigned long *m = ((unsigned long *)addr) + ((--nr) >> BITS_PER_LONG_LOG);
+	int bit = nr & BITS_PER_LONG_MASK;
+	int ret = ARM_STREX_FAIL;
+	register int reg;
+
+	while (ret == ARM_STREX_FAIL) {
+		SMP_DMB();
+		asm volatile (
+			"ldrex	%[reg], [%[addr]];"
+			"bic	%[reg], %[reg], %[val];"
+			"strex	%[ret], %[reg], [%[addr]];"
+			/* STREX happens only at signed less or equal. */
+			: [reg] "=r" (reg),
+			  [ret] "=r" (ret)
+			: [val] "r" (1UL << bit),
+			  [addr] "r" (m)
 		);
 	}
 	SMP_DMB();

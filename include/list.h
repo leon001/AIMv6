@@ -103,6 +103,12 @@ static inline void list_del_init(struct list_head *entry)
 	INIT_LIST_HEAD(entry);
 }
 
+static inline int list_is_first(const struct list_head *list,
+				const struct list_head *head)
+{
+	return list->prev == head;
+}
+
 static inline int list_is_last(const struct list_head *list,
 				const struct list_head *head)
 {

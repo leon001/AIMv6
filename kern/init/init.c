@@ -29,13 +29,14 @@
 #include <trap.h>
 #include <panic.h>
 #include <init.h>
-#include <aim/initcalls.h>
 #include <proc.h>
 #include <percpu.h>
 #include <sched.h>
 #include <mp.h>
-#include <irq.h>
 #include <timer.h>
+#include <aim/initcalls.h>
+#include <aim/irq.h>
+#include <aim/kmmap.h>
 
 #define BOOTSTRAP_POOL_SIZE	1024
 
@@ -119,6 +120,9 @@ void __noreturn master_init(void)
 
 	extern void mm_test(void);
 	mm_test();
+
+	/* init kernel mapping management */
+	kmmap_init();
 
 	proc_init();
 	sched_init();

@@ -89,7 +89,7 @@ static int __extend(struct allocator_cache *cache)
 		kfree(slab);
 		return EOF;
 	}
-	vaddr = (void *)pa2kva((size_t)(pages.paddr));
+	vaddr = (void *)(size_t)pa2kva((size_t)(pages.paddr));
 	slab->vaddr = vaddr;
 
 	/* initialize the entries */

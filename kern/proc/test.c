@@ -4,6 +4,7 @@
 #include <sched.h>
 #include <libc/unistd.h>
 #include <mp.h>
+#include <panic.h>
 
 /*
  * Temporary test
@@ -42,6 +43,7 @@ void userinit(void)
 	 * (3) user space
 	 * (4) scheduler
 	 */
+/* MIPS */
 #if 1
 	asm volatile (
 		"	li	$2, 1;"		/* fork() */
@@ -57,7 +59,24 @@ void userinit(void)
 		"	syscall;"
 		"	b	1b;"
 	);
-#else
+#endif
+
+/* ARM */
+#if 0
+	asm volatile (
+		"1:	ldr	r3, =#100000;"
+		"2:	subs	r3, r3, #1;"
+		"	bne	2b;"
+		"	svc	#6;"
+#if 1
+		"	svc	#5;"
+#endif
+		"	b	1b;"
+	);
+#endif
+
+/* NONE */
+#if 0
 	for (;;)
 		/* nothing */;
 #endif
