@@ -25,8 +25,11 @@
 
 #include <mm.h>
 #include <pmm.h>
+#include <aim/sync.h>
 
 #include <libc/string.h>
+
+#include <mp.h>
 
 /* dummy implementations */
 static int __alloc(struct pages *pages) { return EOF; }
@@ -39,6 +42,8 @@ static struct page_allocator __allocator = {
 	.get_free	= __get_free
 };
 
+static lock_t __pmm_lock = EMPTY_LOCK(__pmm_lock);
+
 void set_page_allocator(struct page_allocator *allocator)
 {
 	memcpy(&__allocator, allocator, sizeof(*allocator));
@@ -46,16 +51,31 @@ void set_page_allocator(struct page_allocator *allocator)
 
 int alloc_pages(struct pages *pages)
 {
+	unsigned long flags;
+	int ret;
+
 	if (pages == NULL)
 		return EOF;
-	return __allocator.alloc(pages);
+	spin_lock_irq_save(&__pmm_lock, flags);
+	kprintf("ALLOC: #%d alloc_pages request %u bytes\n", cpuid(), (unsigned long)pages->size);
+	ret = __allocator.alloc(pages);
+	kprintf("ALLOC: #%d alloc_pages return %p (%u bytes)\n", cpuid(), (unsigned long)pages->paddr, (unsigned long)pages->size);
+	spin_unlock_irq_restore(&__pmm_lock, flags);
+	return ret;
 }
 
 void free_pages(struct pages *pages)
 {
+	unsigned long paddr = pages->paddr, size = pages->size;
+	unsigned long flags;
+
+	spin_lock_irq_save(&__pmm_lock, flags);
+	kprintf("ALLOC: #%d free_pages request %p (%u bytes)\n", cpuid(), paddr, size);
 	if (!(pages->flags & GFP_UNSAFE))
 		memset(pa2kva(pages->paddr), JUNKBYTE, pages->size);
 	__allocator.free(pages);
+	kprintf("ALLOC: #%d free_pages freed %p (%u bytes)\n", cpuid(), paddr, size);
+	spin_unlock_irq_restore(&__pmm_lock, flags);
 }
 
 addr_t get_free_memory(void)

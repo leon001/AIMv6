@@ -50,7 +50,7 @@ void smp_startup(void)
 {
 	alloc_slave_stacks();
 	/* Arch-specific code */
-	arch_smp_startup();
+	//arch_smp_startup();
 }
 
 int handle_ipi_interrupt(unsigned int msg)

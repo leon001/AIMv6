@@ -1,4 +1,4 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
 # This file is part of AIMv6.
 #
@@ -17,13 +17,10 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libc-mips.la
-noinst_DATA = default.lds
+noinst_PROGRAMS = init
 
-libc_mips_la_SOURCES = syscall.S
-libc_mips_la_DEPENDENCIES = ../../syscall-list.S
+init_SOURCES = init.c $(CRT_SRCS)
+init_LDADD = $(CRT_LDADDS)
+init_DEPENDENCIES = $(init_SOURCES) $(CRT_LDS) $(CRT_LDADDS)
+init_LDFLAGS = $(AM_LDFLAGS) -T $(CRT_LDS)
 
-CLEANFILES = default.lds
-
-default.lds: default.lds.S
-	$(COMPILE) -E -P $^ -o $@

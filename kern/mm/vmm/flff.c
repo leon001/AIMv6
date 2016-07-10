@@ -52,7 +52,6 @@ struct blockhdr {
 
 static struct list_head __bootstrap_head;
 static struct list_head __head;
-//static lock_t lock;
 
 /*
  * TODO: we probably need to explain the algorithm and data structure here
@@ -66,11 +65,6 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 	/* Make a good size */
 	size = ALIGN_ABOVE(size, ALLOC_ALIGN);
 	allocsize = size + sizeof(struct blockhdr);
-
-	struct list_head *h;
-	for_each (h, head) {
-		assert(h != NULL);
-	}
 
 	/* Search for a first fit */
 	for_each_entry(this, head, node) {

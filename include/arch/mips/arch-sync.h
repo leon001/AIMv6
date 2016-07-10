@@ -35,7 +35,7 @@ typedef struct {
 } lock_t;
 
 /* Convenient initialization: lock_t lock = EMPTY_LOCK(lock) */
-#define EMPTY_LOCK(lock) { .lock = 0, .holder = -1 }
+#define EMPTY_LOCK(lk) { .lock = 0, .holder = -1 }
 
 #define smp_mb() \
 	asm volatile ("sync" : : : "memory")

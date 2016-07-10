@@ -23,6 +23,7 @@
 #include <proc.h>
 #include <sched.h>
 #include <panic.h>
+#include <libc/unistd.h>
 
 static struct proc *initproc;
 
@@ -39,6 +40,8 @@ void initproc_entry(void)
 	 */
 	fsinit();
 	kpdebug("FS initialized\n");
+
+	execve("/sbin/init", NULL, NULL);
 
 	for (;;)
 		/* nothing */;

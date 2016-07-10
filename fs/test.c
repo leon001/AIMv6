@@ -137,9 +137,7 @@ fs_test(void)
 	/* cannot kprintf() the whole buffer because kprintf() impose
 	 * a string size limit */
 	for (i = 0; i < 10000 && buf[i] != '\0'; ++i) {
-		kprintf("%c", buf[i]);
 	}
-	kprintf("\n");
 	assert(i == 10000);
 	memset(buf, 0, 10010);
 	assert(vn_read(nd.vp, 2000000, 10000, buf, 0, UIO_KERNEL, NULL, NULL, NOCRED) == -E2BIG);

@@ -39,7 +39,6 @@ struct block {
 
 static struct list_head __head;
 static addr_t __free_space;
-//static lock_t lock;
 
 static int __alloc(struct pages *pages)
 {

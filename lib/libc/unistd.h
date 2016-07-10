@@ -22,6 +22,7 @@
 #include <sys/types.h>
 
 pid_t fork(void);
+int execve(const char *filename, const char *argv[], const char *envp[]);
 int sched_yield(void);
 pid_t getpid(void);
 

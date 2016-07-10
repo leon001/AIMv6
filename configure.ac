@@ -410,6 +410,7 @@ AC_CONFIG_FILES([
 	kern/syscall/Makefile
 	kern/timer/Makefile
 	lib/Makefile
+	lib/csu/Makefile
 	lib/libc/Makefile
 	lib/libc/arch/Makefile
 	lib/libc/arch/armv7a/Makefile
@@ -417,6 +418,8 @@ AC_CONFIG_FILES([
 	lib/libc/arch/mips/Makefile
 	tools/Makefile
 	user/Makefile
+	user/sbin/Makefile
+	user/sbin/init/Makefile
 ])
 AC_OUTPUT
 
