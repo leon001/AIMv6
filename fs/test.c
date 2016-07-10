@@ -29,10 +29,7 @@ fs_test(void)
 	struct buf *bp;
 	soff_t blkno;
 	struct nameidata nd;
-	struct uio uio;
-	struct iovec iov[1];
 	char *buf;
-	int err;
 	int i;
 
 	/*
@@ -136,16 +133,7 @@ fs_test(void)
 	assert(VTOI(nd.vp)->ino == 27988);
 	buf = kmalloc(10010, 0);
 	memset(buf, 0, 10010);
-	iov[0].iov_base = buf;
-	iov[0].iov_len = 10000;
-	uio.iov = iov;
-	uio.iovcnt = 1;
-	uio.offset = 0;
-	uio.resid = 10000;
-	uio.rw = UIO_READ;
-	uio.seg = UIO_KERNEL;
-	uio.proc = NULL;
-	assert(VOP_READ(nd.vp, &uio, 0, NOCRED) == 0);
+	assert(vn_read(nd.vp, 0, 10000, buf, 0, UIO_KERNEL, NULL, NULL, NOCRED) == 0);
 	/* cannot kprintf() the whole buffer because kprintf() impose
 	 * a string size limit */
 	for (i = 0; i < 10000 && buf[i] != '\0'; ++i) {
@@ -154,18 +142,11 @@ fs_test(void)
 	kprintf("\n");
 	assert(i == 10000);
 	memset(buf, 0, 10010);
-	iov[0].iov_base = buf;
-	iov[0].iov_len = 10000;
-	uio.iov = iov;
-	uio.iovcnt = 1;
-	uio.offset = 2000000;	/* Far far away from the end of file */
-	uio.resid = 10000;
-	uio.rw = UIO_READ;
-	uio.seg = UIO_KERNEL;
-	uio.proc = NULL;
-	err = VOP_READ(nd.vp, &uio, 0, NOCRED);
+	assert(vn_read(nd.vp, 2000000, 10000, buf, 0, UIO_KERNEL, NULL, NULL, NOCRED) == -E2BIG);
 	vput(nd.vp);
-	assert(err == -E2BIG);	/* offset exceeds file size */
+	assert(devvnode->refs == 2);
+	assert(rootvnode->refs == 1);
+	kfree(buf);
 	kpdebug("===========READ done============\n");
 }
 

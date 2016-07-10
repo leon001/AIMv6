@@ -11,7 +11,9 @@ struct specinfo;	/* fs/specdev.h */
 struct mount;		/* fs/mount.h */
 struct ucred;		/* include/ucred.h */
 struct proc;		/* include/proc.h */
+struct mm;		/* include/mm.h */
 struct uio;		/* fs/uio.h */
+enum uio_seg;		/* fs/uio.h */
 
 enum vtype {
 	VNON,	/* no-type */
@@ -118,6 +120,9 @@ void vget(struct vnode *);
 void vput(struct vnode *);
 int vwaitforio(struct vnode *);
 int vinvalbuf(struct vnode *, struct ucred *, struct proc *);
+
+int vn_read(struct vnode *, off_t, size_t, void *, int, enum uio_seg,
+    struct proc *, struct mm *, struct ucred *);
 
 extern dev_t rootdev;	/* initialized in mach_init() or arch_init() */
 extern struct vnode *rootvp;	/* root disk device vnode */

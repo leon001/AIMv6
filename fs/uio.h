@@ -29,9 +29,10 @@ struct uio {
 	off_t		offset;	/* offset to file */
 	enum uio_rw	rw;
 	enum uio_seg	seg;
-	/* This member is probably read-only in context of UIO as well, unless
-	 * page faulting (which UIO doesn't care) */
-	struct proc	*proc;
+	/* These members are probably read-only in context of UIO as well,
+	 * unless page faulting (which UIO doesn't care) */
+	struct proc	*proc;	/* associated proc or NULL */
+	struct mm	*mm;	/* if NULL, uses proc->mm */
 };
 
 int uiomove(void *kbuf, size_t len, struct uio *uio);

@@ -5,6 +5,7 @@
 #include <fs/mount.h>
 #include <fs/VOP.h>
 #include <fs/bio.h>
+#include <fs/uio.h>
 #include <vmm.h>
 #include <errno.h>
 #include <libc/string.h>
@@ -238,5 +239,30 @@ loop:
 
 	kpdebug("vinvalbuf %p done\n", bp);
 	return 0;
+}
+
+/*
+ * A convenient wrapper of VOP_READ for kernel use, which reads one buffer.
+ * Assumes a locked vnode.
+ */
+int
+vn_read(struct vnode *vp, off_t offset, size_t len, void *kbuf, int ioflags,
+    enum uio_seg seg, struct proc *p, struct mm *mm, struct ucred *cred)
+{
+	struct uio uio;
+	struct iovec iovec;
+
+	iovec.iov_base = kbuf;
+	iovec.iov_len = len;
+	uio.iov = &iovec;
+	uio.iovcnt = 1;
+	uio.offset = offset;
+	uio.resid = len;
+	uio.rw = UIO_READ;
+	uio.seg = seg;
+	uio.proc = p;
+	uio.mm = mm;
+
+	return VOP_READ(vp, &uio, ioflags, cred);
 }
 

@@ -20,7 +20,6 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <console.h>	/* to be removed */
 #include <mm.h>
 #include <mmu.h>
 #include <atomic.h>
@@ -451,6 +450,16 @@ __copy_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len, bool touser)
 	if (vma == NULL)
 		return -EFAULT;
 
+	if (mm == current_proc->mm) {
+		/* We can exploit the loaded page table to do the copy. */
+		if (!touser)
+			memmove(kvaddr, uvaddr, len);
+		else
+			memmove(uvaddr, kvaddr, len);
+		return 0;
+	}
+
+	/* rare case */
 	for (; start < end; start = PTR_ALIGN_NEXT(start, PAGE_SIZE)) {
 		kuvaddr = uva2kva(mm->pgindex, start);
 		l = min2(PTR_ALIGN_NEXT(start, PAGE_SIZE), end) - start;

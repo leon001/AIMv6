@@ -9,14 +9,14 @@
 
 static int
 __uiomove(void *kbuf, void *kubuf, size_t len, enum uio_rw rw, enum uio_seg seg,
-    struct proc *p)
+    struct proc *p, struct mm *mm)
 {
 	if (seg == UIO_USER) {
 		assert(p != NULL);
 		if (rw == UIO_READ)
-			return copy_to_uvm(p->mm, kubuf, kbuf, len);
+			return copy_to_uvm(mm ? : p->mm, kubuf, kbuf, len);
 		else
-			return copy_from_uvm(p->mm, kubuf, kbuf, len);
+			return copy_from_uvm(mm ? : p->mm, kubuf, kbuf, len);
 	} else {
 		if (rw == UIO_READ)
 			memcpy(kubuf, kbuf, len);
@@ -47,7 +47,7 @@ uiomove(void *kbuf, size_t len, struct uio *uio)
 		kpdebug("uiomove: moving %ld bytes from %p to %p\n",
 		    mvlen, kbuf, uio->iov->iov_base);
 		err = __uiomove(kbuf, uio->iov->iov_base, mvlen, uio->rw,
-		    uio->seg, uio->proc);
+		    uio->seg, uio->proc, uio->mm);
 		if (err)
 			return err;
 		if (mvlen == uio->iov->iov_len) {

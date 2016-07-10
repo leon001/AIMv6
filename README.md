@@ -4,6 +4,8 @@ AIMv6 project builds an operating system for teaching purposes.
 This system should seperate kernel logic from platform-dependent implementation,
 thus should work across platforms.
 
+For now, the system itself is certainly very buggy and vulnerable.
+
 ## Supported platforms
 
 * ARMv7A
@@ -381,13 +383,13 @@ Feel free to add features here
 * Page allocator
 * Arbitrary size allocator
 * Trap handler
+* User memory mapping
+* Scheduler
+* SMP
 
 ### Work in progress
 
-* User memory mapping
-* Scheduler
 * File system
-* SMP
 
 ### Currently skipping
 
@@ -404,7 +406,6 @@ These features may be put into the "work in progress" section, or "currently
 skipping" section.
 
 * User-side exceptions as signals
-* I/O scheduler
 * Multiple-user
 * Access control
 
@@ -416,6 +417,7 @@ they are often quite complicated.
 * Implicit dynamic linking
 * Explicit dynamic loading
 * Signal handler registration
+* I/O scheduler
 
 ## BUGS
 
