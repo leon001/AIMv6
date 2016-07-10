@@ -40,6 +40,8 @@ static struct simple_allocator __simple_allocator = {
 
 void *kmalloc(size_t size, gfp_t flags)
 {
+	if (size > PAGE_SIZE / 2)
+		panic("kmalloc: size %lu too large\n", size);
 	return __simple_allocator.alloc(size, flags);
 }
 
