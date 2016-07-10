@@ -32,6 +32,7 @@
 #include <smp.h>
 #include <sched.h>
 #include <percpu.h>
+#include <panic.h>
 
 static struct {
 	lock_t lock;
@@ -53,7 +54,7 @@ void *alloc_kstack(void)
 	paddr = pgalloc();
 	if (paddr == -1)
 		return NULL;
-	return pa2kva(paddr);
+	return (void *)pa2kva(paddr);
 }
 
 /* Exact opposite of alloc_kstack */

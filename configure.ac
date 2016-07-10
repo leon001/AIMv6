@@ -91,6 +91,13 @@ AIM_SUPPORT_MACH([msim loongson3a zynq pc generic unknown])
 # firmware or the bootloader, so implementations should check corresponding
 # macros.
 
+# Debug and test options
+AIM_ARG_ENABLE_FEATURE([debug-output], [DEBUG_OUTPUT], [debug output on kernel console], [yes])
+AIM_ARG_ENABLE_FEATURE([test-framework], [TEST_FRAMEWORK], [in-kernel test framework], [yes])
+
+# TODO: Loongson 3A needs to change kstacksize or it will crash (because of 16K pages)
+AS_VAR_SET([with_kstacksize], [4096])
+
 AS_CASE([$ARCH],
 	[arm*], [
 		AS_VAR_SET([enable_io_mem], [yes])
@@ -127,17 +134,17 @@ AS_CASE([$MACH],
 		AS_VAR_SET([enable_sd_zynq], [yes])
 		AS_VAR_SET([enable_timer_a9], [yes])
 
-		AS_VAR_SET([with_primary_console], [uart-zynq])
-		AS_VAR_SET([with_primary_storage], [sd-zynq])
-		AS_VAR_SET([with_primary_timing], [timer-a9])
+		AS_VAR_SET([with_primary_console], [UART_ZYNQ])
+		AS_VAR_SET([with_primary_storage], [SD_ZYNQ])
+		AS_VAR_SET([with_primary_timing], [TIMER_A9])
 	],
 	[msim], [
 		AS_VAR_SET([with_fwstack_order], [12])
 		AS_VAR_SET([enable_uart_msim], [yes])
 		AS_VAR_SET([enable_block_msim], [yes])
 
-		AS_VAR_SET([with_primary_console], [uart-msim])
-		AS_VAR_SET([with_primary_storage], [block-msim])
+		AS_VAR_SET([with_primary_console], [UART_MSIM])
+		AS_VAR_SET([with_primary_storage], [BLOCK_MSIM])
 
 		AS_VAR_SET([with_msim_kbd_pa], [0x1f000000])
 		AS_VAR_SET([with_msim_lp_pa], [0x1f000010])
@@ -153,7 +160,7 @@ AS_CASE([$MACH],
 		AS_VAR_SET([with_highram_base], [0x80000000])
 		AS_VAR_SET([with_highram_size], [0x00000000])
 
-		AC_DEFINE([CPU_FREQ], [10000000], [CPU frequency])
+		AC_DEFINE([CPU_FREQ], [100000000], [CPU frequency])
 	], 
 	[pc], [
 		AS_VAR_SET([with_fwstack_order], [12])
@@ -165,7 +172,7 @@ AS_CASE([$MACH],
 		AS_VAR_SET([enable_uart_ns16550], [yes])
 		AS_VAR_SET([enable_loongson3a_ram_detection], [yes])
 		AS_VAR_SET([enable_pagesize_16k], [yes])
-		AS_VAR_SET([with_primary_console], [uart-ns16550])
+		AS_VAR_SET([with_primary_console], [UART_NS16550])
 		AC_DEFINE([CPU_FREQ], [750000000], [CPU frequency])
 	],
 	[generic], [],
@@ -198,9 +205,9 @@ AIM_ARG_WITH([highram-size], [HIGHRAM_SIZE],
 	[MIPS high RAM size])
 
 # Loongson 3A
-AIM_ARG_ENABLE([loongson3a-ram-detection], [LOONGSON3A_RAM_DETECTION],
+AIM_ARG_ENABLE_FEATURE([loongson3a-ram-detection], [LOONGSON3A_RAM_DETECTION],
 	[RAM space detection on Loongson 3A port (EXPERIMENTAL)])
-AIM_ARG_ENABLE([pagesize-16k], [PAGESIZE_16K],
+AIM_ARG_ENABLE_FEATURE([pagesize-16k], [PAGESIZE_16K],
 	[16K pages (for Loongson 3A)])
 
 # target details
@@ -212,10 +219,10 @@ AIM_ARG_WITH([kern-start], [KERN_START], [kernel loading physical address],
 	[0x00000000])
 AC_SUBST([KERN_START], [$with_kern_start])
 
-AIM_ARG_WITH([mem-size], [MEM_SIZE], [amount of memory installed], [detect])
+AIM_ARG_WITH([mem-size], [MEM_SIZE], [amount of memory installed], [DETECT])
 AC_SUBST([MEM_SIZE], [$with_mem_size])
 
-AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [detect])
+AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [DETECT])
 AIM_ARG_WITH([max-cpus], [MAX_CPUS], [maximum number of cores], [NR_CPUS])
 AC_SUBST([NR_CPUS], [$with_cpus])
 AC_SUBST([MAX_CPUS], [$with_max_cpus])
@@ -264,7 +271,7 @@ AIM_ARG_ENABLE([sd-zynq], [SD_ZYNQ], [zynq SD driver])
 AIM_ARG_ENABLE([timer-a9], [TIMER_A9], [Cortex-A9 MPCore timer driver])
 
 # Debug
-AIM_ARG_ENABLE([debug], [DEBUG], [Debugging (kpdebug)])
+AIM_ARG_ENABLE_FEATURE([debug], [DEBUG], [Debugging (kpdebug)])
 
 AM_CONDITIONAL([IO_MEM], [test x$enable_io_mem = xyes])
 AM_CONDITIONAL([IO_PORT], [test x$enable_io_port = xyes])
@@ -282,22 +289,31 @@ AS_CASE([$with_primary_console],
 
 # Algorithms
 # MUST have unique names.
+# Two kinds of algorithm roles exist:
+# - Hard-wired: Provides fundamental functionalities. Kernel hard-wire calls
+#   to their init functions.
+# - Modular: Provides higher-level functionalities. Must be linked within
+#   the kernel but initialized via initcalls. Most of these initcalls are of
+#   early stage.
+# Algorithms register their interface structure when initialization routines
+# are called. This routine SHOULD NOT really initialize the algorithm.
+# The "with" syntax is used so that at most ONE algorithm is selected for each
+# role.
 # First fit is named "ff" as page allocator, "flff" as simple allocator.
-AS_VAR_SET([with_simple_allocator], [flff])
-AIM_ARG_WITH([simple-allocator], [SIMPLE_ALLOCATOR], [non-caching memory object allocator])
-AM_CONDITIONAL([ALGO_FLFF], [test x$with_simple_allocator = xflff])
+AIM_ARG_WITH([simple-allocator], [SIMPLE_ALLOCATOR], [non-caching memory object allocator], [FLFF])
+AM_CONDITIONAL([ALGO_FLFF], [test x$with_simple_allocator = xFLFF])
 
-AS_VAR_SET([with_page_allocator], [ff])
-AIM_ARG_WITH([page-allocator], [PAGE_ALLOCATOR], [page allocator])
-AM_CONDITIONAL([ALGO_FF], [test x$with_page_allocator = xff])
+AIM_ARG_WITH([page-allocator], [PAGE_ALLOCATOR], [page allocator], [FF])
+AM_CONDITIONAL([ALGO_FF], [test x$with_page_allocator = xFF])
 
-AS_VAR_SET([with_caching_allocator], [slab])
-AIM_ARG_WITH([caching-allocator], [CACHING_ALLOCATOR], [caching allocator])
-AM_CONDITIONAL([ALGO_SLAB], [test x$with_caching_allocator = xslab])
+AIM_ARG_WITH([caching-allocator], [CACHING_ALLOCATOR], [caching allocator], [SLAB])
+AM_CONDITIONAL([ALGO_SLAB], [test x$with_caching_allocator = xSLAB])
 
-AS_VAR_SET([with_dev_index], [devlist])
-AIM_ARG_WITH([dev-index], [DEVICE_INDEX], [device index])
-AM_CONDITIONAL([ALGO_DEVLIST], [test x$with_dev_index = xdevlist])
+AIM_ARG_WITH([dev-index], [DEVICE_INDEX], [device index], [DEVLIST])
+AM_CONDITIONAL([ALGO_DEVLIST], [test x$with_dev_index = xDEVLIST])
+
+AIM_ARG_WITH([kmmap-keeper], [KMMAP_KEEPER], [kmmap keeper], [KMLIST])
+AM_CONDITIONAL([ALGO_KMLIST], [test x$with_kmmap_keeper = xKMLIST])
 
 # per-target configuration
 AS_CASE([$MACH],
@@ -402,6 +418,7 @@ AC_CONFIG_FILES([
 	kern/dev/index/Makefile
 	kern/debug/Makefile
 	kern/mm/Makefile
+	kern/mm/kmmap/Makefile
 	kern/mm/pmm/Makefile
 	kern/mm/vmm/Makefile
 	kern/proc/Makefile
@@ -451,6 +468,7 @@ Target
 
 Kernel
 --------
+  DEBUG_OUTPUT:	${enable_debug_output}
   KERN_BASE:	${with_kern_base}
   KMMAP_BASE:	${with_kmmap_base}
   RESERVED:	${with_reserved_base}

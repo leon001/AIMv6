@@ -16,8 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ARM_TRAP_H
-#define _ARM_TRAP_H
+#ifndef _ARCH_TRAP_H
+#define _ARCH_TRAP_H
+
+#include <regs.h>
 
 #define ARM_RST		0
 #define ARM_UNDEF	1
@@ -28,5 +30,19 @@
 #define	ARM_IRQ		6
 #define ARM_FIQ		7
 
-#endif /* _ARM_TRAP_H */
+#ifndef __ASSEMBLER__
+
+struct trapframe {
+	struct regs;
+};
+
+static inline bool from_kernel(struct trapframe *tf)
+{
+	/* USR mode is user, everything else is kernel. */
+	return ((tf->psr & 0xF) != 0x0);
+}
+
+#endif	/* !__ASSEMBLER__ */
+
+#endif /* _ARCH_TRAP_H */
 

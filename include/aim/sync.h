@@ -22,7 +22,9 @@
 #include <sys/types.h>
 
 #include <arch-sync.h>	/* lock_t */
-#include <irq.h>	/* local_irq_XXX */
+#include <asm-generic/sync.h>
+#include <aim/irq.h>	/* local_irq_XXX */
+#include <mp.h>
 
 #ifndef __ASSEMBLER__
 
@@ -43,6 +45,51 @@ bool spin_is_locked(lock_t *lock);
 #define spin_unlock_irq_restore(lock, flags) \
 	do { \
 		spin_unlock(lock); \
+		local_irq_restore(flags); \
+	} while (0)
+
+/* Recursive spinlocks */
+
+typedef struct {
+	lock_t	lock;
+	int	holder;	/* CPU # currently holding the lock */
+	int	depth;	/* how many times lock()'d */
+} rlock_t;
+
+#define EMPTY_RLOCK(lk)	{ \
+	.lock = EMPTY_LOCK((lk).lock), \
+	.holder = -1, \
+	.depth = 0 \
+}
+
+static inline void recursive_lock(rlock_t *lock)
+{
+	if (lock->holder != cpuid()) {
+		spin_lock(&lock->lock);
+		lock->holder = cpuid();
+	}
+	++lock->depth;
+}
+
+static inline void recursive_unlock(rlock_t *lock)
+{
+	assert(cpuid() == lock->holder);
+	assert(lock->depth > 0);
+	--lock->depth;
+	if (lock->depth == 0) {
+		lock->holder = -1;
+		spin_unlock(&(lock->lock));
+	}
+}
+
+#define recursive_lock_irq_save(lk, flags) \
+	do { \
+		local_irq_save(flags); \
+		recursive_lock(lk); \
+	} while (0)
+#define recursive_unlock_irq_restore(lk, flags) \
+	do { \
+		recursive_unlock(lk); \
 		local_irq_restore(flags); \
 	} while (0)
 

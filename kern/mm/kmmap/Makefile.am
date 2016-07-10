@@ -17,39 +17,15 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = $(PREFIXED_MACH)
-DIST_SUBDIRS = mach-zynq
+noinst_LTLIBRARIES = libkmmap.la
+noinst_DATA =
 
-noinst_LTLIBRARIES = \
-	libentry.la \
-	libarmv7a.la \
-	libarmv7atrap.la \
-	libarmv7asyscall.la
-noinst_DATA = vmaim.lds
+if ALGO_KMLIST
+noinst_DATA += kmlist.o
+kmlist.o: kmlist.c
+endif
 
-CLEANFILES = vmaim.lds
-
-libentry_la_SOURCES = \
-	entry.S
-
-libarmv7a_la_SOURCES = \
-	arch_init.c \
-	mm.c \
-	jump.c \
-	smp.c \
-	sync.c
-libarmv7a_la_LIBADD = $(PREFIXED_MACH)/lib$(MACH).la
-
-# libsyscall.la depends on this, containing system call arguments retrieval
-# etc.
-libarmv7asyscall_la_SOURCES = syscall.c
-
-# depends on libtimer.la (handle_timer_interrupt)
-libarmv7atrap_la_SOURCES = \
-	trap.c \
-	traptest.c \
-	vector.S
-
-vmaim.lds: vmaim.lds.S
-	$(COMPILE) -E -P $^ -o $@
+libkmmap_la_SOURCES = \
+	early_kmmap.c \
+	kmmap.c
 

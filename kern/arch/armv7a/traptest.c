@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
+/* Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
  *
  * This file is part of AIMv6.
  *
@@ -16,19 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <syscall.h>
-#include <libc/syscalls.h>
-#include <percpu.h>
-#include <proc.h>
-#include <mp.h>
-#include <console.h>
-
-int sys_getpid(int sysno, int *errno)
+void trap_test(void)
 {
-	/* TODO: a quick test to enable printing from user space. */
-	kprintf("PID %d CPU %d\n", current_proc->pid, cpuid());
-	*errno = 0;
-	return current_proc->pid;
+	asm volatile (
+		"svc	0x0;"
+	);
 }
-ADD_SYSCALL(sys_getpid, NRSYS_getpid);
-

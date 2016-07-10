@@ -22,6 +22,8 @@
 
 #include <mp.h>
 #include <percpu.h>
+#include <panic.h>
+#include <console.h>
 
 /* Saves the *physical* address of slave stacks */
 unsigned long slave_stacks[MAX_CPUS];
@@ -50,7 +52,7 @@ void smp_startup(void)
 {
 	alloc_slave_stacks();
 	/* Arch-specific code */
-	//arch_smp_startup();
+	arch_smp_startup();
 }
 
 int handle_ipi_interrupt(unsigned int msg)

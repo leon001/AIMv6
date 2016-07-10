@@ -19,6 +19,8 @@
 #ifndef _ARCH_REGS_H
 #define _ARCH_REGS_H
 
+#ifndef __ASSEMBLER__
+
 struct regs {
 	/* possible extra registers here */
 	uint32_t sp;
@@ -39,6 +41,8 @@ struct regs {
 	uint32_t r12;
 	uint32_t pc;
 };
+
+#endif	/* !__ASSEMBLER__ */
 
 #endif /* _ARCH_REGS_H */
 

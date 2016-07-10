@@ -85,3 +85,8 @@ void arch_mm_init(void)
 {
 }
 
+bool early_mapping_valid(struct early_mapping *entry)
+{
+	return true;
+}
+

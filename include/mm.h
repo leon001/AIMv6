@@ -51,30 +51,6 @@
 addr_t get_mem_physbase();
 addr_t get_mem_size();
 
-/*
- * Data structure to hold early mappings.
- * type indicates how the mapping should be treated after we
- * jump up to kernel address space.
- * EARLY_MAPPING_MEMORY - Nothing will be done.
- * EARLY_MAPPING_KMMAP - Will be translated to an ioremap() result.
- */
-struct early_mapping {
-	addr_t	paddr;
-	size_t	vaddr;
-	size_t	size;
-	int	type;
-};
-#define	EARLY_MAPPING_MEMORY	0
-#define EARLY_MAPPING_KMMAP	1
-#define EARLY_MAPPING_TEMP	2
-#define EARLY_MAPPING_OTHER	3
-
-void early_mapping_clear(void);
-size_t early_mapping_add_memory(addr_t base, size_t size);
-size_t early_mapping_add_kmmap(addr_t base, size_t size);
-int early_mapping_add(struct early_mapping *entry);
-struct early_mapping *early_mapping_next(struct early_mapping *base);
-
 int page_index_init(pgindex_t *boot_page_index);
 int mmu_init(pgindex_t *boot_page_index);
 
@@ -132,14 +108,8 @@ pgindex_t *init_pgindex(void);
  * already done with */
 void destroy_pgindex(pgindex_t *pgindex);
 /* Map virtual address starting at @vaddr to physical pages at @paddr, with
- * VMA flags @flags (VMA_READ, etc.) Additional flags apply as following:
+ * VMA flags @flags (VMA_READ, etc.) Additional flags apply as in kmmap.h.
  */
-#define MAP_TYPE_MASK	0x30000
-#define MAP_USER_MEM	0x00000
-#define	MAP_KERN_MEM	0x10000
-#define MAP_PRIV_DEV	0x20000	/* eg. device on private bus */
-#define MAP_SHARED_DEV	0x30000	/* normal devices */
-#define MAP_LARGE	0x40000
 int map_pages(pgindex_t *pgindex, void *vaddr, addr_t paddr, size_t size,
     uint32_t flags);
 /*
@@ -277,6 +247,7 @@ struct mm {
 
 /* All kernel processes share this memory mapping structure. */
 extern struct mm *kernel_mm;
+extern rlock_t memlock;
 
 #endif /* !__ASSEMBLER__ */
 

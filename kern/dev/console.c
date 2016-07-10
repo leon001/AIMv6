@@ -77,10 +77,10 @@ static inline putchar_fp __get_kputchar(void)
 
 	switch(get_addr_space()) {
 	case 0:
-		if (ret >= (putchar_fp)KERN_BASE) ret = (putchar_fp)premap_addr(ret);
+		if (ret >= (putchar_fp)KERN_BASE) ret = (putchar_fp)(size_t)premap_addr(ret);
 		return ret;
 	case 1:
-		if (ret < (putchar_fp)KERN_BASE) ret = (putchar_fp)postmap_addr(ret);
+		if (ret < (putchar_fp)KERN_BASE) ret = (putchar_fp)(size_t)postmap_addr(ret);
 		return ret;
 	default:
 		return NULL;
@@ -127,10 +127,10 @@ static inline puts_fp __get_kputs(void)
 
 	switch(get_addr_space()) {
 	case 0:
-		if (ret >= (puts_fp)KERN_BASE) ret = (puts_fp)premap_addr(ret);
+		if (ret >= (puts_fp)KERN_BASE) ret = (puts_fp)(size_t)premap_addr(ret);
 		return ret;
 	case 1:
-		if (ret < (puts_fp)KERN_BASE) ret = (puts_fp)postmap_addr(ret);
+		if (ret < (puts_fp)KERN_BASE) ret = (puts_fp)(size_t)postmap_addr(ret);
 		return ret;
 	default:
 		return NULL;
