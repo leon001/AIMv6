@@ -31,6 +31,7 @@
 #include <aim/sync.h>
 
 struct mm *kernel_mm;
+rlock_t memlock = EMPTY_RLOCK(memlock);
 
 struct mm *
 mm_new(void)
