@@ -10,6 +10,8 @@
  * Temporary test
  */
 
+static int tmpbed = 0;
+
 void kthread(void *arg)
 {
 	volatile int j, cnt = 0;	/* Avoid optimizing busy loop */
@@ -22,7 +24,7 @@ void kthread(void *arg)
 		for (j = 0; j < 100000; ++j)
 			/* nothing */;
 		kprintf("KTHREAD%d: running on CPU %d\n", id, cpuid());
-		/* XXX panic/IPI test, will be removed */
+		/* panic/IPI test, will be removed */
 		if ((id == 0) && (++cnt == 10))
 			panic("-------Test succeeded-------\n");
 #if 0
@@ -44,15 +46,17 @@ void userinit(void)
 /* MIPS */
 #if 0
 	asm volatile (
+		"	li	$2, 1;"		/* fork() */
+		"	syscall;"
+		"	li	$2, 1;"		/* fork() */
+		"	syscall;"
+		"	li	$2, 1;"		/* fork() */
+		"	syscall;"
 		"1:	li	$3, 100000;"
 		"2:	subu	$3, 1;"
 		"	bnez	$3, 2b;"
-		"	li	$2, 6;"
+		"	li	$2, 6;"		/* getpid() */
 		"	syscall;"
-#if 0
-		"	li	$2, 5;"
-		"	syscall;"
-#endif
 		"	b	1b;"
 	);
 #endif
@@ -98,7 +102,7 @@ void proc_test(void)
 		kthreads[i]->state = PS_RUNNABLE;
 		proc_add(kthreads[i]);
 	}
-	for (i = 0; i < 5; ++i) {
+	for (i = 0; i < 1; ++i) {
 		uthreads[i] = proc_new(NULL);
 		uthreads[i]->mm = mm_new();
 		assert(uthreads[i]->mm != NULL);

@@ -20,12 +20,14 @@
 __weak unsigned long bitmap_find_next_zero_bit(const unsigned long *addr,
 		unsigned long size, unsigned long offset)
 {
+	if ((offset--) == 0)
+		return 0;
 	const unsigned long *p = addr + BIT_WORD(offset);
 	unsigned long result = offset & ~(BITS_PER_LONG-1);
 	unsigned long tmp;
 
 	if (offset >= size)
-		return size;
+		return 0;
 	size -= result;
 	offset %= BITS_PER_LONG;
 	if (offset) {
@@ -45,13 +47,13 @@ __weak unsigned long bitmap_find_next_zero_bit(const unsigned long *addr,
 		size -= BITS_PER_LONG;
 	}
 	if (!size)
-		return result;
+		return 0;
 	tmp = *p;
 
 found_first:
 	tmp |= ~0UL << size;
 	if (tmp == ~0UL)	/* Are any bits zero? */
-		return result + size;	/* Nope. */
+		return 0;	/* Nope. */
 found_middle:
 	return result + ffz(tmp);
 }

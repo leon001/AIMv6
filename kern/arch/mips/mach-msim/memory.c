@@ -40,7 +40,7 @@ void mips_add_memory_pages(void)
 	struct pages *p = kmalloc(sizeof(*p), 0);
 	p->paddr = kva2pa(ALIGN_ABOVE(kern_end, PAGE_SIZE));
 	p->size = LOWRAM_TOP - p->paddr;	/* TODO: no magic number */
-	p->flags = 0;
+	p->flags = GFP_UNSAFE;
 
 	free_pages(p);
 
@@ -49,7 +49,7 @@ void mips_add_memory_pages(void)
 	p = kmalloc(sizeof(*p), 0);
 	p->paddr = HIGHRAM_BASE;
 	p->size = HIGHRAM_SIZE;
-	p->flags = 0;
+	p->flags = GFP_UNSAFE;
 
 	free_pages(p);
 #endif

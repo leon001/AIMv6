@@ -19,6 +19,10 @@
 #ifndef _UNISTD_H
 #define _UNISTD_H
 
+#include <sys/types.h>
+
+pid_t fork(void);
 int sched_yield(void);
+pid_t getpid(void);
 
 #endif

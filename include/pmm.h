@@ -22,11 +22,10 @@
 #include <sys/types.h>
 #include <vmm.h>
 #include <mmu.h>
+#include <gfp.h>
 
 #ifndef __ASSEMBLER__
 
-/* FIXME change name and create seperate header */
-typedef uint32_t gfp_t;
 /* currently ignored */
 
 struct pages {

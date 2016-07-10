@@ -31,6 +31,8 @@ typedef union {
 	};
 } lock_t;
 
+#define EMPTY_LOCK(lk)	{ .lock = 0 }
+
 #define smp_mb() \
 	asm volatile ("sync" : : : "memory")
 

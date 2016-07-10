@@ -116,7 +116,7 @@ static inline void __arm_map_sect(arm_pte_l1_t *page_table, addr_t paddr,
 	uint32_t ap, tex, c, b, s, xn;
 	arm_pte_l1_t entry;
 
-	kprintf("DEBUG: map_sect(pt=0x%08x, paddr=0x%08x, vaddr=0x%08x, flags=0x%08x)\n",
+	kpdebug("map_sect(pt=0x%08x, paddr=0x%08x, vaddr=0x%08x, flags=0x%08x)\n",
 		page_table, (size_t)paddr, vaddr, flags);
 	/* process flags */
 	convert_flags(flags, ap, tex, c, b, s, xn);
@@ -159,7 +159,7 @@ static inline void __arm_map_page(arm_pte_l1_t *page_table, addr_t paddr,
 	arm_pte_l1_t *t1, e1;
 	arm_pte_l2_t *t2, e2;
 
-	kprintf("DEBUG: map_page(pt=0x%08x, paddr=0x%08x, vaddr=0x%08x, flags=0x%08x)\n",
+	kpdebug("map_page(pt=0x%08x, paddr=0x%08x, vaddr=0x%08x, flags=0x%08x)\n",
 		page_table, (size_t)paddr, vaddr, flags);
 	/* process flags */
 	convert_flags(flags, ap, tex, c, b, s, xn);
@@ -235,7 +235,7 @@ void add_memory_pages(void)
 		.paddr = (addr_t)premap_addr((size_t)&SYMBOL(kern_end)),
 		.size = get_mem_size() -
 			((addr_t)(size_t)(&SYMBOL(kern_end)) - KERN_BASE),
-		.flags = 0
+		.flags = GFP_UNSAFE
 	};
 	free_pages(&pages);
 }

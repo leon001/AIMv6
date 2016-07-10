@@ -21,6 +21,7 @@
 
 #include <sys/types.h>
 #include <aim/sync.h>
+#include <gfp.h>
 
 /*
  * Two kinds of memory object allocators (may) exist inside a running kernel.
@@ -39,8 +40,6 @@
 
 #ifndef __ASSEMBLER__
 
-/* FIXME change name and create seperate header */
-typedef uint32_t gfp_t;
 /* currently ignored */
 
 struct simple_allocator {

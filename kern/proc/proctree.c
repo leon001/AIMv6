@@ -16,35 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <proc.h>
 
-#include <timer.h>
-#include <mipsregs.h>
-#include <sys/types.h>
-
-uint32_t inc;
-
-void timer_init(void)
+void proctree_add_child(struct proc *child, struct proc *parent)
 {
-	uint32_t count, status;
-
-	/* Loongson 3A increases COUNT register by 1 every 2 CPU cycles */
-	inc = CPU_FREQ / 2 / TIMER_FREQ;
-	status = read_c0_status();
-	write_c0_status(status | ST_IMx(7));
-	count = read_c0_count();
-	write_c0_compare(count + inc);
-}
-
-void pre_timer_interrupt(void)
-{
-	uint32_t compare = read_c0_compare();
-	write_c0_compare(compare + inc);
-}
-
-void post_timer_interrupt(void)
-{
+	child->parent = parent;
+	child->next_sibling = parent->first_child;
+	if (parent->first_child != NULL)
+		parent->first_child->prev_sibling = child;
+	parent->first_child = child;
 }
 

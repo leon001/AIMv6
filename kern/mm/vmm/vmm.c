@@ -24,6 +24,8 @@
 #include <aim/sync.h>
 
 #include <vmm.h>
+#include <mm.h>	/* PAGE_SIZE */
+#include <panic.h>
 
 #include <libc/string.h>
 
@@ -31,6 +33,7 @@
 static void *__simple_alloc(size_t size, gfp_t flags) { return NULL; }
 static void __simple_free(void *obj) {}
 static size_t __simple_size(void *obj) { return 0; }
+static lock_t __kmalloc_lock = EMPTY_LOCK(__kmalloc_lock);
 
 static struct simple_allocator __simple_allocator = {
 	.alloc	= __simple_alloc,
@@ -40,13 +43,25 @@ static struct simple_allocator __simple_allocator = {
 
 void *kmalloc(size_t size, gfp_t flags)
 {
-	return __simple_allocator.alloc(size, flags);
+	unsigned long intr_flags;
+	void *result;
+
+	if (size > PAGE_SIZE / 2)
+		panic("kmalloc: size %lu too large\n", size);
+	spin_lock_irq_save(&__kmalloc_lock, intr_flags);
+	result = __simple_allocator.alloc(size, flags);
+	spin_unlock_irq_restore(&__kmalloc_lock, intr_flags);
+	return result;
 }
 
 void kfree(void *obj)
 {
-	if (obj != NULL)
+	unsigned long flags;
+	if (obj != NULL) {
+		spin_lock_irq_save(&__kmalloc_lock, flags);
 		__simple_allocator.free(obj);
+		spin_unlock_irq_restore(&__kmalloc_lock, flags);
+	}
 }
 
 size_t ksize(void *obj)
@@ -114,30 +129,33 @@ int cache_destroy(struct allocator_cache *cache)
 
 void *cache_alloc(struct allocator_cache *cache)
 {
+	unsigned long flags;
 	if (cache == NULL)
 		return NULL;
-	spin_lock(&cache->lock);
+	spin_lock_irq_save(&cache->lock, flags);
 	void *retval = __caching_allocator.alloc(cache);
-	spin_unlock(&cache->lock);
+	spin_unlock_irq_restore(&cache->lock, flags);
 	return retval;
 }
 
 int cache_free(struct allocator_cache *cache, void *obj)
 {
+	unsigned long flags;
 	if (cache == NULL)
 		return EOF;
-	spin_lock(&cache->lock);
+	spin_lock_irq_save(&cache->lock, flags);
 	int retval = __caching_allocator.free(cache, obj);
-	spin_unlock(&cache->lock);
+	spin_unlock_irq_restore(&cache->lock, flags);
 	return retval;
 }
 
 void cache_trim(struct allocator_cache *cache)
 {
+	unsigned long flags;
 	if (cache == NULL)
 		return;
-	spin_lock(&cache->lock);
+	spin_lock_irq_save(&cache->lock, flags);
 	__caching_allocator.trim(cache);
-	spin_unlock(&cache->lock);
+	spin_unlock_irq_restore(&cache->lock, flags);
 }
 

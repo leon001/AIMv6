@@ -39,8 +39,15 @@ void panic_other_cpus(void);
 #define assert(condition) \
 	do { \
 		if (!(condition)) \
-			panic("Assertation failed: %s\n", #condition); \
+			panic("Assertion failed in %s (%s:%d): %s\n", \
+			    __func__, __FILE__, __LINE__, #condition); \
 	} while (0)
+
+#ifdef DEBUG
+#define kpdebug(fmt, ...) kprintf("DEBUG: " fmt, __VA_ARGS__)
+#else
+#define kpdebug(fmt, ...)
+#endif
 
 #endif
 

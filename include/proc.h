@@ -56,6 +56,7 @@ struct proc {
 	/* TODO: may have more...? */
 #define PF_EXITING	0x00000004	/* getting shut down */
 #define PF_SIGNALED	0x00000400	/* killed by a signal */
+#define PF_KTHREAD	0x00200000	/* I am a kernel thread */
 	int		oncpu;		/* CPU ID being running on */
 #define CPU_NONE	-1
 	uintptr_t	bed;		/* object we are sleeping on */
@@ -86,6 +87,11 @@ struct proc {
 	struct list_head sched_node;	/* List node in scheduler */
 };
 
+static inline void *kstacktop(struct proc *proc)
+{
+	return proc->kstack + proc->kstack_size;
+}
+
 /* Create a struct proc inside namespace @ns and initialize everything if we
  * can by default. */
 struct proc *proc_new(struct namespace *ns);
@@ -103,7 +109,8 @@ void proc_test(void);		/* temporary */
 
 /*
  * Setup a kernel process with entry and arguments.
- * A kernel process works on its kernel stack.
+ * A kernel process always works on its kernel stack and with default
+ * kernel memory mapping.
  *
  * Only sets up process trap frame and context.
  *
@@ -124,6 +131,11 @@ void proc_usetup(struct proc *proc, void *entry, void *stacktop, void *args);
 void switch_context(struct proc *proc);
 /* Return to trap frame in @proc.  Usually called once by fork child */
 void proc_trap_return(struct proc *proc);
+
+/*
+ * Process tree maintenance
+ */
+void proctree_add_child(struct proc *child, struct proc *parent);
 
 #endif /* _PROC_H */
 

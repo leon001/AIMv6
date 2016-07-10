@@ -44,7 +44,7 @@ static void alloc_slave_stacks(void)
 		if (alloc_pages(&p) < 0)
 			panic("smp_startup: not enough memory for stacks\n");
 		slave_stacks[i] = p.paddr;
-		kprintf("DEBUG: allocated stack at %p\n", slave_stacks[i]);
+		kpdebug("allocated stack at %p\n", slave_stacks[i]);
 	}
 }
 

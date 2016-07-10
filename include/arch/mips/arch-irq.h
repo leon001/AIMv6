@@ -53,9 +53,8 @@
 		".set	push;" \
 		".set	noat;" \
 		"mfc0	%0, $12;" \
-		"ori	$1, %0, 1;" \
-		"xori	$1, $1, 1;" \
-		"andi	%0, 1;" \
+		"ori	$1, %0, 0x1f;" \
+		"xori	$1, $1, 0x1f;" \
 		"mtc0	$1, $12;" \
 		".set	pop;" \
 		: "=r"(flags) \
@@ -68,11 +67,13 @@
 		"	.set	push;" \
 		"	.set	reorder;" \
 		"	.set	noat;" \
-		"	beqz	%0, 1f;" \
 		"	mfc0	$1, $12;" \
-		"	ori	$1, $1, 1;" \
-		"	mtc0	$1, $12;" \
-		"1:	.set	pop;" \
+		"	andi	%0, 1;" \
+		"	ori	$1, 0x1f;" \
+		"	xori	$1, 0x1f;" \
+		"	or	%0, $1;" \
+		"	mtc0	%0, $12;" \
+		"	.set	pop;" \
 		: /* no output */ \
 		: "r"(flags) \
 		: "$1", "memory" \
@@ -84,7 +85,8 @@
 
 #define local_irq_save(flags) \
 	asm volatile ( \
-		"di	%0;" \
+		"mfc0	%0, $12;" \
+		"di;" \
 		"andi	%0, 1;" \
 		: "=r"(flags) \
 		: /* no input */ \

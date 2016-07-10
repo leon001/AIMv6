@@ -82,7 +82,7 @@ typedef signed long long saddr_t;
  * Define types used within the system.
  * This is only a design pattern.
  */
-typedef ulong	devid_t;
+typedef ulong	dev_t;
 
 /* A generic void function pointer type, allow any number of arguments */
 typedef void (*generic_fp)();

@@ -105,7 +105,7 @@ However, if you are willing to try the latest autotools features such as
 A suggested configuration is
 
 ```
-./configure --host=mips64el-n64-linux-uclibc \
+./configure --host=mips64el-multilib-linux-uclibc \
             --without-pic \
             --enable-static \
             --disable-shared \
@@ -114,7 +114,7 @@ A suggested configuration is
             --enable-io-mem
 ```
 
-Replace `mips64el-n64-linux-uclibc` to the prefix of any available toolchain.
+Replace `mips64el-multilib-linux-uclibc` to the prefix of any available toolchain.
 For example, if you have a MIPS GCC compiler named
 `mips64-unknown-linux-gnu-gcc`, the host argument should be
 `mips64-unknown-linux-gnu`.
@@ -179,7 +179,7 @@ Run MSIM to bring up the operating system.
 slow, and sometimes causes errors on gdb.  It is highly recommended to
 debug your kernel statically (that is, via the kernel's own output), or
 via MSIM's interface and disassembly dumps from
-`mips64el-n64-linux-uclibc-objdump -Ss`.
+`mips64el-multilib-linux-uclibc-objdump -Ss`.
 
 You need to build a `cross-gdb` to enable debugging MIPS programs.  See
 `doc/toolchain.md` for details.
@@ -195,7 +195,7 @@ to bring up a server for remote debugging.
 Run
 
 ```
-mips64el-n64-linux-uclibc-gdb
+mips64el-multilib-linux-uclibc-gdb
 ```
 
 then enter

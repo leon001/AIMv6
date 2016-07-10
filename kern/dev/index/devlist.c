@@ -44,10 +44,8 @@ static inline int __cmp(struct device_entry *a, struct device_entry *b)
 	struct device *dev_a, *dev_b;
 	dev_a = a->dev;
 	dev_b = b->dev;
-	if (dev_a->id_major > dev_b->id_major) return 1;
-	if (dev_a->id_major < dev_b->id_major) return -1;
-	if (dev_a->id_minor > dev_b->id_minor) return 1;
-	if (dev_a->id_minor < dev_b->id_minor) return -1;
+	if (dev_a->devno > dev_b->devno) return 1;
+	if (dev_a->devno < dev_b->devno) return -1;
 	return 0; /* unlikely */
 }
 
@@ -105,7 +103,7 @@ ret:
 	return retval;
 }
 
-static struct device *__from_id(devid_t major, devid_t minor)
+static struct device *__from_id(dev_t devno)
 {
 	struct device_entry *tmp;
 	struct device *retval;
@@ -115,7 +113,7 @@ static struct device *__from_id(devid_t major, devid_t minor)
 
 	/* loop and check */
 	for_each_entry(tmp, &__head, node) {
-		if (tmp->dev->id_major == major && tmp->dev->id_minor == minor)
+		if (tmp->dev->devno == devno)
 			break;
 	}
 	if (&tmp->node != &__head)

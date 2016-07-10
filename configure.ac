@@ -50,6 +50,10 @@ AX_GCC_BUILTIN(__builtin_popcount)
 AX_GCC_BUILTIN(__builtin_popcountl)
 AX_GCC_BUILTIN(__builtin_popcountll)
 
+# Builtin functions - required since we are lazy
+AX_GCC_BUILTIN(__builtin_bswap32)
+AX_GCC_BUILTIN(__builtin_bswap64)
+
 AC_SUBST([AIM_CFLAGS], [$aim_cflags])
 
 AM_PROG_AS
@@ -261,6 +265,9 @@ AIM_ARG_ENABLE([uart-ns16550], [UART_NS16550], [NS16550 UART driver])
 AIM_ARG_ENABLE([block-msim], [BLOCK_MSIM], [MSIM block device driver])
 AIM_ARG_ENABLE([sd-zynq], [SD_ZYNQ], [zynq SD driver])
 AIM_ARG_ENABLE([timer-a9], [TIMER_A9], [Cortex-A9 MPCore timer driver])
+
+# Debug
+AIM_ARG_ENABLE([debug], [DEBUG], [Debugging (kpdebug)])
 
 AM_CONDITIONAL([IO_MEM], [test x$enable_io_mem = xyes])
 AM_CONDITIONAL([IO_PORT], [test x$enable_io_port = xyes])

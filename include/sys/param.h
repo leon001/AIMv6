@@ -16,35 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#ifndef _SYS_PARAM_H
+#define _SYS_PARAM_H
 
-#include <timer.h>
-#include <mipsregs.h>
 #include <sys/types.h>
 
-uint32_t inc;
+/*
+ * Kernel hyper-parameters which probably should not reside in configure script
+ */
 
-void timer_init(void)
-{
-	uint32_t count, status;
+#define NODEV	((dev_t)(-1))
+#define MAJOR_MAX	16
+#define BLOCK_SIZE	512
+#define JUNKBYTE	0x20
 
-	/* Loongson 3A increases COUNT register by 1 every 2 CPU cycles */
-	inc = CPU_FREQ / 2 / TIMER_FREQ;
-	status = read_c0_status();
-	write_c0_status(status | ST_IMx(7));
-	count = read_c0_count();
-	write_c0_compare(count + inc);
-}
-
-void pre_timer_interrupt(void)
-{
-	uint32_t compare = read_c0_compare();
-	write_c0_compare(compare + inc);
-}
-
-void post_timer_interrupt(void)
-{
-}
-
+#endif
