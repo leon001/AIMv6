@@ -247,6 +247,7 @@ struct mm {
 
 /* All kernel processes share this memory mapping structure. */
 extern struct mm *kernel_mm;
+extern rlock_t memlock;
 
 #endif /* !__ASSEMBLER__ */
 

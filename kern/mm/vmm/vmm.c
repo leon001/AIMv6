@@ -33,7 +33,6 @@
 static void *__simple_alloc(size_t size, gfp_t flags) { return NULL; }
 static void __simple_free(void *obj) {}
 static size_t __simple_size(void *obj) { return 0; }
-static lock_t __kmalloc_lock = EMPTY_LOCK(__kmalloc_lock);
 
 static struct simple_allocator __simple_allocator = {
 	.alloc	= __simple_alloc,
@@ -48,9 +47,9 @@ void *kmalloc(size_t size, gfp_t flags)
 
 	if (size > PAGE_SIZE / 2)
 		panic("kmalloc: size %lu too large\n", size);
-	spin_lock_irq_save(&__kmalloc_lock, intr_flags);
+	recursive_lock_irq_save(&memlock, intr_flags);
 	result = __simple_allocator.alloc(size, flags);
-	spin_unlock_irq_restore(&__kmalloc_lock, intr_flags);
+	recursive_unlock_irq_restore(&memlock, intr_flags);
 	return result;
 }
 
@@ -58,9 +57,9 @@ void kfree(void *obj)
 {
 	unsigned long flags;
 	if (obj != NULL) {
-		spin_lock_irq_save(&__kmalloc_lock, flags);
+		recursive_lock_irq_save(&memlock, flags);
 		__simple_allocator.free(obj);
-		spin_unlock_irq_restore(&__kmalloc_lock, flags);
+		recursive_unlock_irq_restore(&memlock, flags);
 	}
 }
 

@@ -40,6 +40,8 @@ struct page_allocator {
 	addr_t (*get_free)(void);
 };
 
+struct simple_allocator;	/* FIXME ??? */
+
 int page_allocator_init(void);
 int page_allocator_move(struct simple_allocator *old);
 void set_page_allocator(struct page_allocator *allocator);
