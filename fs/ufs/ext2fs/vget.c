@@ -40,7 +40,7 @@ ext2fs_vinit(struct mount *mp, struct vops *specvops,
 			 * Note that the lock is carried over in the inode
 			 * to the replacement vnode.
 			 */
-			/* XXX shall we make an assertation here? */
+			/* XXX shall we make an assertion here? */
 			assert(si->vnode->data == NULL);
 			si->vnode->data = vp->data;	/* pass inode */
 			vp->data = NULL;

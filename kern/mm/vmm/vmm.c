@@ -45,6 +45,9 @@ void *kmalloc(size_t size, gfp_t flags)
 {
 	unsigned long intr_flags;
 
+	if (size > PAGE_SIZE / 2)
+		panic("kmalloc: size %ld too big\n", size);
+
 	spin_lock_irq_save(&__kmalloc_lock, intr_flags);
 	kprintf("ALLOC: #%d kmalloc request %u bytes\n", cpuid(), size);
 	void *ret = __simple_allocator.alloc(size, flags);
@@ -115,6 +118,7 @@ int cache_create(struct allocator_cache *cache)
 {
 	if (cache == NULL)
 		return EOF;
+	assert(cache->size < PAGE_SIZE / 2);
 	spinlock_init(&cache->lock);
 	return __caching_allocator.create(cache);
 }

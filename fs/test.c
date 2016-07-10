@@ -131,7 +131,9 @@ fs_test(void)
 	nd.flags = 0;
 	assert(namei(&nd, current_proc) == 0);
 	assert(VTOI(nd.vp)->ino == 27988);
-	buf = kmalloc(10010, 0);
+	struct pages p = { .size = ALIGN_ABOVE(10000, PAGE_SIZE), .flags = 0 };
+	alloc_pages(&p);
+	buf = pa2kva(p.paddr);
 	memset(buf, 0, 10010);
 	assert(vn_read(nd.vp, 0, 10000, buf, 0, UIO_KERNEL, NULL, NULL, NOCRED) == 0);
 	/* cannot kprintf() the whole buffer because kprintf() impose
@@ -144,7 +146,7 @@ fs_test(void)
 	vput(nd.vp);
 	assert(devvnode->refs == 2);
 	assert(rootvnode->refs == 1);
-	kfree(buf);
+	free_pages(&p);
 	kpdebug("===========READ done============\n");
 }
 

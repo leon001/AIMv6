@@ -53,7 +53,7 @@ mm_new(void)
 static void
 __clean_vma(struct mm *mm, struct vma *vma)
 {
-	/* all assertations here are temporary */
+	/* all assertions here are temporary */
 	ssize_t unmapped;
 	addr_t pa;
 
@@ -173,7 +173,7 @@ __unmap_and_free_vma(struct mm *mm, struct vma *vma_start, size_t size)
 		list_del(&(vma->share_node));
 		spin_unlock_irq_restore(&(vma->pages->lock), intr);
 
-		/* temporary in case of typo - assertation will be removed */
+		/* temporary in case of typo - assertion will be removed */
 		assert(unmap_pages(mm->pgindex, vma->start, vma->size,
 		    NULL) == vma_size);
 		if (__unref_and_free_upages(vma->pages) == __PAGES_FREED)

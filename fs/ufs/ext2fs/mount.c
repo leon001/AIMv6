@@ -18,6 +18,7 @@
 #include <libc/string.h>
 #include <limits.h>
 #include <errno.h>
+#include <pmm.h>
 
 int ext2fs_mountfs(struct vnode *, struct mount *, struct proc *);
 
@@ -87,6 +88,7 @@ ext2fs_sbinit(struct vnode *devvp, struct ext2fs *ondiskfs, struct m_ext2fs *sb)
 	struct ext2fs *fs = &sb->e2fs;
 	int err, i;
 	struct buf *bp = NULL;
+	struct pages p;	/* for allocating in-memory group descriptors */
 
 	e2fs_sbload(ondiskfs, fs);
 
@@ -123,7 +125,12 @@ ext2fs_sbinit(struct vnode *devvp, struct ext2fs *ondiskfs, struct m_ext2fs *sb)
 
 	/* Load group descriptors */
 	sb->ngdb = DIV_ROUND_UP(sb->ncg, sb->bsize / sizeof(struct ext2_gd));
-	sb->gd = kcalloc(sb->ngdb, sb->bsize, 0);
+	p.size = sb->ngdb * sb->bsize;
+	p.flags = 0;
+	if (alloc_pages(&p) < 0)
+		return -ENOMEM;
+	sb->gd = pa2kva(p.paddr);
+
 	for (i = 0; i < sb->ngdb; ++i) {
 		unsigned int dblk = ((sb->bsize > 1024) ? 1 : 2) + i;
 		size_t gdesc = i * sb->bsize / sizeof(struct ext2_gd);
@@ -131,7 +138,7 @@ ext2fs_sbinit(struct vnode *devvp, struct ext2fs *ondiskfs, struct m_ext2fs *sb)
 
 		err = bread(devvp, fsbtodb(sb, dblk), sb->bsize, &bp);
 		if (err) {
-			kfree(sb->gd);
+			free_pages(&p);
 			sb->gd = NULL;
 			if (bp != NULL)
 				brelse(bp);

@@ -68,7 +68,9 @@ static inline void *__alloc(struct list_head *head, size_t size, gfp_t flags)
 
 	/* Search for a first fit */
 	for_each_entry(this, head, node) {
-		if (this->size >= allocsize) { break; }
+		if (this->size >= allocsize) {
+			break;
+		}
 	}
 
 	/* No fit found, ask for pages */
