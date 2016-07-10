@@ -33,7 +33,6 @@
 static int __alloc(struct pages *pages) { return EOF; }
 static void __free(struct pages *pages) {}
 static addr_t __get_free(void) { return 0; }
-static lock_t __pmm_lock = EMPTY_LOCK(__pmm_lock);
 
 static struct page_allocator __allocator = {
 	.alloc		= __alloc,
@@ -52,9 +51,9 @@ int alloc_pages(struct pages *pages)
 	unsigned long flags;
 	if (pages == NULL)
 		return EOF;
-	spin_lock_irq_save(&__pmm_lock, flags);
+	recursive_lock_irq_save(&memlock, flags);
 	result = __allocator.alloc(pages);
-	spin_unlock_irq_restore(&__pmm_lock, flags);
+	recursive_unlock_irq_restore(&memlock, flags);
 	return result;
 }
 
@@ -63,9 +62,9 @@ void free_pages(struct pages *pages)
 	unsigned long flags;
 	if (!(pages->flags & GFP_UNSAFE))
 		memset(pa2kva(pages->paddr), JUNKBYTE, pages->size);
-	spin_lock_irq_save(&__pmm_lock, flags);
+	recursive_lock_irq_save(&memlock, flags);
 	__allocator.free(pages);
-	spin_unlock_irq_restore(&__pmm_lock, flags);
+	recursive_unlock_irq_restore(&memlock, flags);
 }
 
 addr_t get_free_memory(void)
