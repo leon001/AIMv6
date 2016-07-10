@@ -34,7 +34,6 @@ typedef struct {
 	int		holder;
 } lock_t;
 
-/* Convenient initialization: lock_t lock = EMPTY_LOCK(lock) */
 #define EMPTY_LOCK(lk) { .lock = 0, .holder = -1 }
 
 #define smp_mb() \

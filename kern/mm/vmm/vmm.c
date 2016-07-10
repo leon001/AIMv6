@@ -24,6 +24,8 @@
 #include <aim/sync.h>
 
 #include <vmm.h>
+#include <mm.h>	/* PAGE_SIZE */
+#include <panic.h>
 
 #include <libc/string.h>
 
@@ -33,6 +35,7 @@
 static void *__simple_alloc(size_t size, gfp_t flags) { return NULL; }
 static void __simple_free(void *obj) {}
 static size_t __simple_size(void *obj) { return 0; }
+static lock_t __kmalloc_lock = EMPTY_LOCK(__kmalloc_lock);
 
 static struct simple_allocator __simple_allocator = {
 	.alloc	= __simple_alloc,
@@ -44,27 +47,22 @@ static lock_t __kmalloc_lock = EMPTY_LOCK(__kmalloc_lock);
 void *kmalloc(size_t size, gfp_t flags)
 {
 	unsigned long intr_flags;
+	void *result;
 
 	if (size > PAGE_SIZE / 2)
-		panic("kmalloc: size %ld too big\n", size);
-
+		panic("kmalloc: size %lu too large\n", size);
 	spin_lock_irq_save(&__kmalloc_lock, intr_flags);
-	kprintf("ALLOC: #%d kmalloc request %u bytes\n", cpuid(), size);
-	void *ret = __simple_allocator.alloc(size, flags);
-	kprintf("ALLOC: #%d kmalloc return %p (%u bytes)\n", cpuid(), ret, size);
+	result = __simple_allocator.alloc(size, flags);
 	spin_unlock_irq_restore(&__kmalloc_lock, intr_flags);
-	return ret;
+	return result;
 }
 
 void kfree(void *obj)
 {
 	unsigned long flags;
-
 	if (obj != NULL) {
 		spin_lock_irq_save(&__kmalloc_lock, flags);
-		kprintf("ALLOC: #%d kfree request %p\n", cpuid(), obj);
 		__simple_allocator.free(obj);
-		kprintf("ALLOC: #%d kfree freed %p\n", cpuid(), obj);
 		spin_unlock_irq_restore(&__kmalloc_lock, flags);
 	}
 }
@@ -138,13 +136,10 @@ int cache_destroy(struct allocator_cache *cache)
 void *cache_alloc(struct allocator_cache *cache)
 {
 	unsigned long flags;
-
 	if (cache == NULL)
 		return NULL;
 	spin_lock_irq_save(&cache->lock, flags);
-	kprintf("ALLOC: #%d cache_alloc request %u bytes\n", cpuid(), cache->size);
 	void *retval = __caching_allocator.alloc(cache);
-	kprintf("ALLOC: #%d cache_alloc return %p (%u bytes)\n", cpuid(), retval, cache->size);
 	spin_unlock_irq_restore(&cache->lock, flags);
 	return retval;
 }
@@ -152,13 +147,10 @@ void *cache_alloc(struct allocator_cache *cache)
 int cache_free(struct allocator_cache *cache, void *obj)
 {
 	unsigned long flags;
-
 	if (cache == NULL)
 		return NULL;
 	spin_lock_irq_save(&cache->lock, flags);
-	kprintf("ALLOC: #%d cache_free request %p (%u bytes)\n", cpuid(), obj, cache->size);
 	int retval = __caching_allocator.free(cache, obj);
-	kprintf("ALLOC: #%d cache_free freed %p (%u bytes) with code %d\n", cpuid(), obj, cache->size, retval);
 	spin_unlock_irq_restore(&cache->lock, flags);
 	return retval;
 }
@@ -166,7 +158,6 @@ int cache_free(struct allocator_cache *cache, void *obj)
 void cache_trim(struct allocator_cache *cache)
 {
 	unsigned long flags;
-
 	if (cache == NULL)
 		return;
 	spin_lock_irq_save(&cache->lock, flags);

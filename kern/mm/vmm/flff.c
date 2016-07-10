@@ -163,7 +163,7 @@ static inline void __free(struct list_head *head, void *obj)
 	size_t last_border = ALIGN_BELOW(end, PAGE_SIZE);
 	if (first_border < last_border) {
 		struct pages pages = {
-			.paddr = (addr_t)first_border,
+			.paddr = (addr_t)kva2pa((void *)first_border),
 			.size = (addr_t)(last_border - first_border),
 			.flags = this->flags
 		};
