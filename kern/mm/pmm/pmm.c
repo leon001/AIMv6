@@ -26,6 +26,7 @@
 
 #include <mm.h>
 #include <pmm.h>
+#include <util.h>
 
 #include <libc/string.h>
 
@@ -45,6 +46,14 @@ void set_page_allocator(struct page_allocator *allocator)
 	memcpy(&__allocator, allocator, sizeof(*allocator));
 }
 
+void pmemset(addr_t paddr, unsigned char b, lsize_t size)
+{
+	assert(IS_ALIGNED(size, PAGE_SIZE));
+	assert(IS_ALIGNED(paddr, PAGE_SIZE));
+	for (; size > 0; size -= PAGE_SIZE, paddr += PAGE_SIZE)
+		memset(pa2kva(paddr), b, PAGE_SIZE);
+}
+
 int alloc_pages(struct pages *pages)
 {
 	int result;
@@ -54,7 +63,7 @@ int alloc_pages(struct pages *pages)
 	recursive_lock_irq_save(&memlock, flags);
 	result = __allocator.alloc(pages);
 	if (pages->flags & GFP_ZERO)
-		memset(pa2kva(pages->paddr), 0, pages->size);
+		pmemset(pages->paddr, 0, pages->size);
 	recursive_unlock_irq_restore(&memlock, flags);
 	return result;
 }
@@ -63,7 +72,7 @@ void free_pages(struct pages *pages)
 {
 	unsigned long flags;
 	if (!(pages->flags & GFP_UNSAFE))
-		memset(pa2kva(pages->paddr), JUNKBYTE, pages->size);
+		pmemset(pages->paddr, JUNKBYTE, pages->size);
 	recursive_lock_irq_save(&memlock, flags);
 	__allocator.free(pages);
 	recursive_unlock_irq_restore(&memlock, flags);

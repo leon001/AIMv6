@@ -95,7 +95,7 @@ init_pgindex(void)
 	if (paddr == -1)
 		return NULL;
 
-	memset(pa2kva(paddr), 0, PAGE_SIZE);
+	pmemset(paddr, 0, PAGE_SIZE);
 
 	return pa2kva(paddr);
 }

@@ -152,7 +152,7 @@ __addpgdir(uint64_t *vpgdir, int index)
 	addr_t paddr = pgalloc();
 	if (paddr == -1)
 		return NULL;
-	memset(pa2kva(paddr), 0, PAGE_SIZE);
+	pmemset(paddr, 0, PAGE_SIZE);
 	vpgdir[index] = (uint64_t)pa2kva(paddr);
 	return pa2kva(paddr);
 }
@@ -278,7 +278,7 @@ init_pgindex(void)
 	if (paddr == -1)
 		return NULL;
 
-	memset(pa2kva(paddr), 0, PAGE_SIZE);
+	pmemset(paddr, 0, PAGE_SIZE);
 
 	return pa2kva(paddr);
 }
