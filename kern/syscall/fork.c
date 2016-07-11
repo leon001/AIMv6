@@ -41,7 +41,7 @@ void forkret(void)
 }
 
 extern void __arch_fork(struct proc *child, struct proc *parent);
-int sys_fork(int sysno, int *errno)
+int sys_fork(struct trapframe *tf, int *errno)
 {
 	struct proc *child;
 	int err;
