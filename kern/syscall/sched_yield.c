@@ -20,7 +20,7 @@
 #include <syscall.h>
 #include <libc/syscalls.h>
 
-int sys_sched_yield(int sysno, int *errno)
+int sys_sched_yield(struct trapframe *tf, int *errno)
 {
 	schedule();
 	*errno = 0;
