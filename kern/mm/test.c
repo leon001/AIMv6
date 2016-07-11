@@ -50,7 +50,10 @@ mm_test(void)
 	mm = mm_new();
 	kprintf("pgindex: %p\n", mm->pgindex);
 	assert(create_uvm(mm, (void *)test_addr, 1 * PAGE_SIZE, VMA_READ | VMA_WRITE) == 0);
+	assert(fill_uvm(mm, (void *)test_addr, 0x40, 1 * PAGE_SIZE) == 0);
 	switch_pgindex(mm->pgindex);
+	for (i = 0; i < PAGE_SIZE; i += sizeof(unsigned int))
+		assert(*(unsigned int *)(test_addr + i) == 0x40404040);
 	for (i = 0; i < PAGE_SIZE; i += sizeof(unsigned int))
 		*(unsigned int *)(test_addr + i) = 0xdeadbeef;
 	new_mm = mm_new();
