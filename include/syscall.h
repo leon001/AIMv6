@@ -28,10 +28,10 @@
  * the system call number before its won arguments.
  *
  * E.g.
- *     fork(void) -> sys_fork(int sysno, int *errno)
- *     exit(int code) -> sys_exit(int sysno, int *errno, int code)
+ *     fork(void) -> sys_fork(struct trapframe *tf, int *errno)
+ *     exit(int code) -> sys_exit(struct trapframe *tf, int *errno, int code)
  */
-typedef unsigned long long (*syscall_t)(int sysno, int *errno, ...);
+typedef unsigned long long (*syscall_t)(struct trapframe *tf, int *errno, ...);
 
 /*
  * Arch-independent
