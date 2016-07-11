@@ -58,6 +58,8 @@ int alloc_pages(struct pages *pages)
 		return EOF;
 	recursive_lock_irq_save(&memlock, flags);
 	result = __allocator.alloc(pages);
+	if (pages->flags & GFP_ZERO)
+		memset(pa2kva(pages->paddr), 0, pages->size);
 	recursive_unlock_irq_restore(&memlock, flags);
 	return result;
 }

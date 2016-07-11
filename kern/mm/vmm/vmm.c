@@ -21,6 +21,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
+#include <sys/param.h>
 #include <aim/sync.h>
 
 #include <vmm.h>
@@ -53,6 +54,8 @@ void *kmalloc(size_t size, gfp_t flags)
 	recursive_lock_irq_save(&memlock, intr_flags);
 	result = __simple_allocator.alloc(size, flags);
 	recursive_unlock_irq_restore(&memlock, intr_flags);
+	if (flags & GFP_ZERO)
+		memset(result, 0, size);
 	return result;
 }
 
@@ -61,6 +64,7 @@ void kfree(void *obj)
 	unsigned long flags;
 	if (obj != NULL) {
 		recursive_lock_irq_save(&memlock, flags);
+		/* Junk filling is in flff.c since we need the gfp flags */
 		__simple_allocator.free(obj);
 		recursive_unlock_irq_restore(&memlock, flags);
 	}
@@ -140,6 +144,8 @@ void *cache_alloc(struct allocator_cache *cache)
 	spin_lock_irq_save(&cache->lock, flags);
 	void *retval = __caching_allocator.alloc(cache);
 	spin_unlock_irq_restore(&cache->lock, flags);
+	if (cache->flags & GFP_ZERO)
+		memset(retval, 0, cache->size);
 	return retval;
 }
 
@@ -148,6 +154,8 @@ int cache_free(struct allocator_cache *cache, void *obj)
 	unsigned long flags;
 	if (cache == NULL)
 		return EOF;
+	if (!(cache->flags & GFP_UNSAFE))
+		memset(obj, JUNKBYTE, cache->size);
 	spin_lock_irq_save(&cache->lock, flags);
 	int retval = __caching_allocator.free(cache, obj);
 	spin_unlock_irq_restore(&cache->lock, flags);
