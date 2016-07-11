@@ -80,6 +80,8 @@ typedef void *uintptr_t;
  */
 typedef unsigned long long addr_t;
 typedef signed long long saddr_t;
+typedef unsigned long long lsize_t;
+typedef signed long long slsize_t;
 
 /*
  * Define types used within the system.

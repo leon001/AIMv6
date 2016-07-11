@@ -42,7 +42,6 @@ static struct simple_allocator __simple_allocator = {
 	.free	= __simple_free,
 	.size	= __simple_size
 };
-static lock_t __kmalloc_lock = EMPTY_LOCK(__kmalloc_lock);
 
 void *kmalloc(size_t size, gfp_t flags)
 {
