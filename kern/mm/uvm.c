@@ -90,7 +90,7 @@ mm_destroy(struct mm *mm)
 {
 	struct vma *vma, *vma_next;
 
-	if (mm == NULL)
+	if (mm == NULL || mm == kernel_mm)	/* ignore kernel mm */
 		return;
 
 	for_each_entry_safe (vma, vma_next, &(mm->vma_head), node) {
@@ -436,12 +436,15 @@ finalize:
 }
 
 /*
+ * A very dirty wrapper for common code of copy_to_uvm(), copy_from_uvm() and
+ * fill_uvm().
  * NOTE:
  * The following implementation of copy_to_uvm() and copy_from_uvm() does NOT
  * support page faults.
  */
 static int
-__copy_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len, bool touser)
+__copy_fill_uvm(struct mm *mm, void *uvaddr, void *kvaddr, unsigned char c,
+    size_t len, bool fill, bool touser)
 {
 	struct vma *vma;
 	size_t l;
@@ -469,7 +472,9 @@ __copy_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len, bool touser)
 		l = min2(PTR_ALIGN_NEXT(start, PAGE_SIZE), end) - start;
 		if (kuvaddr == NULL)
 			return -EACCES;
-		if (!touser)
+		if (fill)
+			memset(kuvaddr, c, l);
+		else if (!touser)
 			memmove(kvaddr, kuvaddr, l);
 		else
 			memmove(kuvaddr, kvaddr, l);
@@ -479,16 +484,19 @@ __copy_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len, bool touser)
 	return 0;
 }
 
-int
-copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len)
+int copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len)
 {
-	return __copy_uvm(mm, uvaddr, kvaddr, len, true);
+	return __copy_fill_uvm(mm, uvaddr, kvaddr, 0, len, false, true);
 }
 
-int
-copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len)
+int copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len)
 {
-	return __copy_uvm(mm, uvaddr, kvaddr, len, false);
+	return __copy_fill_uvm(mm, uvaddr, kvaddr, 0, len, false, false);
+}
+
+int fill_uvm(struct mm *mm, void *uvaddr, unsigned char c, size_t len)
+{
+	return __copy_fill_uvm(mm, uvaddr, NULL, c, len, true, true);
 }
 
 void mm_init(void)
