@@ -35,4 +35,6 @@ int VFS_VGET(struct mount *mp, ino_t ino, struct vnode **vpp);
 void registerfs(const char *name, struct vfsops *ops);
 struct vfsconf *findvfsconf(const char *name);
 
+void fsinit(void);
+
 #endif

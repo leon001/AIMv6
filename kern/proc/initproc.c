@@ -24,6 +24,7 @@
 #include <sched.h>
 #include <panic.h>
 #include <libc/unistd.h>
+#include <fs/vfs.h>	/* fsinit() */
 
 static struct proc *initproc;
 

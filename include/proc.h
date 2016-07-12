@@ -102,7 +102,7 @@ void proc_destroy(struct proc *proc);
 void proc_init(void);
 /* Setup per-CPU idle process */
 void idle_init(void);
-void initproc_init(void);
+void spawn_initproc(void);
 pid_t pid_new(pid_t kpid, struct namespace *ns);
 void pid_recycle(pid_t pid, struct namespace *ns);
 void proc_test(void);		/* temporary */
