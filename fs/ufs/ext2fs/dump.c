@@ -2,7 +2,7 @@
 #include <fs/vnode.h>
 #include <fs/ufs/ext2fs/ext2fs.h>
 #include <fs/bio.h>
-#include <console.h>
+#include <aim/console.h>
 #include <bitmap.h>
 
 /* temporary, will be removed in release */

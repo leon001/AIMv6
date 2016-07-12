@@ -21,7 +21,7 @@
 #include <percpu.h>
 #include <proc.h>
 #include <mp.h>
-#include <console.h>
+#include <aim/console.h>
 
 int sys_getpid(struct trapframe *tf, int *errno)
 {

@@ -27,10 +27,10 @@
 #include <util.h>
 #include <io.h>
 #include <mm.h>
-#include <console.h>
+#include <aim/console.h>
 #include <platform.h>
 #include <aim/device.h>
-#include <console.h>
+#include <aim/console.h>
 #include <drivers/io/io-mem.h>
 #include <drivers/io/io-port.h>
 

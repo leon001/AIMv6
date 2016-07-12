@@ -26,7 +26,7 @@
 #include <mm.h>
 #include <vmm.h>
 #include <pmm.h>
-#include <console.h>
+#include <aim/console.h>
 #include <list.h>
 #include <util.h>
 #include <bitops.h>

@@ -25,7 +25,7 @@
 #include <uart-msim.h>
 
 #include <io.h>
-#include <console.h>
+#include <aim/console.h>
 #include <aim/device.h>
 #include <drivers/io/io-mem.h>
 #include <mm.h>

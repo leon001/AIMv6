@@ -25,7 +25,7 @@
 #include <aim/initcalls.h>
 #include <aim/sync.h>
 #include <vmm.h>
-#include <console.h>
+#include <aim/console.h>
 
 #include <libc/string.h>
 #include <list.h>

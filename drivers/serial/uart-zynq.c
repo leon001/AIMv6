@@ -28,7 +28,7 @@
 #include <aim/device.h>
 #include <aim/initcalls.h>
 #include <aim/early_kmmap.h>
-#include <console.h>
+#include <aim/console.h>
 #include <mm.h>
 #include <panic.h>
 

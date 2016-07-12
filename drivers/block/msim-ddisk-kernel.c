@@ -57,11 +57,9 @@ static int __open(dev_t dev, int mode, struct proc *p)
 	/* Create a device for whole hard disk if the device structure does
 	 * not exist. */
 	if (hd == NULL) {
-		hd = kmalloc(sizeof(*hd), 0);
+		hd = kmalloc(sizeof(*hd), GFP_ZERO);
 		if (hd == NULL)
 			return -ENOMEM;
-
-		memset(hd, 0, sizeof(*hd));
 		strlcpy(hd->name, "Md", DEV_NAME_MAX);
 		hd->devno = hdbasedev(dev);
 		/*

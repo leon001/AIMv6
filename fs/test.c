@@ -131,7 +131,7 @@ fs_test(void)
 	nd.flags = 0;
 	assert(namei(&nd, current_proc) == 0);
 	assert(VTOI(nd.vp)->ino == 27988);
-	struct pages p = { .size = ALIGN_ABOVE(10000, PAGE_SIZE), .flags = 0 };
+	struct pages p = { .size = ALIGN_ABOVE(10010, PAGE_SIZE), .flags = 0 };
 	alloc_pages(&p);
 	buf = pa2kva(p.paddr);
 	memset(buf, 0, 10010);

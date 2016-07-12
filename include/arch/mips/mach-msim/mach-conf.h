@@ -19,6 +19,9 @@
 #ifndef _MACH_CONF_H
 #define _MACH_CONF_H
 
-#define MSIM_DISK_MAJOR	1
+#define MSIM_DISK_MAJOR		1
+#define MSIM_LP_MAJOR		2
+#define MSIM_KBD_MAJOR		3
+#define MSIM_CONSOLE_MAJOR	8
 
 #endif

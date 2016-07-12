@@ -23,7 +23,7 @@
 #include <config.h>
 #endif
 
-#include <console.h>
+#include <aim/console.h>
 
 /*
  * Internal arch-independent code for panicking current processor.

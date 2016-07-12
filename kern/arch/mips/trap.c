@@ -26,7 +26,7 @@
 #include <mipsregs.h>
 #include <cp0regdef.h>
 #include <trap.h>
-#include <console.h>
+#include <aim/console.h>
 #include <arch-trap.h>
 #include <syscall.h>
 #include <decode.h>

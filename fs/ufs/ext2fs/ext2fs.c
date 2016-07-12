@@ -28,7 +28,7 @@ struct vops ext2fs_vops = {
  */
 struct vops ext2fs_specvops = {
 	.open = spec_open,
-	.close = spec_close,	/* TODO: clean inode etc in a wrapper */
+	.close = spec_close,	/* shall we clean inode etc? */
 	.inactive = ext2fs_inactive,
 	.reclaim = ext2fs_reclaim,
 	.strategy = spec_strategy,
