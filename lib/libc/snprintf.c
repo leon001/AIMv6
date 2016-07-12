@@ -102,6 +102,7 @@ fmt_loop:		switch (*fmt) {
 				 * 64 bit */
 				base = 16;
 				flag |= FLAG_ZEROPAD;
+				longflag = 1;
 #ifdef __LP64__	/* 64 bit */
 				width = 16;
 #else	/* 32 bit */

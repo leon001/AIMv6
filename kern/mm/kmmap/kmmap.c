@@ -71,7 +71,7 @@ void set_kmmap_keeper(struct kmmap_keeper *keeper)
 }
 
 /* Subsystem lock */
-static lock_t lock = UNLOCKED;
+static lock_t lock = EMPTY_LOCK(lock);
 
 /* Interfaces */
 void kmmap_init(void)

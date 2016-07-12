@@ -95,6 +95,7 @@ AIM_SUPPORT_MACH([msim loongson3a zynq pc generic unknown])
 AIM_ARG_ENABLE_FEATURE([debug-output], [DEBUG_OUTPUT], [debug output on kernel console], [yes])
 AIM_ARG_ENABLE_FEATURE([test-framework], [TEST_FRAMEWORK], [in-kernel test framework], [yes])
 
+# TODO: Loongson 3A needs to change kstacksize or it will crash (because of 16K pages)
 AS_VAR_SET([with_kstacksize], [4096])
 
 AS_CASE([$ARCH],
@@ -206,7 +207,7 @@ AIM_ARG_WITH([highram-size], [HIGHRAM_SIZE],
 # Loongson 3A
 AIM_ARG_ENABLE_FEATURE([loongson3a-ram-detection], [LOONGSON3A_RAM_DETECTION],
 	[RAM space detection on Loongson 3A port (EXPERIMENTAL)])
-AIM_ARG_ENABLE([pagesize-16k], [PAGESIZE_16K],
+AIM_ARG_ENABLE_FEATURE([pagesize-16k], [PAGESIZE_16K],
 	[16K pages (for Loongson 3A)])
 
 # target details
@@ -267,7 +268,7 @@ AIM_ARG_ENABLE([sd-zynq], [SD_ZYNQ], [zynq SD driver])
 AIM_ARG_ENABLE([timer-a9], [TIMER_A9], [Cortex-A9 MPCore timer driver])
 
 # Debug
-AIM_ARG_ENABLE([debug], [DEBUG], [Debugging (kpdebug)])
+AIM_ARG_ENABLE_FEATURE([debug], [DEBUG], [Debugging (kpdebug)])
 
 AM_CONDITIONAL([IO_MEM], [test x$enable_io_mem = xyes])
 AM_CONDITIONAL([IO_PORT], [test x$enable_io_port = xyes])

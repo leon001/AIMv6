@@ -43,7 +43,6 @@ noinst_HEADERS = \
 	arch/mips/asm.h \
 	arch/mips/cp0regdef.h \
 	arch/mips/io.h \
-	arch/mips/irq.h \
 	arch/mips/mipsregs.h \
 	arch/mips/regdef.h \
 	arch/mips/smp.h \

@@ -21,6 +21,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
+#include <sys/param.h>
 #include <aim/sync.h>
 
 #include <vmm.h>
@@ -33,7 +34,6 @@
 static void *__simple_alloc(size_t size, gfp_t flags) { return NULL; }
 static void __simple_free(void *obj) {}
 static size_t __simple_size(void *obj) { return 0; }
-static lock_t __kmalloc_lock = EMPTY_LOCK(__kmalloc_lock);
 
 static struct simple_allocator __simple_allocator = {
 	.alloc	= __simple_alloc,
@@ -48,9 +48,11 @@ void *kmalloc(size_t size, gfp_t flags)
 
 	if (size > PAGE_SIZE / 2)
 		panic("kmalloc: size %lu too large\n", size);
-	spin_lock_irq_save(&__kmalloc_lock, intr_flags);
+	recursive_lock_irq_save(&memlock, intr_flags);
 	result = __simple_allocator.alloc(size, flags);
-	spin_unlock_irq_restore(&__kmalloc_lock, intr_flags);
+	recursive_unlock_irq_restore(&memlock, intr_flags);
+	if (flags & GFP_ZERO)
+		memset(result, 0, size);
 	return result;
 }
 
@@ -58,9 +60,10 @@ void kfree(void *obj)
 {
 	unsigned long flags;
 	if (obj != NULL) {
-		spin_lock_irq_save(&__kmalloc_lock, flags);
+		recursive_lock_irq_save(&memlock, flags);
+		/* Junk filling is in flff.c since we need the gfp flags */
 		__simple_allocator.free(obj);
-		spin_unlock_irq_restore(&__kmalloc_lock, flags);
+		recursive_unlock_irq_restore(&memlock, flags);
 	}
 }
 
@@ -135,6 +138,8 @@ void *cache_alloc(struct allocator_cache *cache)
 	spin_lock_irq_save(&cache->lock, flags);
 	void *retval = __caching_allocator.alloc(cache);
 	spin_unlock_irq_restore(&cache->lock, flags);
+	if (cache->flags & GFP_ZERO)
+		memset(retval, 0, cache->size);
 	return retval;
 }
 
@@ -143,6 +148,8 @@ int cache_free(struct allocator_cache *cache, void *obj)
 	unsigned long flags;
 	if (cache == NULL)
 		return EOF;
+	if (!(cache->flags & GFP_UNSAFE))
+		memset(obj, JUNKBYTE, cache->size);
 	spin_lock_irq_save(&cache->lock, flags);
 	int retval = __caching_allocator.free(cache, obj);
 	spin_unlock_irq_restore(&cache->lock, flags);

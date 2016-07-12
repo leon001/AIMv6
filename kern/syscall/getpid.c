@@ -23,7 +23,7 @@
 #include <mp.h>
 #include <console.h>
 
-int sys_getpid(int sysno, int *errno)
+int sys_getpid(struct trapframe *tf, int *errno)
 {
 	/* TODO: a quick test to enable printing from user space. */
 	kprintf("PID %d CPU %d\n", current_proc->pid, cpuid());

@@ -30,7 +30,7 @@
 
 struct pages {
 	addr_t paddr;
-	addr_t size;
+	lsize_t size;
 	gfp_t flags;
 };
 
@@ -39,6 +39,8 @@ struct page_allocator {
 	void (*free)(struct pages *pages);
 	addr_t (*get_free)(void);
 };
+
+struct simple_allocator;	/* FIXME ??? */
 
 int page_allocator_init(void);
 int page_allocator_move(struct simple_allocator *old);
@@ -74,6 +76,12 @@ static inline void pgfree(addr_t paddr)
 	p.flags = 0;
 	free_pages(&p);
 }
+
+/*
+ * To comply with kmmap() in future, call this function in case of filling
+ * contiguous physical pages.
+ */
+void pmemset(addr_t paddr, unsigned char b, lsize_t size);
 
 
 /* initialize the page-block structure for remaining free memory */

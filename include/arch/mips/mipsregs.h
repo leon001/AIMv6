@@ -13,7 +13,7 @@
 #define _ASM_MIPSREGS_H
 
 #include <cp0regdef.h>
-#include <irq.h>
+#include <aim/irq.h>
 
 #define _ZERO	0
 #define _AT	1
