@@ -69,10 +69,7 @@ struct proc {
 	 */
 	struct regs	context;	/* Context before switch */
 	size_t		heapsize;	/* Expandable heap size */
-
-	/* TODO: do we need these? */
-	uintptr_t	ustacktop;	/* User stack top */
-	uintptr_t	progtop; /* Top of all segments (page-aligned) */
+	void		*heapbase;	/* Expandable heap base */
 
 	char		name[PROC_NAME_LEN_MAX];
 

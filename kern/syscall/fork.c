@@ -24,6 +24,7 @@
 #include <libc/string.h>
 #include <libc/syscalls.h>
 #include <syscall.h>
+#include <fs/vnode.h>
 #include <mp.h>
 
 void forkret(void)
@@ -73,6 +74,16 @@ int sys_fork(struct trapframe *tf, int *errno)
 	strlcpy(child->name, current_proc->name, PROC_NAME_LEN_MAX);
 
 	/* TODO: duplicate more necessary stuff */
+	child->heapsize = current_proc->heapsize;
+	child->heapbase = current_proc->heapbase;
+	child->cwd = current_proc->cwd;
+	child->rootd = current_proc->rootd;
+	memcpy(child->fd, current_proc->fd, sizeof(child->fd));
+	/* increase file vnode ref counts but do not lock them */
+	for (int i = 0; i < OPEN_MAX; ++i) {
+		if (child->fd[i] != NULL)
+			vref(child->fd[i]);
+	}
 
 	pid = child->pid;
 	child->state = PS_RUNNABLE;

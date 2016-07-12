@@ -58,6 +58,7 @@
 #include <util.h>
 #include <smp.h>
 #include <tlb.h>
+#include <aim/sync.h>
 
 #ifndef __LP64__	/* 32 bit */
 
@@ -425,8 +426,13 @@ set_pages_perm(pgindex_t *pgindex, void *addr, size_t len, uint32_t flags)
 int
 switch_pgindex(pgindex_t *pgindex)
 {
+	unsigned long flags;
+
+	local_irq_save(flags);
 	current_pgdir = pgindex;
 	tlb_flush();
+	local_irq_restore(flags);
+
 	return 0;
 }
 

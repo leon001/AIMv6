@@ -234,16 +234,24 @@ AIM_ARG_WITH([mips-pgdir-slot-base], [MIPS_PGDIR_SLOT_BASE],
 	[base virtual address for array storing per CPU page directories])
 
 # Kernel hyperparameters
-AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0xffffffff80000000])
+# TODO: for addresses, make two default configurations for 32-bit and 64-bit
+# respectively.
+AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0x80000000])
 AC_SUBST([KERN_BASE], [$with_kern_base])
 
 AIM_ARG_WITH([kmmap-base], [KMMAP_BASE], [start of kernel dynamic mapping],
-	[0xfffffffff0000000])
+	[0xf0000000])
 AC_SUBST([KMMAP_BASE], [$with_kmmap_base])
 
 AIM_ARG_WITH([reserved-base], [RESERVED_BASE], [start of reserved high address],
-	[0xfffffffffffff000])
+	[0xfffff000])
 AC_SUBST([RESERVED_BASE], [$with_reserved_base])
+
+AIM_ARG_WITH([usertop], [USERTOP],
+	[top of user program address space], [0x7ff00000])
+
+AIM_ARG_WITH([ustacksize], [USTACKSIZE],
+	[size of user stack], [32768])
 
 AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
 	[size of kernel stack], [4096])
@@ -472,6 +480,8 @@ Kernel
   KERN_BASE:	${with_kern_base}
   KMMAP_BASE:	${with_kmmap_base}
   RESERVED:	${with_reserved_base}
+  USERTOP:	${with_usertop}
+  USTACKSIZE:	${with_ustacksize}
   Timer freq:	${with_timer_freq}
 
 Algorithms

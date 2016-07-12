@@ -135,6 +135,9 @@ __find_continuous_vma(struct mm *mm, void *addr, size_t len)
 	struct vma *vma, *vma_start;
 	size_t i = 0;
 
+	assert(PTR_IS_ALIGNED(addr, PAGE_SIZE));
+	assert(IS_ALIGNED(len, PAGE_SIZE));
+
 	/* find the vma */
 	for_each_entry (vma, &(mm->vma_head), node) {
 		if (vma->start == addr)
@@ -230,6 +233,9 @@ create_uvm(struct mm *mm, void *addr, size_t len, uint32_t flags)
 	    mm == NULL ||
 	    !PTR_IS_ALIGNED(addr, PAGE_SIZE))
 		return -EINVAL;
+
+	if (len == 0)
+		return 0;
 
 	spin_lock(&(mm->lock));
 
@@ -443,55 +449,54 @@ finalize:
  * support page faults.
  */
 static int
-__copy_fill_uvm(struct mm *mm, void *uvaddr, void *kvaddr, unsigned char c,
+__copy_fill_uvm(struct mm *mm, void *uvaddr, void *vaddr, unsigned char c,
     size_t len, bool fill, bool touser)
 {
 	struct vma *vma;
 	size_t l;
 	void *start = uvaddr, *end = uvaddr + len, *kuvaddr;
+	void *start_page = PTR_ALIGN_BELOW(uvaddr, PAGE_SIZE);
+	void *end_page = PTR_ALIGN_ABOVE(uvaddr + len, PAGE_SIZE);
 
 	if (!is_user(uvaddr) || !is_user(uvaddr + len - 1))
 		return -EFAULT;
 
-	vma = __find_continuous_vma(mm, uvaddr, len);
-	if (vma == NULL)
+	spin_lock(&mm->lock);
+	vma = __find_continuous_vma(mm, start_page, end_page - start_page);
+	if (vma == NULL) {
+		spin_unlock(&mm->lock);
 		return -EFAULT;
-
-	if (mm == current_proc->mm) {
-		/* We can exploit the loaded page table to do the copy. */
-		if (!touser)
-			memmove(kvaddr, uvaddr, len);
-		else
-			memmove(uvaddr, kvaddr, len);
-		return 0;
 	}
 
 	/* rare case */
 	for (; start < end; start = PTR_ALIGN_NEXT(start, PAGE_SIZE)) {
 		kuvaddr = uva2kva(mm->pgindex, start);
 		l = min2(PTR_ALIGN_NEXT(start, PAGE_SIZE), end) - start;
-		if (kuvaddr == NULL)
+		if (kuvaddr == NULL) {
+			spin_unlock(&mm->lock);
 			return -EACCES;
+		}
 		if (fill)
 			memset(kuvaddr, c, l);
 		else if (!touser)
-			memmove(kvaddr, kuvaddr, l);
+			memmove(vaddr, kuvaddr, l);
 		else
-			memmove(kuvaddr, kvaddr, l);
-		kvaddr += l;
+			memmove(kuvaddr, vaddr, l);
+		vaddr += l;
 	}
 
+	spin_unlock(&mm->lock);
 	return 0;
 }
 
-int copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len)
+int copy_to_uvm(struct mm *mm, void *uvaddr, void *vaddr, size_t len)
 {
-	return __copy_fill_uvm(mm, uvaddr, kvaddr, 0, len, false, true);
+	return __copy_fill_uvm(mm, uvaddr, vaddr, 0, len, false, true);
 }
 
-int copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len)
+int copy_from_uvm(struct mm *mm, void *uvaddr, void *vaddr, size_t len)
 {
-	return __copy_fill_uvm(mm, uvaddr, kvaddr, 0, len, false, false);
+	return __copy_fill_uvm(mm, uvaddr, vaddr, 0, len, false, false);
 }
 
 int fill_uvm(struct mm *mm, void *uvaddr, unsigned char c, size_t len)

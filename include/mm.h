@@ -153,10 +153,11 @@ int set_uvm_perm(struct mm *mm, void *addr, size_t len, uint32_t flags);
  * Architecture-independent interfaces
  * Address need not be page-aligned.
  */
-/* Copy from kernel address @kvaddr to user space at @uvaddr */
-int copy_to_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
+/* Copy from address @vaddr in current memory mapping (including kernel's) to
+ * user space at @uvaddr */
+int copy_to_uvm(struct mm *mm, void *uvaddr, void *vaddr, size_t len);
 /* Does the reverse */
-int copy_from_uvm(struct mm *mm, void *uvaddr, void *kvaddr, size_t len);
+int copy_from_uvm(struct mm *mm, void *uvaddr, void *vaddr, size_t len);
 /* Fill a user space memory region with given byte */
 int fill_uvm(struct mm *mm, void *uvaddr, unsigned char c, size_t len);
 

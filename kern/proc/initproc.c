@@ -27,6 +27,15 @@
 
 static struct proc *initproc;
 
+char *initargv[] = {
+	"/sbin/init",
+	NULL
+};
+
+char *initenvp[] = {
+	NULL
+};
+
 void initproc_entry(void)
 {
 	/*
@@ -41,7 +50,7 @@ void initproc_entry(void)
 	fsinit();
 	kpdebug("FS initialized\n");
 
-	execve("/sbin/init", NULL, NULL);
+	execve("/sbin/init", initargv, initenvp);
 
 	for (;;)
 		/* nothing */;
