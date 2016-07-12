@@ -231,6 +231,7 @@ static int __strategy(struct buf *bp)
 }
 
 static struct blk_driver drv = {
+	.type = DRV_BLK,
 	.open = __open,
 	.close = __close,
 	.strategy = __strategy

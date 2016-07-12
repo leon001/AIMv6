@@ -115,12 +115,13 @@ spec_strategy(struct buf *bp)
 
 	drv = devsw[major(bp->devno)];
 	assert(drv != NULL);
+	assert(drv->type == DRV_BLK);
 	if (bp->blkno == BLKNO_INVALID) {
 		assert(bp->vnode->type == VCHR || bp->vnode->type == VBLK);
 		bp->blkno = bp->lblkno;
 	}
 
-	return (drv->strategy)(bp);
+	return (((struct blk_driver *)drv)->strategy)(bp);
 }
 
 struct specinfo *

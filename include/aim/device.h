@@ -27,21 +27,26 @@
 struct bus_device;
 struct proc;	/* include/proc.h */
 struct buf;	/* include/buf.h */
+struct uio;	/* fs/uio.h */
 
 /* Drivers */
 struct driver {
 	int type;
+#define DRV_CHR		1
+#define DRV_BLK		2
 	int (*open)(dev_t dev, int oflags, struct proc *p);
 	int (*close)(dev_t dev, int oflags, struct proc *p);
-	int (*strategy)(struct buf *bp);
 };
 
 struct chr_driver {
 	struct driver;
+	int (*read)(dev_t dev, struct uio *uio, int ioflags);
+	int (*write)(dev_t dev, struct uio *uio, int ioflags);
 };
 
 struct blk_driver {
 	struct driver;
+	int (*strategy)(struct buf *bp);
 };
 
 struct net_driver {
