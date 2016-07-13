@@ -401,6 +401,7 @@ AC_CONFIG_FILES([
 	drivers/sd/Makefile
 	drivers/serial/Makefile
 	drivers/timer/Makefile
+	drivers/tty/Makefile
 	firmware/Makefile
 	firmware/arch/Makefile
 	firmware/arch/armv7a/Makefile

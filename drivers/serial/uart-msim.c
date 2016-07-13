@@ -45,7 +45,10 @@ static struct chr_device __early_uart_msim_kbd = {
 	.base = MSIM_KBD_PHYSADDR
 };
 
-/* uart-msim is a combined device, so there's two base address */
+/*
+ * uart-msim is a combined device, so there's two base address
+ * @lp and @kbd can be NULL.
+ */
 static void __uart_msim_init(struct chr_device *lp, struct chr_device *kbd)
 {
 }
@@ -135,6 +138,8 @@ int early_console_init(void)
 
 	return 0;
 }
+
+#include <uart-msim-kernel.c>
 
 #endif /* RAW */
 

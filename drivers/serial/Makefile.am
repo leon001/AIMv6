@@ -33,7 +33,7 @@ endif
 if UART_MSIM
 MODULE_SRCS += uart-msim.c uart-msim.h
 noinst_DATA += uart-msim.o
-uart-msim.o: uart-msim.c uart-msim.h 
+uart-msim.o: uart-msim.c uart-msim.h uart-msim-kernel.c
 endif
 
 if UART_NS16550

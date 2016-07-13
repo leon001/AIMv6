@@ -16,12 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MACH_CONF_H
-#define _MACH_CONF_H
+#ifndef _DRIVERS_TTY_TTY_H
+#define _DRIVERS_TTY_TTY_H
 
-#define TTY_MAJOR		0
-#define MSIM_DISK_MAJOR		1
-#define MSIM_LP_MAJOR		2
-#define MSIM_KBD_MAJOR		3
+#include <aim/device.h>
+#include <proc.h>
+
+struct tty_device {
+	struct chr_device;
+
+	struct chr_device *indev;
+	struct chr_device *outdev;
+
+	struct proc *fg;	/* Leader of foreground process group */
+	struct proc *session;	/* Leader of associated session */
+};
 
 #endif
+

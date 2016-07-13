@@ -17,10 +17,8 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libmsim.la libmsimintr.la
-noinst_DATA = timer.o tty.o
+noinst_LTLIBRARIES = libtty.la
+noinst_DATA = tty.o
 
-libmsim_la_SOURCES = memory.c smp.c mach-init.c
-
-libmsimintr_la_SOURCES = interrupt.c
+libtty_la_SOURCES = default.c
 

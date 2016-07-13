@@ -25,6 +25,12 @@
 #include <panic.h>
 #include <libc/unistd.h>
 #include <fs/vfs.h>	/* fsinit() */
+#include <fs/namei.h>
+#include <fs/VOP.h>
+#include <fs/vnode.h>
+#include <percpu.h>
+#include <fcntl.h>
+#include <ucred.h>
 
 static struct proc *initproc;
 
@@ -36,6 +42,24 @@ char *initargv[] = {
 char *initenvp[] = {
 	NULL
 };
+
+static void ttyinit(void)
+{
+	struct nameidata nd;
+
+	nd.path = "/dev/tty";
+	nd.intent = NAMEI_LOOKUP;
+	nd.flags = NAMEI_FOLLOW;
+	if (namei(&nd, current_proc) != 0)
+		panic("/dev/tty: not found\n");
+	if (nd.vp->type != VCHR)
+		panic("/dev/tty: bad file type\n");
+	assert(VOP_OPEN(nd.vp, FREAD | FWRITE, NOCRED, current_proc) == 0);
+
+	/* Set up initproc stdin, stdout, stderr */
+	current_proc->fstdin.vnode = current_proc->fstdout.vnode =
+	    current_proc->fstderr.vnode = nd.vp;
+}
 
 void initproc_entry(void)
 {
@@ -50,6 +74,11 @@ void initproc_entry(void)
 	 */
 	fsinit();
 	kpdebug("FS initialized\n");
+	ttyinit();
+	kpdebug("TTY initialized\n");
+
+	current_proc->cwd = rootvnode;
+	current_proc->rootd = rootvnode;
 
 	execve("/sbin/init", initargv, initenvp);
 
@@ -62,6 +91,9 @@ void spawn_initproc(void)
 	initproc = proc_new(NULL);
 	proc_ksetup(initproc, initproc_entry, NULL);
 	initproc->state = PS_RUNNABLE;
+	initproc->groupleader = initproc;
+	initproc->sessionleader = initproc;
+	initproc->mainthread = initproc;
 	proc_add(initproc);
 }
 

@@ -20,20 +20,23 @@
 #define _FILE_H
 
 #include <sys/types.h>
+#include <fs/vnode.h>
 
-/* FIXME */
-typedef signed long loff_t;
-
-struct inode {
-	/* TODO */
-	int dummy;
-};
-
+/*
+ * This is the "file" structure used by processes, and serves as the
+ * highest-level object where syscalls like read(2) and write(2) takes place.
+ */
 struct file {
-	loff_t pos;
-	struct inode * inode;
-	struct file_ops * file_ops;
+	struct vnode	*vnode;
+	soff_t		offset;
 };
+
+#if 0
+
+/*
+ * NOTE:
+ * The actual file and file system operations are inside fs/ directory.
+ */
 
 /* All devices are files, all files accept file_ops */
 struct file_ops {
@@ -61,6 +64,8 @@ struct blk_ops {
 	ssize_t (*readblk)(struct file *, char *, size_t, loff_t *);
 	ssize_t (*writeblk)(struct file *, const char *, size_t, loff_t *);
 };
+
+#endif
 
 #endif /* _FILE_H */
 

@@ -16,12 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MACH_CONF_H
-#define _MACH_CONF_H
+#include <aim/device.h>
+#include <drivers/tty/tty.h>
+#include <proc.h>
 
-#define TTY_MAJOR		0
-#define MSIM_DISK_MAJOR		1
-#define MSIM_LP_MAJOR		2
-#define MSIM_KBD_MAJOR		3
+/*
+ * The routine which specify the default terminal composition, i.e. what's
+ * the input device, what's the output device, etc.
+ */
+extern int __mach_setup_default_tty(struct tty_device *, int, struct proc *);
+int setup_default_tty(struct tty_device *tty, int mode, struct proc *p)
+{
+	/* Currently we are hardwiring */
+	return __mach_setup_default_tty(tty, mode, p);
+}
 
-#endif

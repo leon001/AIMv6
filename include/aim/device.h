@@ -136,6 +136,7 @@ int dev_add(struct device *dev);
 int dev_remove(struct device *dev);
 struct device *dev_from_id(dev_t devno);
 struct device *dev_from_name(char *name);
+void initdev(struct device *dev, const char *devname, dev_t devno);
 
 #endif /* _DEVICE_H */
 

@@ -32,4 +32,3 @@ libext2fs_la_SOURCES = \
 		       ext2fs.h \
 		       dinode.h \
 		       dir.h
-

@@ -49,7 +49,7 @@ spec_open(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
 		/* TODO, currently fallthru */
 	case VBLK:
 		drv = devsw[major(vdev(vp))];
-		return (drv->open)(vdev(vp), mode, p);
+		return (drv->open)(vdev(vp), 0, p);
 	default:
 		return -ENODEV;
 	}
@@ -66,8 +66,11 @@ spec_close(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
         kpdebug("closing spec vnode %p, lock: %d\n", vp, lock);
 	switch (vp->type) {
 	case VCHR:
-		panic("spec_close: VCHR NYI\n");
-		break;
+		if (vp->refs > 1 && !lock)
+			return 0;
+		drv = devsw[major(vdev(vp))];
+		err = (drv->close)(vdev(vp), 0, p);
+		return err;
 	case VBLK:
 		/* Invalidate all buffers, which requires that the vnode is
 		 * locked. */
@@ -87,7 +90,7 @@ spec_close(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
 			return 0;
 		}
 		drv = devsw[major(vdev(vp))];
-		err = (drv->close)(vdev(vp), mode, p);
+		err = (drv->close)(vdev(vp), 0, p);
 		if (!lock)
 			vunlock(vp);
 		return err;
@@ -185,6 +188,13 @@ int
 bdevvp(dev_t devno, struct vnode **vpp)
 {
 	return getdevvp(devno, vpp, VBLK);
+}
+
+/* Get or create a block device vnode */
+int
+cdevvp(dev_t devno, struct vnode **vpp)
+{
+	return getdevvp(devno, vpp, VCHR);
 }
 
 dev_t

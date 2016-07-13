@@ -37,6 +37,8 @@
 #include <drivers/hd/hd.h>
 #include <trap.h>
 
+#define DEVICE_NAME	"Md"
+
 static void __init(struct hd_device *hd)
 {
 	kpdebug("initializing MSIM hard disk\n");
@@ -60,16 +62,11 @@ static int __open(dev_t dev, int mode, struct proc *p)
 		hd = kmalloc(sizeof(*hd), GFP_ZERO);
 		if (hd == NULL)
 			return -ENOMEM;
-		strlcpy(hd->name, "Md", DEV_NAME_MAX);
-		hd->devno = hdbasedev(dev);
-		/*
-		 * XXX
-		 * For now we hardwire the disk bus to memory bus.
-		 */
+		initdev(hd, DEVICE_NAME, hdbasedev(dev));
+		/* XXX For now we hardwire the disk bus to memory bus. */
 		hd->bus = &early_memory_bus;
 		hd->base = MSIM_DISK_PHYSADDR;
 		list_init(&(hd->bufqueue));
-		spinlock_init(&hd->lock);
 		dev_add(hd);
 
 		__init(hd);

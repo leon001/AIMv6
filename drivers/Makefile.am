@@ -18,7 +18,14 @@
 
 include $(top_srcdir)/env.am
 
-SUBDIRS = io block sd serial timer common hd
+SUBDIRS = io \
+	  block \
+	  sd \
+	  serial \
+	  timer \
+	  hd \
+	  tty \
+	  common
 
 noinst_LTLIBRARIES = libdrivers-raw.la libdrivers.la
 
@@ -39,5 +46,5 @@ libdrivers_la_LIBADD = \
 	$(builddir)/io/libio.la \
 	$(builddir)/serial/libserial.la \
 	$(builddir)/hd/libhd.la \
-	$(builddir)/common/libcommon.la
-
+	$(builddir)/common/libcommon.la \
+	$(builddir)/tty/libtty.la

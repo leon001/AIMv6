@@ -89,6 +89,16 @@ MODULES += $(top_builddir)/drivers/hd/dos.o
 
 MODULES += $(top_builddir)/fs/ufs/ext2fs/ext2fs.o
 
+##################
+# Terminal (TTY) #
+##################
+
+MODULES += $(top_builddir)/drivers/tty/tty.o
+
+if MACH_MSIM
+MODULES += $(top_builddir)/kern/arch/$(ARCH)/mach-$(MACH)/tty.o
+endif
+
 ###########
 # Storage #
 ###########

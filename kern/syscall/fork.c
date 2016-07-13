@@ -78,15 +78,19 @@ int sys_fork(struct trapframe *tf, int *errno)
 	child->heapbase = current_proc->heapbase;
 	child->cwd = current_proc->cwd;
 	child->rootd = current_proc->rootd;
-	memcpy(child->fd, current_proc->fd, sizeof(child->fd));
+	memcpy(&child->fd, &current_proc->fd, sizeof(child->fd));
 	/* increase file vnode ref counts but do not lock them */
 	for (int i = 0; i < OPEN_MAX; ++i) {
-		if (child->fd[i] != NULL)
-			vref(child->fd[i]);
+		if (child->fd[i].vnode != NULL)
+			vref(child->fd[i].vnode);
 	}
 
 	pid = child->pid;
 	child->state = PS_RUNNABLE;
+
+	child->mainthread = child;
+	child->groupleader = current_proc->groupleader;
+	child->sessionleader = current_proc->sessionleader;
 
 	proctree_add_child(child, current_proc);
 

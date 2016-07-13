@@ -24,8 +24,8 @@
 #include <mm.h>
 #include <list.h>
 #include <regs.h>
-#include <fs/vnode.h>
 #include <limits.h>
+#include <file.h>
 
 typedef int pid_t;
 
@@ -76,10 +76,26 @@ struct proc {
 	/* File system related */
 	struct vnode	*cwd;		/* current working directory */
 	struct vnode	*rootd;		/* root directory (chroot) */
-	struct vnode	*fd[OPEN_MAX];	/* opened files */
+	union {
+		struct {
+			struct file fstdin;	/* stdin */
+			struct file fstdout;	/* stdout */
+			struct file fstderr;	/* stderr */
+		};
+		struct file fd[OPEN_MAX];	/* opened files */
+	};
+
+	/* TODO: POSIX process groups and sessions.  I'm not entirely sure
+	 * how they should look like. */
+	struct proc	*groupleader;	/* Process group leader */
+	struct proc	*sessionleader;	/* Session leader */
+
+	/* Session data */
+	struct tty_device *tty;		/* Controlling terminal */
+	struct vnode	*ttyvnode;	/* vnode of terminal */
 
 	/* Process tree related */
-	struct proc	*leader;	/* Main thread of the same process */
+	struct proc	*mainthread;	/* Main thread of the same process */
 	struct proc	*parent;
 	struct proc	*first_child;
 	struct proc	*next_sibling;
