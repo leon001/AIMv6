@@ -28,6 +28,7 @@
 #include <fs/namei.h>
 #include <fs/vnode.h>
 #include <fs/specdev.h>
+#include <fs/uio.h>
 #include <drivers/tty/tty.h>
 #include <mach-conf.h>
 #include <percpu.h>
@@ -45,6 +46,39 @@ char *initenvp[] = {
 	NULL
 };
 
+static void __ttytest(void)
+{
+	struct vnode *vp = current_proc->ttyvnode;
+	struct uio uio;
+	struct iovec iov;
+	char c;
+	int i;
+
+	uio.offset = 0;
+	uio.seg = UIO_KERNEL;
+	uio.proc = current_proc;
+	uio.mm = NULL;
+
+	kprintf("KERN TEST: type in 10 characters\n");
+	for (i = 0; i < 10; ++i) {
+		uio.rw = UIO_READ;
+		iov.iov_base = &c;
+		iov.iov_len = 1;
+		uio.iov = &iov;
+		uio.iovcnt = 1;
+		uio.resid = 1;
+		assert(VOP_READ(vp, &uio, 0, NOCRED) == 0);
+		uio.rw = UIO_WRITE;
+		iov.iov_base = &c;
+		iov.iov_len = 1;
+		uio.iov = &iov;
+		uio.iovcnt = 1;
+		uio.resid = 1;
+		assert(VOP_WRITE(vp, &uio, 0, NOCRED) == 0);
+	}
+	kprintf("\nKERN TEST: tty succeeded\n");
+}
+
 static void ttyinit(void)
 {
 	struct nameidata nd;
@@ -59,9 +93,8 @@ static void ttyinit(void)
 	if (nd.vp->type != VCHR)
 		panic("/dev/tty: bad file type\n");
 	assert(VOP_OPEN(nd.vp, FREAD | FWRITE, NOCRED, current_proc) == 0);
-	/* temporary */
 	assert(nd.vp->type == VCHR);
-	assert(vdev(nd.vp) == makedev(TTY_MAJOR, 0));
+	assert(major(vdev(nd.vp)) == TTY_MAJOR);
 	nd.vp->flags |= VISTTY;
 
 	/* Set up initproc stdin, stdout, stderr */
@@ -75,6 +108,8 @@ static void ttyinit(void)
 	tty->session = current_proc;
 	current_proc->ttyvnode = nd.vp;
 	current_proc->tty = tty;
+
+	__ttytest();
 }
 
 void initproc_entry(void)

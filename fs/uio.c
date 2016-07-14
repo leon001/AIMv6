@@ -92,6 +92,7 @@ ureadc(int c, struct uio *uio)
 
 	iov->iov_base++;
 	iov->iov_len--;
+	uio->resid--;
 	if (iov->iov_len == 0) {
 		uio->iovcnt--;
 		uio->iov++;

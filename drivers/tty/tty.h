@@ -28,8 +28,10 @@ struct tty_device {
 	struct chr_device *indev;
 	struct chr_device *outdev;
 
-	struct proc *fg;	/* Leader of foreground process group */
-	struct proc *session;	/* Leader of associated session */
+	uint32_t	flags;
+#define TTY_ECHO	0x1	/* echo inputs */
+	struct proc	*fg;	/* Leader of foreground process group */
+	struct proc	*session; /* Leader of associated session */
 };
 
 #endif

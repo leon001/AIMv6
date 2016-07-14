@@ -115,16 +115,19 @@ spec_read(struct vnode *vp, struct uio *uio, int ioflags, struct ucred *cred)
 	if (uio->seg == UIO_USER)
 		assert(uio->proc == current_proc);
 
+	vunlock(vp);
 	switch (vp->type) {
 	case VCHR:
 		drv = devsw[major(vdev(vp))];
 		err = ((struct chr_driver *)drv)->read(vdev(vp), uio, ioflags);
+		vlock(vp);
 		return err;
 	case VBLK:
 		panic("spec_read: blk device NYI\n");
 	default:
 		panic("spec_read: not spec\n");
 	}
+	/* NOTREACHED */
 	return 0;
 }
 
@@ -139,16 +142,19 @@ spec_write(struct vnode *vp, struct uio *uio, int ioflags, struct ucred *cred)
 	if (uio->seg == UIO_USER)
 		assert(uio->proc == current_proc);
 
+	vunlock(vp);
 	switch (vp->type) {
 	case VCHR:
 		drv = devsw[major(vdev(vp))];
 		err = ((struct chr_driver *)drv)->write(vdev(vp), uio, ioflags);
+		vlock(vp);
 		return err;
 	case VBLK:
 		panic("spec_write: blk device NYI\n");
 	default:
 		panic("spec_write: not spec\n");
 	}
+	/* NOTREACHED */
 	return 0;
 }
 
@@ -260,8 +266,8 @@ vdev(struct vnode *vp)
 struct vops spec_vops = {
 	.open = spec_open,
 	.close = spec_close,
-	.read = NOTSUP,
-	.write = NOTSUP,
+	.read = spec_read,
+	.write = spec_write,
 	.inactive = spec_inactive,
 	.reclaim = NOP,
 	.strategy = spec_strategy,

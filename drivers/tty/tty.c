@@ -64,6 +64,7 @@ static int __open(dev_t devno, int mode, struct proc *p)
 	}
 
 	/* TODO FUTURE: check and fill sessions */
+	kprintf("DEV: tty opened\n");
 	return 0;
 }
 
@@ -102,7 +103,9 @@ static int __read(dev_t devno, struct uio *uio, int ioflags)
 	 */
 	while (uio->resid > 0) {
 		c = indrv->getc(indev->devno);
-		/* TODO NEXT */
+		ureadc(c, uio);
+		if (tty->flags & TTY_ECHO)
+			outdrv->putc(outdev->devno, c);
 	}
 	return 0;
 }
@@ -111,11 +114,12 @@ static int __write(dev_t devno, struct uio *uio, int ioflags)
 {
 	struct tty_device *tty;
 	struct chr_device *outdev;
+	struct chr_driver *outdrv;
 
 	tty = (struct tty_device *)dev_from_id(devno);
 	outdev = tty->outdev;
-
-	return 0;
+	outdrv = (struct chr_driver *)devsw[major(outdev->devno)];
+	return outdrv->write(outdev->devno, uio, ioflags);
 }
 
 static struct chr_driver ttydrv = {

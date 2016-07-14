@@ -51,7 +51,7 @@ struct chr_driver {
 	 * be invoked outside the driver framework.
 	 */
 	int (*getc)(dev_t dev);
-	int (*putc)(dev_t dev);
+	int (*putc)(dev_t dev, int c);
 };
 
 struct blk_driver {

@@ -30,6 +30,8 @@ dev_t vdev(struct vnode *);
 
 int spec_open(struct vnode *, int, struct ucred *, struct proc *);
 int spec_close(struct vnode *, int, struct ucred *, struct proc *);
+int spec_read(struct vnode *, struct uio *, int, struct ucred *);
+int spec_write(struct vnode *, struct uio *, int, struct ucred *);
 int spec_inactive(struct vnode *, struct proc *);
 int spec_reclaim(struct vnode *);
 int spec_strategy(struct buf *);
