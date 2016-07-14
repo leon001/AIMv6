@@ -33,6 +33,7 @@ struct vnode {
 	uint32_t	flags;
 #define VXLOCK		0x1	/* locked */
 #define VROOT		0x2	/* root of a file system */
+#define VISTTY		0x4	/* is a terminal */
 	/* members for mount */
 	struct mount	*mount;
 	struct list_head mount_node;
@@ -74,6 +75,12 @@ struct vops {
 	 */
 	int (*read)(struct vnode *, struct uio *, int, struct ucred *);
 	/*
+	 * write:
+	 * Write to a vnode as specified by the uio structure.
+	 * Assumes that the vnode is locked.
+	 */
+	int (*write)(struct vnode *, struct uio *, int, struct ucred *);
+	/*
 	 * inactive:
 	 * Truncate, update, unlock.  Usually called when a kernel is no
 	 * longer using the vnode.
@@ -109,6 +116,26 @@ struct vops {
 	 */
 	int (*bmap)(struct vnode *, off_t, struct vnode **, soff_t *, int *);
 };
+
+#define VOP_OPEN(vp, mode, cred, p)	\
+	((vp)->ops->open((vp), (mode), (cred), (p)))
+#define VOP_CLOSE(vp, mode, cred, p)	\
+	((vp)->ops->close((vp), (mode), (cred), (p)))
+#define VOP_READ(vp, uio, ioflags, cred) \
+	((vp)->ops->read((vp), (uio), (ioflags), (cred)))
+#define VOP_WRITE(vp, uio, ioflags, cred) \
+	((vp)->ops->write((vp), (uio), (ioflags), (cred)))
+#define VOP_INACTIVE(vp, p)	\
+	((vp)->ops->inactive((vp), (p)))
+#define VOP_RECLAIM(vp) \
+	((vp)->ops->reclaim(vp))
+#define VOP_STRATEGY(bp) \
+	((bp)->vnode->ops->strategy(bp))
+#define VOP_LOOKUP(dvp, name, vpp) \
+	((dvp)->ops->lookup((dvp), (name), (vpp)))
+#define VOP_BMAP(vp, lblkno, vpp, blkno, runp) \
+	((vp)->ops->bmap((vp), (lblkno), (vpp), (blkno), (runp)))
+#define VOP_FSYNC(vp, cred, p) (0)	/* NYI */
 
 int getnewvnode(struct mount *, struct vops *, struct vnode **);
 void vlock(struct vnode *);

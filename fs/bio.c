@@ -4,7 +4,6 @@
 #include <fs/bio.h>
 #include <fs/vnode.h>
 #include <fs/specdev.h>
-#include <fs/VOP.h>
 #include <panic.h>
 #include <aim/sync.h>
 #include <sched.h>

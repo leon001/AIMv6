@@ -68,13 +68,13 @@ static int __kbdopen(dev_t devno, int mode, struct proc *p)
 }
 
 static struct chr_driver lpdrv = {
-	.type = DRV_CHR,
+	.class = DRVCLASS_CHR,
 	.open = __lpopen,
 	.close = __close
 };
 
 static struct chr_driver kbddrv = {
-	.type = DRV_CHR,
+	.class = DRVCLASS_CHR,
 	.open = __kbdopen,
 	.close = __close
 };

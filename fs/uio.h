@@ -36,6 +36,8 @@ struct uio {
 };
 
 int uiomove(void *kbuf, size_t len, struct uio *uio);
+/* Put a character into uio */
+int ureadc(int c, struct uio *uio);
 
 #endif
 

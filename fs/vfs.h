@@ -27,8 +27,8 @@ struct vfsops {
 	int (*vget)(struct mount *mp, ino_t ino, struct vnode **vpp);
 };
 
-int VFS_ROOT(struct mount *mp, struct vnode **vpp);
-int VFS_VGET(struct mount *mp, ino_t ino, struct vnode **vpp);
+#define VFS_ROOT(mp, vpp)	((mp)->ops->root((mp), (vpp)))
+#define VFS_VGET(mp, ino, vpp)	((mp)->ops->vget((mp), (ino), (vpp)))
 
 #define MAX_VFSCONFS	5
 

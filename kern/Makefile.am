@@ -43,7 +43,8 @@ vmaim_elf_SOURCES =
 # that is, callers go first, and callees go last.
 # NO circular reference is allowed.
 KERNEL_INTERNAL_LIBS = \
-	lib/libbitmap/libbitmap.la
+	lib/libbitmap/libbitmap.la \
+	lib/libkern.la
 
 KERNEL_LIBS = \
 	arch/$(ARCH)/libentry.la \

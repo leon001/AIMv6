@@ -3,7 +3,6 @@
 #include <fs/vnode.h>
 #include <fs/specdev.h>
 #include <fs/mount.h>
-#include <fs/VOP.h>
 #include <fs/bio.h>
 #include <fs/uio.h>
 #include <vmm.h>

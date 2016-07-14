@@ -1,5 +1,6 @@
 
 #include <fs/vnode.h>
+#include <fs/mount.h>
 #include <fs/bio.h>
 #include <fs/vfs.h>
 #include <fs/ufs/inode.h>

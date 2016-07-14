@@ -26,8 +26,10 @@
 #include <libc/unistd.h>
 #include <fs/vfs.h>	/* fsinit() */
 #include <fs/namei.h>
-#include <fs/VOP.h>
 #include <fs/vnode.h>
+#include <fs/specdev.h>
+#include <drivers/tty/tty.h>
+#include <mach-conf.h>
 #include <percpu.h>
 #include <fcntl.h>
 #include <ucred.h>
@@ -46,6 +48,8 @@ char *initenvp[] = {
 static void ttyinit(void)
 {
 	struct nameidata nd;
+	dev_t ttydevno;
+	struct tty_device *tty;
 
 	nd.path = "/dev/tty";
 	nd.intent = NAMEI_LOOKUP;
@@ -55,10 +59,22 @@ static void ttyinit(void)
 	if (nd.vp->type != VCHR)
 		panic("/dev/tty: bad file type\n");
 	assert(VOP_OPEN(nd.vp, FREAD | FWRITE, NOCRED, current_proc) == 0);
+	/* temporary */
+	assert(nd.vp->type == VCHR);
+	assert(vdev(nd.vp) == makedev(TTY_MAJOR, 0));
+	nd.vp->flags |= VISTTY;
 
 	/* Set up initproc stdin, stdout, stderr */
 	current_proc->fstdin.vnode = current_proc->fstdout.vnode =
 	    current_proc->fstderr.vnode = nd.vp;
+
+	/* Set up session data */
+	ttydevno = nd.vp->specinfo->devno;
+	tty = (struct tty_device *)dev_from_id(ttydevno);
+	tty->fg = current_proc;
+	tty->session = current_proc;
+	current_proc->ttyvnode = nd.vp;
+	current_proc->tty = tty;
 }
 
 void initproc_entry(void)

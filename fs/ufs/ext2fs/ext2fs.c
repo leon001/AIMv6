@@ -1,4 +1,5 @@
 
+#include <asm-generic/funcs.h>
 #include <aim/initcalls.h>
 #include <fs/vfs.h>
 #include <fs/mount.h>
@@ -14,12 +15,15 @@ struct vfsops ext2fs_vfsops = {
 };
 
 struct vops ext2fs_vops = {
+	.open = NOTSUP,
+	.close = NOTSUP,
 	.read = ext2fs_read,
+	.write = NOTSUP,
 	.inactive = ext2fs_inactive,
 	.reclaim = ext2fs_reclaim,
 	.strategy = ufs_strategy,
+	.lookup = ext2fs_lookup,
 	.bmap = ext2fs_bmap,
-	.lookup = ext2fs_lookup
 };
 
 /*
@@ -29,9 +33,13 @@ struct vops ext2fs_vops = {
 struct vops ext2fs_specvops = {
 	.open = spec_open,
 	.close = spec_close,	/* shall we clean inode etc? */
+	.read = NOTSUP,
+	.write = NOTSUP,
 	.inactive = ext2fs_inactive,
 	.reclaim = ext2fs_reclaim,
 	.strategy = spec_strategy,
+	.lookup = NOTSUP,
+	.bmap = NOTSUP
 };
 
 int

@@ -1,8 +1,10 @@
 
+#include <asm-generic/funcs.h>
 #include <list.h>
 #include <fs/vnode.h>
 #include <fs/specdev.h>
-#include <fs/VOP.h>
+#include <fs/uio.h>
+#include <ucred.h>
 #include <buf.h>
 #include <vmm.h>
 #include <errno.h>
@@ -11,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/param.h>
 #include <panic.h>
+#include <percpu.h>
 
 static struct list_head specinfo_list = EMPTY_LIST(specinfo_list);
 
@@ -101,6 +104,54 @@ spec_close(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
 	return 0;
 }
 
+int
+spec_read(struct vnode *vp, struct uio *uio, int ioflags, struct ucred *cred)
+{
+	int err;
+	struct driver *drv;
+
+	assert(vp->type == VCHR || vp->type == VBLK);
+	assert(uio->rw == UIO_READ);
+	if (uio->seg == UIO_USER)
+		assert(uio->proc == current_proc);
+
+	switch (vp->type) {
+	case VCHR:
+		drv = devsw[major(vdev(vp))];
+		err = ((struct chr_driver *)drv)->read(vdev(vp), uio, ioflags);
+		return err;
+	case VBLK:
+		panic("spec_read: blk device NYI\n");
+	default:
+		panic("spec_read: not spec\n");
+	}
+	return 0;
+}
+
+int
+spec_write(struct vnode *vp, struct uio *uio, int ioflags, struct ucred *cred)
+{
+	int err;
+	struct driver *drv;
+
+	assert(vp->type == VCHR || vp->type == VBLK);
+	assert(uio->rw == UIO_WRITE);
+	if (uio->seg == UIO_USER)
+		assert(uio->proc == current_proc);
+
+	switch (vp->type) {
+	case VCHR:
+		drv = devsw[major(vdev(vp))];
+		err = ((struct chr_driver *)drv)->write(vdev(vp), uio, ioflags);
+		return err;
+	case VBLK:
+		panic("spec_write: blk device NYI\n");
+	default:
+		panic("spec_write: not spec\n");
+	}
+	return 0;
+}
+
 /*
  * strategy() operation on spec vnodes require that only the following members
  * could be modified, as regular files may invoke this operation to interact
@@ -118,7 +169,7 @@ spec_strategy(struct buf *bp)
 
 	drv = devsw[major(bp->devno)];
 	assert(drv != NULL);
-	assert(drv->type == DRV_BLK);
+	assert(drv->class == DRVCLASS_BLK);
 	if (bp->blkno == BLKNO_INVALID) {
 		assert(bp->vnode->type == VCHR || bp->vnode->type == VBLK);
 		bp->blkno = bp->lblkno;
@@ -209,8 +260,12 @@ vdev(struct vnode *vp)
 struct vops spec_vops = {
 	.open = spec_open,
 	.close = spec_close,
+	.read = NOTSUP,
+	.write = NOTSUP,
 	.inactive = spec_inactive,
-	.reclaim = VOP_NOP,
+	.reclaim = NOP,
 	.strategy = spec_strategy,
+	.lookup = NOTSUP,
+	.bmap = NOTSUP
 };
 

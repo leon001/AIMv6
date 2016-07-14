@@ -436,6 +436,12 @@ switch_pgindex(pgindex_t *pgindex)
 	return 0;
 }
 
+pgindex_t *
+get_pgindex(void)
+{
+	return current_pgdir;
+}
+
 void *
 uva2kva(pgindex_t *pgindex, void *uaddr)
 {

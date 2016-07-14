@@ -64,3 +64,39 @@ uiomove(void *kbuf, size_t len, struct uio *uio)
 	return 0;
 }
 
+int
+ureadc(int c, struct uio *uio)
+{
+	struct iovec *iov;
+	struct mm *mm = uio->mm ? : uio->proc->mm;
+	char tmp;
+	int err;
+
+	assert(uio->iovcnt > 0);
+	assert(uio->resid > 0);
+	assert(uio->rw == UIO_READ);
+
+	iov = uio->iov;
+	assert(iov->iov_len > 0);
+	switch (uio->seg) {
+	case UIO_USER:
+		tmp = c;
+		err = copy_to_uvm(mm, iov->iov_base, &tmp, sizeof(char));
+		if (err)
+			return err;
+		break;
+	case UIO_KERNEL:
+		*(char *)(iov->iov_base) = c;
+		break;
+	}
+
+	iov->iov_base++;
+	iov->iov_len--;
+	if (iov->iov_len == 0) {
+		uio->iovcnt--;
+		uio->iov++;
+	}
+
+	return 0;
+}
+

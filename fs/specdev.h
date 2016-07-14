@@ -22,6 +22,7 @@ struct specinfo {
 };
 
 int bdevvp(dev_t, struct vnode **);
+int cdevvp(dev_t, struct vnode **);
 int getdevvp(dev_t, struct vnode **, enum vtype);
 struct specinfo *findspec(dev_t);
 struct specinfo *newspec(dev_t);

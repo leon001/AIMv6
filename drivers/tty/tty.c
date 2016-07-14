@@ -20,6 +20,7 @@
 #include <aim/device.h>
 #include <aim/initcalls.h>
 #include <drivers/tty/tty.h>
+#include <fs/uio.h>
 #include <proc.h>
 #include <vmm.h>
 #include <errno.h>
@@ -66,16 +67,63 @@ static int __open(dev_t devno, int mode, struct proc *p)
 	return 0;
 }
 
-static int __close(dev_t dev, int oflags, struct proc *p)
+static int __close(dev_t devno, int oflags, struct proc *p)
 {
 	/* Currently we do nothing */
 	return 0;
 }
 
+/*
+ * TODO FUTURE:
+ * Here in this terminal implementation read and write requests go straight
+ * to the supporting hardware drivers.
+ */
+static int __read(dev_t devno, struct uio *uio, int ioflags)
+{
+	struct tty_device *tty;
+	struct chr_device *indev, *outdev;
+	struct chr_driver *indrv, *outdrv;
+	char c;
+
+	tty = (struct tty_device *)dev_from_id(devno);
+	indev = tty->indev;
+	outdev = tty->outdev;
+	indrv = (struct chr_driver *)devsw[major(indev->devno)];
+	outdrv = (struct chr_driver *)devsw[major(outdev->devno)];
+
+	/*
+	 * TODO FUTURE:
+	 * On BSD, for a background process, one should
+	 * 1. Send the whole process group a SIGTTIN signal.
+	 * 2. Put the process into sleep on channel ("bed" in AIMv6) lbolt,
+	 *    where the processes are woken up once a second.
+	 * 3. Re-check whether the process is still a background process.
+	 * Not sure how Linux does the job.
+	 */
+	while (uio->resid > 0) {
+		c = indrv->getc(indev->devno);
+		/* TODO NEXT */
+	}
+	return 0;
+}
+
+static int __write(dev_t devno, struct uio *uio, int ioflags)
+{
+	struct tty_device *tty;
+	struct chr_device *outdev;
+
+	tty = (struct tty_device *)dev_from_id(devno);
+	outdev = tty->outdev;
+
+	return 0;
+}
+
 static struct chr_driver ttydrv = {
-	.type = DRV_CHR,
+	.class = DRVCLASS_CHR,
 	.open = __open,
-	.close = __close
+	.close = __close,
+	.read = __read,
+	.write = __write
 };
 
 static int __driver_init(void)

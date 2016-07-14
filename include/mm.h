@@ -130,6 +130,8 @@ ssize_t invalidate_pages(pgindex_t *pgindex, void *vaddr, size_t size,
     addr_t *paddr);
 /* Switch page index to the given one */
 int switch_pgindex(pgindex_t *pgindex);
+/* Get the currently loaded page index structure */
+pgindex_t *get_pgindex(void);
 /* Trace a page index to convert from user address to kernel address */
 void *uva2kva(pgindex_t *pgindex, void *uaddr);
 

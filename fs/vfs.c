@@ -23,19 +23,3 @@ struct vfsconf *findvfsconf(const char *name)
 	return NULL;
 }
 
-int
-VFS_ROOT(struct mount *mp, struct vnode **vpp)
-{
-	if (mp->ops->root == NULL)
-		return -ENOTSUP;
-	return mp->ops->root(mp, vpp);
-}
-
-int
-VFS_VGET(struct mount *mp, ino_t ino, struct vnode **vpp)
-{
-	if (mp->ops->vget == NULL)
-		return -ENOTSUP;
-	return mp->ops->vget(mp, ino, vpp);
-}
-

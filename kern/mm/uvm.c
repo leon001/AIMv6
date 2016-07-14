@@ -468,7 +468,19 @@ __copy_fill_uvm(struct mm *mm, void *uvaddr, void *vaddr, unsigned char c,
 		return -EFAULT;
 	}
 
-	/* rare case */
+	/* If the page table is already loaded, we can exploit that */
+	if (current_proc && mm == current_proc->mm) {
+		assert(mm->pgindex == get_pgindex());
+		if (fill)
+			memset(uvaddr, c, l);
+		else if (!touser)
+			memmove(vaddr, uvaddr, l);
+		else
+			memmove(uvaddr, vaddr, l);
+		return 0;
+	}
+
+	/* Otherwise, we have to dive into the page table */
 	for (; start < end; start = PTR_ALIGN_NEXT(start, PAGE_SIZE)) {
 		kuvaddr = uva2kva(mm->pgindex, start);
 		l = min2(PTR_ALIGN_NEXT(start, PAGE_SIZE), end) - start;

@@ -2,7 +2,6 @@
 #include <sys/types.h>
 #include <fs/namei.h>
 #include <fs/vnode.h>
-#include <fs/VOP.h>
 #include <proc.h>
 #include <limits.h>
 #include <errno.h>

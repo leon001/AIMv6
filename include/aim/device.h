@@ -31,9 +31,12 @@ struct uio;	/* fs/uio.h */
 
 /* Drivers */
 struct driver {
+	int class;
+#define DRVCLASS_CHR	1
+#define DRVCLASS_BLK	2
 	int type;
-#define DRV_CHR		1
-#define DRV_BLK		2
+#define DRVTYPE_NORMAL	0
+#define DRVTYPE_TTY	1
 	int (*open)(dev_t dev, int oflags, struct proc *p);
 	int (*close)(dev_t dev, int oflags, struct proc *p);
 };
@@ -42,6 +45,13 @@ struct chr_driver {
 	struct driver;
 	int (*read)(dev_t dev, struct uio *uio, int ioflags);
 	int (*write)(dev_t dev, struct uio *uio, int ioflags);
+
+	/*
+	 * These methods are intended for internal use.  They should not
+	 * be invoked outside the driver framework.
+	 */
+	int (*getc)(dev_t dev);
+	int (*putc)(dev_t dev);
 };
 
 struct blk_driver {

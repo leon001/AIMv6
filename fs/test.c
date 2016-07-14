@@ -3,7 +3,6 @@
 #include <fs/mount.h>
 #include <fs/vnode.h>
 #include <fs/vfs.h>
-#include <fs/VOP.h>
 #include <fs/namei.h>
 #include <fs/uio.h>
 #include <fs/ufs/inode.h>

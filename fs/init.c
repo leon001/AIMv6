@@ -18,9 +18,6 @@ fsinit(void)
 		panic("root vnode not found\n");
 	vunlock(rootvnode);
 
-	extern void fs_test(void);
-	fs_test();
-
 	kprintf("==============fs test succeeded===============\n");
 }
 
