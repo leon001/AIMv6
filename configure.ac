@@ -227,12 +227,6 @@ AIM_ARG_WITH([max-cpus], [MAX_CPUS], [maximum number of cores], [NR_CPUS])
 AC_SUBST([NR_CPUS], [$with_cpus])
 AC_SUBST([MAX_CPUS], [$with_max_cpus])
 
-# MIPS kernel hyperparameters
-AIM_ARG_WITH([mips-gp-slot-base], [GP_SLOT_BASE],
-	[base virtual address for array storing GP register during trap entry])
-AIM_ARG_WITH([mips-pgdir-slot-base], [MIPS_PGDIR_SLOT_BASE],
-	[base virtual address for array storing per CPU page directories])
-
 # Kernel hyperparameters
 # TODO: for addresses, make two default configurations for 32-bit and 64-bit
 # respectively.

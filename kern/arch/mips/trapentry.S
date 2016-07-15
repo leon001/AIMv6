@@ -52,21 +52,12 @@ BEGIN(generic_exception_entry)
 	 * (i.e. IV bit in CAUSE register is 0), which is not used by
 	 * most OS kernels anyway.  If someone wants to try interrupt vectors,
 	 * change GP_SLOT_BASE in configure to a suitable address.
+	 *
+	 * [EDIT] GP_SLOT_BASE is no longer needed now.
 	 */
-	li	k1, GP_SLOT_BASE
-	SLL	k0, WORD_SHIFT
-	ADDU	k0, k1
-	STORE	gp, 0(k0)
-	/*
-	 * Switch to kernel gp
-	 * Note that I'm assuming that _gp indeed points to kernel GOT.
-	 * If there are any relocations (such as doing kernel ASLR), be
-	 * sure to change this.
-	 */
-	lui	gp, %hi(_gp)
-	ADDIU	gp, %lo(_gp)
-	/* Now we can refer by symbols */
-	LA	k0, __generic_exception_entry
+	lui	k0, %hi(_gp)
+	ADDIU	k0, %lo(_gp)
+	LOAD	k0, %got(__generic_exception_entry)(k0)
 	jr	k0
 	.set	pop
 END(generic_exception_entry)
@@ -107,12 +98,7 @@ BEGIN(__generic_exception_entry)
 	PUSH	ra
 	PUSH	s8
 	PUSH	k1	/* k1 holds old SP */
-	cpuid	k0, k1
-	li	k1, GP_SLOT_BASE
-	SLL	k0, WORD_SHIFT
-	ADDU	k0, k1
-	LOAD	k0, (k0)	/* old GP there */
-	PUSH	k0
+	PUSH	gp
 	PUSH	k1
 	PUSH	k0
 	PUSH	t9
@@ -125,6 +111,8 @@ BEGIN(__generic_exception_entry)
 	xor	k0, ST_EXCM
 	mtc0	k0, CP0_STATUS
 	move	a0, sp
+	lui	gp, %hi(_gp)
+	ADDIU	gp, %lo(_gp)
 #ifndef __LP64__
 	/*
 	 * MIPS32 ABI requires reserving four words (16 bytes) in stack frame
