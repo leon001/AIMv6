@@ -56,9 +56,11 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <util.h>
-#include <smp.h>
+#include <mp.h>
 #include <tlb.h>
 #include <aim/sync.h>
+
+pgindex_t *pgdir_slots[MAX_CPUS];
 
 #ifndef __LP64__	/* 32 bit */
 
