@@ -46,39 +46,6 @@ char *initenvp[] = {
 	NULL
 };
 
-static void __ttytest(void)
-{
-	struct vnode *vp = current_proc->ttyvnode;
-	struct uio uio;
-	struct iovec iov;
-	char c;
-	int i;
-
-	uio.offset = 0;
-	uio.seg = UIO_KERNEL;
-	uio.proc = current_proc;
-	uio.mm = NULL;
-
-	kprintf("KERN TEST: type in 10 characters\n");
-	for (i = 0; i < 10; ++i) {
-		uio.rw = UIO_READ;
-		iov.iov_base = &c;
-		iov.iov_len = 1;
-		uio.iov = &iov;
-		uio.iovcnt = 1;
-		uio.resid = 1;
-		assert(VOP_READ(vp, &uio, 0, NOCRED) == 0);
-		uio.rw = UIO_WRITE;
-		iov.iov_base = &c;
-		iov.iov_len = 1;
-		uio.iov = &iov;
-		uio.iovcnt = 1;
-		uio.resid = 1;
-		assert(VOP_WRITE(vp, &uio, 0, NOCRED) == 0);
-	}
-	kprintf("\nKERN TEST: tty succeeded\n");
-}
-
 static void ttyinit(void)
 {
 	struct nameidata nd;
@@ -109,7 +76,7 @@ static void ttyinit(void)
 	current_proc->ttyvnode = nd.vp;
 	current_proc->tty = tty;
 
-	__ttytest();
+	vunlock(nd.vp);
 }
 
 void initproc_entry(void)

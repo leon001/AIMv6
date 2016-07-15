@@ -111,6 +111,9 @@ void __prepare_trapframe_and_stack(struct trapframe *tf, void *entry,
 	tf->gpr[_A0] = argc;
 	tf->gpr[_A1] = (unsigned long)argv;
 	tf->gpr[_A2] = (unsigned long)envp;
+	/* Make sure we are in user mode */
+	tf->status &= ~ST_KSU;
+	tf->status |= KSU_USER;
 }
 
 void proc_trap_return(struct proc *proc)

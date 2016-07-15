@@ -472,11 +472,12 @@ __copy_fill_uvm(struct mm *mm, void *uvaddr, void *vaddr, unsigned char c,
 	if (current_proc && mm == current_proc->mm) {
 		assert(mm->pgindex == get_pgindex());
 		if (fill)
-			memset(uvaddr, c, l);
+			memset(uvaddr, c, len);
 		else if (!touser)
-			memmove(vaddr, uvaddr, l);
+			memmove(vaddr, uvaddr, len);
 		else
-			memmove(uvaddr, vaddr, l);
+			memmove(uvaddr, vaddr, len);
+		spin_unlock(&mm->lock);
 		return 0;
 	}
 

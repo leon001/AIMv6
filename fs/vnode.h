@@ -150,6 +150,8 @@ int vinvalbuf(struct vnode *, struct ucred *, struct proc *);
 
 int vn_read(struct vnode *, off_t, size_t, void *, int, enum uio_seg,
     struct proc *, struct mm *, struct ucred *);
+int vn_write(struct vnode *, off_t, size_t, void *, int, enum uio_seg,
+    struct proc *, struct mm *, struct ucred *);
 
 extern dev_t rootdev;	/* initialized in mach_init() or arch_init() */
 extern struct vnode *rootvp;	/* root disk device vnode */

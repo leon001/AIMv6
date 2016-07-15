@@ -87,6 +87,7 @@ static int __kbdintr(void)
 
 	/* XXX I'm assuming there's only one keyboard */
 	kbd = (struct chr_device *)dev_from_id(makedev(MSIM_KBD_MAJOR, 0));
+	assert(kbd != NULL);
 	c = __uart_msim_getchar(kbd);
 	spin_lock_irq_save(&cbuf.lock, flags);
 	if (cbuf.head == (cbuf.tail + 1) % BUFSIZ) {
@@ -119,6 +120,7 @@ static int __lpputc(dev_t devno, int c)
 {
 	struct chr_device *lp;
 	lp = (struct chr_device *)dev_from_id(devno);
+	assert(lp != NULL);
 	return __uart_msim_putchar(lp, c);
 }
 
@@ -130,6 +132,7 @@ static int __lpwrite(dev_t devno, struct uio *uio, int ioflags)
 	int err, i;
 
 	lp = (struct chr_device *)dev_from_id(devno);
+	assert(lp != NULL);
 	while (uio->resid > 0) {
 		len = min2(uio->resid, BUFSIZ);
 		err = uiomove(buf, len, uio);

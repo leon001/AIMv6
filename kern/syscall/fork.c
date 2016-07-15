@@ -42,7 +42,7 @@ void forkret(void)
 }
 
 extern void __arch_fork(struct proc *child, struct proc *parent);
-int sys_fork(struct trapframe *tf, int *errno)
+pid_t sys_fork(struct trapframe *tf, int *errno)
 {
 	struct proc *child;
 	int err;
@@ -91,6 +91,9 @@ int sys_fork(struct trapframe *tf, int *errno)
 	child->mainthread = child;
 	child->groupleader = current_proc->groupleader;
 	child->sessionleader = current_proc->sessionleader;
+
+	child->tty = current_proc->tty;
+	child->ttyvnode = current_proc->ttyvnode;
 
 	proctree_add_child(child, current_proc);
 

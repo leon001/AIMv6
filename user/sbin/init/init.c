@@ -17,15 +17,24 @@
  */
 
 #include <libc/string.h>
+#include <libc/unistd.h>
 
 int main(int argc, char *argv[], char *envp[])
 {
+	char c;
+
 	/*
 	 * Replace it with your own job for now.
 	 */
 	if (memcmp(argv[0], "/sbin/init", 11) == 0)
-		for (;;)
-			/* nothing */;
+		write(STDOUT_FILENO, "INIT: now init\n", 15);
+	for (;;) {
+		/* echo, since terminal echoing is NYI */
+		if (read(STDIN_FILENO, &c, 1) != 1)
+			break;
+		if (write(STDOUT_FILENO, &c, 1) != 1)
+			break;
+	}
 	for (;;)
-		/* nothing */;
+		;
 }

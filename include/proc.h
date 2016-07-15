@@ -27,8 +27,6 @@
 #include <limits.h>
 #include <file.h>
 
-typedef int pid_t;
-
 struct proc {
 	/* TODO: move thread-specific data into a separate structure */
 	/*

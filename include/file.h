@@ -28,7 +28,8 @@
  */
 struct file {
 	struct vnode	*vnode;
-	soff_t		offset;
+	off_t		offset;
+	int		ioflags;
 };
 
 #if 0

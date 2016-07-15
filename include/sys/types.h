@@ -68,6 +68,8 @@ typedef signed long ssize_t;
 typedef unsigned long off_t;
 typedef signed long soff_t;
 
+typedef int pid_t;
+
 typedef void *uintptr_t;
 #define	NULL	0
 

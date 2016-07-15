@@ -70,5 +70,21 @@
  * void exit(int status)
  */
 #define NRSYS_exit	9
+/*
+ * int open(const char *pathname, int flags, int mode)
+ */
+#define NRSYS_open	10
+/*
+ * void close(int fd)
+ */
+#define NRSYS_close	11
+/*
+ * ssize_t read(int fd, void *buf, size_t count)
+ */
+#define NRSYS_read	12
+/*
+ * ssize_t write(int fd, const void *buf, size_t count)
+ */
+#define NRSYS_write	13
 
 #endif

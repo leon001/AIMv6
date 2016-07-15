@@ -245,23 +245,43 @@ loop:
  * Assumes a locked vnode.
  */
 int
-vn_read(struct vnode *vp, off_t offset, size_t len, void *kbuf, int ioflags,
-    enum uio_seg seg, struct proc *p, struct mm *mm, struct ucred *cred)
+vn_rw(struct vnode *vp, off_t offset, size_t len, void *buf, int ioflags,
+    enum uio_rw rw, enum uio_seg seg, struct proc *p, struct mm *mm,
+    struct ucred *cred)
 {
 	struct uio uio;
 	struct iovec iovec;
 
-	iovec.iov_base = kbuf;
+	iovec.iov_base = buf;
 	iovec.iov_len = len;
 	uio.iov = &iovec;
 	uio.iovcnt = 1;
 	uio.offset = offset;
 	uio.resid = len;
-	uio.rw = UIO_READ;
+	uio.rw = rw;
 	uio.seg = seg;
 	uio.proc = p;
 	uio.mm = mm;
 
-	return VOP_READ(vp, &uio, ioflags, cred);
+	switch (rw) {
+	case UIO_READ:
+		return VOP_READ(vp, &uio, ioflags, cred);
+	case UIO_WRITE:
+		return VOP_WRITE(vp, &uio, ioflags, cred);
+	}
+}
+
+int
+vn_read(struct vnode *vp, off_t offset, size_t len, void *buf, int ioflags,
+    enum uio_seg seg, struct proc *p, struct mm *mm, struct ucred *cred)
+{
+	return vn_rw(vp, offset, len, buf, ioflags, UIO_READ, seg, p, mm, cred);
+}
+
+int
+vn_write(struct vnode *vp, off_t offset, size_t len, void *buf, int ioflags,
+    enum uio_seg seg, struct proc *p, struct mm *mm, struct ucred *cred)
+{
+	return vn_rw(vp, offset, len, buf, ioflags, UIO_WRITE, seg, p, mm, cred);
 }
 
