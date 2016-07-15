@@ -25,6 +25,7 @@
 #include <drivers/io/io-mem.h>
 
 unsigned long kernelsp[MAX_CPUS];
+unsigned long pgdir_slots[MAX_CPUS];
 
 void abs_jump(void *addr)
 {

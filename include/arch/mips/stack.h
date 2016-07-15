@@ -28,20 +28,22 @@
 #include <util.h>
 
 #ifdef __ASSEMBLER__
-	/* Assumes a correct kernel gp */
 	.macro	get_saved_sp	reg temp
 	cpuid	\temp, \reg
 	SLL	\temp, WORD_SHIFT
-	LA	\reg, kernelsp
+	lui	\reg, %hi(_gp)
+	ADDIU	\reg, %lo(_gp)
+	LOAD	\reg, %got(kernelsp)(\reg)
 	ADDU	\reg, \temp
-	LOAD	\reg, (\reg)	/* kernelsp + CPUID << WORD_SHIFT */
+	LOAD	\reg, (\reg)	/* kernelsp + cpuid() << WORD_SHIFT */
 	.endm
 
-	/* Assumes a correct kernel gp */
 	.macro	set_saved_sp	stackp temp temp2
 	cpuid	\temp, \temp2
 	SLL	\temp, WORD_SHIFT
-	LA	\temp2, kernelsp
+	lui	\temp2, %hi(_gp)
+	ADDIU	\temp2, %lo(_gp)
+	LOAD	\temp2, %got(kernelsp)(\temp2)
 	ADDU	\temp2, \temp
 	STORE	\stackp, (\temp2)
 	.endm
