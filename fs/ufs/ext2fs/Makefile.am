@@ -21,7 +21,9 @@ noinst_LTLIBRARIES = libext2fs.la
 noinst_DATA = ext2fs.o
 
 libext2fs_la_SOURCES = \
+		       alloc.c \
 		       bmap.c \
+		       create.c \
 		       dump.c \
 		       mount.c \
 		       lookup.c \

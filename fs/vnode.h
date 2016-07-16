@@ -143,8 +143,8 @@ struct vops {
 	((bp)->vnode->ops->strategy(bp))
 #define VOP_LOOKUP(dvp, name, vpp) \
 	((dvp)->ops->lookup((dvp), (name), (vpp)))
-#define VOP_CREATE(dvp, name, vpp) \
-	((dvp)->ops->create((dvp), (name), (vpp)))
+#define VOP_CREATE(dvp, name, imode, vpp) \
+	((dvp)->ops->create((dvp), (name), (imode), (vpp)))
 #define VOP_BMAP(vp, lblkno, vpp, blkno, runp) \
 	((vp)->ops->bmap((vp), (lblkno), (vpp), (blkno), (runp)))
 #define VOP_FSYNC(vp, cred, p) (0)	/* NYI */

@@ -34,6 +34,7 @@ namei(struct nameidata *nd, struct proc *p)
 	else if (pathlen == 0)
 		return -ENOENT;
 
+	assert(p != NULL);
 	rootdir = p->rootd;
 	if (rootdir == NULL)
 		rootdir = rootvnode;
@@ -48,6 +49,8 @@ namei(struct nameidata *nd, struct proc *p)
 	 * things are much more complicated.
 	 */
 	vget(startdir);
+	vp = rootdir;		/* If we found a '/', return the rootdir */
+	err = 0;
 	for (segstart = path; *segstart != '\0'; segstart = segend + 1) {
 		/* chomp a segment */
 		for (segend = segstart; *segend != '/' && *segend != '\0';

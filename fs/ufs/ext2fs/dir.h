@@ -42,6 +42,7 @@
 #include <sys/types.h>
 #include <sys/endian.h>
 #include <util.h>
+#include <libc/dirent.h>
 
 /*
  * A directory consists of some number of blocks of e2fs_bsize bytes.

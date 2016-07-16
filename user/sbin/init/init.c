@@ -26,8 +26,7 @@ int main(int argc, char *argv[], char *envp[])
 	/*
 	 * Replace it with your own job for now.
 	 */
-	if (memcmp(argv[0], "/sbin/init", 11) == 0)
-		write(STDOUT_FILENO, "INIT: now init\n", 15);
+	write(STDOUT_FILENO, "INIT: now init\n", 15);
 	for (;;) {
 		/* echo, since terminal echoing is NYI */
 		if (read(STDIN_FILENO, &c, 1) != 1)

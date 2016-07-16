@@ -23,6 +23,7 @@ struct vops ext2fs_vops = {
 	.reclaim = ext2fs_reclaim,
 	.strategy = ufs_strategy,
 	.lookup = ext2fs_lookup,
+	.create = ext2fs_create,
 	.bmap = ext2fs_bmap,
 };
 
@@ -39,7 +40,8 @@ struct vops ext2fs_specvops = {
 	.reclaim = ext2fs_reclaim,
 	.strategy = spec_strategy,
 	.lookup = NOTSUP,
-	.bmap = NOTSUP
+	.create = NOTSUP,
+	.bmap = NOTSUP,
 };
 
 int

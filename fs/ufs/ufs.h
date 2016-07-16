@@ -20,5 +20,6 @@ int ufs_ihashrem(struct inode *ip);
 typedef uint32_t ufsino_t;
 
 #define ROOTINO	2	/* root inode # - always 2 */
+#define FIRSTINO 11	/* < 11 are reserved */
 
 #endif
