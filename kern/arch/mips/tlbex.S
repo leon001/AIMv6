@@ -47,7 +47,9 @@ BEGIN(__tlb_entry)
 	.set	noat
 	cpuid	k0, k1
 	SLL	k0, WORD_SHIFT
-	LI	k1, MIPS_PGDIR_SLOT_BASE
+	lui	k1, %hi(_gp)
+	ADDIU	k1, %lo(_gp)
+	LOAD	k1, %got(pgdir_slots)(k1)
 	ADDU	k1, k0
 	LOAD	k1, (k1)	/* k1 = PGINDEX */
 	beqz	k1, 9f
