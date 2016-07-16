@@ -244,6 +244,7 @@ struct vfsops;	/* fs/vfs.h */
 struct vops;	/* fs/vnode.h */
 struct uio;	/* fs/uio.h */
 struct ucred;	/* include/ucred.h */
+struct inode;	/* fs/ufs/inode.h */
 
 int ext2fs_mountroot(void);
 
@@ -261,7 +262,10 @@ int ext2fs_reclaim(struct vnode *vp);
 int ext2fs_bmap(struct vnode *, off_t, struct vnode **, soff_t *, int *);
 int ext2fs_lookup(struct vnode *, char *, struct vnode **);
 int ext2fs_create(struct vnode *, char *, int, struct vnode **);
+
+/* internal operations */
 int ext2fs_inode_alloc(struct vnode *, int, struct vnode **);
+int ext2fs_update(struct inode *);
 
 #endif
 

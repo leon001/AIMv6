@@ -3,6 +3,7 @@
 #include <fs/ufs/inode.h>
 #include <fs/ufs/ufs.h>
 #include <fs/ufs/ufsmount.h>
+#include <fs/ufs/ext2fs/dinode.h>
 #include <atomic.h>
 #include <proc.h>
 #include <panic.h>
@@ -11,8 +12,20 @@
 int
 ext2fs_inactive(struct vnode *vp, struct proc *p)
 {
-	/* TODO */
+	struct inode *ip = VTOI(vp);
+	struct ext2fs_dinode *dp = EXT2_DINODE(ip);
+	int err = 0;
 	kpdebug("ext2 deactivating vnode %p\n", vp);
+
+	if (dp == NULL || dp->mode == 0 || dp->dtime)
+		goto out;
+
+	if (dp->nlink == 0) {
+		panic("ext2fs_inactive: deletion NYI\n");
+	}
+	if (ip->flags & (IN_ACCESS | IN_CHANGE | IN_MODIFIED | IN_UPDATE))
+		ext2fs_update(ip);
+out:
 	vunlock(vp);
 	return 0;
 }

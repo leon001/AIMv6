@@ -84,6 +84,8 @@ restart:
 				bp->flags |= B_BUSY;
 				kpdebug("bget found cached %p\n", bp);
 				local_irq_restore(flags);
+				if (!lock)
+					vunlock(vp);
 				return bp;
 			}
 			sleep(bp);	/* brelse() */
@@ -262,8 +264,10 @@ void
 brelse(struct buf *bp)
 {
 	unsigned long flags;
-	bool standalone = (bp->vnode == NULL);
-
+	bool standalone;
+	if (bp == NULL)
+		return;
+	standalone = (bp->vnode == NULL);
 	local_irq_save(flags);
 
 	/*

@@ -1,6 +1,8 @@
 
 #include <sys/types.h>
+#include <fs/bio.h>
 #include <fs/ufs/inode.h>
+#include <fs/ufs/ufsmount.h>
 #include <fs/ufs/ext2fs/dinode.h>
 #include <fs/ufs/ext2fs/ext2fs.h>
 #include <errno.h>
@@ -18,5 +20,40 @@ ext2fs_setsize(struct inode *ip, uint64_t size)
 		return 0;
 	}
 	return -EFBIG;
+}
+
+/*
+ * Update the on-disk inode structure.
+ */
+int
+ext2fs_update(struct inode *ip)
+{
+	struct m_ext2fs *fs = ip->superblock;
+	struct buf *bp;
+	int err;
+	void *cp;
+
+	kpdebug("ext2fs update %p with inode %d\n", ip, ip->ino);
+
+	EXT2FS_ITIMES(ip);
+	if (!(ip->flags & IN_MODIFIED))
+		return 0;
+	ip->flags &= ~IN_MODIFIED;
+	err = bread(ip->ufsmount->devvp, fsbtodb(fs, ino_to_fsba(fs, ip->ino)),
+	    fs->bsize, &bp);
+	if (err)
+		return err;
+
+	cp = bp->data + ino_to_fsbo(fs, ip->ino) * EXT2_DINODE_SIZE(fs);
+
+	EXT2_DINODE(ip)->uid_low = (uint16_t)ip->uid;
+	EXT2_DINODE(ip)->gid_low = (uint16_t)ip->gid;
+	EXT2_DINODE(ip)->uid_high = (uint16_t)(ip->uid >> 16);
+	EXT2_DINODE(ip)->gid_high = (uint16_t)(ip->gid >> 16);
+
+	e2fs_isave(fs, EXT2_DINODE(ip), cp);
+	err = bwrite(bp);
+	brelse(bp);
+	return err;
 }
 

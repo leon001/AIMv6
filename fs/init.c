@@ -23,6 +23,7 @@ fsinit(void)
 		panic("root vnode not found\n");
 	vunlock(rootvnode);
 
+#if 0
 	struct nameidata nd;
 	struct vnode *vp;
 	nd.path = "/";
@@ -33,6 +34,7 @@ fsinit(void)
 	assert(VOP_CREATE(nd.vp, "a.txt", 0100777, &vp) == 0);
 	vput(nd.vp);
 	vput(vp);
+#endif
 
 	kprintf("==============fs test succeeded===============\n");
 }

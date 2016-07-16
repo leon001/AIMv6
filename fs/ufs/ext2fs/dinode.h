@@ -117,6 +117,16 @@ struct ext2fs_dinode {
 
 #define EXT2_DINODE(ip)		((struct ext2fs_dinode *)((ip)->dinode))
 
+/* refresh time stamps */
+#define EXT2FS_ITIMES(ip) \
+	do { \
+		if ((ip)->flags & (IN_ACCESS | IN_CHANGE | IN_UPDATE)) { \
+			(ip)->flags |= IN_MODIFIED; \
+			/* TODO: change time stamps in inode */; \
+			(ip)->flags &= ~(IN_ACCESS | IN_CHANGE | IN_UPDATE); \
+		} \
+	} while (0)
+
 #define	E2MAXSYMLINKLEN	((NDADDR + NIADDR) * sizeof(uint32_t))
 
 /* File permissions, see chmod(1) */
