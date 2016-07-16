@@ -191,6 +191,23 @@ static inline enum vtype EXT2_IFTOVT(uint16_t mode)
 	return tbl[IFTODT(mode)];
 }
 
+static inline int EXT2_VTTOIF(enum vtype type)
+{
+	static int tbl[] = {
+		[VCHR] = EXT2_IFCHR,
+		[VBLK] = EXT2_IFBLK,
+		[VDIR] = EXT2_IFDIR,
+		[VREG] = EXT2_IFREG,
+		[VLNK] = EXT2_IFLNK,
+	};
+	return tbl[type];
+}
+
+static inline int EXT2_MAKEIMODE(enum vtype type, int mode)
+{
+	return EXT2_VTTOIF(type) | mode;
+}
+
 int ext2fs_setsize(struct inode *ip, uint64_t size);
 
 #endif

@@ -115,6 +115,7 @@ static void __start(struct hd_device *dev)
 	partoff = (partno == 0) ? 0 : dev->part[partno].offset;
 	blkno = bp->blkno + (bp->nbytes - bp->nbytesrem) / BLOCK_SIZE + partoff;
 	data = bp->data + (bp->nbytes - bp->nbytesrem);
+	bp->flags &= ~(B_DONE | B_ERROR | B_EINTR);
 
 	if (bp->flags & B_DIRTY) {
 		kpdebug("writing to %d from %p\n", blkno, data);
@@ -185,6 +186,8 @@ static int __intr(void)
 
 	if (bp->nbytesrem == 0) {
 		kpdebug("done buf %p\n", bp);
+		if (bp->flags & B_DIRTY)
+			bp->vnode->noutputs--;
 		bp->flags &= ~(B_DIRTY | B_INVALID);
 		list_del(&(bp->ionode));
 		biodone(bp);

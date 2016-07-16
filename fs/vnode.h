@@ -103,8 +103,18 @@ struct vops {
 	 * Finds a directory entry by name.
 	 * The directory should be locked.
 	 * The returned vnode is retrieved via vget() hence locked.
+	 * Does NOT check credentials.
 	 */
 	int (*lookup)(struct vnode *, char *, struct vnode **);
+	/*
+	 * create:
+	 * Create a regular file according to given file name segment.
+	 * The directory should be locked.
+	 * The returned vnode is retrieved via vget() hence locked.
+	 * Does NOT check whether the file name already exists.
+	 * Does NOT check credentials.
+	 */
+	int (*create)(struct vnode *, char *, int, struct vnode **);
 	/*
 	 * bmap:
 	 * Translate a logical block number of a file to a disk sector
@@ -133,6 +143,8 @@ struct vops {
 	((bp)->vnode->ops->strategy(bp))
 #define VOP_LOOKUP(dvp, name, vpp) \
 	((dvp)->ops->lookup((dvp), (name), (vpp)))
+#define VOP_CREATE(dvp, name, vpp) \
+	((dvp)->ops->create((dvp), (name), (vpp)))
 #define VOP_BMAP(vp, lblkno, vpp, blkno, runp) \
 	((vp)->ops->bmap((vp), (lblkno), (vpp), (blkno), (runp)))
 #define VOP_FSYNC(vp, cred, p) (0)	/* NYI */

@@ -204,6 +204,23 @@ bread(struct vnode *vp, off_t blkno, size_t nbytes, struct buf **bpp)
 	return biowait(bp);
 }
 
+/*
+ * Block write with given buf.
+ */
+int
+bwrite(struct buf *bp)
+{
+	unsigned long flags;
+
+	local_irq_save(flags);
+	bp->vnode->noutputs++;
+	bp->flags |= B_DIRTY;
+	VOP_STRATEGY(bp);
+	local_irq_restore(flags);
+
+	return biowait(bp);
+}
+
 int
 biowait(struct buf *bp)
 {
