@@ -2,6 +2,7 @@
 #include <fs/vnode.h>
 #include <fs/bio.h>
 #include <fs/mount.h>
+#include <fs/vfs.h>
 #include <fs/ufs/inode.h>
 #include <fs/ufs/ufsmount.h>
 #include <fs/ufs/ext2fs/ext2fs.h>
@@ -18,7 +19,9 @@ int
 ext2fs_inode_alloc(struct vnode *dvp, int imode, struct vnode **vpp)
 {
 	struct vnode *devvp = VFSTOUFS(dvp->mount)->devvp;
-	struct inode *pip;
+	struct vnode *vp;	/* the vnode of allocated inode */
+	struct inode *pip;	/* inode of @dvp */
+	struct inode *ip;	/* the allocated inode */
 	struct m_ext2fs *fs;
 	struct buf *bp_ibitmap;
 	ufsino_t ino = 0, ibase;
@@ -59,13 +62,35 @@ ext2fs_inode_alloc(struct vnode *dvp, int imode, struct vnode **vpp)
 		return -ENOSPC;
 	}
 
-	/* We found a free inode # @ino. */
+	/* We found a free inode # @ino, but we delay modifying superblock and
+	 * group descriptors as we need to VGET() and enforce checks first */
+	err = VFS_VGET(dvp->mount, ino, &vp);
+	if (err)
+		goto rollback_ibitmap;
+	ip = VTOI(vp);
+	if (EXT2_DINODE(ip)->mode && EXT2_DINODE(ip)->nlink > 0)
+		/* It's an unresolvable file system error... */
+		panic("%s: dup alloc mode 0%o, nlinks %u, inum %u\n",
+		    __func__, EXT2_DINODE(ip)->mode, EXT2_DINODE(ip)->nlink,
+		    ip->ino);
+	memset(EXT2_DINODE(ip), 0, sizeof(*EXT2_DINODE(ip)));
+
+	/* Now we do the writes */
+	panic("doing writes\n");
 	atomic_set_bit(avail, bp_ibitmap->data);
 	fs->e2fs.ficount--;
 	fs->gd[i].nifree--;
 	fs->fmod = 1;
 	if ((imode & EXT2_IFMT) == EXT2_IFDIR)
 		fs->gd[i].ndirs++;
-	panic("done, found inode %d\n", ino);
+	err = bwrite(bp_ibitmap);
+	if (err)
+		goto rollback_vget;
+
+rollback_vget:
+	vput(vp);
+rollback_ibitmap:
+	brelse(bp_ibitmap);
+	return err;
 }
 

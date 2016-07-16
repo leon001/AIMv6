@@ -12,6 +12,12 @@ struct inode {
 	struct list_head node;		/* UFS hash table entry node */
 	struct vnode	*vnode;
 	struct ufsmount	*ufsmount;
+	uint32_t	flags;
+#define IN_ACCESS	0x01		/* refresh access time */
+#define IN_CHANGE	0x02		/* refresh change time */
+#define IN_UPDATE	0x04		/* refresh update time */
+#define IN_MODIFIED	0x08		/* inode modified */
+#define IN_RENAMED	0x10		/* inode renamed */
 	ufsino_t	ino;
 	dev_t		devno;
 	int		effnlink;	/* inode nlink when I/O completes */

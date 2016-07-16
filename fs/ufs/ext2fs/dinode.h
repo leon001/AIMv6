@@ -115,6 +115,8 @@ struct ext2fs_dinode {
 	uint32_t	version_hi;	/* 152: inode version, bits 63:31 */
 };
 
+#define EXT2_DINODE(ip)		((struct ext2fs_dinode *)((ip)->dinode))
+
 #define	E2MAXSYMLINKLEN	((NDADDR + NIADDR) * sizeof(uint32_t))
 
 /* File permissions, see chmod(1) */

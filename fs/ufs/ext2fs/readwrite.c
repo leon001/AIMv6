@@ -45,6 +45,8 @@ ext2fs_read(struct vnode *vp, struct uio *uio, int ioflags, struct ucred *cred)
 		++fsb;
 		brelse(bp);
 	}
+
+	VTOI(vp)->flags |= IN_ACCESS;
 	return 0;
 }
 
