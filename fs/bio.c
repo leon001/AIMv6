@@ -203,6 +203,8 @@ bread(struct vnode *vp, off_t blkno, size_t nbytes, struct buf **bpp)
 	struct buf *bp;
 
 	bp = *bpp = bio_doread(vp, blkno, nbytes, 0);
+	if (bp == NULL)
+		return -ENOMEM;
 	return biowait(bp);
 }
 

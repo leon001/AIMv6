@@ -52,8 +52,7 @@ __ext2fs_dump(struct vnode *devvp, struct m_ext2fs *fs)
 		    &bp);
 		if (err != 0) {
 			kprintf("\tbread error\n");
-			if (bp != NULL)
-				brelse(bp);
+			brelse(bp);
 			return;
 		}
 		/* XXX this piece of code is twisted: bitmap_find_first() and
@@ -76,8 +75,7 @@ __ext2fs_dump(struct vnode *devvp, struct m_ext2fs *fs)
 		    &bp);
 		if (err != 0) {
 			kprintf("\tbread error\n");
-			if (bp != NULL)
-				brelse(bp);
+			brelse(bp);
 			return;
 		}
 		/* XXX note that inodes are 1-based */

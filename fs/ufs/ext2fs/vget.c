@@ -152,8 +152,7 @@ retry:
 	    &bp);
 	if (err) {
 		kpdebug("ext2fs vget failed to read on-disk inode\n");
-		if (bp != NULL)
-			brelse(bp);
+		brelse(bp);
 		vput(vp);
 		vunlock(ump->devvp);
 		*vpp = NULL;

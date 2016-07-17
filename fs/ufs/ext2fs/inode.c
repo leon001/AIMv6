@@ -41,8 +41,10 @@ ext2fs_update(struct inode *ip)
 	ip->flags &= ~IN_MODIFIED;
 	err = bread(ip->ufsmount->devvp, fsbtodb(fs, ino_to_fsba(fs, ip->ino)),
 	    fs->bsize, &bp);
-	if (err)
+	if (err) {
+		brelse(bp);
 		return err;
+	}
 
 	cp = bp->data + ino_to_fsbo(fs, ip->ino) * EXT2_DINODE_SIZE(fs);
 

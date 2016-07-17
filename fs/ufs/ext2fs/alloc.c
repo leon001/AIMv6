@@ -14,6 +14,10 @@
 
 /*
  * A simple brute-force search algorithm for available inode number.
+ * Returns VGET'd vnode.
+ * Changes in-memory superblock (including group descriptors) as well
+ * as in-memory inode structure.
+ * Changes and writes inode bitmap to disk.
  */
 int
 ext2fs_inode_alloc(struct vnode *dvp, int imode, struct vnode **vpp)
@@ -36,8 +40,10 @@ ext2fs_inode_alloc(struct vnode *dvp, int imode, struct vnode **vpp)
 		ibase = fs->e2fs.ipg * i;
 		err = bread(devvp, fsbtodb(fs, fs->gd[i].i_bitmap), fs->bsize,
 		    &bp_ibitmap);
-		if (err)
+		if (err) {
+			brelse(bp_ibitmap);
 			return err;
+		}
 		/* Search for available ino in this cylinder group.
 		 * Note that bitmap_xxx are 1-based. */
 		avail = bitmap_find_first_zero_bit(bp_ibitmap->data,
@@ -92,5 +98,29 @@ rollback_vget:
 rollback_ibitmap:
 	brelse(bp_ibitmap);
 	return err;
+}
+
+/*
+ * Does the reverse of ext2fs_inode_alloc.
+ * Changes in-memory superblock.
+ * Does NOT change in-memory inode (do we need to?)
+ * Changes and writes inode bitmap to disk
+ */
+void
+ext2fs_inode_free(struct inode *ip)
+{
+	struct m_ext2fs *fs = ip->superblock;
+	int err, cg;
+	struct buf *bp;
+
+	assert(ip->ino <= fs->e2fs.icount);
+	assert(ip->ino >= EXT2_FIRSTINO);
+	cg = ino_to_cg(fs, ip->ino);
+	err = bread(ip->ufsmount->devvp, fsbtodb(fs, fs->gd[cg].i_bitmap),
+	    fs->bsize, &bp);
+	if (err) {
+		brelse(bp);
+		return;
+	}
 }
 

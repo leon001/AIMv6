@@ -34,8 +34,7 @@ __ext2fs_bmap(struct inode *ip, off_t lblkno, int level, soff_t *fsblkno)
 		err = bread(devvp, fsbtodb(fs, root), fs->bsize, &bp);
 		if (err) {
 			vunlock(devvp);
-			if (bp != NULL)
-				brelse(bp);
+			brelse(bp);
 			return err;
 		}
 		indices = bp->data;

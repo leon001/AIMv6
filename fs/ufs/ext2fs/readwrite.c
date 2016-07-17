@@ -31,8 +31,7 @@ ext2fs_read(struct vnode *vp, struct uio *uio, int ioflags, struct ucred *cred)
 	while (uio->resid > 0) {
 		err = bread(vp, fsb, fs->bsize, &bp);
 		if (err) {
-			if (bp != NULL)
-				brelse(bp);
+			brelse(bp);
 			return err;
 		}
 		len = min2(uio->resid, fs->bsize - b_off);

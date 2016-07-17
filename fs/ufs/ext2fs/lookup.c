@@ -40,8 +40,7 @@ ext2fs_lookup(struct vnode *dvp, char *name, struct vnode **vpp)
 	for (i = 0; i < ip->ndatablock; ++i) {
 		err = bread(dvp, i, fs->bsize, &bp);
 		if (err) {
-			if (bp != NULL)
-				brelse(bp);
+			brelse(bp);
 			return err;
 		}
 		/* Iterate over the list of directory entries */

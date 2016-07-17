@@ -56,7 +56,7 @@ spec_open(struct vnode *vp, int mode, struct ucred *cred, struct proc *p)
 	default:
 		return -ENODEV;
 	}
-	return -EINVAL;
+	/* NOTREACHED */
 }
 
 int
@@ -272,6 +272,7 @@ struct vops spec_vops = {
 	.reclaim = NOP,
 	.strategy = spec_strategy,
 	.lookup = NOTSUP,
+	.create = NOTSUP,
 	.bmap = NOTSUP
 };
 

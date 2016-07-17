@@ -139,8 +139,7 @@ ext2fs_sbinit(struct vnode *devvp, struct ext2fs *ondiskfs, struct m_ext2fs *sb)
 		if (err) {
 			free_pages(&p);
 			sb->gd = NULL;
-			if (bp != NULL)
-				brelse(bp);
+			brelse(bp);
 			return err;
 		}
 		gd = bp->data;
@@ -216,8 +215,7 @@ rollback_alloc:
 	kfree(ump);
 rollback_buf:
 rollback_open:
-	if (bp != NULL)
-		brelse(bp);
+	brelse(bp);
 	VOP_CLOSE(devvp, FREAD | FWRITE, NOCRED, p);
 	vunlock(devvp);
 
