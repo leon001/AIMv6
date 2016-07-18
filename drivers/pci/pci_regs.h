@@ -17,6 +17,10 @@
  * 	from http://www.hypertransport.org
  *
  *	The Hypertransport I/O Link Specification
+ *
+ *	AIMv6 Users:
+ *	This file is borrowed from Linux for completeness; most of the content
+ *	is not particularly helpful for our purpose.
  */
 
 #ifndef _DRIVERS_PCI_PCI_REGS_H

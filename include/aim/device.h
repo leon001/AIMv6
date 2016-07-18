@@ -78,6 +78,9 @@ struct device {
 	addr_t base;
 
 	lock_t lock;
+
+	/* Subsystem-specific data */
+	void *subsys;
 };
 
 struct chr_device {

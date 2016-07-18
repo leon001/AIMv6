@@ -37,6 +37,7 @@
 #include <sys/types.h>
 #include <sys/endian.h>
 #include <sys/param.h>
+#include <fs/ufs/ufs.h>
 
 /*
  * Each disk drive contains some number of file systems.
@@ -265,6 +266,7 @@ int ext2fs_create(struct vnode *, char *, int, struct vnode **);
 
 /* internal operations */
 int ext2fs_inode_alloc(struct vnode *, int, struct vnode **);
+void ext2fs_inode_free(struct vnode *, ufsino_t, int);
 int ext2fs_update(struct inode *);
 
 #endif

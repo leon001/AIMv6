@@ -269,6 +269,8 @@ vn_rw(struct vnode *vp, off_t offset, size_t len, void *buf, int ioflags,
 	case UIO_WRITE:
 		return VOP_WRITE(vp, &uio, ioflags, cred);
 	}
+	/* NOTREACHED */
+	return -EINVAL;
 }
 
 int

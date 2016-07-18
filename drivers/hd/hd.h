@@ -26,11 +26,13 @@
 
 #define HD_PART_BITS		4
 #define HD_PART_MASK		((1 << HD_PART_BITS) - 1)
-#define HD_INSTANCE_BITS	12
+#define HD_INSTANCE_BITS	4
 #define MAX_PARTITIONS		((1 << HD_PART_BITS) - 1)
 
 #define hdbasedev(dev)	makedev(major(dev), minor(dev) & ~HD_PART_MASK)
 #define hdpartno(dev)	(minor(dev) & HD_PART_MASK)
+#define make_hdbasedev(maj, inst) \
+	makedev(maj, (inst) << HD_INSTANCE_BITS)
 
 struct hdpartition {
 	off_t	offset;

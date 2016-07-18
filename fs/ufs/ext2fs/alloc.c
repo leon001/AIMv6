@@ -82,7 +82,6 @@ ext2fs_inode_alloc(struct vnode *dvp, int imode, struct vnode **vpp)
 	memset(EXT2_DINODE(ip), 0, sizeof(*EXT2_DINODE(ip)));
 
 	/* Now we do the writes */
-	panic("doing writes\n");
 	atomic_set_bit(avail, bp_ibitmap->data);
 	fs->e2fs.ficount--;
 	fs->gd[i].nifree--;
@@ -92,6 +91,10 @@ ext2fs_inode_alloc(struct vnode *dvp, int imode, struct vnode **vpp)
 	err = bwrite(bp_ibitmap);
 	if (err)
 		goto rollback_vget;
+
+	brelse(bp_ibitmap);
+	*vpp = vp;
+	return 0;
 
 rollback_vget:
 	vput(vp);
@@ -107,20 +110,36 @@ rollback_ibitmap:
  * Changes and writes inode bitmap to disk
  */
 void
-ext2fs_inode_free(struct inode *ip)
+ext2fs_inode_free(struct vnode *dvp, ufsino_t ino, int imode)
 {
-	struct m_ext2fs *fs = ip->superblock;
-	int err, cg;
+	struct inode *ip = VTOI(dvp);
+	struct m_ext2fs *fs;
+	void *ibp;
 	struct buf *bp;
+	int err, cg;
 
-	assert(ip->ino <= fs->e2fs.icount);
-	assert(ip->ino >= EXT2_FIRSTINO);
-	cg = ino_to_cg(fs, ip->ino);
+	fs = ip->superblock;
+	assert(ino <= fs->e2fs.icount);
+	assert(ino >= EXT2_FIRSTINO);
+	cg = ino_to_cg(fs, ino);
 	err = bread(ip->ufsmount->devvp, fsbtodb(fs, fs->gd[cg].i_bitmap),
 	    fs->bsize, &bp);
 	if (err) {
 		brelse(bp);
 		return;
 	}
+	ibp = bp->data;
+	ino = (ino - 1) % fs->e2fs.ipg + 1;
+	if (!bitmap_test_bit(ino, ibp))
+		panic("%s: freeing free inode %u on %x\n", __func__, ino,
+		    ip->devno);
+	atomic_clear_bit(ino, ibp);
+	fs->e2fs.ficount++;
+	fs->gd[cg].nifree++;
+	if ((imode & EXT2_IFMT) == EXT2_IFDIR)
+		fs->gd[cg].ndirs--;
+	fs->fmod = 1;
+	bwrite(bp);
+	brelse(bp);
 }
 
