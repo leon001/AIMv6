@@ -225,8 +225,8 @@ as hard disks; it can be only present in memory, sometimes usable only
 by processes requested to open it (e.g. pipes and sockets).
 
 There are more concepts and objects that can be treated as files, some of
-which are even beyond imagination ~~and are proposed by dark magic
-practitioners from Plan 9~~:
+which are even beyond imagination ~~and are proposed by [dark magic
+practitioners](https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs)~~:
 
 * Special data sources and sinks (e.g. random number generator)
 * Memory
@@ -234,7 +234,6 @@ practitioners from Plan 9~~:
 * Web servers
 * Wikipedia
 * [~~Your belongings~~](https://en.wikipedia.org/wiki/Dunnet_(video_game))
-* 
 
 #### Vnodes (Part 1)
 
@@ -271,3 +270,4 @@ of them:
 
 #### `getdevvp()`, `bdevvp()` and `cdevvp()`
 
+TBD
