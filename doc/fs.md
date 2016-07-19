@@ -25,7 +25,12 @@ file systems, including UFS-like file systems.
 
 To aid study, I provided an end-to-end walkthrough here.
 
-## Development constraints
+### Development constraints
+
+**To readers of walkthrough: if you are not developers improving, enhancing,
+or refactoring this file system framework, please skip this section.  Developers
+who are unfamiliar with the framework in BSD are also encouraged to read the
+walkthrough below first, then jump back here.**
 
 Here are several constraints for reference if you are extending or modifying
 the file system framework.  Breaking these rules likely calls for more or less
@@ -142,4 +147,127 @@ executed.
 
 #### `ext2fs_mountroot()`
 
-TBD
+`ext2fs_mountroot()` is the function which provides the `mountroot()`
+implementation on an ext2 file system, which, along with its
+descendants (including ext3 and ext4), is widely used in modern
+Unix-like systems such as Linux and BSD.
+
+The technical details of ext2 can be found
+[here](http://wiki.osdev.org/Ext2).
+
+`ext2fs_mountroot()` consists of four operations:
+
+1. Obtaining a kernel representation of the device holding the root
+  file system via the following call:
+
+  ```C
+  bdevvp(rootdev, &rootvp)
+  ```
+
+2. Create an object representing the file system as a whole, assigning
+  file-system-wide operations to it as methods:
+
+  ```C
+  vfs_rootmountalloc("ext2fs", &mp)
+  ```
+  
+3. Load the metadata of the file system into memory:
+
+  ```C
+  ext2fs_mountfs(rootvp, mp, current_proc)
+  ```
+  
+4. Add the file system object `mp` into the list of loaded file systems.
+  This operation is quite trivial by itself and I will not extend it
+  further:
+
+  ```C
+  addmount(mp)
+  ```
+  
+### Vnode - the kernel in-memory representation of a file
+
+The `bdevvp()` call takes a device identifier (with type `dev_t`) as
+input, and produces a `struct vnode` object as output.  This `struct
+vnode` object, or *vnode* for short, represents the device we are going
+to read and write on.  In this section, I'll explain what is a vnode,
+before moving on to `bdevvp()`, which will be trivial to understand
+then.
+
+Vnode is the kernel representation of a file in AIMv6 (and also BSD
+and Linux - though Linux uses the term "inode", a UFS-specific term,
+across all file systems for this purpose).
+
+#### Files, directories, and device files
+
+A file, by [definition](https://en.wikipedia.org/wiki/Computer_file), is
+a kind of information storage, available for programs to read and write
+as a unit.
+
+A [directory](https://en.wikipedia.org/wiki/Directory_(computing)) is
+either a collection of files, or a collection of file references.  In
+Unix, directories are treated as files, so they share the same
+kernel representation.
+
+Unix (and also Windows!) further extended the concept of files by
+treating devices as *special files*, and device accesses and manipulations
+as file operations.  For example, outputting text to a serial console
+is viewed as `write`'s, while receiving information from serial console
+are treated as `read`'s.  The operations which are rather hard to
+classify as ordinary file operations (such as changing baud rate of
+a serial console) are called `ioctl`'s.
+
+Occasionally, inter-process communications, including pipes and sockets,
+can also appear in various forms of file operations.
+
+A file does not need to be actually persist in durable storages such
+as hard disks; it can be only present in memory, sometimes usable only
+by processes requested to open it (e.g. pipes and sockets).
+
+There are more concepts and objects that can be treated as files, some of
+which are even beyond imagination ~~and are proposed by dark magic
+practitioners from Plan 9~~:
+
+* Special data sources and sinks (e.g. random number generator)
+* Memory
+* CPU
+* Web servers
+* Wikipedia
+* [~~Your belongings~~](https://en.wikipedia.org/wiki/Dunnet_(video_game))
+* 
+
+#### Vnodes (Part 1)
+
+A vnode has a lot of members, but for now we only need to focus on some
+of them:
+
+* `type` - One of the following:
+
+  |Type   |Description (Unix)    |Windows equivalent     |
+  |-------|----------------------|-----------------------|
+  |`VREG` |Regular file          |Good ol' everyday files|
+  |`VDIR` |Directory             |Folders                |
+  |`VCHR` |Character device file |                       |
+  |`VBLK` |Block device file     |                       |
+  |`VLNK` |Symbolic link         |Shortcuts              |
+  
+  And possibly one of the following, which are not available in AIMv6 but in
+  BSD systems:
+  
+  |Type   |Description (Unix)    |Windows equivalent     |
+  |-------|----------------------|-----------------------|
+  |`VFIFO`|Named pipes           |                       |
+  |`VSOCK`|Sockets               |                       |
+
+* `ops` - The underlying implementation of file operations, usually assigned
+  by file system providers upon creation, and depends on the file system and
+  file type.  For example, reading from a regular file is certainly different
+  from reading from a device.
+* `mount` - The file system object the vnode resides on.
+* `typedata` - Depending on vnode type, this may point to different structures.
+  For now, we only consider member `specinfo`, which points to a `specinfo`
+  structure if the vnode corresponds to a device (either `VCHR` or `VBLK`).
+
+
+#### `getdevvp()`, `bdevvp()` and `cdevvp()`
+
