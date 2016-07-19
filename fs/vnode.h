@@ -157,6 +157,7 @@ int vrele(struct vnode *);
 void vref(struct vnode *);
 void vget(struct vnode *);
 void vput(struct vnode *);
+void vwakeup(struct vnode *);
 int vwaitforio(struct vnode *);
 int vinvalbuf(struct vnode *, struct ucred *, struct proc *);
 

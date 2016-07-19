@@ -253,6 +253,11 @@ biodone(struct buf *bp)
 	local_irq_save(flags);
 	assert(!(bp->flags & B_DONE));
 	bp->flags |= B_DONE;
+
+	if (bp->flags & B_DIRTY)
+		vwakeup(bp->vnode);
+	bp->flags &= ~(B_DIRTY | B_INVALID);
+
 	wakeup(bp);	/* biowait() */
 	local_irq_restore(flags);
 	return 0;

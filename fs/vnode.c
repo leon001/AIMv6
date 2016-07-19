@@ -164,6 +164,20 @@ vget(struct vnode *vp)
 	atomic_inc(&(vp->refs));
 }
 
+void
+vwakeup(struct vnode *vp)
+{
+	unsigned long flags;
+
+	local_irq_save(flags);
+	if (vp != NULL) {
+		assert(vp->noutputs > 0);
+		if (--(vp->noutputs) == 0)
+			wakeup(&vp->noutputs);
+	}
+	local_irq_restore(flags);
+}
+
 /*
  * vput() - unlock and release.  Of course, assumes the vnode to be locked.
  */

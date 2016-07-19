@@ -186,9 +186,6 @@ static int __intr(void)
 
 	if (bp->nbytesrem == 0) {
 		kpdebug("done buf %p\n", bp);
-		if (bp->flags & B_DIRTY)
-			bp->vnode->noutputs--;
-		bp->flags &= ~(B_DIRTY | B_INVALID);
 		list_del(&(bp->ionode));
 		biodone(bp);
 	}
