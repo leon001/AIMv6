@@ -124,7 +124,7 @@ ext2fs_sbinit(struct vnode *devvp, struct ext2fs *ondiskfs, struct m_ext2fs *sb)
 
 	/* Load group descriptors */
 	sb->ngdb = DIV_ROUND_UP(sb->ncg, sb->bsize / sizeof(struct ext2_gd));
-	p.size = sb->ngdb * sb->bsize;
+	p.size = ALIGN_ABOVE(sb->ngdb * sb->bsize, PAGE_SIZE);
 	p.flags = 0;
 	if (alloc_pages(&p) < 0)
 		return -ENOMEM;

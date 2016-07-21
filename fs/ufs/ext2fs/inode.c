@@ -22,6 +22,15 @@ ext2fs_setsize(struct inode *ip, uint64_t size)
 	return -EFBIG;
 }
 
+uint64_t
+ext2fs_getsize(struct inode *ip)
+{
+	uint64_t size = EXT2_DINODE(ip)->size;
+	if ((EXT2_DINODE(ip)->mode & EXT2_IFMT) == EXT2_IFREG)
+		size |= ((uint64_t)EXT2_DINODE(ip)->size_hi) << 32;
+	return size;
+}
+
 /*
  * Update the on-disk inode structure.
  */

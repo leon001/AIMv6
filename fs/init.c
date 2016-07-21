@@ -4,12 +4,6 @@
 #include <fs/vnode.h>
 #include <fs/vfs.h>
 
-#include <fs/ufs/inode.h>
-#include <fs/ufs/ufsmount.h>
-#include <fs/ufs/ext2fs/ext2fs.h>
-#include <percpu.h>
-#include <fs/namei.h>
-
 void
 fsinit(void)
 {

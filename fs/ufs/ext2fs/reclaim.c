@@ -21,7 +21,12 @@ ext2fs_inactive(struct vnode *vp, struct proc *p)
 		goto out;
 
 	if (dp->nlink == 0) {
-		panic("ext2fs_inactive: deletion NYI\n");
+		if (ext2fs_getsize(ip) > 0)
+			panic("ext2fs truncate NYI\n");
+		/* TODO: set this to *real* time */
+		EXT2_DINODE(ip)->dtime = 1;
+		ip->flags |= IN_CHANGE | IN_UPDATE;
+		ext2fs_inode_free(ip, ip->ino, EXT2_DINODE(ip)->mode);
 	}
 	if (ip->flags & (IN_ACCESS | IN_CHANGE | IN_MODIFIED | IN_UPDATE))
 		ext2fs_update(ip);

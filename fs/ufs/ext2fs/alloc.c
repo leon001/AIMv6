@@ -68,20 +68,7 @@ ext2fs_inode_alloc(struct vnode *dvp, int imode, struct vnode **vpp)
 		return -ENOSPC;
 	}
 
-	/* We found a free inode # @ino, but we delay modifying superblock and
-	 * group descriptors as we need to VGET() and enforce checks first */
-	err = VFS_VGET(dvp->mount, ino, &vp);
-	if (err)
-		goto rollback_ibitmap;
-	ip = VTOI(vp);
-	if (EXT2_DINODE(ip)->mode && EXT2_DINODE(ip)->nlink > 0)
-		/* It's an unresolvable file system error... */
-		panic("%s: dup alloc mode 0%o, nlinks %u, inum %u\n",
-		    __func__, EXT2_DINODE(ip)->mode, EXT2_DINODE(ip)->nlink,
-		    ip->ino);
-	memset(EXT2_DINODE(ip), 0, sizeof(*EXT2_DINODE(ip)));
-
-	/* Now we do the writes */
+	/* We do writes first. */
 	atomic_set_bit(avail, bp_ibitmap->data);
 	fs->e2fs.ficount--;
 	fs->gd[i].nifree--;
@@ -89,17 +76,25 @@ ext2fs_inode_alloc(struct vnode *dvp, int imode, struct vnode **vpp)
 	if ((imode & EXT2_IFMT) == EXT2_IFDIR)
 		fs->gd[i].ndirs++;
 	err = bwrite(bp_ibitmap);
-	if (err)
-		goto rollback_vget;
-
 	brelse(bp_ibitmap);
+	if (err)
+		return err;
+
+	/* VGET the inode.  If we can't, unwind the inode bitmap. */
+	err = VFS_VGET(dvp->mount, ino, &vp);
+	if (err)
+		goto rollback_ibitmap;
+	ip = VTOI(vp);
+	if (EXT2_DINODE(ip)->mode && EXT2_DINODE(ip)->nlink > 0)
+		panic("%s: dup alloc mode 0%o, nlinks %u, inum %u\n",
+		    __func__, EXT2_DINODE(ip)->mode, EXT2_DINODE(ip)->nlink,
+		    ip->ino);
+	memset(EXT2_DINODE(ip), 0, sizeof(*EXT2_DINODE(ip)));
+
 	*vpp = vp;
 	return 0;
-
-rollback_vget:
-	vput(vp);
 rollback_ibitmap:
-	brelse(bp_ibitmap);
+	ext2fs_inode_free(VTOI(dvp), ino, imode);
 	return err;
 }
 
@@ -110,9 +105,8 @@ rollback_ibitmap:
  * Changes and writes inode bitmap to disk
  */
 void
-ext2fs_inode_free(struct vnode *dvp, ufsino_t ino, int imode)
+ext2fs_inode_free(struct inode *ip, ufsino_t ino, int imode)
 {
-	struct inode *ip = VTOI(dvp);
 	struct m_ext2fs *fs;
 	void *ibp;
 	struct buf *bp;
@@ -141,5 +135,92 @@ ext2fs_inode_free(struct vnode *dvp, ufsino_t ino, int imode)
 	fs->fmod = 1;
 	bwrite(bp);
 	brelse(bp);
+}
+
+/*
+ * A brute-force searching algorithm for available file system block.
+ * Rather uninteresting since the algorithm is largely the same as inode_alloc.
+ */
+int
+ext2fs_blkalloc(struct inode *ip, struct ucred *cred, off_t *fsblkp)
+{
+	struct vnode *devvp = ip->ufsmount->devvp;
+	struct m_ext2fs *fs = ip->superblock;
+	struct buf *bp_bbitmap;
+	int i, err, avail;
+	off_t fsblk = 0, bbase;
+
+	if (fs->e2fs.fbcount == 0)
+		return -ENOSPC;
+
+	kpdebug("ext2fs blkalloc for inode %u\n", ip->ino);
+	for (i = 0; i < fs->ncg; ++i) {
+		bbase = fs->e2fs.fpg * i + fs->e2fs.first_dblock;
+		err = bread(devvp, fsbtodb(fs, fs->gd[i].b_bitmap), fs->bsize,
+		    &bp_bbitmap);
+		if (err) {
+			brelse(bp_bbitmap);
+			return err;
+		}
+		/* Search for available block in this cylinder group. */
+		avail = bitmap_find_first_zero_bit(bp_bbitmap->data,
+		   fs->e2fs.bpg);
+		if (avail == -1) {
+			brelse(bp_bbitmap);
+			continue;
+		}
+		/* Subtract 1 because block # are zero-based */
+		fsblk = avail - 1 + bbase;
+		break;
+		/* NOTREACHED */
+	}
+	if (fsblk == 0) {
+		kprintf("%s: inconsistent block bitmap and superblock\n",
+		    __func__);
+		return -ENOSPC;
+	}
+
+	/* Now we do the writes */
+	atomic_set_bit(avail, bp_bbitmap->data);
+	err = bwrite(bp_bbitmap);
+	brelse(bp_bbitmap);
+	if (err)
+		return err;
+	fs->e2fs.fbcount--;
+	fs->gd[i].nbfree--;
+	fs->fmod = 1;
+
+	*fsblkp = fsblk;
+	kpdebug("ext2fs blkalloc found %lu for inode %u\n", fsblk, ip->ino);
+	return 0;
+}
+
+void
+ext2fs_blkfree(struct inode *ip, off_t fsblk)
+{
+	struct m_ext2fs *fs = ip->superblock;
+	int cg = dtog(fs, fsblk);
+	int err, bno;
+	struct buf *bp;
+
+	assert(fsblk < fs->e2fs.bcount);
+	kpdebug("ext2fs blkfree freeing %lu for inode %u\n", fsblk, ip->ino);
+	err = bread(ip->ufsmount->devvp, fsbtodb(fs, fs->gd[cg].b_bitmap),
+	    fs->bsize, &bp);
+	if (err) {
+		brelse(bp);
+		return;
+	}
+	bno = dtogd(fs, fsblk);
+	if (!bitmap_test_bit(bno + 1, bp->data))
+		panic("%s: freeing free block %u on %x\n", __func__, fsblk,
+		    ip->devno);
+	atomic_clear_bit(bno + 1, bp->data);
+	fs->e2fs.fbcount++;
+	fs->gd[cg].nbfree++;
+	fs->fmod = 1;
+	bwrite(bp);
+	brelse(bp);
+	kpdebug("ext2fs blkfree freed %lu for inode %u\n", fsblk, ip->ino);
 }
 

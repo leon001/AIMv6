@@ -149,6 +149,9 @@ struct vops {
 	((vp)->ops->bmap((vp), (lblkno), (vpp), (blkno), (runp)))
 #define VOP_FSYNC(vp, cred, p) (0)	/* NYI */
 
+/* ioflags */
+#define IO_APPEND	0x02	/* Append to end of file when writing */
+
 int getnewvnode(struct mount *, struct vops *, struct vnode **);
 void vlock(struct vnode *);
 bool vtrylock(struct vnode *);

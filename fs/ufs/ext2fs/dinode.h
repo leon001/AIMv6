@@ -220,6 +220,4 @@ static inline int EXT2_MAKEIMODE(enum vtype type, int mode)
 	return EXT2_VTTOIF(type) | mode;
 }
 
-int ext2fs_setsize(struct inode *ip, uint64_t size);
-
 #endif

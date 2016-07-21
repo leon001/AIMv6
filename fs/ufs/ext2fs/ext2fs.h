@@ -218,6 +218,13 @@ struct ext2_gd {
 /* Round up the size to logical blocks */
 #define lblkroundup(fs, size)	ALIGN_ABOVE((size), (fs)->bsize)
 
+/* file system block # to cylinder group # */
+#define dtog(fs, fsblk) \
+	(((fsblk) - (fs)->e2fs.first_dblock) / (fs)->e2fs.fpg)
+/* file system block # to cylinder group offset */
+#define dtogd(fs, fsblk) \
+	(((fsblk) - (fs)->e2fs.first_dblock) % (fs)->e2fs.fpg)
+
 /*
  * Ext2 metadata is stored in little-endian byte order.
  * JBD2 journal used in ext3 and ext4 is big-endian!
@@ -265,8 +272,12 @@ int ext2fs_lookup(struct vnode *, char *, struct vnode **);
 int ext2fs_create(struct vnode *, char *, int, struct vnode **);
 
 /* internal operations */
+uint64_t ext2fs_getsize(struct inode *);
+int ext2fs_setsize(struct inode *ip, uint64_t size);
 int ext2fs_inode_alloc(struct vnode *, int, struct vnode **);
-void ext2fs_inode_free(struct vnode *, ufsino_t, int);
+void ext2fs_inode_free(struct inode *, ufsino_t, int);
+int ext2fs_blkalloc(struct inode *, struct ucred *, off_t *);
+void ext2fs_blkfree(struct inode *, off_t);
 int ext2fs_update(struct inode *);
 
 #endif
