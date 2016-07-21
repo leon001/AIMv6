@@ -10,45 +10,32 @@
 #include <panic.h>
 #include <errno.h>
 
-static int
-__ext2fs_bmap(struct inode *ip, off_t lblkno, int level, soff_t *fsblkno)
+/*
+ * Determine # of levels of indirection, as well as offsets into each
+ * indirect block for tracing down.
+ */
+int
+ext2fs_indirs(struct inode *ip, off_t lblkno, int *offsets)
 {
-	struct buf *bp = NULL;
-	struct vnode *devvp = ip->ufsmount->devvp;
-	struct ext2fs_dinode *dip = ip->dinode;
 	struct m_ext2fs *fs = ip->superblock;
-	int err, i;
-	uint32_t index;
-	uint32_t *indices;
-	uint32_t base = 1;
-	off_t root = dip->blocks[NDADDR + level - 1];
-	if (root == 0) {
-		*fsblkno = 0;
-		return 0;
-	}
+	int levels = 1, i;
+	off_t lim;
 
-	for (i = 1; i < level; ++i)
-		base *= NINDIR(fs);
-	vlock(devvp);
-	for (i = 0; i < level; ++i) {
-		err = bread(devvp, fsbtodb(fs, root), fs->bsize, &bp);
-		if (err) {
-			vunlock(devvp);
-			brelse(bp);
-			return err;
-		}
-		indices = bp->data;
-		index = lblkno / base;
-		lblkno %= base;
-		root = indices[index];
-		brelse(bp);
-		bp = NULL;
-		if (root == 0)
-			break;
+	if (lblkno < NDADDR)
+		return 0;
+
+	lblkno -= NDADDR;
+	for (lim = NINDIR(fs); lblkno >= lim; lim *= NINDIR(fs), ++levels)
+		lblkno -= lim;
+	if (levels > 3)
+		return -EFBIG;
+	for (i = 0; i < levels; ++i) {
+		lim /= NINDIR(fs);
+		*offsets = lblkno / lim;
+		lblkno %= lim;
+		++offsets;
 	}
-	*fsblkno = root;
-	vunlock(devvp);
-	return 0;
+	return levels;
 }
 
 int
@@ -56,11 +43,12 @@ ext2fs_bmap(struct vnode *vp, off_t lblkno, struct vnode **vpp,
     soff_t *blkno, int *runp)
 {
 	struct inode *ip = VTOI(vp);
-	struct ext2fs_dinode *dip = ip->dinode;
 	struct m_ext2fs *fs = ip->superblock;
 	struct vnode *devvp = ip->ufsmount->devvp;
 	soff_t fsblkno;
-	int err = 0;
+	int offsets[NIADDR];
+	int err = 0, level, i;
+	struct buf *bp;
 
 	if (vpp != NULL)
 		*vpp = devvp;
@@ -79,36 +67,24 @@ ext2fs_bmap(struct vnode *vp, off_t lblkno, struct vnode **vpp,
 		err = -E2BIG;
 		goto finish;
 	} else if (lblkno < NDADDR) {
-		fsblkno = dip->blocks[lblkno];
-		goto finish;
-	}
-	/*
-	 * Singly indirect block case.
-	 */
-	lblkno -= NDADDR;
-	if (lblkno < NINDIR(fs)) {
-		err = __ext2fs_bmap(ip, lblkno, 1, &fsblkno);
-		goto finish;
-	}
-	/*
-	 * Doubly indirect block case
-	 */
-	lblkno -= NINDIR(fs);
-	if (lblkno < NINDIR(fs) * NINDIR(fs)) {
-		err = __ext2fs_bmap(ip, lblkno, 2, &fsblkno);
-		goto finish;
-	}
-	/*
-	 * Triply indirect block case
-	 */
-	lblkno -= NINDIR(fs) * NINDIR(fs);
-	if (lblkno < NINDIR(fs) * NINDIR(fs) * NINDIR(fs)) {
-		err = __ext2fs_bmap(ip, lblkno, 3, &fsblkno);
+		fsblkno = EXT2_DINODE(ip)->blocks[lblkno];
 		goto finish;
 	}
 
-	fsblkno = BLKNO_INVALID;
-	err = -ENXIO;
+	if ((level = ext2fs_indirs(ip, lblkno, offsets)) < 0)
+		return level;	/* level becomes error */
+	for (fsblkno = EXT2_DINODE(ip)->blocks[NDADDR + level - 1], i = 0;
+	     fsblkno != 0 && level > 0;
+	     --level, ++i) {
+		err = bread(devvp, fsbtodb(fs, fsblkno), fs->bsize, &bp);
+		if (err) {
+			brelse(bp);
+			return err;
+		}
+		fsblkno = ((uint32_t *)bp->data)[offsets[i]];
+	}
+	brelse(bp);
+
 finish:
 	/* Translate a file system logical block number to disk sector
 	 * number */

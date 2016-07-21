@@ -36,12 +36,14 @@ ext2fs_inode_alloc(struct vnode *dvp, int imode, struct vnode **vpp)
 	if (fs->e2fs.ficount == 0)
 		return -ENOSPC;
 
+	vlock(devvp);
 	for (i = 0; i < fs->ncg; ++i) {
 		ibase = fs->e2fs.ipg * i;
 		err = bread(devvp, fsbtodb(fs, fs->gd[i].i_bitmap), fs->bsize,
 		    &bp_ibitmap);
 		if (err) {
 			brelse(bp_ibitmap);
+			vunlock(devvp);
 			return err;
 		}
 		/* Search for available ino in this cylinder group.
@@ -65,6 +67,7 @@ ext2fs_inode_alloc(struct vnode *dvp, int imode, struct vnode **vpp)
 		/* No free inodes in bitmap but superblock says there ARE free
 		 * inodes.  Here, we don't attempt to fix it. */
 		kprintf("%s: inconsistent inode bitmap and superblock\n", __func__);
+		vunlock(devvp);
 		return -ENOSPC;
 	}
 
@@ -77,6 +80,7 @@ ext2fs_inode_alloc(struct vnode *dvp, int imode, struct vnode **vpp)
 		fs->gd[i].ndirs++;
 	err = bwrite(bp_ibitmap);
 	brelse(bp_ibitmap);
+	vunlock(devvp);
 	if (err)
 		return err;
 
@@ -111,13 +115,13 @@ ext2fs_inode_free(struct inode *ip, ufsino_t ino, int imode)
 	void *ibp;
 	struct buf *bp;
 	int err, cg;
+	struct vnode *devvp = ip->ufsmount->devvp;
 
 	fs = ip->superblock;
 	assert(ino <= fs->e2fs.icount);
 	assert(ino >= EXT2_FIRSTINO);
 	cg = ino_to_cg(fs, ino);
-	err = bread(ip->ufsmount->devvp, fsbtodb(fs, fs->gd[cg].i_bitmap),
-	    fs->bsize, &bp);
+	err = bread(devvp, fsbtodb(fs, fs->gd[cg].i_bitmap), fs->bsize, &bp);
 	if (err) {
 		brelse(bp);
 		return;
@@ -154,12 +158,14 @@ ext2fs_blkalloc(struct inode *ip, struct ucred *cred, off_t *fsblkp)
 		return -ENOSPC;
 
 	kpdebug("ext2fs blkalloc for inode %u\n", ip->ino);
+	vlock(devvp);
 	for (i = 0; i < fs->ncg; ++i) {
 		bbase = fs->e2fs.fpg * i + fs->e2fs.first_dblock;
 		err = bread(devvp, fsbtodb(fs, fs->gd[i].b_bitmap), fs->bsize,
 		    &bp_bbitmap);
 		if (err) {
 			brelse(bp_bbitmap);
+			vunlock(devvp);
 			return err;
 		}
 		/* Search for available block in this cylinder group. */
@@ -177,6 +183,7 @@ ext2fs_blkalloc(struct inode *ip, struct ucred *cred, off_t *fsblkp)
 	if (fsblk == 0) {
 		kprintf("%s: inconsistent block bitmap and superblock\n",
 		    __func__);
+		vunlock(devvp);
 		return -ENOSPC;
 	}
 
@@ -184,6 +191,7 @@ ext2fs_blkalloc(struct inode *ip, struct ucred *cred, off_t *fsblkp)
 	atomic_set_bit(avail, bp_bbitmap->data);
 	err = bwrite(bp_bbitmap);
 	brelse(bp_bbitmap);
+	vunlock(devvp);
 	if (err)
 		return err;
 	fs->e2fs.fbcount--;
@@ -198,6 +206,7 @@ ext2fs_blkalloc(struct inode *ip, struct ucred *cred, off_t *fsblkp)
 void
 ext2fs_blkfree(struct inode *ip, off_t fsblk)
 {
+	struct vnode *devvp = ip->ufsmount->devvp;
 	struct m_ext2fs *fs = ip->superblock;
 	int cg = dtog(fs, fsblk);
 	int err, bno;
@@ -205,8 +214,7 @@ ext2fs_blkfree(struct inode *ip, off_t fsblk)
 
 	assert(fsblk < fs->e2fs.bcount);
 	kpdebug("ext2fs blkfree freeing %lu for inode %u\n", fsblk, ip->ino);
-	err = bread(ip->ufsmount->devvp, fsbtodb(fs, fs->gd[cg].b_bitmap),
-	    fs->bsize, &bp);
+	err = bread(devvp, fsbtodb(fs, fs->gd[cg].b_bitmap), fs->bsize, &bp);
 	if (err) {
 		brelse(bp);
 		return;
