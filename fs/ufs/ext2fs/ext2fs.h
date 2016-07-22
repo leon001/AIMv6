@@ -182,6 +182,10 @@ struct m_ext2fs {
 	struct	ext2_gd *gd;	/* group descriptor array */
 };
 
+#define EXT2_NDATABLK(ip) \
+	DIV_ROUND_UP((ip)->filesize, \
+		    ((struct m_ext2fs *)(ip)->superblock)->bsize)
+
 struct ext2_gd {
 	uint32_t b_bitmap;	/* blocks bitmap block */
 	uint32_t i_bitmap;	/* inodes bitmap block */

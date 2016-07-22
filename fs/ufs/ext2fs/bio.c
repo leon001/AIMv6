@@ -65,7 +65,6 @@ ext2fs_buf_alloc(struct inode *ip, off_t lblkno, struct ucred *cred,
 		memset(bp->data, 0, fs->bsize);
 
 		/* Finish up */
-		ip->nsect += fs->bsects;
 		EXT2_DINODE(ip)->blocks[lblkno] = fsblk;
 		ip->flags |= IN_CHANGE | IN_UPDATE;
 		*bpp = bp;
@@ -97,8 +96,6 @@ ext2fs_buf_alloc(struct inode *ip, off_t lblkno, struct ucred *cred,
 			ext2fs_blkfree(ip, fsblk);
 			return err;
 		}
-		/* refresh inode sector count */
-		ip->nsect += fs->bsects;
 		/* record the block we allocated for rolling back in case of
 		 * something miserable happens */
 		EXT2_DINODE(ip)->blocks[NIADDR + level - 1] = fsblk;
@@ -156,8 +153,6 @@ ext2fs_buf_alloc(struct inode *ip, off_t lblkno, struct ucred *cred,
 				brelse(bp);
 				goto fail;
 			}
-			/* refresh inode sector count */
-			ip->nsect += fs->bsects;
 			ip->flags |= IN_CHANGE | IN_UPDATE;
 			/* record the allocated file system block */
 			nb = fsblks[alloced++] = fsblk;
@@ -178,7 +173,6 @@ ext2fs_buf_alloc(struct inode *ip, off_t lblkno, struct ucred *cred,
 fail:
 	for (--alloced; alloced >= 0; --alloced) {
 		ext2fs_blkfree(ip, fsblks[alloced]);
-		ip->nsect -= fs->bsects;
 		--used;
 		if (used == 0) {
 			/* rollback the indirect block in inode structure */

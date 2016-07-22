@@ -70,3 +70,8 @@ ext2fs_update(struct inode *ip)
 	return err;
 }
 
+int
+ext2fs_truncate(struct inode *ip, size_t len, struct ucred *cred)
+{
+}
+

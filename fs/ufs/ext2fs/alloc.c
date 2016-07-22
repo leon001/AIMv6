@@ -144,8 +144,6 @@ ext2fs_inode_free(struct inode *ip, ufsino_t ino, int imode)
 /*
  * A brute-force searching algorithm for available file system block.
  * Rather uninteresting since the algorithm is largely the same as inode_alloc.
- *
- * NOTE: Does **NOT** update inode.  (Shall we? FIXME)
  */
 int
 ext2fs_blkalloc(struct inode *ip, struct ucred *cred, off_t *fsblkp)
@@ -196,18 +194,18 @@ ext2fs_blkalloc(struct inode *ip, struct ucred *cred, off_t *fsblkp)
 	vunlock(devvp);
 	if (err)
 		return err;
+	/* Update superblock as well as inode */
 	fs->e2fs.fbcount--;
 	fs->gd[i].nbfree--;
 	fs->fmod = 1;
+	ip->nsect += fs->bsects;
+	ip->flags |= IN_CHANGE | IN_UPDATE;
 
 	*fsblkp = fsblk;
 	kpdebug("ext2fs blkalloc found %lu for inode %u\n", fsblk, ip->ino);
 	return 0;
 }
 
-/*
- * NOTE: Does **NOT** update inode.  (Shall we? FIXME)
- */
 void
 ext2fs_blkfree(struct inode *ip, off_t fsblk)
 {
@@ -232,6 +230,8 @@ ext2fs_blkfree(struct inode *ip, off_t fsblk)
 	fs->e2fs.fbcount++;
 	fs->gd[cg].nbfree++;
 	fs->fmod = 1;
+	ip->nsect -= fs->bsects;
+	ip->flags |= IN_CHANGE | IN_UPDATE;
 	bwrite(bp);
 	brelse(bp);
 	kpdebug("ext2fs blkfree freed %lu for inode %u\n", fsblk, ip->ino);
