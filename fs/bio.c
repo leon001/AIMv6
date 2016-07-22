@@ -59,6 +59,8 @@ bfreedata(struct buf *bp)
  *
  * bget() does not check for inconsistencies of number of blocks, overlaps
  * of cached buf's etc.
+ *
+ * The only cause for the return value to be NULL is out of memory.
  */
 struct buf *
 bget(struct vnode *vp, off_t lblkno, size_t nbytes)

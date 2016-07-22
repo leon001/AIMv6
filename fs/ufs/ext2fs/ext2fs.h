@@ -280,6 +280,7 @@ int ext2fs_blkalloc(struct inode *, struct ucred *, off_t *);
 void ext2fs_blkfree(struct inode *, off_t);
 int ext2fs_update(struct inode *);
 int ext2fs_indirs(struct inode *, off_t, int *);
+int ext2fs_buf_alloc(struct inode *, off_t, struct ucred *, struct buf **);
 
 #endif
 

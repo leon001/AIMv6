@@ -144,6 +144,8 @@ ext2fs_inode_free(struct inode *ip, ufsino_t ino, int imode)
 /*
  * A brute-force searching algorithm for available file system block.
  * Rather uninteresting since the algorithm is largely the same as inode_alloc.
+ *
+ * NOTE: Does **NOT** update inode.  (Shall we? FIXME)
  */
 int
 ext2fs_blkalloc(struct inode *ip, struct ucred *cred, off_t *fsblkp)
@@ -203,6 +205,9 @@ ext2fs_blkalloc(struct inode *ip, struct ucred *cred, off_t *fsblkp)
 	return 0;
 }
 
+/*
+ * NOTE: Does **NOT** update inode.  (Shall we? FIXME)
+ */
 void
 ext2fs_blkfree(struct inode *ip, off_t fsblk)
 {

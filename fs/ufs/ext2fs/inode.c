@@ -61,6 +61,8 @@ ext2fs_update(struct inode *ip)
 	EXT2_DINODE(ip)->gid_low = (uint16_t)ip->gid;
 	EXT2_DINODE(ip)->uid_high = (uint16_t)(ip->uid >> 16);
 	EXT2_DINODE(ip)->gid_high = (uint16_t)(ip->gid >> 16);
+	EXT2_DINODE(ip)->nblock = (uint32_t)ip->nsect;
+	EXT2_DINODE(ip)->nblock_hi = (uint16_t)(ip->nsect >> 32);
 
 	e2fs_isave(fs, EXT2_DINODE(ip), cp);
 	err = bwrite(bp);

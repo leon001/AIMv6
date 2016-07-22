@@ -72,7 +72,7 @@ ext2fs_bmap(struct vnode *vp, off_t lblkno, struct vnode **vpp,
 	}
 
 	if ((level = ext2fs_indirs(ip, lblkno, offsets)) < 0)
-		return level;	/* level becomes error */
+		return level;	/* level = error */
 	for (fsblkno = EXT2_DINODE(ip)->blocks[NDADDR + level - 1], i = 0;
 	     fsblkno != 0 && level > 0;
 	     --level, ++i) {
