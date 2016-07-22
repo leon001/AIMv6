@@ -198,3 +198,22 @@ epic_fail:
 	return 0;
 }
 
+void
+ext2fs_lblkfree(struct inode *ip, off_t lblkno, struct ucred *cred)
+{
+	int level;
+	int offsets[NIADDR];
+	off_t path[NIADDR + 1];
+
+	if (lblkno < NDADDR) {
+		ext2fs_blkfree(ip, EXT2_DINODE(ip)->blocks[lblkno]);
+		EXT2_DINODE(ip)->blocks[lblkno] = 0;
+		return;
+	}
+
+	level = ext2fs_indirs(ip, lblkno, offsets);
+	path[0] = EXT2_DINODE(ip)->blocks[NIADDR + level - 1];
+	assert(path[0] != 0);
+	/* TODO */
+	panic("%s: unfinished\n", __func__);
+}
