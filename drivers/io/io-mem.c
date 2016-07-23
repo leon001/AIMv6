@@ -28,82 +28,67 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
-
+#include <sys/param.h>
 #include <io.h>
 #include <mm.h>
 #include <aim/device.h>
 #include <panic.h>
+#include <aim/initcalls.h>
 
 #include <io-mem.h>
 
 static int __read8(struct bus_device * inst, addr_t addr, uint64_t *ptr)
 {
-	if (inst == &early_memory_bus) {
-		*ptr = (uint64_t)read8(addr);
-		return 0;
-	} else return EOF;
+	*ptr = (uint64_t)read8(addr);
+	return 0;
 }
 
 static int __read16(struct bus_device * inst, addr_t addr, uint64_t *ptr)
 {
-	if (inst == &early_memory_bus) {
-		*ptr = (uint64_t)read16(addr);
-		return 0;
-	} else return EOF;
+	*ptr = (uint64_t)read16(addr);
+	return 0;
 }
 
 static int __read32(struct bus_device * inst, addr_t addr, uint64_t *ptr)
 {
-	if (inst == &early_memory_bus) {
-		*ptr = (uint64_t)read32(addr);
-		return 0;
-	} else return EOF;
+	*ptr = (uint64_t)read32(addr);
+	return 0;
 }
 
 static int __write8(struct bus_device * inst, addr_t addr, uint64_t val)
 {
-	if (inst == &early_memory_bus) {
-		write8(addr, (uint8_t)val);
-		return 0;
-	} else return EOF;
+	write8(addr, (uint8_t)val);
+	return 0;
 }
 
 static int __write16(struct bus_device * inst, addr_t addr, uint64_t val)
 {
-	if (inst == &early_memory_bus) {
-		write16(addr, (uint16_t)val);
-		return 0;
-	} else return EOF;
+	write16(addr, (uint16_t)val);
+	return 0;
 }
 
 static int __write32(struct bus_device * inst, addr_t addr, uint64_t val)
 {
-	if (inst == &early_memory_bus) {
-		write32(addr, (uint32_t)val);
-		return 0;
-	} else return EOF;
+	write32(addr, (uint32_t)val);
+	return 0;
 }
 
 static bus_read_fp __get_read_fp(struct bus_device * inst, int data_width)
 {
-	if (inst == &early_memory_bus) {
-		switch (data_width) {
-			case 8: return __read8;
-			case 16: return __read16;
-			case 32: return __read32;
-		}
+	switch (data_width) {
+		case 8: return __read8;
+		case 16: return __read16;
+		case 32: return __read32;
 	}
 	return NULL;
 }
 
 static bus_write_fp __get_write_fp(struct bus_device * inst, int data_width)
 {
-	if (inst == &early_memory_bus) {
-		switch (data_width) {
-			case 8: return __write8;
-			case 16: return __write16;
-			case 32: return __write32;
-		}
+	switch (data_width) {
+		case 8: return __write8;
+		case 16: return __write16;
+		case 32: return __write32;
 	}
 	return NULL;
 }
@@ -120,6 +105,7 @@ static void __jump_handler(void)
 struct bus_device early_memory_bus = {
 	.addr_width = 32,
 	.class = DEVCLASS_BUS,
+	.name = "memory",
 };
 
 void io_mem_init(struct bus_device *memory_bus)
@@ -132,3 +118,19 @@ void io_mem_init(struct bus_device *memory_bus)
 #endif
 }
 
+#ifndef RAW
+
+static struct bus_driver drv = {
+	.class = DEVCLASS_BUS,
+	.get_read_fp = __get_read_fp,
+	.get_write_fp = __get_write_fp,
+};
+
+static int __driver_init(void)
+{
+	register_driver(NOMAJOR, &drv);
+	return 0;
+}
+INITCALL_DRIVER(__driver_init);
+
+#endif

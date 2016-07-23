@@ -170,7 +170,7 @@ static void __early_console_init_bus(void)
 {
 	/* select bus for NS16550 */
 #ifdef NS16550_PORTIO
-	__early_uart_ns16550.bus = &portio_bus;
+	__early_uart_ns16550.bus = &early_portio_bus;
 #else
 	__early_uart_ns16550.bus = &early_memory_bus;
 #endif

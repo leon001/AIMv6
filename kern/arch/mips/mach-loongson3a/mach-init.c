@@ -25,7 +25,7 @@
 void early_mach_init(void)
 {
 	/* XXX: maybe unnecessary... */
-	portio_bus_connect(&portio_bus,
+	portio_bus_connect(&early_portio_bus,
 			   &early_memory_bus,
 			   LOONGSON3A_PORTIO_BASE);
 }

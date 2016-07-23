@@ -21,9 +21,10 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
-
+#include <sys/param.h>
 #include <io.h>
 #include <aim/device.h>
+#include <aim/initcalls.h>
 #include <util.h>
 
 #include <asm.h>	/* inb() and outb() should be declared there */
@@ -129,30 +130,26 @@ static int __write32(struct bus_device *inst, addr_t addr, uint64_t val)
 
 static bus_read_fp __get_read_fp(struct bus_device *inst, int data_width)
 {
-	if (inst == &portio_bus) {
-		switch (data_width) {
-		case 8:
-			return __read8;
-		case 16:
-			return __read16;
-		case 32:
-			return __read32;
-		}
+	switch (data_width) {
+	case 8:
+		return __read8;
+	case 16:
+		return __read16;
+	case 32:
+		return __read32;
 	}
 	return NULL;
 }
 
 static bus_write_fp __get_write_fp(struct bus_device *inst, int data_width)
 {
-	if (inst == &portio_bus) {
-		switch (data_width) {
-		case 8:
-			return __write8;
-		case 16:
-			return __write16;
-		case 32:
-			return __write32;
-		}
+	switch (data_width) {
+	case 8:
+		return __write8;
+	case 16:
+		return __write16;
+	case 32:
+		return __write32;
 	}
 	return NULL;
 }
@@ -173,7 +170,7 @@ static void __portio_bus_init(struct bus_device *portio)
 
 static void __jump_handler(void)
 {
-	__portio_bus_init(&portio_bus);
+	__portio_bus_init(&early_portio_bus);
 }
 
 void portio_bus_init(struct bus_device *portio)
@@ -190,9 +187,25 @@ void portio_bus_init(struct bus_device *portio)
  * machine-dependent code in case of accessing ports via
  * address spaces.
  */
-struct bus_device portio_bus = {
+struct bus_device early_portio_bus = {
 	/* FIXME ? */
 	.addr_width = 32,
 	.class = DEVCLASS_BUS,
 };
 
+#ifndef RAW
+
+static struct bus_driver drv = {
+	.class = DEVCLASS_BUS,
+	.get_read_fp = __get_read_fp,
+	.get_write_fp = __get_write_fp
+};
+
+static int __driver_init(void)
+{
+	register_driver(NOMAJOR, &drv);
+	return 0;
+}
+INITCALL_DRIVER(__driver_init);
+
+#endif

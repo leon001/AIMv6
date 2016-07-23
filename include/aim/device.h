@@ -102,6 +102,7 @@ void register_driver(unsigned int major, struct driver *drv);
 
 /* Devices */
 #define DEV_NAME_MAX	64
+#define DEV_CELL_MAX	10
 struct device {
 	char name[DEV_NAME_MAX];
 
@@ -109,7 +110,14 @@ struct device {
 	dev_t devno;
 
 	struct bus_device *bus;
-	addr_t base;
+	union {
+		/* Some devices (e.g. PC IDE hard disk) have multiple
+		 * cells with different base addresses. */
+		addr_t bases[DEV_CELL_MAX];
+		/* But most devices only have one.  In that case, we
+		 * could as well use this member instead. */
+		addr_t base;
+	};
 
 	union {
 		struct driver driver;
@@ -165,6 +173,19 @@ int dev_remove(struct device *dev);
 struct device *dev_from_id(dev_t devno);
 struct device *dev_from_name(char *name);
 void initdev(struct device *dev, const char *devname, dev_t devno);
+
+/*
+ * Device tree structure
+ */
+
+struct devtree_node {
+	/* device name, should match the ones in drivers */
+	char	*name[DEV_NAME_MAX];
+	/* parent device (usually a bus) name */
+	char	*parent[DEV_NAME_MAX];
+	addr_t	cell_addr[DEV_CELL_MAX];
+	char	*intr_ctrl[DEV_NAME_MAX];
+};
 
 #endif /* _DEVICE_H */
 
