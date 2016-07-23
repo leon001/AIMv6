@@ -49,7 +49,7 @@ static int __read8(struct bus_device *inst, addr_t addr, uint64_t *ptr)
 	bus_read_fp bus_read8;
 
 	if (bus) {
-		bus_read8 = bus->get_read_fp(bus, widthof(uint8_t));
+		bus_read8 = bus->bus_driver.get_read_fp(bus, 8);
 		return bus_read8(bus, inst->base + addr, ptr);
 	} else {
 		*ptr = inb((uint16_t)addr);
@@ -63,7 +63,7 @@ static int __write8(struct bus_device *inst, addr_t addr, uint64_t val)
 	bus_write_fp bus_write8;
 
 	if (bus) {
-		bus_write8 = bus->get_write_fp(bus, widthof(uint8_t));
+		bus_write8 = bus->bus_driver.get_write_fp(bus, 8);
 		return bus_write8(bus, inst->base + addr, val);
 	} else {
 		outb((uint16_t)addr, val);
@@ -77,7 +77,7 @@ static int __read16(struct bus_device *inst, addr_t addr, uint64_t *ptr)
 	bus_read_fp bus_read16;
 
 	if (bus) {
-		bus_read16 = bus->get_read_fp(bus, widthof(uint16_t));
+		bus_read16 = bus->bus_driver.get_read_fp(bus, 16);
 		return bus_read16(bus, inst->base + addr, ptr);
 	} else {
 		*ptr = inw((uint16_t)addr);
@@ -91,7 +91,7 @@ static int __write16(struct bus_device *inst, addr_t addr, uint64_t val)
 	bus_write_fp bus_write16;
 
 	if (bus) {
-		bus_write16 = bus->get_write_fp(bus, widthof(uint16_t));
+		bus_write16 = bus->bus_driver.get_write_fp(bus, 16);
 		return bus_write16(bus, inst->base + addr, val);
 	} else {
 		outw((uint16_t)addr, val);
@@ -105,7 +105,7 @@ static int __read32(struct bus_device *inst, addr_t addr, uint64_t *ptr)
 	bus_read_fp bus_read32;
 
 	if (bus) {
-		bus_read32 = bus->get_read_fp(bus, widthof(uint32_t));
+		bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
 		return bus_read32(bus, inst->base + addr, ptr);
 	} else {
 		*ptr = ind((uint32_t)addr);
@@ -119,7 +119,7 @@ static int __write32(struct bus_device *inst, addr_t addr, uint64_t val)
 	bus_write_fp bus_write32;
 
 	if (bus) {
-		bus_write32 = bus->get_write_fp(bus, widthof(uint32_t));
+		bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
 		return bus_write32(bus, inst->base + addr, val);
 	} else {
 		outd((uint32_t)addr, val);
@@ -167,8 +167,8 @@ void portio_bus_connect(struct bus_device *portio,
 
 static void __portio_bus_init(struct bus_device *portio)
 {
-	portio->get_read_fp = __get_read_fp;
-	portio->get_write_fp = __get_write_fp;
+	portio->bus_driver.get_read_fp = __get_read_fp;
+	portio->bus_driver.get_write_fp = __get_write_fp;
 }
 
 static void __jump_handler(void)
@@ -193,5 +193,6 @@ void portio_bus_init(struct bus_device *portio)
 struct bus_device portio_bus = {
 	/* FIXME ? */
 	.addr_width = 32,
+	.class = DEVCLASS_BUS,
 };
 

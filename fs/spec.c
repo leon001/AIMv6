@@ -175,7 +175,7 @@ spec_strategy(struct buf *bp)
 
 	drv = devsw[major(bp->devno)];
 	assert(drv != NULL);
-	assert(drv->class == DRVCLASS_BLK);
+	assert(drv->class == DEVCLASS_BLK);
 	if (bp->blkno == BLKNO_INVALID) {
 		assert(bp->vnode->type == VCHR || bp->vnode->type == VBLK);
 		bp->blkno = bp->lblkno;

@@ -32,8 +32,10 @@ struct uio;	/* fs/uio.h */
 /* Drivers */
 struct driver {
 	int class;
-#define DRVCLASS_CHR	1
-#define DRVCLASS_BLK	2
+#define DEVCLASS_CHR	1
+#define DEVCLASS_BLK	2
+#define DEVCLASS_NET	3
+#define DEVCLASS_BUS	4
 	int type;
 #define DRVTYPE_NORMAL	0
 #define DRVTYPE_TTY	1
@@ -63,6 +65,37 @@ struct net_driver {
 	struct driver;
 };
 
+/* Bus subsystem details */
+
+/*
+ * Buses vary in address width, and may provide multiple data access width.
+ * A single bus may have quite some read/write routines, and may even not come
+ * in pairs.
+ * Bus access may or may not encounter failures. In the latter case, access
+ * routines simply return 0 to indicate a success.
+ * TODO: explain why we fix buffer pointer as a uint64_t pointer.
+ */
+typedef int (*bus_read_fp)(struct bus_device * inst,
+	addr_t addr, uint64_t *ptr);
+typedef int (*bus_write_fp)(struct bus_device * inst,
+	addr_t addr, uint64_t val);
+
+/*
+ * To get acess routines like listed above, a caller should ask for them.
+ * Data width MUST be given. These routines may return now in and only in cases
+ * that the underlying bus controller cannot handle the given data width.
+ * A single bus cannot have multiple address widths, and the value is written
+ * in struct bus_device.
+ */
+
+struct bus_driver {
+	struct driver;
+	bus_read_fp (*get_read_fp)(
+		struct bus_device * inst, int data_width);
+	bus_write_fp (*get_write_fp)(
+		struct bus_device * inst, int data_width);
+};
+
 extern struct driver *devsw[];
 
 void register_driver(unsigned int major, struct driver *drv);
@@ -72,10 +105,19 @@ void register_driver(unsigned int major, struct driver *drv);
 struct device {
 	char name[DEV_NAME_MAX];
 
+	int class;
 	dev_t devno;
 
 	struct bus_device *bus;
 	addr_t base;
+
+	union {
+		struct driver driver;
+		struct chr_driver chr_driver;
+		struct blk_driver blk_driver;
+		struct net_driver net_driver;
+		struct bus_driver bus_driver;
+	};
 
 	lock_t lock;
 
@@ -102,36 +144,9 @@ struct net_device {
 	/* Reserved for later use */
 };
 
-/* Bus subsystem details */
-
-/*
- * Buses vary in address width, and may provide multiple data access width.
- * A single bus may have quite some read/write routines, and may even not come
- * in pairs.
- * Bus access may or may not encounter failures. In the latter case, access
- * routines simply return 0 to indicate a success.
- * TODO: explain why we fix buffer pointer as a uint64_t pointer.
- */
-typedef int (*bus_read_fp)(struct bus_device * inst,
-	addr_t addr, uint64_t *ptr);
-typedef int (*bus_write_fp)(struct bus_device * inst,
-	addr_t addr, uint64_t val);
-
-/*
- * To get acess routines like listed above, a caller should ask for them.
- * Data width MUST be given. These routines may return now in and only in cases
- * that the underlying bus controller cannot handle the given data width.
- * A single bus cannot have multiple address widths, and the value is written
- * in struct bus_device.
- */
-
 struct bus_device {
 	struct device;
 	int addr_width;
-	bus_read_fp (*get_read_fp)(
-		struct bus_device * inst, int data_width);
-	bus_write_fp (*get_write_fp)(
-		struct bus_device * inst, int data_width);
 };
 
 /* Managing devices */

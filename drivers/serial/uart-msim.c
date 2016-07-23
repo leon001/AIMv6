@@ -38,11 +38,13 @@
 
 /* Should only be used before memory management is initialized */
 static struct chr_device __early_uart_msim_lp = {
-	.base = MSIM_LP_PHYSADDR
+	.base = MSIM_LP_PHYSADDR,
+	.class = DEVCLASS_CHR,
 };
 
 static struct chr_device __early_uart_msim_kbd = {
-	.base = MSIM_KBD_PHYSADDR
+	.base = MSIM_KBD_PHYSADDR,
+	.class = DEVCLASS_CHR,
 };
 
 /*
@@ -56,7 +58,7 @@ static void __uart_msim_init(struct chr_device *lp, struct chr_device *kbd)
 static int __uart_msim_putchar(struct chr_device *lp, unsigned char c)
 {
 	struct bus_device *bus = lp->bus;
-	bus_write_fp bus_write8 = bus->get_write_fp(bus, 8);
+	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, 8);
 	bus_write8(bus, lp->base, c);
 	return 0;
 }
@@ -66,7 +68,7 @@ static unsigned char __uart_msim_getchar(struct chr_device *kbd)
 	uint64_t b;
 	struct bus_device *bus = kbd->bus;
 
-	bus_read_fp bus_read8 = bus->get_read_fp(bus, 8);
+	bus_read_fp bus_read8 = bus->bus_driver.get_read_fp(bus, 8);
 
 	do {
 		bus_read8(bus, kbd->base, &b);

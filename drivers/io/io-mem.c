@@ -111,20 +111,21 @@ static bus_write_fp __get_write_fp(struct bus_device * inst, int data_width)
 #ifndef RAW
 static void __jump_handler(void)
 {
-	early_memory_bus.get_read_fp = __get_read_fp;
-	early_memory_bus.get_write_fp = __get_write_fp;
+	early_memory_bus.bus_driver.get_read_fp = __get_read_fp;
+	early_memory_bus.bus_driver.get_write_fp = __get_write_fp;
 }
 #endif
 
 /* Should only be used before memory management is initialized */
 struct bus_device early_memory_bus = {
-	.addr_width = 32
+	.addr_width = 32,
+	.class = DEVCLASS_BUS,
 };
 
 void io_mem_init(struct bus_device *memory_bus)
 {
-	memory_bus->get_read_fp = __get_read_fp;
-	memory_bus->get_write_fp = __get_write_fp;
+	memory_bus->bus_driver.get_read_fp = __get_read_fp;
+	memory_bus->bus_driver.get_write_fp = __get_write_fp;
 #ifndef RAW
 	if (jump_handlers_add((generic_fp)(size_t)postmap_addr(__jump_handler)) != 0)
 		panic("Memory IO driver cannot register JUMP handler.\n");

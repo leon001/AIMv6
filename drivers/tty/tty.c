@@ -123,7 +123,7 @@ static int __write(dev_t devno, struct uio *uio, int ioflags)
 }
 
 static struct chr_driver ttydrv = {
-	.class = DRVCLASS_CHR,
+	.class = DEVCLASS_CHR,
 	.open = __open,
 	.close = __close,
 	.read = __read,

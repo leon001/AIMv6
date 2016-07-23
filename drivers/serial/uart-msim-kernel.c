@@ -146,7 +146,7 @@ static int __lpwrite(dev_t devno, struct uio *uio, int ioflags)
 }
 
 static struct chr_driver lpdrv = {
-	.class = DRVCLASS_CHR,
+	.class = DEVCLASS_CHR,
 	.open = __lpopen,
 	.close = __close,
 	.read = NOTSUP,
@@ -156,7 +156,7 @@ static struct chr_driver lpdrv = {
 };
 
 static struct chr_driver kbddrv = {
-	.class = DRVCLASS_CHR,
+	.class = DEVCLASS_CHR,
 	.open = __kbdopen,
 	.close = __close,
 	.read = NOTSUP,

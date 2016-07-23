@@ -47,7 +47,7 @@ static struct chr_device __early_uart_zynq;
 static inline void __uart_zynq_enable(struct chr_device * inst)
 {
 	struct bus_device * bus = inst->bus;
-	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+	bus_write_fp bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
 
 	/* Enable TX and RX */
 	bus_write32(bus, inst->base + UART_OFFSET_CR,
@@ -57,7 +57,7 @@ static inline void __uart_zynq_enable(struct chr_device * inst)
 static inline void __uart_zynq_disable(struct chr_device * inst)
 {
 	struct bus_device * bus = inst->bus;
-	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+	bus_write_fp bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
 
 	/* Disable TX and RX */
 	bus_write32(bus, inst->base + UART_OFFSET_CR,
@@ -67,7 +67,7 @@ static inline void __uart_zynq_disable(struct chr_device * inst)
 static inline void __uart_zynq_init(struct chr_device * inst)
 {
 	struct bus_device * bus = inst->bus;
-	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+	bus_write_fp bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
 
 	/* Disable interrupts */
 	bus_write32(bus, inst->base + UART_OFFSET_IDR, UART_IXR_MASK);
@@ -98,8 +98,8 @@ static inline void __uart_zynq_init(struct chr_device * inst)
 static inline unsigned char __uart_zynq_getchar(struct chr_device * inst)
 {
 	struct bus_device * bus = inst->bus;
-	bus_read_fp bus_read8 = bus->get_read_fp(bus, 8);
-	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
+	bus_read_fp bus_read8 = bus->bus_driver.get_read_fp(bus, 8);
+	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
 	uint64_t tmp;
 
 	do {
@@ -117,8 +117,8 @@ static inline unsigned char __uart_zynq_getchar(struct chr_device * inst)
 static inline int __uart_zynq_putchar(struct chr_device * inst, unsigned char c)
 {
 	struct bus_device * bus = inst->bus;
-	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
-	bus_write_fp bus_write8 = bus->get_write_fp(bus, 8);
+	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
+	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, 8);
 	uint64_t tmp;
 
 	do {

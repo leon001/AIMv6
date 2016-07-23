@@ -32,7 +32,7 @@ static int __msim_dd_check_interrupt(struct blk_device *dev)
 {
 	uint64_t result;
 	struct bus_device *bus = dev->bus;
-	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
+	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
 	bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_STAT), &result);
 	return !!(result & STAT_INTR);
 }
@@ -41,7 +41,7 @@ static int __msim_dd_check_error(struct blk_device *dev)
 {
 	uint64_t result;
 	struct bus_device *bus = dev->bus;
-	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
+	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
 	bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_STAT), &result);
 	return !!(result & STAT_ERROR);
 }
@@ -49,21 +49,21 @@ static int __msim_dd_check_error(struct blk_device *dev)
 static void __msim_dd_ack_interrupt(struct blk_device *dev)
 {
 	struct bus_device *bus = dev->bus;
-	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+	bus_write_fp bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
 	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_COMMAND), CMD_ACK);
 }
 
 static void __msim_dd_init(struct blk_device *dev)
 {
 	struct bus_device *bus = dev->bus;
-	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+	bus_write_fp bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
 	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
 }
 
 static size_t __msim_dd_get_sector_count(struct blk_device *dev)
 {
 	struct bus_device *bus = dev->bus;
-	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
+	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
 	uint64_t result;
 	bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_SIZE), &result);
 	return (size_t)result;
@@ -75,8 +75,8 @@ static size_t __msim_dd_get_sector_count(struct blk_device *dev)
 static int __msim_dd_read_sector(struct blk_device *dev, size_t sect, void *buf, bool poll)
 {
 	struct bus_device *bus = dev->bus;
-	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
-	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
+	bus_write_fp bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
 	uint64_t result;
 
 	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
@@ -102,8 +102,8 @@ static int __msim_dd_read_sector(struct blk_device *dev, size_t sect, void *buf,
 static int __msim_dd_write_sector(struct blk_device *dev, size_t sect, void *buf, bool poll)
 {
 	struct bus_device *bus = dev->bus;
-	bus_read_fp bus_read32 = bus->get_read_fp(bus, 32);
-	bus_write_fp bus_write32 = bus->get_write_fp(bus, 32);
+	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
+	bus_write_fp bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
 	uint64_t result;
 
 	memcpy(msim_dd_dma, buf, SECTOR_SIZE);
