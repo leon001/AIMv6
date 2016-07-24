@@ -101,8 +101,9 @@ extern struct driver *devsw[];
 void register_driver(unsigned int major, struct driver *drv);
 
 /* Devices */
-#define DEV_NAME_MAX	64
-#define DEV_CELL_MAX	10
+#define DEV_NAME_MAX		64
+#define DEV_REG_MAX		10
+#define DEV_INTRCELL_MAX	2
 struct device {
 	char name[DEV_NAME_MAX];
 
@@ -112,8 +113,8 @@ struct device {
 	struct bus_device *bus;
 	union {
 		/* Some devices (e.g. PC IDE hard disk) have multiple
-		 * cells with different base addresses. */
-		addr_t bases[DEV_CELL_MAX];
+		 * register spaces with different base addresses. */
+		addr_t bases[DEV_REG_MAX];
 		/* But most devices only have one.  In that case, we
 		 * could as well use this member instead. */
 		addr_t base;
@@ -162,6 +163,7 @@ struct bus_device {
 struct device_index {
 	int (*add)(struct device *dev);
 	int (*remove)(struct device *dev);
+	struct device *(*next)(struct device *dev, void **savep);
 	struct device *(*from_id)(dev_t devno);
 	struct device *(*from_name)(char *name);
 };
@@ -170,22 +172,58 @@ void set_device_index(struct device_index *index);
 
 int dev_add(struct device *dev);
 int dev_remove(struct device *dev);
+/* [TODO] should require the device list to be locked in order to avoid race
+ * condition between dev_next and dev_add. */
+struct device *dev_next(struct device *dev, void **savep);
 struct device *dev_from_id(dev_t devno);
 struct device *dev_from_name(char *name);
 void initdev(struct device *dev, const char *devname, dev_t devno);
 
 /*
  * Device tree structure
+ *
+ * This structure is a subset of Device Tree Specification.  Here I'm
+ * assuming that:
+ * 1. Only one integer is needed to describe an address (#address-cells == 1).
+ * 2. Each device can send interrupt to at most one device.
+ *
+ * The root device tree node could only be "memory" or "portio".
+ *
+ * Interrupt nexus is not supported.
  */
-
-struct devtree_node {
-	/* device name, should match the ones in drivers */
-	char	*name[DEV_NAME_MAX];
+struct devtree_entry {
+	/* device name */
+	char	name[DEV_NAME_MAX];
+	/* device model, should match the ones provided in drivers */
+	char	model[DEV_NAME_MAX];
 	/* parent device (usually a bus) name */
-	char	*parent[DEV_NAME_MAX];
-	addr_t	cell_addr[DEV_CELL_MAX];
-	char	*intr_ctrl[DEV_NAME_MAX];
+	char	parent[DEV_NAME_MAX];
+	/* number of register spaces on the parent bus */
+	int	nregs;
+	/* list of register space bases */
+	addr_t	regs[DEV_REG_MAX];
+	/* interrupt working mode */
+	enum {
+		DEVTREE_IM_NONE,	/* nothing to do with interrupt */
+		DEVTREE_IM_GEN,		/* generates interrupt */
+		DEVTREE_IM_CTRL,	/* is an interrupt controller */
+	} intr_mode;
+	/* the destination where this device will send interrupt, or "cpu" */
+	char	intr_parent[DEV_NAME_MAX];
+	/*
+	 * The following are only valid if the device is an interrupt
+	 * generator.
+	 */
+	/* number of cells/parameters to fully describe an interrupt, or
+	 * a special negative value indicating how the interrupt descriptors
+	 * are decided */
+	int	nintrcells;
+#define DEVTREE_INTR_AUTO	(-1)	/* own driver will decide */
+	/* the descriptor of interrupt it generates, if @nintrcells > 0 */
+	int	intr[DEV_INTRCELL_MAX];
 };
+extern struct devtree_entry devtree[];
+extern int ndevtree_entries;	/* # of dev tree entries */
 
 #endif /* _DEVICE_H */
 
