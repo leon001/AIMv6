@@ -34,5 +34,8 @@ void handle_syscall(struct trapframe *tf);
 int handle_interrupt(struct trapframe *tf);
 void add_interrupt_handler(int (*handler)(void), int ncells, int *intr);
 
+/* mach-specific */
+void enable_ipi_interrupt(void);
+
 #endif /* _TRAP_H */
 

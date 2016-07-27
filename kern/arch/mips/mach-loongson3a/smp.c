@@ -23,6 +23,7 @@
 #include <mp.h>
 #include <smp.h>
 #include <platform.h>
+#include <mipsregs.h>
 
 extern void slave_entry(void);
 
@@ -39,5 +40,11 @@ void mach_smp_startup(void)
 		write64(LOONGSON3A_COREx_IPI_MB0(i),
 			(unsigned long)slave_entry);
 	}
+}
+
+void enable_ipi_interrupt(void)
+{
+	uint32_t status = read_c0_status();
+	write_c0_status(status | ST_IMx(6));
 }
 
