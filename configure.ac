@@ -96,83 +96,84 @@ AIM_ARG_ENABLE_FEATURE([debug-output], [DEBUG_OUTPUT], [debug output on kernel c
 AIM_ARG_ENABLE_FEATURE([test-framework], [TEST_FRAMEWORK], [in-kernel test framework], [yes])
 
 # TODO: Loongson 3A needs to change kstacksize or it will crash (because of 16K pages)
-AS_VAR_SET([with_kstacksize], [4096])
+AS_VAR_SET([__with_kstacksize], [8192])
 
 AS_CASE([$ARCH],
 	[arm*], [
-		AS_VAR_SET([enable_io_mem], [yes])
-		AS_VAR_SET([enable_io_port], [no])
+		AS_VAR_SET([__enable_io_mem], [yes])
+		AS_VAR_SET([__enable_io_port], [no])
 	],
 	[mips32], [
 		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
-		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
-		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
-		AS_VAR_SET([enable_io_mem], [yes])
-		AS_VAR_SET([enable_io_port], [no])
+		AS_VAR_SET([__with_mips_gp_slot_base], [0xffffffff80000400])
+		AS_VAR_SET([__with_mips_pgdir_slot_base], [0xffffffff80000200])
+		AS_VAR_SET([__enable_io_mem], [yes])
+		AS_VAR_SET([__enable_io_port], [no])
 	],
 	[mips64], [
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
-		AS_VAR_SET([with_mips_gp_slot_base], [0xffffffff80000400])
-		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
-		AS_VAR_SET([enable_io_mem], [yes])
-		AS_VAR_SET([enable_io_port], [no])
+		AS_VAR_SET([__with_mips_gp_slot_base], [0xffffffff80000400])
+		AS_VAR_SET([__with_mips_pgdir_slot_base], [0xffffffff80000200])
+		AS_VAR_SET([__enable_io_mem], [yes])
+		AS_VAR_SET([__enable_io_port], [no])
 	],
 	[i386], [
-		AS_VAR_SET([enable_io_mem], [yes])
-		AS_VAR_SET([enable_io_port], [yes])
-		AS_VAR_SET([enable_uart_ns16550], [yes])
-		AS_VAR_SET([with_primary_console], [uart-ns16550])
+		AS_VAR_SET([__enable_io_mem], [yes])
+		AS_VAR_SET([__enable_io_port], [yes])
+		AS_VAR_SET([__enable_uart_ns16550], [yes])
+		AS_VAR_SET([__with_primary_console], [uart-ns16550])
 	]
 )
 
 AS_CASE([$MACH],
 	[zynq], [
-		AS_VAR_SET([with_ram_physbase], [0x00100000])
+		AS_VAR_SET([__with_ram_physbase], [0x00100000])
+		AS_VAR_SET([__with_kern_start], [0x00100000])
 
-		AS_VAR_SET([with_fwstack_order], [12])
-		AS_VAR_SET([enable_uart_zynq], [yes])
-		AS_VAR_SET([enable_sd_zynq], [yes])
-		AS_VAR_SET([enable_timer_a9], [yes])
+		AS_VAR_SET([__with_fwstack_order], [12])
+		AS_VAR_SET([__enable_uart_zynq], [yes])
+		AS_VAR_SET([__enable_sd_zynq], [yes])
+		AS_VAR_SET([__enable_timer_a9], [yes])
 
-		AS_VAR_SET([with_primary_console], [UART_ZYNQ])
-		AS_VAR_SET([with_primary_storage], [SD_ZYNQ])
-		AS_VAR_SET([with_primary_timing], [TIMER_A9])
+		AS_VAR_SET([__with_primary_console], [UART_ZYNQ])
+		AS_VAR_SET([__with_primary_storage], [SD_ZYNQ])
+		AS_VAR_SET([__with_primary_timing], [TIMER_A9])
 	],
 	[msim], [
-		AS_VAR_SET([with_fwstack_order], [12])
-		AS_VAR_SET([enable_uart_msim], [yes])
-		AS_VAR_SET([enable_block_msim], [yes])
+		AS_VAR_SET([__with_fwstack_order], [12])
+		AS_VAR_SET([__enable_uart_msim], [yes])
+		AS_VAR_SET([__enable_block_msim], [yes])
 
-		AS_VAR_SET([with_primary_console], [UART_MSIM])
-		AS_VAR_SET([with_primary_storage], [BLOCK_MSIM])
+		AS_VAR_SET([__with_primary_console], [UART_MSIM])
+		AS_VAR_SET([__with_primary_storage], [BLOCK_MSIM])
 
-		AS_VAR_SET([with_msim_kbd_pa], [0x1f000000])
-		AS_VAR_SET([with_msim_lp_pa], [0x1f000010])
-		AS_VAR_SET([with_msim_disk_pa], [0x1f000020])
-		AS_VAR_SET([with_msim_order_pa], [0x1f000100])
-		AS_VAR_SET([with_msim_mb_base], [0x1f000200])
-		AS_VAR_SET([with_msim_mb_order], [4])
-		AS_VAR_SET([with_msim_rtc_pa], [0x1f000080])
-		AS_VAR_SET([with_msim_firmware_bin], ["firmware.bin"])
-		AS_VAR_SET([with_msim_disk_img], ["disk.img"])
-		AS_VAR_SET([with_cpus], [4])
-		AS_VAR_SET([with_max_cpus], [4])
-		AS_VAR_SET([with_highram_base], [0x80000000])
-		AS_VAR_SET([with_highram_size], [0x00000000])
+		AS_VAR_SET([__with_msim_kbd_pa], [0x1f000000])
+		AS_VAR_SET([__with_msim_lp_pa], [0x1f000010])
+		AS_VAR_SET([__with_msim_disk_pa], [0x1f000020])
+		AS_VAR_SET([__with_msim_order_pa], [0x1f000100])
+		AS_VAR_SET([__with_msim_mb_base], [0x1f000200])
+		AS_VAR_SET([__with_msim_mb_order], [4])
+		AS_VAR_SET([__with_msim_rtc_pa], [0x1f000080])
+		AS_VAR_SET([__with_msim_firmware_bin], ["firmware.bin"])
+		AS_VAR_SET([__with_msim_disk_img], ["disk.img"])
+		AS_VAR_SET([__with_cpus], [4])
+		AS_VAR_SET([__with_max_cpus], [4])
+		AS_VAR_SET([__with_highram_base], [0x80000000])
+		AS_VAR_SET([__with_highram_size], [0x00000000])
 
 		AC_DEFINE([CPU_FREQ], [10000000], [CPU frequency])
 	], 
 	[pc], [
-		AS_VAR_SET([with_fwstack_order], [12])
+		AS_VAR_SET([__with_fwstack_order], [12])
 	],
 	[loongson3a], [
-		AS_VAR_SET([with_cpus], [4])
-		AS_VAR_SET([with_max_cpus], [4])
-		AS_VAR_SET([enable_io_port], [yes])
-		AS_VAR_SET([enable_uart_ns16550], [yes])
-		AS_VAR_SET([enable_loongson3a_ram_detection], [yes])
-		AS_VAR_SET([enable_pagesize_16k], [yes])
-		AS_VAR_SET([with_primary_console], [UART_NS16550])
+		AS_VAR_SET([__with_cpus], [4])
+		AS_VAR_SET([__with_max_cpus], [4])
+		AS_VAR_SET([__enable_io_port], [yes])
+		AS_VAR_SET([__enable_uart_ns16550], [yes])
+		AS_VAR_SET([__enable_loongson3a_ram_detection], [yes])
+		AS_VAR_SET([__enable_pagesize_16k], [yes])
+		AS_VAR_SET([__with_primary_console], [UART_NS16550])
 		AC_DEFINE([CPU_FREQ], [750000000], [CPU frequency])
 	],
 	[generic], [],
@@ -213,34 +214,26 @@ AIM_ARG_ENABLE_FEATURE([pagesize-16k], [PAGESIZE_16K],
 # target details
 AIM_ARG_WITH([ram-physbase], [RAM_PHYSBASE], [physical memory start point],
 	[0x00000000])
-AC_SUBST([RAM_PHYSBASE], [$with_ram_physbase])
 
 AIM_ARG_WITH([kern-start], [KERN_START], [kernel loading physical address],
 	[0x00000000])
-AC_SUBST([KERN_START], [$with_kern_start])
 
 AIM_ARG_WITH([mem-size], [MEM_SIZE], [amount of memory installed], [DETECT])
-AC_SUBST([MEM_SIZE], [$with_mem_size])
 
 AIM_ARG_WITH([cpus], [NR_CPUS], [number of cores], [DETECT])
 AIM_ARG_WITH([max-cpus], [MAX_CPUS], [maximum number of cores], [NR_CPUS])
-AC_SUBST([NR_CPUS], [$with_cpus])
-AC_SUBST([MAX_CPUS], [$with_max_cpus])
 
 # Kernel hyperparameters
 AIM_ARG_WITH([kern-base], [KERN_BASE], [start of kernel address], [0xffffffff80000000])
-AC_SUBST([KERN_BASE], [$with_kern_base])
 
 AIM_ARG_WITH([kmmap-base], [KMMAP_BASE], [start of kernel dynamic mapping],
 	[0xfffffffff0000000])
-AC_SUBST([KMMAP_BASE], [$with_kmmap_base])
 
 AIM_ARG_WITH([reserved-base], [RESERVED_BASE], [start of reserved high address],
 	[0xfffffffffffff000])
-AC_SUBST([RESERVED_BASE], [$with_reserved_base])
 
 AIM_ARG_WITH([kstacksize], [KSTACKSIZE],
-	[size of kernel stack], [4096])
+	[size of kernel stack])
 
 AIM_ARG_WITH([max-processes], [MAX_PROCESSES], [maximum number of processes],
 	[65536])
@@ -273,7 +266,7 @@ AIM_ARG_WITH([primary-storage], [PRIMARY_STORAGE], [primary storage])
 AIM_ARG_WITH([primary-timing], [PRIMARY_TIMING], [primary timing])
 
 AS_CASE([$with_primary_console],
-	[uart-zynq],[
+	[UART_ZYNQ],[
 		AC_DEFINE_UNQUOTED([CONSOLE_NEED_CR], [], [Primary console needs CR])
 	]
 )
@@ -446,8 +439,8 @@ Target
 --------
   architecture:	${ARCH}
   machine:	${MACH}
-  processors:	${NR_CPUS}
-  memory:	${MEM_SIZE}
+  processors:	${with_cpus}/${with_max_cpus}
+  memory:	${with_mem_size}
 
 Kernel
 --------
@@ -456,6 +449,7 @@ Kernel
   KMMAP_BASE:	${with_kmmap_base}
   RESERVED:	${with_reserved_base}
   Timer freq:	${with_timer_freq}
+  Kernel stack:	${with_kstacksize}
 
 Algorithms
 --------
