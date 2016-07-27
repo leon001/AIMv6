@@ -39,6 +39,8 @@ void mach_init(void)
 		write32(LOONGSON3A_COREx_IPI_CLEAR(i), 0xffffffff);
 		write32(LOONGSON3A_COREx_IPI_ENABLE(i), 0xffffffff);
 	}
+
+	rootdev = makedev(IDE_DISK_MAJOR, ROOT_PARTITION_ID);
 }
 
 struct devtree_entry devtree[] = {

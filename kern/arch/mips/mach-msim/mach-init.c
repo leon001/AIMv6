@@ -16,6 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <mach-conf.h>
 #include <aim/device.h>
@@ -24,7 +28,7 @@ dev_t rootdev;
 
 void mach_init(void)
 {
-	rootdev = makedev(MSIM_DISK_MAJOR, 4);
+	rootdev = makedev(MSIM_DISK_MAJOR, ROOT_PARTITION_ID);
 }
 
 struct devtree_entry devtree[] = {

@@ -35,6 +35,7 @@ struct device;		/* see below */
 /* Drivers */
 struct driver {
 	int class;
+#define DEVCLASS_NON	0
 #define DEVCLASS_CHR	1
 #define DEVCLASS_BLK	2
 #define DEVCLASS_NET	3
