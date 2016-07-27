@@ -27,6 +27,7 @@
 #include <panic.h>
 #include <mp.h>
 #include <sys/param.h>
+#include <mipsregs.h>
 
 static int (*__disk_dispatch[MAJOR_MAX])(void) = {0};
 static int __disk_dispatch_count = 0;
@@ -86,7 +87,6 @@ static int (*__dispatch[])(struct trapframe *) = {
 	__timer_interrupt	/* Timer */
 };
 
-/* TODO: move to mach-specific code */
 int handle_interrupt(struct trapframe *regs)
 {
 	int i;
@@ -105,6 +105,8 @@ int handle_interrupt(struct trapframe *regs)
 
 void add_interrupt_handler(int (*handler)(void), int ncells, int *intr)
 {
+	uint32_t status;
+
 	switch (intr[0]) {
 	case 2:
 		__disk_dispatch[__disk_dispatch_count++] = handler;
@@ -113,6 +115,13 @@ void add_interrupt_handler(int (*handler)(void), int ncells, int *intr)
 		__kbd_dispatch[__kbd_dispatch_count++] = handler;
 		break;
 	}
+	/*
+	 * Additional work: enable handling the interrupt handler on CPU.
+	 * Ensures that only master CPU handles I/O interrupt.
+	 */
+	assert(cpuid() == 0);
+	status = read_c0_status();
+	write_c0_status(status | ST_IMx(intr[0]));
 }
 
 void panic_other_cpus(void)
