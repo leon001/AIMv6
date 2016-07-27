@@ -18,6 +18,7 @@
 
 #include <sys/types.h>
 #include <mach-conf.h>
+#include <aim/device.h>
 
 dev_t rootdev;
 
@@ -26,3 +27,55 @@ void mach_init(void)
 	rootdev = makedev(MSIM_DISK_MAJOR, 4);
 }
 
+struct devtree_entry devtree[] = {
+	/* memory bus */
+	{
+		"memory",
+		"memory",
+		"",
+		0,
+		{0},
+		DEVTREE_IM_NONE,
+		"",
+		0,
+		{0},
+	},
+	/* MSIM disk */
+	{
+		"msim-disk",
+		"msim-disk",
+		"memory",
+		1,
+		{MSIM_DISK_PHYSADDR},
+		DEVTREE_IM_GEN,
+		"cpu",
+		1,
+		{2},
+	},
+	/* MSIM line printer */
+	{
+		"msim-lpr",
+		"msim-lpr",
+		"memory",
+		1,
+		{MSIM_LP_PHYSADDR},
+		DEVTREE_IM_NONE,
+		"",
+		0,
+		{0},
+	},
+	/* MSIM keyboard */
+	{
+		"msim-kbd",
+		"msim-kbd",
+		"memory",
+		1,
+		{MSIM_KBD_PHYSADDR},
+		DEVTREE_IM_GEN,
+		"cpu",
+		1,
+		{3},
+	},
+};
+
+int ndevtree_entries = ARRAY_SIZE(devtree);

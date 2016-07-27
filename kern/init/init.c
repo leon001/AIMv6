@@ -159,15 +159,10 @@ void __noreturn master_init(void)
 	a = cache_alloc(&cache);
 	kpdebug("a = 0x%08x\n", a);
 
+	probe_devices();
+
 	/* startup smp */
 	smp_startup();
-
-	/*
-	 * do initcalls, one by one.
-	 * They may fork or sleep or reschedule.
-	 * In case any initcalls issue a fork, there MUST be EXACTLY one return
-	 * from each initcall.
-	 */
 
 	/* initialize or cleanup namespace */
 

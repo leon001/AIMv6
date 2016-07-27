@@ -30,8 +30,8 @@
 #include <fs/uio.h>
 #include <asm-generic/funcs.h>
 
-#define LP_DEVICE_NAME	"lpr"
-#define KBD_DEVICE_NAME	"kbd"
+#define LP_DEVICE_MODEL		"msim-lpr"
+#define KBD_DEVICE_MODEL	"msim-kbd"
 
 static struct {
 	char buf[BUFSIZ];
@@ -40,25 +40,17 @@ static struct {
 	lock_t lock;
 } cbuf = { {0}, 0, 0 };
 
+static struct chr_driver kbddrv, lpdrv;
+
 /* Common code for open */
-static int __open(dev_t devno, int mode, struct proc *p, const char *devname,
-    addr_t paddr, bool kbd)
+static int __open(dev_t devno, int mode, struct proc *p, bool kbd)
 {
 	struct chr_device *dev;
 	kprintf("DEV: opening %s device\n", kbd ? "keyboard" : "printer");
 
 	dev = (struct chr_device *)dev_from_id(devno);
-	if (dev == NULL) {
-		dev = kmalloc(sizeof(*dev), GFP_ZERO);
-		if (dev == NULL)
-			return -ENOMEM;
-		initdev(dev, devname, devno);
-		/* XXX for now we hardwire to memory bus */
-		dev->bus = &early_memory_bus;
-		dev->base = paddr;	/* assuming only one device */
-		dev_add(dev);
-		__uart_msim_init(kbd ? NULL : dev, kbd ? dev : NULL);
-	}
+	/* should be initialized by device prober... */
+	assert(dev != NULL);
 	return 0;
 }
 
@@ -71,12 +63,12 @@ static int __close(dev_t devno, int mode, struct proc *p)
 
 static int __lpopen(dev_t devno, int mode, struct proc *p)
 {
-	return __open(devno, mode, p, LP_DEVICE_NAME, MSIM_LP_PHYSADDR, false);
+	return __open(devno, mode, p, false);
 }
 
 static int __kbdopen(dev_t devno, int mode, struct proc *p)
 {
-	return __open(devno, mode, p, KBD_DEVICE_NAME, MSIM_KBD_PHYSADDR, true);
+	return __open(devno, mode, p, true);
 }
 
 static int __kbdintr(void)
@@ -145,6 +137,40 @@ static int __lpwrite(dev_t devno, struct uio *uio, int ioflags)
 	return 0;
 }
 
+static int __new(struct devtree_entry *entry, bool kbd)
+{
+	struct chr_device *dev;
+
+	if (strcmp(entry->model, kbd ? KBD_DEVICE_MODEL : LP_DEVICE_MODEL) != 0)
+		return -ENOTSUP;
+
+	kpdebug("initializing MSIM %s\n", kbd ? "keyboard" : "line printer");
+	dev = kmalloc(sizeof(*dev), GFP_ZERO);
+	if (dev == NULL)
+		return -ENOMEM;
+	/* assuming only one keyboard/line-printer */
+	kpdebug("name: %s\n", entry->name);
+	initdev(dev, DEVCLASS_CHR, entry->name,
+	    makedev(kbd ? MSIM_KBD_MAJOR : MSIM_LP_MAJOR, 0),
+	    kbd ? &kbddrv : &lpdrv);
+	dev->bus = (struct bus_device *)dev_from_name(entry->parent);
+	dev->base = entry->regs[0];
+	dev->nregs = entry->nregs;
+	dev_add(dev);
+	__uart_msim_init(kbd ? NULL : dev, kbd ? dev : NULL);
+	return 0;
+}
+
+static int __lpnew(struct devtree_entry *entry)
+{
+	return __new(entry, false);
+}
+
+static int __kbdnew(struct devtree_entry *entry)
+{
+	return __new(entry, true);
+}
+
 static struct chr_driver lpdrv = {
 	.class = DEVCLASS_CHR,
 	.open = __lpopen,
@@ -152,7 +178,8 @@ static struct chr_driver lpdrv = {
 	.read = NOTSUP,
 	.write = __lpwrite,
 	.getc = NOTSUP,
-	.putc = __lpputc	/* NYI */
+	.putc = __lpputc,
+	.new = __lpnew,
 };
 
 static struct chr_driver kbddrv = {
@@ -162,7 +189,9 @@ static struct chr_driver kbddrv = {
 	.read = NOTSUP,
 	.write = NOTSUP,
 	.getc = __kbdgetc,
-	.putc = NOTSUP
+	.putc = NOTSUP,
+	.new = __kbdnew,
+	.intr = __kbdintr,
 };
 
 static int __driver_init(void)
@@ -170,8 +199,6 @@ static int __driver_init(void)
 	register_driver(MSIM_LP_MAJOR, &lpdrv);
 	register_driver(MSIM_KBD_MAJOR, &kbddrv);
 	spinlock_init(&cbuf.lock);
-	add_interrupt_handler(__kbdintr, 3);
-	/* TODO: add interrupt handler */
 	return 0;
 }
 INITCALL_DRIVER(__driver_init);

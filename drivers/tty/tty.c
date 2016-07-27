@@ -29,6 +29,8 @@
 
 #define DEVICE_NAME	"tty"
 
+static struct chr_driver ttydrv;
+
 /*
  * /dev/tty is the *DEFAULT* terminal device.
  *
@@ -54,7 +56,7 @@ static int __open(dev_t devno, int mode, struct proc *p)
 		tty = kmalloc(sizeof(*tty), GFP_ZERO);
 		if (tty == NULL)
 			return -ENOMEM;
-		initdev(tty, DEVICE_NAME, devno);
+		initdev(tty, DEVCLASS_CHR, DEVICE_NAME, devno, &ttydrv);
 		err = setup_default_tty(tty, mode, p);
 		if (err) {
 			kfree(tty);

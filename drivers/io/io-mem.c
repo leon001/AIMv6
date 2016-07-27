@@ -34,6 +34,8 @@
 #include <aim/device.h>
 #include <panic.h>
 #include <aim/initcalls.h>
+#include <asm-generic/funcs.h>
+#include <errno.h>
 
 #include <io-mem.h>
 
@@ -120,17 +122,32 @@ void io_mem_init(struct bus_device *memory_bus)
 
 #ifndef RAW
 
+static int __new(struct devtree_entry *entry)
+{
+	/* default implementation... */
+	return -EEXIST;
+}
+
 static struct bus_driver drv = {
 	.class = DEVCLASS_BUS,
 	.get_read_fp = __get_read_fp,
 	.get_write_fp = __get_write_fp,
+	.probe = NOP,
+	.new = __new,
 };
 
 static int __driver_init(void)
 {
+	struct bus_device *memory_bus;
 	register_driver(NOMAJOR, &drv);
+#ifdef IO_MEM_ROOT
+	memory_bus = kmalloc(sizeof(*memory_bus), GFP_ZERO);
+	initdev(memory_bus, DEVCLASS_BUS, "memory", NODEV, &drv);
+	dev_add(memory_bus);
+#endif
 	return 0;
 }
 INITCALL_DRIVER(__driver_init);
 
 #endif
+

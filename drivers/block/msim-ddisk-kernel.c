@@ -37,7 +37,9 @@
 #include <drivers/hd/hd.h>
 #include <trap.h>
 
-#define DEVICE_NAME	"Md"
+#define DEVICE_MODEL	"msim-disk"
+
+static struct blk_driver drv;
 
 static void __init(struct hd_device *hd)
 {
@@ -56,21 +58,8 @@ static int __open(dev_t dev, int mode, struct proc *p)
 	hdpart = (struct hd_device *)dev_from_id(dev);
 	hd = (struct hd_device *)dev_from_id(hdbasedev(dev));
 
-	/* Create a device for whole hard disk if the device structure does
-	 * not exist. */
-	if (hd == NULL) {
-		hd = kmalloc(sizeof(*hd), GFP_ZERO);
-		if (hd == NULL)
-			return -ENOMEM;
-		initdev(hd, DEVICE_NAME, hdbasedev(dev));
-		/* XXX For now we hardwire the disk bus to memory bus. */
-		hd->bus = &early_memory_bus;
-		hd->base = MSIM_DISK_PHYSADDR;
-		list_init(&(hd->bufqueue));
-		dev_add(hd);
-
-		__init(hd);
-	}
+	/* should be initialized by device prober... */
+	assert(hd != NULL);
 
 	/* Detect all partitions if we could not find the partition device
 	 * structure. */
@@ -211,7 +200,8 @@ static int __strategy(struct buf *bp)
 		spin_unlock_irq_restore(&hd->lock, flags);
 		return 0;
 	}
-	kpdebug("msim-ddisk: queuing buf %p with %d bytes at %p\n", bp, bp->nbytes, bp->data);
+	kpdebug("msim-ddisk: queuing buf %p with %d bytes at %p\n",
+	    bp, bp->nbytes, bp->data);
 
 	bp->nbytesrem = bp->nbytes;
 
@@ -225,17 +215,40 @@ static int __strategy(struct buf *bp)
 	return 0;
 }
 
+static int __new(struct devtree_entry *entry)
+{
+	struct hd_device *hd;
+
+	if (strcmp(entry->model, DEVICE_MODEL) != 0)
+		return -ENOTSUP;
+
+	hd = kmalloc(sizeof(*hd), GFP_ZERO);
+	if (hd == NULL)
+		return -ENOMEM;
+	/* assuming only one disk... */
+	initdev(hd, DEVCLASS_BLK, entry->name,
+	    make_hdbasedev(MSIM_DISK_MAJOR, 0), &drv);
+	hd->bus = (struct bus_device *)dev_from_name(entry->parent);
+	hd->base = entry->regs[0];
+	hd->nregs = entry->nregs;	/* assuming dev tree can't go wrong */
+	list_init(&(hd->bufqueue));
+	dev_add(hd);
+	__init(hd);
+	return 0;
+}
+
 static struct blk_driver drv = {
 	.class = DEVCLASS_BLK,
 	.open = __open,
 	.close = __close,
-	.strategy = __strategy
+	.strategy = __strategy,
+	.new = __new,
+	.intr = __intr,
 };
 
 static int __driver_init(void)
 {
 	register_driver(MSIM_DISK_MAJOR, &drv);
-	add_interrupt_handler(__intr, 2);
 	return 0;
 }
 INITCALL_DRIVER(__driver_init);

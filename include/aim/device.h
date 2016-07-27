@@ -29,6 +29,9 @@ struct proc;	/* include/proc.h */
 struct buf;	/* include/buf.h */
 struct uio;	/* fs/uio.h */
 
+struct devtree_entry;	/* see below */
+struct device;		/* see below */
+
 /* Drivers */
 struct driver {
 	int class;
@@ -41,6 +44,24 @@ struct driver {
 #define DRVTYPE_TTY	1
 	int (*open)(dev_t dev, int oflags, struct proc *p);
 	int (*close)(dev_t dev, int oflags, struct proc *p);
+	/* the following is for internal use in driver framework only */
+	/*
+	 * Read a device tree entry structure and create a struct device
+	 * accordingly.  Usually only used on concrete hardware rather
+	 * than virtual devices (like "tty" or "zero").  Leave it NULL
+	 * if not applicable.
+	 */
+	int (*new)(struct devtree_entry *);
+	/* The interrupt handler of that device */
+	int (*intr)(void);
+	/*
+	 * If an interrupt controller of some kind, add the child device
+	 * and the interrupt descriptor to the controller's dispatcher.
+	 * The interrupt descriptor @intr is understood by the parent, and
+	 * matches the @intr property of the device tree entry.
+	 */
+	int (*attach_intr)(struct device *parent, struct device *child,
+	    int ncells, int *intr);
 };
 
 struct chr_driver {
@@ -75,9 +96,9 @@ struct net_driver {
  * routines simply return 0 to indicate a success.
  * TODO: explain why we fix buffer pointer as a uint64_t pointer.
  */
-typedef int (*bus_read_fp)(struct bus_device * inst,
+typedef int (*bus_read_fp)(struct bus_device *inst,
 	addr_t addr, uint64_t *ptr);
-typedef int (*bus_write_fp)(struct bus_device * inst,
+typedef int (*bus_write_fp)(struct bus_device *inst,
 	addr_t addr, uint64_t val);
 
 /*
@@ -91,9 +112,17 @@ typedef int (*bus_write_fp)(struct bus_device * inst,
 struct bus_driver {
 	struct driver;
 	bus_read_fp (*get_read_fp)(
-		struct bus_device * inst, int data_width);
+		struct bus_device *inst, int data_width);
 	bus_write_fp (*get_write_fp)(
-		struct bus_device * inst, int data_width);
+		struct bus_device *inst, int data_width);
+	/*
+	 * probe:
+	 * Scan the bus to find devices to be added.
+	 * Does *NOT* create actual struct device's.  When a device is found,
+	 * probe() calls discover_device() to add the device descriptor to
+	 * the undriven device list.
+	 */
+	int (*probe)(struct bus_device *inst);
 };
 
 extern struct driver *devsw[];
@@ -119,6 +148,7 @@ struct device {
 		 * could as well use this member instead. */
 		addr_t base;
 	};
+	int nregs;	/* number of register spaces */
 
 	union {
 		struct driver driver;
@@ -129,9 +159,6 @@ struct device {
 	};
 
 	lock_t lock;
-
-	/* Subsystem-specific data */
-	void *subsys;
 };
 
 struct chr_device {
@@ -177,7 +204,15 @@ int dev_remove(struct device *dev);
 struct device *dev_next(struct device *dev, void **savep);
 struct device *dev_from_id(dev_t devno);
 struct device *dev_from_name(char *name);
-void initdev(struct device *dev, const char *devname, dev_t devno);
+void initdev(struct device *dev, int class, const char *devname, dev_t devno,
+    struct driver *drv);
+void probe_devices(void);
+
+/* iterate over all devices */
+#define for_each_device(dev, savep) \
+	for ((dev) = dev_next(NULL, &(savep)); \
+	     (dev) != NULL; \
+	     (dev) = dev_next((dev), &(savep)))
 
 /*
  * Device tree structure
@@ -194,7 +229,7 @@ void initdev(struct device *dev, const char *devname, dev_t devno);
 struct devtree_entry {
 	/* device name */
 	char	name[DEV_NAME_MAX];
-	/* device model, should match the ones provided in drivers */
+	/* device model, should be understood by one and only one driver */
 	char	model[DEV_NAME_MAX];
 	/* parent device (usually a bus) name */
 	char	parent[DEV_NAME_MAX];
@@ -212,7 +247,12 @@ struct devtree_entry {
 	char	intr_parent[DEV_NAME_MAX];
 	/*
 	 * The following are only valid if the device is an interrupt
-	 * generator.
+	 * generator.  They are passed as arguments to the parent device's
+	 * attach_intr() method during interrupt tree construction.
+	 *
+	 * Technically they could be anything understood by the parent
+	 * device @intr_parent.  A common usage is to hold the interrupt
+	 * number the child device generates and sends to the parent device.
 	 */
 	/* number of cells/parameters to fully describe an interrupt, or
 	 * a special negative value indicating how the interrupt descriptors
@@ -224,6 +264,9 @@ struct devtree_entry {
 };
 extern struct devtree_entry devtree[];
 extern int ndevtree_entries;	/* # of dev tree entries */
+/* Bus probing method calls this function to add device to undriven device
+ * entry list. */
+void discover_device(struct devtree_entry *entry);
 
 #endif /* _DEVICE_H */
 

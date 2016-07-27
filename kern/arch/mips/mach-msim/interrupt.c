@@ -103,9 +103,9 @@ int handle_interrupt(struct trapframe *regs)
 	return -EINVAL;
 }
 
-void add_interrupt_handler(int (*handler)(void), int intno)
+void add_interrupt_handler(int (*handler)(void), int ncells, int *intr)
 {
-	switch (intno) {
+	switch (intr[0]) {
 	case 2:
 		__disk_dispatch[__disk_dispatch_count++] = handler;
 		break;

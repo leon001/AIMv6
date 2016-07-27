@@ -102,6 +102,8 @@ AS_CASE([$ARCH],
 	[arm*], [
 		AS_VAR_SET([enable_io_mem], [yes])
 		AS_VAR_SET([enable_io_port], [no])
+		AS_VAR_SET([enable_io_mem_root], [yes])
+		AS_VAR_SET([enable_io_port_root], [no])
 	],
 	[mips32], [
 		AC_DEFINE(USE_MIPS32, [], [MIPS32 ABI and instruction set])
@@ -109,6 +111,8 @@ AS_CASE([$ARCH],
 		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
 		AS_VAR_SET([enable_io_mem], [yes])
 		AS_VAR_SET([enable_io_port], [no])
+		AS_VAR_SET([enable_io_mem_root], [yes])
+		AS_VAR_SET([enable_io_port_root], [no])
 	],
 	[mips64], [
 		AC_DEFINE(USE_MIPS64, [], [MIPS64r2 ABI and instruction set])
@@ -116,12 +120,16 @@ AS_CASE([$ARCH],
 		AS_VAR_SET([with_mips_pgdir_slot_base], [0xffffffff80000200])
 		AS_VAR_SET([enable_io_mem], [yes])
 		AS_VAR_SET([enable_io_port], [no])
+		AS_VAR_SET([enable_io_mem_root], [yes])
+		AS_VAR_SET([enable_io_port_root], [no])
 	],
 	[i386], [
 		AS_VAR_SET([enable_io_mem], [yes])
 		AS_VAR_SET([enable_io_port], [yes])
 		AS_VAR_SET([enable_uart_ns16550], [yes])
 		AS_VAR_SET([with_primary_console], [uart-ns16550])
+		AS_VAR_SET([enable_io_mem_root], [yes])
+		AS_VAR_SET([enable_io_port_root], [yes])
 	]
 )
 
@@ -271,6 +279,10 @@ AIM_ARG_ENABLE([uart-ns16550], [UART_NS16550], [NS16550 UART driver])
 AIM_ARG_ENABLE([block-msim], [BLOCK_MSIM], [MSIM block device driver])
 AIM_ARG_ENABLE([sd-zynq], [SD_ZYNQ], [zynq SD driver])
 AIM_ARG_ENABLE([timer-a9], [TIMER_A9], [Cortex-A9 MPCore timer driver])
+AIM_ARG_ENABLE_FEATURE([io-mem-root], [IO_MEM_ROOT],
+	[memory-mapped IO bus as device tree root])
+AIM_ARG_ENABLE_FEATURE([io-port-root], [IO_PORT_ROOT],
+	[port IO bus as device tree root])
 
 # Debug
 AIM_ARG_ENABLE_FEATURE([debug], [DEBUG], [Debugging (kpdebug)])

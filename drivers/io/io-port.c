@@ -198,12 +198,19 @@ struct bus_device early_portio_bus = {
 static struct bus_driver drv = {
 	.class = DEVCLASS_BUS,
 	.get_read_fp = __get_read_fp,
-	.get_write_fp = __get_write_fp
+	.get_write_fp = __get_write_fp,
+	.probe = NOP,
 };
 
 static int __driver_init(void)
 {
+	struct bus_device *portio_bus;
 	register_driver(NOMAJOR, &drv);
+#ifdef IO_PORT_ROOT
+	portio_bus = kmalloc(sizeof(*portio_bus), GFP_ZERO);
+	initdev(portio_bus, DEVCLASS_BUS, "portio", NODEV, &drv);
+	dev_add(portio_bus);
+#endif
 	return 0;
 }
 INITCALL_DRIVER(__driver_init);

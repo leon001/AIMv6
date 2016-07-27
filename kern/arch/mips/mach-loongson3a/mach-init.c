@@ -21,6 +21,7 @@
 #include <io.h>
 #include <mp.h>
 #include <platform.h>
+#include <aim/device.h>
 
 void early_mach_init(void)
 {
@@ -39,4 +40,95 @@ void mach_init(void)
 		write32(LOONGSON3A_COREx_IPI_ENABLE(i), 0xffffffff);
 	}
 }
+
+struct devtree_entry devtree[] = {
+	/* memory bus */
+	{
+		"memory",
+		"memory",
+		"",
+		0,
+		{0},
+		DEVTREE_IM_NONE,
+		"",
+		0,
+		{0},
+	},
+	/* Loongson 3A interrupt router */
+	{
+		"introuter-ls3a",
+		"introuter-ls3a",
+		"memory",
+		1,
+		{LOONGSON3A_INTROUTER_BASE},
+		DEVTREE_IM_CTRL,
+		"cpu",
+		DEVTREE_INTR_AUTO,
+		{0},
+	},
+	/* LPC UART */
+	{
+		"ns16550",
+		"ns16550",
+		"memory",
+		1,
+		{LOONGSON3A_UART_BASE},
+		DEVTREE_IM_GEN,
+		"introuter-ls3a",
+		DEVTREE_INTR_AUTO,
+		{0},
+	},
+	/* HyperTransport Bus #1 */
+	{
+		"hypertransport1",
+		"hypertransport",
+		"memory",
+		1,
+		{LOONGSON3A_HT1_BASE},
+		DEVTREE_IM_CTRL,
+		"introuter-ls3a",
+		DEVTREE_INTR_AUTO,
+		{0},
+	},
+	/* Port I/O */
+	{
+		"portio",
+		"portio",
+		"hypertransport1",
+		1,
+		{LOONGSON3A_HT_PORTIO_BASE},
+		DEVTREE_IM_NONE,
+		"",
+		0,
+		{0},
+	},
+	/* Intel 8259A interrupt controller */
+	{
+		"i8259",
+		"i8259",
+		"portio",
+		2,
+		{0x20, 0xa0}	/* master and slave */,
+		DEVTREE_IM_CTRL,
+		"hypertransport1",
+		DEVTREE_INTR_AUTO,
+		{0},
+	},
+	/* PCI */
+	{
+		"pci",
+		"pci",
+		"hypertransport1",
+		1,
+		{LOONGSON3A_HT_PCICFG_BASE},
+		DEVTREE_IM_CTRL,
+		"i8259",
+		DEVTREE_INTR_AUTO,
+		{0},
+	},
+	/* the devices attached to PCI bus will be instantiated upon PCI
+	 * bus device instantiation. */
+};
+
+int ndevtree_entries = ARRAY_SIZE(devtree);
 
