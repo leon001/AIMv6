@@ -22,6 +22,7 @@
 
 #include <mp.h>
 #include <smp.h>
+#include <mipsregs.h>
 
 extern void slave_entry(void);
 
@@ -37,5 +38,11 @@ void mach_smp_startup(void)
 	for (i = 1; i < nr_cpus(); ++i) {
 		write_msim_mailbox(i, (unsigned long)slave_entry);
 	}
+}
+
+void enable_ipi_interrupt(void)
+{
+	uint32_t status = read_c0_status();
+	write_c0_status(status | ST_IMx(6));
 }
 
