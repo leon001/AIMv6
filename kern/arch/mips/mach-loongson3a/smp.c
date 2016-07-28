@@ -42,9 +42,3 @@ void mach_smp_startup(void)
 	}
 }
 
-void enable_ipi_interrupt(void)
-{
-	uint32_t status = read_c0_status();
-	write_c0_status(status | ST_IMx(6));
-}
-
