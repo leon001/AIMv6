@@ -26,9 +26,13 @@
 
 #define PANIC_MASK	0x80000000
 
-static int __discard(struct trapframe *regs)
+static int (*__io_interrupt_handler)(void) = NULL;
+
+static int __io_interrupt(struct trapframe *regs)
 {
-	return 0;
+	if (__io_interrupt_handler == NULL)
+		return 0;
+	return __io_interrupt_handler();
 }
 
 static int __timer_interrupt(struct trapframe *regs)
@@ -57,10 +61,10 @@ static int __ipi_interrupt(struct trapframe *regs)
 static int (*__dispatch[])(struct trapframe *) = {
 	NULL,			/* Soft interrupt 0 */
 	NULL,			/* Soft interrupt 1 */
-	__discard,		/* LPC/UART interrupt */
-	__discard,		/* HT1 interrupt */
-	NULL,			/* Unused */
-	NULL,			/* Unused */
+	__io_interrupt,		/* LPC/UART interrupt */
+	__io_interrupt,		/* HT1 interrupt */
+	__io_interrupt,		/* Unused */
+	__io_interrupt,		/* Unused */
 	__ipi_interrupt,	/* IPI */
 	__timer_interrupt	/* Timer */
 };
@@ -80,6 +84,18 @@ int handle_interrupt(struct trapframe *regs)
 	}
 	/* NOTREACHED */
 	return -EINVAL;
+}
+
+void add_interrupt_handler(int (*handler)(void), int ncells, int *intr)
+{
+	/*
+	 * Here we are making all I/O handlers share a common entry
+	 * (provided by the interrupt handler of the root controller).
+	 * This requires that the root controller is able to discriminate
+	 * all I/O interrupts by itself.
+	 */
+	if (__io_interrupt_handler == NULL)
+		__io_interrupt_handler = handler;
 }
 
 void panic_other_cpus(void)

@@ -26,6 +26,7 @@
 #include <aim/device.h>
 #include <aim/initcalls.h>
 #include <util.h>
+#include <asm-generic/funcs.h>
 
 #include <asm.h>	/* inb() and outb() should be declared there */
 #include <io-port.h>
@@ -199,7 +200,6 @@ static struct bus_driver drv = {
 	.class = DEVCLASS_BUS,
 	.get_read_fp = __get_read_fp,
 	.get_write_fp = __get_write_fp,
-	.probe = NOP,
 };
 
 static int __driver_init(void)

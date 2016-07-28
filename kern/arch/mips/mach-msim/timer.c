@@ -47,14 +47,3 @@ void post_timer_interrupt(void)
 	write_c0_compare(compare + inc);
 }
 
-/*
- * XXX shall we merge all enable_timer_interrupts() into one common routine?
- * I wonder if there are weird MIPS timers which requires other stuffs to be
- * done...
- */
-void enable_timer_interrupt(void)
-{
-	uint32_t status = read_c0_status();
-	write_c0_status(status | ST_IMx(7));
-}
-

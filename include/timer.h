@@ -28,8 +28,6 @@
 void timer_init(void);
 void pre_timer_interrupt(void);
 void post_timer_interrupt(void);
-/* Mach-specific */
-void enable_timer_interrupt(void);
 
 /*
  * Platform-independent timer interrupt handler.

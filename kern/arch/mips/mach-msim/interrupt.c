@@ -38,6 +38,8 @@ static int __kbd_interrupt(struct trapframe *regs)
 {
 	int i;
 
+	if (cpuid() != 0)
+		return 0;
 	for (i = 0; i < MAJOR_MAX; ++i) {
 		if (__kbd_dispatch[i] != NULL)
 			__kbd_dispatch[i]();
@@ -49,6 +51,8 @@ static int __disk_interrupt(struct trapframe *regs)
 {
 	int i;
 
+	if (cpuid() != 0)
+		return 0;
 	for (i = 0; i < MAJOR_MAX; ++i) {
 		if (__disk_dispatch[i] != NULL)
 			__disk_dispatch[i]();
@@ -105,8 +109,6 @@ int handle_interrupt(struct trapframe *regs)
 
 void add_interrupt_handler(int (*handler)(void), int ncells, int *intr)
 {
-	uint32_t status;
-
 	switch (intr[0]) {
 	case 2:
 		__disk_dispatch[__disk_dispatch_count++] = handler;
@@ -115,13 +117,6 @@ void add_interrupt_handler(int (*handler)(void), int ncells, int *intr)
 		__kbd_dispatch[__kbd_dispatch_count++] = handler;
 		break;
 	}
-	/*
-	 * Additional work: enable handling the interrupt handler on CPU.
-	 * Ensures that only master CPU handles I/O interrupt.
-	 */
-	assert(cpuid() == 0);
-	status = read_c0_status();
-	write_c0_status(status | ST_IMx(intr[0]));
 }
 
 void panic_other_cpus(void)

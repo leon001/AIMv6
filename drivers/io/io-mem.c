@@ -132,7 +132,6 @@ static struct bus_driver drv = {
 	.class = DEVCLASS_BUS,
 	.get_read_fp = __get_read_fp,
 	.get_write_fp = __get_write_fp,
-	.probe = NOP,
 	.new = __new,
 };
 

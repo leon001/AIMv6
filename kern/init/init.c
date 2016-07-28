@@ -57,11 +57,6 @@ static void __noreturn rest_percpu_init(void)
  */
 static void __noreturn rest_init(void)
 {
-	/* Local timer interrupts and IPIs should be enabled prior to process
-	 * spawning. */
-	enable_timer_interrupt();
-	enable_ipi_interrupt();
-
 	spawn_initproc();
 	percpu_blocked = false;
 	rest_percpu_init();
@@ -166,6 +161,8 @@ void __noreturn master_init(void)
 
 	probe_devices();
 
+	for (;;)
+		;
 	/* startup smp */
 	smp_startup();
 
@@ -183,9 +180,6 @@ void __noreturn slave_init(void)
 
 	idle_init();
 	timer_init();
-
-	enable_timer_interrupt();
-	enable_ipi_interrupt();
 
 	while (percpu_blocked)
 		/* nothing */;

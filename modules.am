@@ -101,10 +101,22 @@ if MACH_MSIM
 MODULES += $(top_builddir)/kern/arch/$(ARCH)/mach-$(MACH)/tty.o
 endif
 
+if MACH_LOONGSON3A
+MODULES += $(top_builddir)/kern/arch/$(ARCH)/mach-$(MACH)/tty.o
+endif
+
 ###########
 # Storage #
 ###########
 
 if BLOCK_MSIM
 MODULES += $(top_builddir)/drivers/block/msim-ddisk.o
+endif
+
+########################
+# Interrupt controller #
+########################
+
+if MACH_LOONGSON3A
+MODULES += $(top_builddir)/kern/arch/$(ARCH)/mach-$(MACH)/introuter-ls3a.o
 endif

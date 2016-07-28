@@ -51,6 +51,9 @@ void initdev(struct device *dev, int class, const char *name, dev_t devno,
 	case DEVCLASS_BUS:
 		memcpy(&dev->bus_driver, drv, sizeof(dev->bus_driver));
 		break;
+	case DEVCLASS_NON:
+		memcpy(&dev->driver, drv, sizeof(dev->driver));
+		break;
 	default:
 		panic("%s: unknown device class %d\n", __func__, dev->class);
 	}
@@ -164,7 +167,8 @@ static bool __probe_devices(void)
 	/* Scan all known buses which support active probing, and probe
 	 * for new devices. */
 	for_each_device (dev, savep) {
-		if (dev->class == DEVCLASS_BUS)
+		if (dev->class == DEVCLASS_BUS &&
+		    dev->bus_driver.probe != NULL)
 			/* The probe() method will call discover_device()
 			 * which adds the device tree entry into the
 			 * undriven device entry list. */
@@ -202,11 +206,14 @@ static void __build_interrupt_tree(void)
 	for (i = 0; i < ndevtree_entries; ++i) {
 		entry = &devtree[i];
 		child = dev_from_name(entry->name);
-		if (child == NULL)
-			panic("%s: device %s not found", __func__, entry->name);
+		if (child == NULL) {
+			kpdebug("%s: device %s not found\n", __func__, entry->name);
+			continue;
+		}
 		if (strlen(entry->intr_parent) == 0) {
 			/* nothing, skip */
 		} else if (strcmp(entry->intr_parent, "cpu") == 0) {
+			assert(child->driver.intr != NULL);
 			add_interrupt_handler(child->driver.intr,
 			    entry->nintrcells, entry->intr);
 		} else {
@@ -214,6 +221,7 @@ static void __build_interrupt_tree(void)
 			if (parent == NULL)
 				panic("%s: parent %s not found", __func__,
 				    entry->name);
+			assert(parent->driver.attach_intr != NULL);
 			parent->driver.attach_intr(parent, child,
 			    entry->nintrcells, entry->intr);
 		}

@@ -22,6 +22,11 @@
 #include <mp.h>
 #include <platform.h>
 #include <aim/device.h>
+#include <mach-conf.h>
+
+#include "introuter-ls3a.h"
+
+dev_t rootdev;
 
 void early_mach_init(void)
 {
@@ -78,7 +83,7 @@ struct devtree_entry devtree[] = {
 		DEVTREE_IM_GEN,
 		"introuter-ls3a",
 		DEVTREE_INTR_AUTO,
-		{0},
+		{IR_LPC},
 	},
 	/* HyperTransport Bus #1 */
 	{
@@ -90,7 +95,7 @@ struct devtree_entry devtree[] = {
 		DEVTREE_IM_CTRL,
 		"introuter-ls3a",
 		DEVTREE_INTR_AUTO,
-		{0},
+		{IR_HT1_INTx(0)},
 	},
 	/* Port I/O */
 	{

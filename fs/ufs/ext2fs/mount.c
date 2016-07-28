@@ -52,31 +52,6 @@ rollback_rootvp:
 }
 
 /*
- * TODO: remove
- */
-static void
-__ext2fs_mounttest(void)
-{
-	struct buf *bp;
-	int err;
-	char buf1[1024], buf2[1024];
-
-	assert(rootvp != NULL);
-	assert(rootvp->type == VBLK);
-	assert(rootvp->specinfo != NULL);
-	assert(major(rootvp->specinfo->devno) == MSIM_DISK_MAJOR);
-	assert(minor(rootvp->specinfo->devno) == ROOT_PARTITION_ID);
-	assert(rootvp->specinfo->vnode == rootvp);
-	assert((err = bread(rootvp, 3, SBSIZE, &bp)) == 0);
-	memcpy(buf1, bp->data, 1024);
-	brelse(bp);
-	assert((err = bread(rootvp, 3, SBSIZE, &bp)) == 0);
-	memcpy(buf2, bp->data, 1024);
-	brelse(bp);
-	assert(memcmp(buf1, buf2, 1024) == 0);
-}
-
-/*
  * Check if the on-disk super block is valid.
  * Very ext2-specific, mostly comes from OpenBSD code and is not particularly
  * interesting.
@@ -202,9 +177,6 @@ ext2fs_mountfs(struct vnode *devvp, struct mount *mp, struct proc *p)
 	ump->superblock = sb;
 	mp->data = ump;
 	devvp->specinfo->mountpoint = mp;
-
-	/* TODO: temporary test */
-	__ext2fs_mounttest();
 
 	brelse(bp);
 	vunlock(devvp);

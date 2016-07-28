@@ -133,7 +133,7 @@ void register_driver(unsigned int major, struct driver *drv);
 /* Devices */
 #define DEV_NAME_MAX		64
 #define DEV_REG_MAX		10
-#define DEV_INTRCELL_MAX	2
+#define DEV_INTRCELL_MAX	10
 struct device {
 	char name[DEV_NAME_MAX];
 
@@ -257,9 +257,19 @@ struct devtree_entry {
 	 */
 	/* number of cells/parameters to fully describe an interrupt, or
 	 * a special negative value indicating how the interrupt descriptors
-	 * are decided */
+	 * are used for */
 	int	nintrcells;
-#define DEVTREE_INTR_AUTO	(-1)	/* own driver will decide */
+	/*
+	 * If @nintrcells == DEVTREE_INTR_AUTO, then @intr are used as
+	 * arguments understood by parent device driver when calling
+	 * its attach_intr() method, except when the parent is "cpu",
+	 * in which case the kernel always call add_interrupt_handler()
+	 * to register interrupts handlers for CPU.
+	 *
+	 * The meaning of arguments is arbitrary.  Consult the driver
+	 * documentation (if any) or code (sorry ._. ) for details.
+	 */
+#define DEVTREE_INTR_AUTO	(-1)
 	/* the descriptor of interrupt it generates, if @nintrcells > 0 */
 	int	intr[DEV_INTRCELL_MAX];
 };
