@@ -26,7 +26,4 @@ void smp_startup(void);
 /* Returns 0 when succeed */
 int handle_ipi_interrupt(unsigned int msg);
 
-/* Mach-specific */
-void enable_ipi_interrupt(void);
-
 #endif
