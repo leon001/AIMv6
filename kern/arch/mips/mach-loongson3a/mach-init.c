@@ -112,7 +112,7 @@ struct devtree_entry devtree[] = {
 	/* Intel 8259A interrupt controller */
 	{
 		"i8259",
-		"i8259",
+		"i8259,normal-eoi",
 		"portio",
 		2,
 		{0x20, 0xa0}	/* master and slave */,

@@ -48,7 +48,7 @@ static struct chr_device __early_uart_ns16550 = {
 static void __uart_ns16550_init(struct chr_device *inst)
 {
 	struct bus_device *bus = inst->bus;
-	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, widthof(uint8_t));
+	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, 8);
 
 	if (bus_write8 == NULL)
 		return;		/* should panic? */
@@ -72,7 +72,7 @@ static void __uart_ns16550_init(struct chr_device *inst)
 static void __uart_ns16550_enable(struct chr_device *inst)
 {
 	struct bus_device *bus = inst->bus;
-	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, widthof(uint8_t));
+	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, 8);
 
 	if (bus_write8 == NULL)
 		return;		/* should panic? */
@@ -84,7 +84,7 @@ static void __uart_ns16550_enable(struct chr_device *inst)
 static void __uart_ns16550_disable(struct chr_device *inst)
 {
 	struct bus_device *bus = inst->bus;
-	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, widthof(uint8_t));
+	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, 8);
 
 	if (bus_write8 == NULL)
 		return;		/* should panic? */
@@ -95,7 +95,7 @@ static void __uart_ns16550_disable(struct chr_device *inst)
 static void __uart_ns16550_enable_interrupt(struct chr_device *inst)
 {
 	struct bus_device *bus = inst->bus;
-	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, widthof(uint8_t));
+	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, 8);
 
 	if (bus_write8 == NULL)
 		return;		/* should panic? */
@@ -106,7 +106,7 @@ static void __uart_ns16550_enable_interrupt(struct chr_device *inst)
 static void __uart_ns16550_disable_interrupt(struct chr_device *inst)
 {
 	struct bus_device *bus = inst->bus;
-	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, widthof(uint8_t));
+	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, 8);
 
 	if (bus_write8 == NULL)
 		return;		/* should panic? */
@@ -117,7 +117,7 @@ static void __uart_ns16550_disable_interrupt(struct chr_device *inst)
 static unsigned char __uart_ns16550_getchar(struct chr_device *inst)
 {
 	struct bus_device *bus = inst->bus;
-	bus_read_fp bus_read8 = bus->bus_driver.get_read_fp(bus, widthof(uint8_t));
+	bus_read_fp bus_read8 = bus->bus_driver.get_read_fp(bus, 8);
 	uint64_t buf;
 
 	if (bus_read8 == NULL)
@@ -133,8 +133,8 @@ static unsigned char __uart_ns16550_getchar(struct chr_device *inst)
 static int __uart_ns16550_putchar(struct chr_device *inst, unsigned char c)
 {
 	struct bus_device *bus = inst->bus;
-	bus_read_fp bus_read8 = bus->bus_driver.get_read_fp(bus, widthof(uint8_t));
-	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, widthof(uint8_t));
+	bus_read_fp bus_read8 = bus->bus_driver.get_read_fp(bus, 8);
+	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, 8);
 	uint64_t buf;
 
 	if (bus_read8 == NULL || bus_write8 == NULL)
@@ -197,6 +197,8 @@ int early_console_init(void)
 		for (;;) ;	/* panic */
 	return 0;
 }
+
+#include "uart-ns16550-kernel.c"
 
 #endif /* RAW */
 

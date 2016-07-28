@@ -161,8 +161,16 @@ void __noreturn master_init(void)
 
 	probe_devices();
 
+	kprintf("KERN: probe device done\n");
+	/* temporary */
+#if 1
+	idle_init();
+	timer_init();
+	local_irq_enable();
 	for (;;)
 		;
+#endif
+
 	/* startup smp */
 	smp_startup();
 

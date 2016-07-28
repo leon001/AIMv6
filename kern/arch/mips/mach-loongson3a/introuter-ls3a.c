@@ -38,12 +38,14 @@ static void __init(struct device *dev)
 	bus_write8(bus, dev->base + IR_LPC, IR_CPU(0) | IR_IP(2));
 	inten |= 1 << IR_LPC;
 	/* Route all HT1 interrupts to CPU #0 IP3 */
-	for (int i = 0; i < 7; ++i) {
+	for (int i = 0; i < 8; ++i) {
 		bus_write8(bus, dev->base + IR_HT1_INTx(i), IR_CPU(0) | IR_IP(3));
 		inten |= 1 << IR_HT1_INTx(i);
 	}
 	/* Enable all HT1 interrupts and LPC interrupt */
 	bus_write32(bus, dev->base + IR_INTENSET, inten);
+	bus_read32(bus, dev->base + IR_INTEN, &inten);
+	kpdebug("Loongson 3A router interrupt enable: %08x\n", inten);
 }
 
 static int __new(struct devtree_entry *entry)
@@ -89,10 +91,12 @@ static int __attach_intr(struct device *parent, struct device *child,
 {
 	assert(ncells == DEVTREE_INTR_AUTO);
 
-	kpdebug("Attaching interrupts from %s to %s", child->name, parent->name);
+	kpdebug("Attaching interrupts from %s to %s\n", child->name, parent->name);
 	if (intr[0] == IR_LPC) {
+		kpdebug("Attaching LPC interrupt %p\n", child->driver.intr);
 		handlers[IR_LPC] = child->driver.intr;
 	} else if (intr[0] == IR_HT1_INTx(0)) {
+		kpdebug("Attaching HT1 interrupts\n");
 		for (int i = 0; i < 8; ++i)
 			/* Assume that all HT1 interrupts share the same
 			 * handler. */

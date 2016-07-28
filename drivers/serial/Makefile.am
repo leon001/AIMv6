@@ -39,7 +39,8 @@ endif
 if UART_NS16550
 MODULE_SRCS += uart-ns16550.h uart-ns16550.c uart-ns16550-hw.h
 noinst_DATA += uart-ns16550.o
-uart-ns16550.o: uart-ns16550.c uart-ns16550.h uart-ns16550-hw.h
+uart-ns16550.o: uart-ns16550.c uart-ns16550.h uart-ns16550-hw.h \
+	uart-ns16550-kernel.c
 endif
 
 libserial_raw_la_SOURCES = $(SRCS) $(MODULE_SRCS)

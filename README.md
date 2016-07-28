@@ -213,6 +213,14 @@ to connect to the gdb server brought up by MSIM.
 You should prepare a SATA-to-USB converter or something to enable you to upload
 your kernel image into the hard disk inside Loongson 3A box.
 
+Also, you probably need to use a machine with serial port (which is,
+unfortunately, unavailable on most laptops), or a serial-to-USB converter.
+Currently we are only using serial consoles for input/output, as VGA and
+USB keyboard is too complicated for a teaching operating system.
+
+You need a modem connector program such as "minicom" to work.  **Make sure you
+turn off Hardware Flow Control!**
+
 Replace the `boot/vmlinux` file with the kernel image you compiled, and you're
 done.
 

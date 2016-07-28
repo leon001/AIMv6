@@ -38,7 +38,7 @@ static struct {
 	int head;
 	int tail;
 	lock_t lock;
-} cbuf = { {0}, 0, 0 };
+} cbuf = { {0}, 0, 0, EMPTY_LOCK(&cbuf.lock) };
 
 static struct chr_driver kbddrv, lpdrv;
 
@@ -198,7 +198,6 @@ static int __driver_init(void)
 {
 	register_driver(MSIM_LP_MAJOR, &lpdrv);
 	register_driver(MSIM_KBD_MAJOR, &kbddrv);
-	spinlock_init(&cbuf.lock);
 	return 0;
 }
 INITCALL_DRIVER(__driver_init);
