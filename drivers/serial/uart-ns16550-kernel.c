@@ -1,5 +1,4 @@
 
-#include <aim/device.h>
 #include <sys/types.h>
 #include <aim/device.h>
 #include <aim/initcalls.h>

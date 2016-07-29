@@ -33,7 +33,7 @@ static int __msim_dd_check_interrupt(struct blk_device *dev)
 	uint64_t result;
 	struct bus_device *bus = dev->bus;
 	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
-	bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_STAT), &result);
+	bus_read32(bus, dev->base, MSIM_DD_STAT, &result);
 	return !!(result & STAT_INTR);
 }
 
@@ -42,7 +42,7 @@ static int __msim_dd_check_error(struct blk_device *dev)
 	uint64_t result;
 	struct bus_device *bus = dev->bus;
 	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
-	bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_STAT), &result);
+	bus_read32(bus, dev->base, MSIM_DD_STAT, &result);
 	return !!(result & STAT_ERROR);
 }
 
@@ -50,14 +50,14 @@ static void __msim_dd_ack_interrupt(struct blk_device *dev)
 {
 	struct bus_device *bus = dev->bus;
 	bus_write_fp bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
-	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_COMMAND), CMD_ACK);
+	bus_write32(bus, dev->base, MSIM_DD_COMMAND, CMD_ACK);
 }
 
 static void __msim_dd_init(struct blk_device *dev)
 {
 	struct bus_device *bus = dev->bus;
 	bus_write_fp bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
-	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
+	bus_write32(bus, dev->base, MSIM_DD_DMAADDR, kva2pa(msim_dd_dma));
 }
 
 static size_t __msim_dd_get_sector_count(struct blk_device *dev)
@@ -65,29 +65,30 @@ static size_t __msim_dd_get_sector_count(struct blk_device *dev)
 	struct bus_device *bus = dev->bus;
 	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
 	uint64_t result;
-	bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_SIZE), &result);
+	bus_read32(bus, dev->base, MSIM_DD_SIZE, &result);
 	return (size_t)result;
 }
 
 /*
  * Read sector, returns 0 if successful.
  */
-static int __msim_dd_read_sector(struct blk_device *dev, size_t sect, void *buf, bool poll)
+static int
+__msim_dd_read_sector(struct blk_device *dev, size_t sect, void *buf, bool poll)
 {
 	struct bus_device *bus = dev->bus;
 	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
 	bus_write_fp bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
 	uint64_t result;
 
-	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
-	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_SECTOR), sect);
-	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_COMMAND), CMD_READ);
+	bus_write32(bus, dev->base, MSIM_DD_DMAADDR, kva2pa(msim_dd_dma));
+	bus_write32(bus, dev->base, MSIM_DD_SECTOR, sect);
+	bus_write32(bus, dev->base, MSIM_DD_COMMAND, CMD_READ);
 	if (poll) {
 		while (!__msim_dd_check_interrupt(dev))
 			/* nothing */;
 		/* Clear interrupt */
 		__msim_dd_ack_interrupt(dev);
-		bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_STAT), &result);
+		bus_read32(bus, dev->base, MSIM_DD_STAT, &result);
 		if (result & STAT_ERROR) {
 			return -1;
 		} else {
@@ -99,7 +100,8 @@ static int __msim_dd_read_sector(struct blk_device *dev, size_t sect, void *buf,
 	}
 }
 
-static int __msim_dd_write_sector(struct blk_device *dev, size_t sect, void *buf, bool poll)
+static int
+__msim_dd_write_sector(struct blk_device *dev, size_t sect, void *buf, bool poll)
 {
 	struct bus_device *bus = dev->bus;
 	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
@@ -107,15 +109,15 @@ static int __msim_dd_write_sector(struct blk_device *dev, size_t sect, void *buf
 	uint64_t result;
 
 	memcpy(msim_dd_dma, buf, SECTOR_SIZE);
-	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_DMAADDR), kva2pa(msim_dd_dma));
-	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_SECTOR), sect);
-	bus_write32(bus, MSIM_DD_REG(dev->base, MSIM_DD_COMMAND), CMD_WRITE);
+	bus_write32(bus, dev->base, MSIM_DD_DMAADDR, kva2pa(msim_dd_dma));
+	bus_write32(bus, dev->base, MSIM_DD_SECTOR, sect);
+	bus_write32(bus, dev->base, MSIM_DD_COMMAND, CMD_WRITE);
 	if (poll) {
 		while (!__msim_dd_check_interrupt(dev))
 			/* nothing */;
 		/* Clear interrupt */
 		__msim_dd_ack_interrupt(dev);
-		bus_read32(bus, MSIM_DD_REG(dev->base, MSIM_DD_STAT), &result);
+		bus_read32(bus, dev->base, MSIM_DD_STAT, &result);
 		if (result & STAT_ERROR)
 			return -1;
 		else

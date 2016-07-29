@@ -33,9 +33,9 @@ static void __init(struct device *dev)
 	bus_write_fp bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
 	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
 	uint64_t inten;
-	bus_read32(bus, dev->base + IR_INTEN, &inten);
+	bus_read32(bus, dev->base, IR_INTEN, &inten);
 	/* Route LPC interrupts to CPU #0 IP2 */
-	bus_write8(bus, dev->base + IR_LPC, IR_CPU(0) | IR_IP(2));
+	bus_write8(bus, dev->base, IR_LPC, IR_CPU(0) | IR_IP(2));
 	inten |= 1 << IR_LPC;
 	/* Route all HT1 interrupts to CPU #0 IP3 */
 	for (int i = 0; i < 8; ++i) {
@@ -43,8 +43,8 @@ static void __init(struct device *dev)
 		inten |= 1 << IR_HT1_INTx(i);
 	}
 	/* Enable all HT1 interrupts and LPC interrupt */
-	bus_write32(bus, dev->base + IR_INTENSET, inten);
-	bus_read32(bus, dev->base + IR_INTEN, &inten);
+	bus_write32(bus, dev->base, IR_INTENSET, inten);
+	bus_read32(bus, dev->base, IR_INTEN, &inten);
 	kpdebug("Loongson 3A router interrupt enable: %08x\n", inten);
 }
 
@@ -75,7 +75,7 @@ static int __intr(void)
 	bus_read_fp bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
 	uint64_t isr;
 
-	bus_read32(bus, introuter->base + IR_INTISR, &isr);
+	bus_read32(bus, introuter->base, IR_INTISR, &isr);
 
 	/* Currently we only handle LPC and HT1 interrupts */
 	for (int i = 0; i < IR_SYSINTS; ++i) {

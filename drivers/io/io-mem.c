@@ -39,43 +39,49 @@
 
 #include <io-mem.h>
 
-static int __read8(struct bus_device * inst, addr_t addr, uint64_t *ptr)
+static int __read8(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t *ptr)
 {
-	*ptr = (uint64_t)read8(addr);
+	*ptr = (uint64_t)read8(base + offset);
 	return 0;
 }
 
-static int __read16(struct bus_device * inst, addr_t addr, uint64_t *ptr)
+static int __read16(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t *ptr)
 {
-	*ptr = (uint64_t)read16(addr);
+	*ptr = (uint64_t)read16(base + offset);
 	return 0;
 }
 
-static int __read32(struct bus_device * inst, addr_t addr, uint64_t *ptr)
+static int __read32(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t *ptr)
 {
-	*ptr = (uint64_t)read32(addr);
+	*ptr = (uint64_t)read32(base + offset);
 	return 0;
 }
 
-static int __write8(struct bus_device * inst, addr_t addr, uint64_t val)
+static int __write8(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t val)
 {
-	write8(addr, (uint8_t)val);
+	write8(base + offset, (uint8_t)val);
 	return 0;
 }
 
-static int __write16(struct bus_device * inst, addr_t addr, uint64_t val)
+static int __write16(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t val)
 {
-	write16(addr, (uint16_t)val);
+	write16(base + offset, (uint16_t)val);
 	return 0;
 }
 
-static int __write32(struct bus_device * inst, addr_t addr, uint64_t val)
+static int __write32(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t val)
 {
-	write32(addr, (uint32_t)val);
+	write32(base + offset, (uint32_t)val);
 	return 0;
 }
 
-static bus_read_fp __get_read_fp(struct bus_device * inst, int data_width)
+static bus_read_fp __get_read_fp(struct bus_device *inst, int data_width)
 {
 	switch (data_width) {
 		case 8: return __read8;
@@ -85,7 +91,7 @@ static bus_read_fp __get_read_fp(struct bus_device * inst, int data_width)
 	return NULL;
 }
 
-static bus_write_fp __get_write_fp(struct bus_device * inst, int data_width)
+static bus_write_fp __get_write_fp(struct bus_device *inst, int data_width)
 {
 	switch (data_width) {
 		case 8: return __write8;

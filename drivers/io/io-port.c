@@ -45,86 +45,92 @@
  * address space should be redirected to memory bus, so the 'else'
  * branches in read/write functions below are never reached.
  */
-static int __read8(struct bus_device *inst, addr_t addr, uint64_t *ptr)
+static int __read8(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t *ptr)
 {
 	struct bus_device *bus = inst->bus;
 	bus_read_fp bus_read8;
 
 	if (bus) {
 		bus_read8 = bus->bus_driver.get_read_fp(bus, 8);
-		return bus_read8(bus, inst->base + addr, ptr);
+		return bus_read8(bus, inst->base, base + offset, ptr);
 	} else {
-		*ptr = inb((uint16_t)addr);
+		*ptr = inb((uint16_t)(base + offset));
 		return 0;
 	}
 }
 
-static int __write8(struct bus_device *inst, addr_t addr, uint64_t val)
+static int __write8(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t val)
 {
 	struct bus_device *bus = inst->bus;
 	bus_write_fp bus_write8;
 
 	if (bus) {
 		bus_write8 = bus->bus_driver.get_write_fp(bus, 8);
-		return bus_write8(bus, inst->base + addr, val);
+		return bus_write8(bus, inst->base, base + offset, val);
 	} else {
-		outb((uint16_t)addr, val);
+		outb((uint16_t)(base + offset), val);
 		return 0;
 	}
 }
 
-static int __read16(struct bus_device *inst, addr_t addr, uint64_t *ptr)
+static int __read16(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t *ptr)
 {
 	struct bus_device *bus = inst->bus;
 	bus_read_fp bus_read16;
 
 	if (bus) {
 		bus_read16 = bus->bus_driver.get_read_fp(bus, 16);
-		return bus_read16(bus, inst->base + addr, ptr);
+		return bus_read16(bus, inst->base, base + offset, ptr);
 	} else {
-		*ptr = inw((uint16_t)addr);
+		*ptr = inw((uint16_t)(base + offset));
 		return 0;
 	}
 }
 
-static int __write16(struct bus_device *inst, addr_t addr, uint64_t val)
+static int __write16(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t val)
 {
 	struct bus_device *bus = inst->bus;
 	bus_write_fp bus_write16;
 
 	if (bus) {
 		bus_write16 = bus->bus_driver.get_write_fp(bus, 16);
-		return bus_write16(bus, inst->base + addr, val);
+		return bus_write16(bus, inst->base, base + offset, val);
 	} else {
-		outw((uint16_t)addr, val);
+		outw((uint16_t)(base + offset), val);
 		return 0;
 	}
 }
 
-static int __read32(struct bus_device *inst, addr_t addr, uint64_t *ptr)
+static int __read32(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t *ptr)
 {
 	struct bus_device *bus = inst->bus;
 	bus_read_fp bus_read32;
 
 	if (bus) {
 		bus_read32 = bus->bus_driver.get_read_fp(bus, 32);
-		return bus_read32(bus, inst->base + addr, ptr);
+		return bus_read32(bus, inst->base, base + offset, ptr);
 	} else {
-		*ptr = ind((uint32_t)addr);
+		*ptr = ind((uint16_t)(base + offset));
 		return 0;
 	}
 }
 
-static int __write32(struct bus_device *inst, addr_t addr, uint64_t val)
+static int __write32(struct bus_device *inst, addr_t base, addr_t offset,
+    uint64_t val)
 {
 	struct bus_device *bus = inst->bus;
 	bus_write_fp bus_write32;
 
 	if (bus) {
 		bus_write32 = bus->bus_driver.get_write_fp(bus, 32);
-		return bus_write32(bus, inst->base + addr, val);
+		return bus_write32(bus, inst->base, base + offset, val);
 	} else {
-		outd((uint32_t)addr, val);
+		outd((uint16_t)(base + offset), val);
 		return 0;
 	}
 }

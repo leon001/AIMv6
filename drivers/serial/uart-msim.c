@@ -59,7 +59,7 @@ static int __uart_msim_putchar(struct chr_device *lp, unsigned char c)
 {
 	struct bus_device *bus = lp->bus;
 	bus_write_fp bus_write8 = bus->bus_driver.get_write_fp(bus, 8);
-	bus_write8(bus, lp->base, c);
+	bus_write8(bus, lp->base, 0, c);
 	return 0;
 }
 
@@ -71,7 +71,7 @@ static unsigned char __uart_msim_getchar(struct chr_device *kbd)
 	bus_read_fp bus_read8 = bus->bus_driver.get_read_fp(bus, 8);
 
 	do {
-		bus_read8(bus, kbd->base, &b);
+		bus_read8(bus, kbd->base, 0, &b);
 	} while (!b);
 
 	return b;

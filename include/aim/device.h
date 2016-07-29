@@ -98,9 +98,9 @@ struct net_driver {
  * TODO: explain why we fix buffer pointer as a uint64_t pointer.
  */
 typedef int (*bus_read_fp)(struct bus_device *inst,
-	addr_t addr, uint64_t *ptr);
+	addr_t base, addr_t offset, uint64_t *ptr);
 typedef int (*bus_write_fp)(struct bus_device *inst,
-	addr_t addr, uint64_t val);
+	addr_t base, addr_t offset, uint64_t val);
 
 /*
  * To get acess routines like listed above, a caller should ask for them.

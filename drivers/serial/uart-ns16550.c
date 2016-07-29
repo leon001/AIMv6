@@ -55,15 +55,15 @@ static void __uart_ns16550_init(struct chr_device *inst)
 
 	/* TODO: check if the following configuration works across all
 	 * UARTs */
-	bus_write8(bus, inst->base + UART_FIFO_CONTROL,
+	bus_write8(bus, inst->base, UART_FIFO_CONTROL,
 	    UART_FCR_RTB_4 | UART_FCR_RST_TRANSMIT | UART_FCR_RST_RECEIVER |
 	    UART_FCR_ENABLE);
-	bus_write8(bus, inst->base + UART_LINE_CONTROL, UART_LCR_DLAB);
-	bus_write8(bus, inst->base + UART_DIVISOR_LSB,
+	bus_write8(bus, inst->base, UART_LINE_CONTROL, UART_LCR_DLAB);
+	bus_write8(bus, inst->base, UART_DIVISOR_LSB,
 	    (UART_FREQ / UART_BAUDRATE) & 0xff);
-	bus_write8(bus, inst->base + UART_DIVISOR_MSB,
+	bus_write8(bus, inst->base, UART_DIVISOR_MSB,
 	    ((UART_FREQ / UART_BAUDRATE) >> 8) & 0xff);
-	bus_write8(bus, inst->base + UART_LINE_CONTROL,
+	bus_write8(bus, inst->base, UART_LINE_CONTROL,
 	    UART_LCR_DATA_8BIT |
 	    UART_LCR_STOP_1BIT |
 	    UART_LCR_PARITY_NONE);
@@ -77,7 +77,7 @@ static void __uart_ns16550_enable(struct chr_device *inst)
 	if (bus_write8 == NULL)
 		return;		/* should panic? */
 
-	bus_write8(bus, inst->base + UART_MODEM_CONTROL,
+	bus_write8(bus, inst->base, UART_MODEM_CONTROL,
 	    UART_MCR_RTSC | UART_MCR_DTRC);
 }
 
@@ -89,7 +89,7 @@ static void __uart_ns16550_disable(struct chr_device *inst)
 	if (bus_write8 == NULL)
 		return;		/* should panic? */
 
-	bus_write8(bus, inst->base + UART_MODEM_CONTROL, 0);
+	bus_write8(bus, inst->base, UART_MODEM_CONTROL, 0);
 }
 
 static void __uart_ns16550_enable_interrupt(struct chr_device *inst)
@@ -100,7 +100,7 @@ static void __uart_ns16550_enable_interrupt(struct chr_device *inst)
 	if (bus_write8 == NULL)
 		return;		/* should panic? */
 
-	bus_write8(bus, inst->base + UART_INTR_ENABLE, UART_IER_RBFI);
+	bus_write8(bus, inst->base, UART_INTR_ENABLE, UART_IER_RBFI);
 }
 
 static void __uart_ns16550_disable_interrupt(struct chr_device *inst)
@@ -111,7 +111,7 @@ static void __uart_ns16550_disable_interrupt(struct chr_device *inst)
 	if (bus_write8 == NULL)
 		return;		/* should panic? */
 
-	bus_write8(bus, inst->base + UART_INTR_ENABLE, 0);
+	bus_write8(bus, inst->base, UART_INTR_ENABLE, 0);
 }
 
 static unsigned char __uart_ns16550_getchar(struct chr_device *inst)
@@ -123,10 +123,10 @@ static unsigned char __uart_ns16550_getchar(struct chr_device *inst)
 	if (bus_read8 == NULL)
 		return 0;		/* should panic? */
 	do {
-		bus_read8(bus, inst->base + UART_LINE_STATUS, &buf);
+		bus_read8(bus, inst->base, UART_LINE_STATUS, &buf);
 	} while (!(buf & UART_LSR_DATA_READY));
 
-	bus_read8(bus, inst->base + UART_RCV_BUFFER, &buf);
+	bus_read8(bus, inst->base, UART_RCV_BUFFER, &buf);
 	return (unsigned char)buf;
 }
 
@@ -141,10 +141,10 @@ static int __uart_ns16550_putchar(struct chr_device *inst, unsigned char c)
 		return EOF;
 
 	do {
-		bus_read8(bus, inst->base + UART_LINE_STATUS, &buf);
+		bus_read8(bus, inst->base, UART_LINE_STATUS, &buf);
 	} while (!(buf & UART_LSR_THRE));
 
-	bus_write8(bus, inst->base + UART_TRANS_HOLD, c);
+	bus_write8(bus, inst->base, UART_TRANS_HOLD, c);
 	return 0;
 }
 

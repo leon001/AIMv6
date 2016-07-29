@@ -18,6 +18,7 @@
 
 #include <drivers/io/io-port.h>
 #include <drivers/io/io-mem.h>
+#include <drivers/io/hypertransport.h>
 #include <io.h>
 #include <mp.h>
 #include <platform.h>
@@ -103,7 +104,7 @@ struct devtree_entry devtree[] = {
 		"portio",
 		"hypertransport1",
 		1,
-		{LOONGSON3A_HT_PORTIO_BASE},
+		{HT_PORTIO_BASE},
 		DEVTREE_IM_NONE,
 		"",
 		0,
@@ -127,7 +128,7 @@ struct devtree_entry devtree[] = {
 		"pci",
 		"hypertransport1",
 		1,
-		{LOONGSON3A_HT_PCICFG_BASE},
+		{HT_PCICFG_BASE},
 		DEVTREE_IM_CTRL,
 		"i8259",
 		DEVTREE_INTR_AUTO,
