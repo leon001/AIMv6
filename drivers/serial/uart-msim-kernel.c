@@ -71,7 +71,7 @@ static int __kbdopen(dev_t devno, int mode, struct proc *p)
 	return __open(devno, mode, p, true);
 }
 
-static int __kbdintr(void)
+static int __kbdintr(int irq)
 {
 	struct chr_device *kbd;
 	unsigned char c;

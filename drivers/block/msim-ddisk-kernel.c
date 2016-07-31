@@ -125,7 +125,7 @@ static void __startnext(struct hd_device *dev)
  * Modifies buf flags, should be called with interrupts disabled.  But since
  * this is an interrupt handler, interrupts must be disabled already.
  */
-static int __intr(void)
+static int __intr(int irq)
 {
 	/*
 	 * Theoretically we need to enumerate all hard disks to check

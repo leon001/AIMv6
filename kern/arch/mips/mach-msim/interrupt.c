@@ -27,10 +27,11 @@
 #include <panic.h>
 #include <mp.h>
 #include <sys/param.h>
+#include <trap.h>
 #include <mipsregs.h>
 
-static int (*__disk_dispatch)(void);
-static int (*__kbd_dispatch)(void);
+static int (*__disk_dispatch)(int);
+static int (*__kbd_dispatch)(int);
 
 void init_IRQ(void)
 {
@@ -41,7 +42,7 @@ static int __kbd_interrupt(struct trapframe *regs)
 	if (cpuid() != 0)
 		return 0;
 	if (__kbd_dispatch != NULL)
-		__kbd_dispatch();
+		__kbd_dispatch(3);	/* IRQ does not matter */
 	return 0;
 }
 
@@ -50,7 +51,7 @@ static int __disk_interrupt(struct trapframe *regs)
 	if (cpuid() != 0)
 		return 0;
 	if (__disk_dispatch != NULL)
-		__disk_dispatch();
+		__disk_dispatch(2);	/* IRQ does not matter */
 	return 0;
 }
 
@@ -101,7 +102,7 @@ int handle_interrupt(struct trapframe *regs)
 	return -EINVAL;
 }
 
-void add_interrupt_handler(int (*handler)(void), int irq)
+void add_interrupt_handler(int (*handler)(int), int irq)
 {
 	switch (irq) {
 	case 2:

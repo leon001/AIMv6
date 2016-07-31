@@ -19,7 +19,7 @@ static struct {
 	lock_t lock;
 } cbuf = { {0}, 0, 0, EMPTY_LOCK(&cbuf.lock) };
 
-static int __intr(void)
+static int __intr(int irq)
 {
 	struct chr_device *dev;
 	unsigned char c;

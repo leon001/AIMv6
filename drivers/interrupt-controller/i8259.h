@@ -17,4 +17,7 @@
 
 #define PIC_SPEC_EOI		0x60
 
+void i8259_init(bool auto_eoi);
+void i8259_eoi(int irq);
+
 #endif
