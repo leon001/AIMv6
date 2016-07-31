@@ -389,6 +389,7 @@ AC_CONFIG_FILES([
 	boot/arch/mips/mach-msim/Makefile
 	doc/Makefile
 	drivers/Makefile
+	drivers/ata/Makefile
 	drivers/block/Makefile
 	drivers/common/Makefile
 	drivers/hd/Makefile

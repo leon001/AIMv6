@@ -23,6 +23,7 @@
 #include <timer.h>
 #include <mipsregs.h>
 #include <sys/types.h>
+#include <sleep.h>
 
 uint32_t inc;
 
@@ -46,5 +47,14 @@ void pre_timer_interrupt(void)
 
 void post_timer_interrupt(void)
 {
+}
+
+void udelay(unsigned int us)
+{
+	uint32_t count;
+
+	count = read_c0_count();
+	while (read_c0_count() < count + CPU_FREQ / 2 / 1000000 * us)
+		/* nothing */;
 }
 

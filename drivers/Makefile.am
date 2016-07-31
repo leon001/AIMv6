@@ -27,7 +27,8 @@ SUBDIRS = io \
 	  timer \
 	  hd \
 	  tty \
-	  common
+	  common \
+	  ata
 
 noinst_LTLIBRARIES = libdrivers-raw.la libdrivers.la
 

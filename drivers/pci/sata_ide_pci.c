@@ -13,7 +13,7 @@ static bool __check(struct pci_bus_device *pci, uint32_t tag,
 	entry->nregs = 6;
 	for (int i = 0; i < 6; ++i) {
 		pci->r32(pci, tag, PCI_BASE_ADDRESS_0 + 4 * i, &entry->regs[i]);
-		kpdebug("BAR%d: %08x\n", i, entry->regs[i]);
+		kpdebug("BAR%d: %08x\n", i, (unsigned long)entry->regs[i]);
 	}
 	pci->r8(pci, tag, PCI_INTERRUPT_LINE, &tmp);
 	entry->irq = (uint8_t)tmp;

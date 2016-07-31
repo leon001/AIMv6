@@ -8,6 +8,13 @@
 static struct pci_driver_table_entry modeltable[PCI_MODELS_MAX];
 static int nentries = 0;
 
+/*
+ * In practice this should be a (hash) list keeping all discovered PCI device
+ * tags.  Here, we use a single boolean variable since we are dealing with
+ * only one PCI device.
+ */
+static bool probed = false;
+
 void register_pci(uint16_t vendor, uint16_t device, char *model,
     bool (*check)(struct pci_bus_device *, uint32_t, struct devtree_entry *))
 {
@@ -38,6 +45,9 @@ int pci_probe(struct bus_device *inst)
 	bus = 0;
 	device = 17;
 	func = 0;
+	/* In practice we should look up the probed list of PCI tags */
+	if (probed)
+		return 0;
 	kprintf("Detecting PCI Bus %d Dev %d Func %d\n", bus, device, func);
 
 	tag = make_pci_tag(bus, device, func);
@@ -55,8 +65,10 @@ int pci_probe(struct bus_device *inst)
 			kpdebug("found device %s\n", entry.name);
 
 			/* Base Address Register and IRQ setups there */
-			if (modeltable[i].check(pci, tag, &entry))
+			if (modeltable[i].check(pci, tag, &entry)) {
+				probed = true;
 				discover_device(&entry);
+			}
 		}
 	}
 
