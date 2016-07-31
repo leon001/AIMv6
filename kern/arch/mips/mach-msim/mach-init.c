@@ -39,10 +39,7 @@ struct devtree_entry devtree[] = {
 		"",
 		0,
 		{0},
-		DEVTREE_IM_NONE,
-		"",
 		0,
-		{0},
 	},
 	/* MSIM disk */
 	{
@@ -51,10 +48,7 @@ struct devtree_entry devtree[] = {
 		"memory",
 		1,
 		{MSIM_DISK_PHYSADDR},
-		DEVTREE_IM_GEN,
-		"cpu",
-		1,
-		{2},
+		2,
 	},
 	/* MSIM line printer */
 	{
@@ -63,10 +57,7 @@ struct devtree_entry devtree[] = {
 		"memory",
 		1,
 		{MSIM_LP_PHYSADDR},
-		DEVTREE_IM_NONE,
-		"",
 		0,
-		{0},
 	},
 	/* MSIM keyboard */
 	{
@@ -75,10 +66,7 @@ struct devtree_entry devtree[] = {
 		"memory",
 		1,
 		{MSIM_KBD_PHYSADDR},
-		DEVTREE_IM_GEN,
-		"cpu",
-		1,
-		{3},
+		3,
 	},
 };
 

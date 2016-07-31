@@ -118,5 +118,5 @@ endif
 ########################
 
 if MACH_LOONGSON3A
-MODULES += $(top_builddir)/kern/arch/$(ARCH)/mach-$(MACH)/introuter-ls3a.o
+MODULES += $(top_builddir)/drivers/interrupt-controller/i8259.o
 endif

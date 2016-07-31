@@ -1,6 +1,6 @@
-# Copyright (C) 2016 David Gao <davidgao1001@gmail.com>
+# Copyright (C) 2016 Gan Quan <coin2028@hotmail.com>
 #
-# This file is part of AIMv6.
+# This program is part of AIMv6.
 #
 # AIMv6 is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,9 +17,11 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LTLIBRARIES = libloongson3a.la libloongson3aintr.la
-noinst_DATA = timer.o tty.o
+noinst_LTLIBRARIES = libintr.la
 
-libloongson3a_la_SOURCES = mach-init.c memory.c smp.c
+libintr_la_SOURCES =
 
-libloongson3aintr_la_SOURCES = interrupt.c
+if MACH_LOONGSON3A
+libintr_la_SOURCES += i8259.c i8259.h
+endif
+

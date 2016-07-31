@@ -158,6 +158,7 @@ static int __new(struct devtree_entry *entry, bool kbd)
 	dev->nregs = entry->nregs;
 	dev_add(dev);
 	__uart_msim_init(kbd ? NULL : dev, kbd ? dev : NULL);
+	add_interrupt_handler(__kbdintr, entry->irq);
 	return 0;
 }
 
@@ -191,7 +192,6 @@ static struct chr_driver kbddrv = {
 	.getc = __kbdgetc,
 	.putc = NOTSUP,
 	.new = __kbdnew,
-	.intr = __kbdintr,
 };
 
 static int __driver_init(void)

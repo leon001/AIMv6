@@ -19,6 +19,7 @@
 include $(top_srcdir)/env.am
 
 SUBDIRS = io \
+	  interrupt-controller \
 	  block \
 	  sd \
 	  serial \
@@ -44,6 +45,7 @@ libdrivers_raw_la_LDFLAGS = $(AM_LDFLAGS_NOPIC)
 libdrivers_la_SOURCES =
 libdrivers_la_LIBADD = \
 	$(builddir)/io/libio.la \
+	$(builddir)/interrupt-controller/libintr.la \
 	$(builddir)/serial/libserial.la \
 	$(builddir)/hd/libhd.la \
 	$(builddir)/common/libcommon.la \

@@ -31,6 +31,7 @@
 #include <asm.h>	/* inb() and outb() should be declared there */
 #include <io-port.h>
 #include <mm.h>
+#include <errno.h>
 
 /*
  * To determine whether we should interact with port I/O bus directly or
@@ -202,10 +203,32 @@ struct bus_device early_portio_bus = {
 
 #ifndef RAW
 
+#define DEVICE_MODEL	"portio"
+
+static struct bus_driver drv;
+
+static int __new(struct devtree_entry *entry)
+{
+	struct bus_device *dev;
+	if (strcmp(entry->model, DEVICE_MODEL) != 0)
+		return -ENOTSUP;
+	kpdebug("initializing I/O bus\n");
+	dev = kmalloc(sizeof(*dev), GFP_ZERO);
+	if (dev == NULL)
+		return -ENOMEM;
+	initdev(dev, DEVCLASS_BUS, entry->name, NODEV, &drv);
+	dev->bus = (struct bus_device *)dev_from_name(entry->parent);
+	dev->base = entry->regs[0];
+	dev->nregs = entry->nregs;
+	dev_add(dev);
+	return 0;
+}
+
 static struct bus_driver drv = {
 	.class = DEVCLASS_BUS,
 	.get_read_fp = __get_read_fp,
 	.get_write_fp = __get_write_fp,
+	.new = __new,
 };
 
 static int __driver_init(void)

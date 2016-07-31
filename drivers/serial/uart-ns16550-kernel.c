@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <mach-conf.h>
 #include <sched.h>
+#include <trap.h>
 
 #define DEVICE_MODEL	"ns16550"
 
@@ -17,27 +18,6 @@ static struct {
 	int tail;
 	lock_t lock;
 } cbuf = { {0}, 0, 0, EMPTY_LOCK(&cbuf.lock) };
-
-static int __new(struct devtree_entry *entry)
-{
-	struct chr_device *dev;
-
-	if (strcmp(entry->model, DEVICE_MODEL) != 0)
-		return -ENOTSUP;
-	kpdebug("initializing UART 16550\n");
-	dev = kmalloc(sizeof(*dev), GFP_ZERO);
-	if (dev == NULL)
-		return -ENOMEM;
-	initdev(dev, DEVCLASS_CHR, entry->name, makedev(UART_MAJOR, 0), &drv);
-	dev->bus = (struct bus_device *)dev_from_name(entry->parent);
-	dev->base = entry->regs[0];
-	dev->nregs = entry->nregs;
-	dev_add(dev);
-	__uart_ns16550_init(dev);
-	__uart_ns16550_enable(dev);
-	__uart_ns16550_enable_interrupt(dev);
-	return 0;
-}
 
 static int __intr(void)
 {
@@ -60,10 +40,33 @@ static int __intr(void)
 	return 0;
 }
 
+static int __new(struct devtree_entry *entry)
+{
+	struct chr_device *dev;
+
+	if (strcmp(entry->model, DEVICE_MODEL) != 0)
+		return -ENOTSUP;
+	kpdebug("initializing UART 16550\n");
+	dev = kmalloc(sizeof(*dev), GFP_ZERO);
+	if (dev == NULL)
+		return -ENOMEM;
+	initdev(dev, DEVCLASS_CHR, entry->name, makedev(UART_MAJOR, 0), &drv);
+	dev->bus = (struct bus_device *)dev_from_name(entry->parent);
+	dev->base = entry->regs[0];
+	dev->nregs = entry->nregs;
+	dev_add(dev);
+	/* Flush FIFO XXX */
+	kprintf("\n");
+	__uart_ns16550_init(dev);
+	__uart_ns16550_enable(dev);
+	__uart_ns16550_enable_interrupt(dev);
+	add_interrupt_handler(__intr, entry->irq);
+	return 0;
+}
+
 static struct chr_driver drv = {
 	.class = DEVCLASS_CHR,
 	.new = __new,
-	.intr = __intr,
 };
 
 static int __driver_init(void)

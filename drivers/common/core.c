@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <libc/string.h>
 #include <trap.h>
+#include <errno.h>
 
 /* drivers with associated major number */
 struct driver *devsw[MAJOR_MAX];
@@ -197,45 +198,11 @@ static bool __probe_devices(void)
 	return found;
 }
 
-static void __build_interrupt_tree(void)
-{
-	struct devtree_entry *entry;
-	struct device *parent, *child;
-	int i;
-
-	for (i = 0; i < ndevtree_entries; ++i) {
-		entry = &devtree[i];
-		child = dev_from_name(entry->name);
-		if (child == NULL) {
-			kpdebug("%s: device %s not found\n", __func__, entry->name);
-			continue;
-		}
-		if (strlen(entry->intr_parent) == 0) {
-			/* nothing, skip */
-		} else if (strcmp(entry->intr_parent, "cpu") == 0) {
-			assert(child->driver.intr != NULL);
-			add_interrupt_handler(child->driver.intr,
-			    entry->nintrcells, entry->intr);
-		} else {
-			parent = dev_from_name(entry->intr_parent);
-			if (parent == NULL)
-				panic("%s: parent %s not found", __func__,
-				    entry->name);
-			assert(parent->driver.attach_intr != NULL);
-			parent->driver.attach_intr(parent, child,
-			    entry->nintrcells, entry->intr);
-		}
-	}
-}
-
 void probe_devices(void)
 {
 	int i = 0;
-	/* Find devices and initialize their structures first. */
 	do {
 		kpdebug("probing devices: pass %d\n", ++i);
 	} while (__probe_devices());
-	/* Then build the interrupt tree */
-	__build_interrupt_tree();
 }
 

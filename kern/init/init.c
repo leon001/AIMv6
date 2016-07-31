@@ -160,8 +160,9 @@ void __noreturn master_init(void)
 	kpdebug("a = 0x%08x\n", a);
 
 	probe_devices();
-
 	kprintf("KERN: probe device done\n");
+
+	init_IRQ();
 	/* temporary */
 #if 1
 	idle_init();

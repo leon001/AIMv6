@@ -53,16 +53,6 @@ struct driver {
 	 * if not applicable.
 	 */
 	int (*new)(struct devtree_entry *);
-	/* The interrupt handler of that device */
-	int (*intr)(void);
-	/*
-	 * If an interrupt controller of some kind, add the child device
-	 * and the interrupt descriptor to the controller's dispatcher.
-	 * The interrupt descriptor @intr is understood by the parent, and
-	 * matches the @intr property of the device tree entry.
-	 */
-	int (*attach_intr)(struct device *parent, struct device *child,
-	    int ncells, int *intr);
 };
 
 struct chr_driver {
@@ -225,6 +215,9 @@ void probe_devices(void);
  *
  * The root device tree node could only be "memory" or "portio".
  *
+ * The names in device tree MUST NOT contain tilde ('~'), which is used
+ * internally for sub-devices.
+ *
  * Interrupt nexus is not supported.
  */
 struct devtree_entry {
@@ -238,40 +231,8 @@ struct devtree_entry {
 	int	nregs;
 	/* list of register space bases */
 	addr_t	regs[DEV_REG_MAX];
-	/* interrupt working mode */
-	enum {
-		DEVTREE_IM_NONE,	/* nothing to do with interrupt */
-		DEVTREE_IM_GEN,		/* generates interrupt */
-		DEVTREE_IM_CTRL,	/* is an interrupt controller */
-	} intr_mode;
-	/* the destination where this device will send interrupt, or "cpu" */
-	char	intr_parent[DEV_NAME_MAX];
-	/*
-	 * The following are only valid if the device is an interrupt
-	 * generator.  They are passed as arguments to the parent device's
-	 * attach_intr() method during interrupt tree construction.
-	 *
-	 * Technically they could be anything understood by the parent
-	 * device @intr_parent.  A common usage is to hold the interrupt
-	 * number the child device generates and sends to the parent device.
-	 */
-	/* number of cells/parameters to fully describe an interrupt, or
-	 * a special negative value indicating how the interrupt descriptors
-	 * are used for */
-	int	nintrcells;
-	/*
-	 * If @nintrcells == DEVTREE_INTR_AUTO, then @intr are used as
-	 * arguments understood by parent device driver when calling
-	 * its attach_intr() method, except when the parent is "cpu",
-	 * in which case the kernel always call add_interrupt_handler()
-	 * to register interrupts handlers for CPU.
-	 *
-	 * The meaning of arguments is arbitrary.  Consult the driver
-	 * documentation (if any) or code (sorry ._. ) for details.
-	 */
-#define DEVTREE_INTR_AUTO	(-1)
-	/* the descriptor of interrupt it generates, if @nintrcells > 0 */
-	int	intr[DEV_INTRCELL_MAX];
+	/* the IRQ number the device generates */
+	int	irq;
 };
 extern struct devtree_entry devtree[];
 extern int ndevtree_entries;	/* # of dev tree entries */

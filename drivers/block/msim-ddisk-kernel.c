@@ -234,6 +234,7 @@ static int __new(struct devtree_entry *entry)
 	list_init(&(hd->bufqueue));
 	dev_add(hd);
 	__init(hd);
+	add_interrupt_handler(__intr, entry->irq);
 	return 0;
 }
 
@@ -243,7 +244,6 @@ static struct blk_driver drv = {
 	.close = __close,
 	.strategy = __strategy,
 	.new = __new,
-	.intr = __intr,
 };
 
 static int __driver_init(void)

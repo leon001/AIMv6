@@ -29,34 +29,28 @@
 #include <sys/param.h>
 #include <mipsregs.h>
 
-static int (*__disk_dispatch[MAJOR_MAX])(void) = {0};
-static int __disk_dispatch_count = 0;
-static int (*__kbd_dispatch[MAJOR_MAX])(void) = {0};
-static int __kbd_dispatch_count = 0;
+static int (*__disk_dispatch)(void);
+static int (*__kbd_dispatch)(void);
+
+void init_IRQ(void)
+{
+}
 
 static int __kbd_interrupt(struct trapframe *regs)
 {
-	int i;
-
 	if (cpuid() != 0)
 		return 0;
-	for (i = 0; i < MAJOR_MAX; ++i) {
-		if (__kbd_dispatch[i] != NULL)
-			__kbd_dispatch[i]();
-	}
+	if (__kbd_dispatch != NULL)
+		__kbd_dispatch();
 	return 0;
 }
 
 static int __disk_interrupt(struct trapframe *regs)
 {
-	int i;
-
 	if (cpuid() != 0)
 		return 0;
-	for (i = 0; i < MAJOR_MAX; ++i) {
-		if (__disk_dispatch[i] != NULL)
-			__disk_dispatch[i]();
-	}
+	if (__disk_dispatch != NULL)
+		__disk_dispatch();
 	return 0;
 }
 
@@ -107,14 +101,14 @@ int handle_interrupt(struct trapframe *regs)
 	return -EINVAL;
 }
 
-void add_interrupt_handler(int (*handler)(void), int ncells, int *intr)
+void add_interrupt_handler(int (*handler)(void), int irq)
 {
-	switch (intr[0]) {
+	switch (irq) {
 	case 2:
-		__disk_dispatch[__disk_dispatch_count++] = handler;
+		__disk_dispatch = handler;
 		break;
 	case 3:
-		__kbd_dispatch[__kbd_dispatch_count++] = handler;
+		__kbd_dispatch = handler;
 		break;
 	}
 }
