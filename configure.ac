@@ -394,6 +394,7 @@ AC_CONFIG_FILES([
 	drivers/hd/Makefile
 	drivers/interrupt-controller/Makefile
 	drivers/io/Makefile
+	drivers/pci/Makefile
 	drivers/sd/Makefile
 	drivers/serial/Makefile
 	drivers/timer/Makefile

@@ -211,14 +211,10 @@ void probe_devices(void);
  * This structure is a subset of Device Tree Specification.  Here I'm
  * assuming that:
  * 1. Only one integer is needed to describe an address (#address-cells == 1).
- * 2. Each device can send interrupt to at most one device.
+ * 2. Each device know its IRQ number before registering handler to kernel.
+ *    (We do not implement IRQ detection here)
  *
  * The root device tree node could only be "memory" or "portio".
- *
- * The names in device tree MUST NOT contain tilde ('~'), which is used
- * internally for sub-devices.
- *
- * Interrupt nexus is not supported.
  */
 struct devtree_entry {
 	/* device name */

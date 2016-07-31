@@ -81,7 +81,7 @@ struct devtree_entry devtree[] = {
 		"memory",
 		1,
 		{LOONGSON3A_HT1_PCICFG_BASE},
-		I8259_IRQ_BASE,	/* coupled to IP3 */
+		0,		/* coupled to IP3 */
 	},
 	/* See drivers/io/hypertransport.c for an overview of HyperTransport */
 };

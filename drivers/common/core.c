@@ -110,6 +110,7 @@ void discover_device(struct devtree_entry *entry)
 		}
 	}
 
+	kpdebug("discovered device %s (model %s)\n", entry->name, entry->model);
 	entry_node = kmalloc(sizeof(*entry_node), 0);
 	entry_node->entry = *entry;
 	list_add_tail(&entry_node->node, &__undriven_devs);

@@ -17,12 +17,10 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LIBRARIES = libintr.a
-noinst_DATA = i8259.o
+noinst_LIBRARIES = libpci.a
+noinst_DATA = pci-mem.o
 
-libintr_a_SOURCES =
+libpci_a_SOURCES = pci-mem.c
 
-if MACH_LOONGSON3A
-libintr_a_SOURCES += i8259.c i8259.h
-endif
+pci-mem.o: pci-mem.c pci.c
 

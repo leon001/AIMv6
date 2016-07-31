@@ -120,3 +120,12 @@ endif
 if MACH_LOONGSON3A
 MODULES += $(top_builddir)/drivers/interrupt-controller/i8259.o
 endif
+
+#######
+# PCI #
+#######
+
+if MACH_LOONGSON3A
+MODULES += $(top_builddir)/drivers/pci/pci-mem.o
+endif
+
