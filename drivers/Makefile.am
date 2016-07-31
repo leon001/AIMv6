@@ -48,5 +48,6 @@ libdrivers_la_LIBADD = \
 	$(builddir)/io/libio.la \
 	$(builddir)/serial/libserial.la \
 	$(builddir)/hd/libhd.la \
+	$(builddir)/pci/libpci.la \
 	$(builddir)/common/libcommon.la \
 	$(builddir)/tty/libtty.la

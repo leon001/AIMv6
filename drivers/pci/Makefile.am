@@ -17,10 +17,10 @@
 
 include $(top_srcdir)/env.am
 
-noinst_LIBRARIES = libpci.a
-noinst_DATA = pci-mem.o
+noinst_LTLIBRARIES = libpci.la
+noinst_DATA = pci-mem.o sata_ide_pci.o
 
-libpci_a_SOURCES = pci-mem.c
+libpci_la_SOURCES = pci-core.c
 
 pci-mem.o: pci-mem.c pci.c
 

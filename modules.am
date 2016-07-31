@@ -127,5 +127,6 @@ endif
 
 if MACH_LOONGSON3A
 MODULES += $(top_builddir)/drivers/pci/pci-mem.o
+MODULES += $(top_builddir)/drivers/pci/sata_ide_pci.o
 endif
 
