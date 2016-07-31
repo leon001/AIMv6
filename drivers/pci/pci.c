@@ -31,7 +31,6 @@ static int __rw(struct bus_device *inst, addr_t base, addr_t offset,
 	bus_read_fp r;
 	bus_write_fp w;
 
-	kpdebug("PCI rw %p %p\n", (unsigned long)base, (unsigned long)offset);
 	switch (space) {
 	case PCI_BASE_ADDRESS_SPACE_IO:
 		bus = io;
@@ -44,20 +43,13 @@ static int __rw(struct bus_device *inst, addr_t base, addr_t offset,
 	default:
 		break;
 	}
-	kpdebug("PCI rw %p %p\n", (unsigned long)base, (unsigned long)offset);
 
 	if (write) {
 		w = bus->bus_driver.get_write_fp(bus, width);
-		kpdebug("PCI w %p %p %d %x\n",
-		    (unsigned long)base, (unsigned long)offset,
-		    width, (unsigned int)val_write);
 		w(bus, base, offset, val_write);
 	} else {
 		r = bus->bus_driver.get_read_fp(bus, width);
 		r(bus, base, offset, val_read);
-		kpdebug("PCI r %p %p %d %x\n",
-		    (unsigned long)base, (unsigned long)offset,
-		    width, (unsigned int)*val_read);
 	}
 
 	return 0;
