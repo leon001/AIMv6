@@ -13,7 +13,7 @@ At most three platforms are involved when cross building happens, `build`,
 and work with the machine code of `target`.
 
 If `build` is different from `host`, we are cross compiling. If `host` is
-different from `target`, programs built are cross compiling tools.
+different from `target`, programs are built by cross compiling tools.
 
 ## Native Toolchain
 
